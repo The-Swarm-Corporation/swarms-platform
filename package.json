@@ -36,6 +36,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-merge-refs": "^2.1.1",
+    "react-query": "^3.39.3",
     "stripe": "^14.16.0",
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "^3.4.1",

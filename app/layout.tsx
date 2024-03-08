@@ -5,6 +5,8 @@ import { Toaster } from '@/shared/components/ui/Toasts/toaster';
 import { PropsWithChildren, Suspense } from 'react';
 import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import SiteLayout from '@/shared/components/layout';
 
 const meta = {
   title: 'Next.js Subscription Starter',
@@ -45,7 +47,6 @@ export async function generateMetadata(): Promise<Metadata> {
     }
   };
 }
-
 export default async function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en">
@@ -55,7 +56,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
           id="skip"
           className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]"
         >
-          {children}
+          <SiteLayout>{children}</SiteLayout>
         </main>
         <Footer />
         <Suspense>
