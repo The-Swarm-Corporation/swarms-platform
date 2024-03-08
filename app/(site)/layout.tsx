@@ -5,15 +5,14 @@ import { Toaster } from '@/shared/components/ui/Toasts/toaster';
 import { PropsWithChildren, Suspense } from 'react';
 import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
-import { QueryClient, QueryClientProvider } from 'react-query';
 import SiteLayout from '@/shared/components/layout';
 
 const meta = {
-  title: 'Next.js Subscription Starter',
-  description: 'Brought to you by Vercel, Stripe, and Supabase.',
+  title: 'Swarms',
+  description: '',
   cardImage: '/og.png',
   robots: 'follow, index',
-  favicon: '/favicon.ico',
+  favicon: '/favicon.png',
   url: getURL()
 };
 

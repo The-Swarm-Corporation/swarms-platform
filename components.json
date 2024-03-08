@@ -6,8 +6,8 @@
   "tailwind": {
     "config": "tailwind.config.js",
     "css": "shared/styles/main.css",
-    "baseColor": "zinc",
-    "cssVariables": false
+    "baseColor": "rose",
+    "cssVariables": true
   },
   "aliases": {
     "components": "@/shared/components",

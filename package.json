@@ -31,7 +31,7 @@
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.5.1",
     "clsx": "^2.1.0",
-    "lucide-react": "0.330.0",
+    "lucide-react": "^0.352.0",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",

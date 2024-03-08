@@ -21,6 +21,7 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setIsSubmitting(true); // Disable the button while the request is being handled
     await handleRequest(e, signUp, router);
+
     setIsSubmitting(false);
   };
 
