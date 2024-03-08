@@ -5,8 +5,8 @@ module.exports = {
   darkMode: ['class', '[data-theme="dark"]'],
   content: [
     'app/**/*.{ts,tsx}',
-    'components/**/*.{ts,tsx}',
-    'pages/**/*.{ts,tsx}'
+    'shared/**/*.{ts,tsx}',
+    'modules/**/*.{ts,tsx}',
   ],
   theme: {
     container: {
