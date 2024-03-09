@@ -15,6 +15,17 @@ function isValidEmail(email: string) {
   return regex.test(email);
 }
 
+export async function checkUserSession() {
+  const supabase = createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return redirect('/signin');
+  }
+  return user;
+}
 export async function redirectToPath(path: string) {
   return redirect(path);
 }

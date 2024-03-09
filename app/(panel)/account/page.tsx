@@ -1,15 +1,13 @@
 import CustomerPortalForm from '@/shared/components/ui/AccountForms/CustomerPortalForm';
 import EmailForm from '@/shared/components/ui/AccountForms/EmailForm';
 import NameForm from '@/shared/components/ui/AccountForms/NameForm';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { createClient } from '@/shared/utils/supabase/server';
-import { redirect } from 'next/navigation';
 
 export default async function Account() {
   const supabase = createClient();
 
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const user = await checkUserSession();
 
   const { data: userDetails } = await supabase
     .from('users')
@@ -24,10 +22,6 @@ export default async function Account() {
 
   if (error) {
     console.log(error);
-  }
-
-  if (!user) {
-    return redirect('/signin');
   }
 
   return (

@@ -1,6 +1,7 @@
 import PanelLayout from '@/shared/components/panel-layout';
 import { Toaster } from '@/shared/components/ui/Toasts/toaster';
 import '@/shared/styles/main.css';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { getURL } from '@/shared/utils/helpers';
 import { Suspense } from 'react';
 
@@ -9,7 +10,9 @@ const meta = {
   description: '',
   url: getURL()
 };
-export default function Panel({ children }: { children: React.ReactNode }) {
+export default async function Panel({ children }: { children: React.ReactNode }) {
+  await checkUserSession();
+
   return (
     <html lang="en">
       <body className="bg-black loading">
