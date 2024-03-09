@@ -6,7 +6,7 @@
   "tailwind": {
     "config": "tailwind.config.js",
     "css": "shared/styles/main.css",
-    "baseColor": "rose",
+    "baseColor": "stone",
     "cssVariables": true
   },
   "aliases": {
