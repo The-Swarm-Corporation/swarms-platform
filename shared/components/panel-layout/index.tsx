@@ -13,16 +13,16 @@ const PanelLayout = ({ children }: { children: React.ReactNode }) => {
           <PanelLayoutSidebar />
         </div>
         {/* content */}
-        <div className="flex flex-col flex-5 w-full h-full overflow-scroll p-8">
+        <div className="flex container h-full overflow-scroll mx-auto py-8">
           <QueryClientProvider client={queryClient}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
           </QueryClientProvider>
         </div>
       </div>
