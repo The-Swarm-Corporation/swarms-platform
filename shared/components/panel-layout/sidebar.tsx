@@ -2,10 +2,11 @@ import { cn } from '@/shared/utils/cn';
 import { LockKeyhole, SquareChevronRight, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname,useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
+import { useTheme } from 'next-themes';
 
 const panelMenu: {
   icon?: React.ReactNode;
@@ -32,20 +33,15 @@ const panelMenu: {
 const PanelLayoutSidebar = () => {
   const path = usePathname();
   const router = useRouter();
+
   return (
     <>
       <div className="flex flex-col justify-between p-4 w-full h-screen">
         <div className="h-full">
           <div>
             {/* logo */}
-            <Link href={'/'}>
-              <Image
-                src="/swarms.svg"
-                alt="Logo"
-                width={44}
-                height={40}
-                objectFit="contain"
-              />
+            <Link href={'/'} className="inline-block">
+              <div className="bg-[url(/swarms-dark.svg)] dark:bg-[url(/swarms.svg)] bg-no-repeat object-contain w-[40px] h-[40px]"></div>
             </Link>
           </div>
 
@@ -56,12 +52,19 @@ const PanelLayoutSidebar = () => {
                 key={index}
                 href={item.link}
                 className={cn(
-                  'flex items-center justify-start p-2 py-3 my-1 hover:bg-primary text-white rounded-md outline-none',
-                  item.link === path && 'bg-primary'
+                  'group flex items-center justify-start p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md outline-none',
+                  item.link === path && 'bg-primary text-white'
                 )}
               >
                 {item.icon && (
-                  <span className="mr-2 text-gray-200">{item.icon}</span>
+                  <span
+                    className={cn(
+                      'mr-2 text-black dark:text-white group-hover:text-white',
+                      item.link === path && 'text-white'
+                    )}
+                  >
+                    {item.icon}
+                  </span>
                 )}
                 <span>{item.title}</span>
               </Link>
@@ -69,12 +72,9 @@ const PanelLayoutSidebar = () => {
           </div>
         </div>
         <div className="p-2">
-        
-        <form onSubmit={(e) => handleRequest(e, SignOut, router)}>
+          <form onSubmit={(e) => handleRequest(e, SignOut, router)}>
             <input type="hidden" name="pathName" value={usePathname()} />
-            <button type="submit">
-              Sign out
-            </button>
+            <button type="submit">Sign out</button>
           </form>
         </div>
       </div>
