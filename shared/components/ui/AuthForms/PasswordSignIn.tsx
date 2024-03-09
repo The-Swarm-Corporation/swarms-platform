@@ -1,6 +1,6 @@
 'use client';
 
-import Button from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/Button';
 import Link from 'next/link';
 import { signInWithPassword } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
@@ -57,7 +57,7 @@ export default function PasswordSignIn({
             />
           </div>
           <Button
-            variant="slim"
+            variant="outline"
             type="submit"
             className="mt-1"
             loading={isSubmitting}

@@ -1,6 +1,6 @@
 'use client';
 
-import Button from '@/shared/components/ui/Button';
+import {Button} from '@/shared/components/ui/Button';
 import Link from 'next/link';
 import { requestPasswordUpdate } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
@@ -50,7 +50,7 @@ export default function ForgotPassword({
             />
           </div>
           <Button
-            variant="slim"
+            variant="outline"
             type="submit"
             className="mt-1"
             loading={isSubmitting}
