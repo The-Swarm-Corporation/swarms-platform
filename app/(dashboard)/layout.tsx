@@ -2,6 +2,7 @@ import PanelLayout from '@/shared/components/panel-layout';
 import { Toaster } from '@/shared/components/ui/Toasts/toaster';
 import '@/shared/styles/main.css';
 import { getURL } from '@/shared/utils/helpers';
+import { Suspense } from 'react';
 
 const meta = {
   title: 'Swarms',
@@ -18,7 +19,9 @@ export default function Panel({ children }: { children: React.ReactNode }) {
         >
           <PanelLayout>{children}</PanelLayout>
         </main>
-        <Toaster />
+        <Suspense>
+          <Toaster />
+        </Suspense>
       </body>
     </html>
   );
