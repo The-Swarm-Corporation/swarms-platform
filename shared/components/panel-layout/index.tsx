@@ -9,11 +9,11 @@ const PanelLayout = ({ children }: { children: React.ReactNode }) => {
     <>
       <div className="flex flex-row w-screen h-screen">
         {/* sidebar */}
-        <div className="flex flex-col flex-1 flex-shrink w-1/6 h-screen border-r border-gray-900">
+        <div className="flex flex-col flex-shrink-0 w-[250px] h-screen border-r border-gray-900">
           <PanelLayoutSidebar />
         </div>
         {/* content */}
-        <div className="flex flex-col flex-5 w-5/6 h-full overflow-scroll p-8">
+        <div className="flex flex-col flex-5 w-full h-full overflow-scroll p-8">
           <QueryClientProvider client={queryClient}>
           <ThemeProvider
             attribute="class"
