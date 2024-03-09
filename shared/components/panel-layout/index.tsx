@@ -1,6 +1,7 @@
 'use client';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import PanelLayoutSidebar from './sidebar';
+import { ThemeProvider } from '../ui/theme-provider';
 
 const queryClient = new QueryClient();
 const PanelLayout = ({ children }: { children: React.ReactNode }) => {
@@ -14,7 +15,14 @@ const PanelLayout = ({ children }: { children: React.ReactNode }) => {
         {/* content */}
         <div className="flex flex-col flex-5 w-5/6 h-full overflow-scroll p-8">
           <QueryClientProvider client={queryClient}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             {children}
+          </ThemeProvider>
           </QueryClientProvider>
         </div>
       </div>

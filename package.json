@@ -33,6 +33,7 @@
     "clsx": "^2.1.0",
     "lucide-react": "^0.352.0",
     "next": "latest",
+    "next-themes": "^0.2.1",
     "react": "latest",
     "react-dom": "latest",
     "react-merge-refs": "^2.1.1",
