@@ -1,5 +1,11 @@
+'use client';
+
+import { trpc } from '@/shared/utils/trpc/trpc';
+
 const ApiKeys = () => {
-  
+  const test = trpc.test.useQuery();
+  console.log(test.data);
+
   return (
     <div className="flex flex-col w-5/6">
       <h1 className="text-3xl font-extrabold sm:text-4xl">API keys</h1>
