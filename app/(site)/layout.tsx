@@ -5,7 +5,6 @@ import { Toaster } from '@/shared/components/ui/Toasts/toaster';
 import { PropsWithChildren, Suspense } from 'react';
 import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
-import SiteLayout from '@/shared/components/layout';
 
 const meta = {
   title: 'Swarms',
@@ -55,7 +54,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
           id="skip"
           className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]"
         >
-          <SiteLayout>{children}</SiteLayout>
+          {children}
         </main>
         <Footer />
         <Suspense>
