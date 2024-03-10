@@ -1,5 +1,11 @@
 import { cn } from '@/shared/utils/cn';
-import { LockKeyhole, SquareChevronRight, User } from 'lucide-react';
+import {
+  CircleGauge,
+  LayoutDashboard,
+  LockKeyhole,
+  SquareChevronRight,
+  User
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
@@ -14,6 +20,11 @@ const panelMenu: {
   link: string;
 }[] = [
   {
+    icon: <LayoutDashboard size={24} />,
+    title: 'Dashboard',
+    link: PLATFORM.DASHBOARD
+  },
+  {
     icon: <SquareChevronRight size={24} />,
     title: 'Playground',
     link: PLATFORM.PLAYGROUND
@@ -22,6 +33,11 @@ const panelMenu: {
     icon: <LockKeyhole size={24} />,
     title: 'API keys',
     link: PLATFORM.API_KEYS
+  },
+  {
+    icon: <CircleGauge size={24} />,
+    title: 'Usage',
+    link: PLATFORM.USAGE
   },
   {
     icon: <User size={24} />,

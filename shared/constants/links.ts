@@ -1,6 +1,7 @@
 export const PLATFORM = {
   DASHBOARD: '/platform/dashboard',
   API_KEYS: '/platform/api-keys',
+  USAGE: '/platform/usage',
   ACCOUNT: '/platform/account',
   PLAYGROUND: '/platform/playground'
 };

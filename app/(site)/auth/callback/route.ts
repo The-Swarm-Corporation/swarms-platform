@@ -2,6 +2,7 @@ import { createClient } from '@/shared/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import { getErrorRedirect, getStatusRedirect } from '@/shared/utils/helpers';
+import { PLATFORM } from '@/shared/constants/links';
 
 export async function GET(request: NextRequest) {
   // The `/auth/callback` route is required for the server-side auth flow implemented
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
   // URL to redirect to after sign in process completes
   return NextResponse.redirect(
     getStatusRedirect(
-      `${requestUrl.origin}/account`,
+      `${requestUrl.origin}/${PLATFORM.ACCOUNT}`,
       'Success!',
       'You are now signed in.'
     )
