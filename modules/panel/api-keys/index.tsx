@@ -5,7 +5,6 @@ import Input from '@/shared/components/ui/Input';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,

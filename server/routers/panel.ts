@@ -13,9 +13,11 @@ const panelRouter = router({
     const user = ctx.session.data.session?.user as User;
     const apiKeys = await ctx.supabase
       .from('swarms_cloud_api_keys')
-      .select('id, name, created_at, key')
-      .eq('user_id', user.id);
-    // only show first 5 characters of key and last 5 characters of key
+      .select('id, name, is_deleted, created_at, key')
+      .eq('user_id', user.id)
+      .or(`is_deleted.eq.false, is_deleted.is.null`)
+      .order('created_at', { ascending: false });
+      
     return apiKeys.data?.map((row) => ({
       ...row,
       key: `${row?.key?.slice(0, 5)}.....${row?.key?.slice(-5)}`
@@ -53,12 +55,12 @@ const panelRouter = router({
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
-      const deletedApiKey = await ctx.supabase
+      const updatedApiKey = await ctx.supabase
         .from('swarms_cloud_api_keys')
-        .delete()
+        .update({ is_deleted: true })
         .eq('id', input)
         .eq('user_id', user.id);
-      if (!deletedApiKey.error) {
+      if (!updatedApiKey.error) {
         return true;
       }
       throw new TRPCError({
