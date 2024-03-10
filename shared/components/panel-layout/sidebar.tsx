@@ -7,6 +7,7 @@ import React from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
 import { useTheme } from 'next-themes';
+import Logo from '../icons/Logo';
 
 const panelMenu: {
   icon?: React.ReactNode;
@@ -40,9 +41,7 @@ const PanelLayoutSidebar = () => {
         <div className="h-full">
           <div>
             {/* logo */}
-            <Link href={'/'} className="inline-block">
-              <div className="bg-[url(/swarms-dark.svg)] dark:bg-[url(/swarms.svg)] bg-no-repeat object-contain w-[40px] h-[40px]"></div>
-            </Link>
+            <Logo />
           </div>
 
           {/* menu */}

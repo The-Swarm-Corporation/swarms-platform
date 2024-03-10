@@ -7,6 +7,7 @@ import Logo from '@/shared/components/icons/Logo';
 import { usePathname, useRouter } from 'next/navigation';
 import { getRedirectMethod } from '@/shared/utils/auth-helpers/settings';
 import s from './Navbar.module.css';
+import { DISCORD, PANEL, SWARMS_GITHUB } from '@/shared/constants/links';
 
 interface NavlinksProps {
   user?: any;
@@ -18,23 +19,21 @@ export default function Navlinks({ user }: NavlinksProps) {
   return (
     <div className="relative flex flex-row justify-between py-4 align-center md:py-6">
       <div className="flex items-center flex-1">
-        <Link href="/" className={s.logo} aria-label="Logo">
           <Logo />
-        </Link>
         <nav className="ml-6 space-x-2 lg:block">
           <Link href="/" className={s.link}>
             Pricing
           </Link>
-          <Link href="https://github.com/kyegomez/swarms" className={s.link}>
+          <Link href={SWARMS_GITHUB} className={s.link}>
             GitHub
           </Link>
-          <Link href="https://discord.gg/gRXy5mpFHz" className={s.link}>
+          <Link href={DISCORD} className={s.link}>
             Community
           </Link>
-          
+
           {user && (
-            <Link href="/account" className={s.link}>
-              Account
+            <Link href={PANEL.DASHBOARD} className={s.link}>
+              Dashboard
             </Link>
           )}
         </nav>

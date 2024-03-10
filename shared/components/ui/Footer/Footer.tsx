@@ -12,7 +12,7 @@ export default function Footer() {
             href="/"
             className="flex items-center flex-initial font-bold md:mr-24"
           >
-            <span className="mr-2 border rounded-full border-zinc-700">
+            <span className="mr-2 flex border-zinc-700">
               <Logo />
             </span>
             <span>TGSC</span>
@@ -127,16 +127,6 @@ export default function Footer() {
           <span>
             &copy; {new Date().getFullYear()} TGSC, Inc. All rights reserved.
           </span>
-        </div>
-        <div className="flex items-center">
-          <span className="text-white">Crafted by</span>
-          <a href="https://vercel.com" aria-label="Vercel.com Link">
-            <img
-              src="/vercel.svg"
-              alt="Vercel.com Logo"
-              className="inline-block h-6 ml-4 text-white"
-            />
-          </a>
         </div>
       </div>
     </footer>
