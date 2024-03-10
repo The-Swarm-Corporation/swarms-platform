@@ -25,6 +25,13 @@ export default function Navlinks({ user }: NavlinksProps) {
           <Link href="/" className={s.link}>
             Pricing
           </Link>
+          <Link href="https://github.com/kyegomez/swarms" className={s.link}>
+            GitHub
+          </Link>
+          <Link href="https://discord.gg/gRXy5mpFHz" className={s.link}>
+            Community
+          </Link>
+          
           {user && (
             <Link href="/account" className={s.link}>
               Account
