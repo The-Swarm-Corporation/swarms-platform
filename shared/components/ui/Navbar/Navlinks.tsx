@@ -7,7 +7,7 @@ import Logo from '@/shared/components/icons/Logo';
 import { usePathname, useRouter } from 'next/navigation';
 import { getRedirectMethod } from '@/shared/utils/auth-helpers/settings';
 import s from './Navbar.module.css';
-import { DISCORD, PANEL, SWARMS_GITHUB } from '@/shared/constants/links';
+import { DISCORD, PLATFORM, SWARMS_GITHUB } from '@/shared/constants/links';
 
 interface NavlinksProps {
   user?: any;
@@ -32,7 +32,7 @@ export default function Navlinks({ user }: NavlinksProps) {
           </Link>
 
           {user && (
-            <Link href={PANEL.DASHBOARD} className={s.link}>
+            <Link href={PLATFORM.DASHBOARD} className={s.link}>
               Dashboard
             </Link>
           )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/shared/components/ui/Button';
-import { PANEL, SWARMS_GITHUB } from '@/shared/constants/links';
+import { PLATFORM, SWARMS_GITHUB } from '@/shared/constants/links';
 import { cn } from '@/shared/utils/cn';
 import { Github } from 'lucide-react';
 import Link from 'next/link';
@@ -17,7 +17,7 @@ export default function Landing() {
             Production-Grade Agents Through Multi-Agent Collaboration
           </span>
           <div className="flex gap-4 mt-8">
-            <Link href={PANEL.DASHBOARD}>
+            <Link href={PLATFORM.DASHBOARD}>
               <Button
                 className={cn(
                   'text-base flex gap-2 font-normal w-[200px]',

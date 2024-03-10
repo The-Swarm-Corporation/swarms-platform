@@ -1,13 +1,12 @@
 import { cn } from '@/shared/utils/cn';
 import { LockKeyhole, SquareChevronRight, User } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
-import { useTheme } from 'next-themes';
 import Logo from '../icons/Logo';
+import { PLATFORM } from '@/shared/constants/links';
 
 const panelMenu: {
   icon?: React.ReactNode;
@@ -17,17 +16,17 @@ const panelMenu: {
   {
     icon: <SquareChevronRight size={24} />,
     title: 'Playground',
-    link: '/playground'
+    link: PLATFORM.PLAYGROUND
   },
   {
     icon: <LockKeyhole size={24} />,
     title: 'API keys',
-    link: '/api-keys'
+    link: PLATFORM.API_KEYS
   },
   {
     icon: <User size={24} />,
     title: 'Account',
-    link: '/account'
+    link: PLATFORM.ACCOUNT
   }
 ];
 

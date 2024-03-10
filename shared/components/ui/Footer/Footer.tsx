@@ -8,15 +8,11 @@ export default function Footer() {
     <footer className="mx-auto max-w-[1920px] px-6 bg-zinc-900 text-foreground">
       <div className="grid grid-cols-1 gap-8 py-12 text-white transition-colors duration-150 border-b lg:grid-cols-12 border-zinc-600 bg-zinc-900">
         <div className="col-span-1 lg:col-span-2">
-          <Link
-            href="/"
-            className="flex items-center flex-initial font-bold md:mr-24"
-          >
-            <span className="mr-2 flex border-zinc-700">
-              <Logo />
-            </span>
-            <span>TGSC</span>
-          </Link>
+          <span className="mr-2 flex border-zinc-700 gap-2 items-center ">
+            <Logo />
+          <span>TGSC</span>
+
+          </span>
         </div>
         <div className="col-span-1 lg:col-span-2">
           <ul className="flex flex-col flex-initial md:flex-1">

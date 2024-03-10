@@ -9,6 +9,7 @@ import {
   getStatusRedirect
 } from '@/shared/utils/helpers';
 import { getAuthTypes } from '@/shared/utils/auth-helpers/settings';
+import { PLATFORM } from '@/shared/constants/links';
 
 function isValidEmail(email: string) {
   var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -286,7 +287,7 @@ export async function updateEmail(formData: FormData) {
   // Check that the email is valid
   if (!isValidEmail(newEmail)) {
     return getErrorRedirect(
-      '/account',
+      PLATFORM.ACCOUNT,
       'Your email could not be updated.',
       'Invalid email address.'
     );
@@ -295,7 +296,7 @@ export async function updateEmail(formData: FormData) {
   const supabase = createClient();
 
   const callbackUrl = getURL(
-    getStatusRedirect('/account', 'Success!', `Your email has been updated.`)
+    getStatusRedirect(PLATFORM.ACCOUNT, 'Success!', `Your email has been updated.`)
   );
 
   const { error } = await supabase.auth.updateUser(
@@ -307,13 +308,13 @@ export async function updateEmail(formData: FormData) {
 
   if (error) {
     return getErrorRedirect(
-      '/account',
+      PLATFORM.ACCOUNT,
       'Your email could not be updated.',
       error.message
     );
   } else {
     return getStatusRedirect(
-      '/account',
+      PLATFORM.ACCOUNT,
       'Confirmation emails sent.',
       `You will need to confirm the update by clicking the links sent to both the old and new email addresses.`
     );
@@ -331,19 +332,19 @@ export async function updateName(formData: FormData) {
 
   if (error) {
     return getErrorRedirect(
-      '/account',
+      PLATFORM.ACCOUNT,
       'Your name could not be updated.',
       error.message
     );
   } else if (data.user) {
     return getStatusRedirect(
-      '/account',
+      PLATFORM.ACCOUNT,
       'Success!',
       'Your name has been updated.'
     );
   } else {
     return getErrorRedirect(
-      '/account',
+      PLATFORM.ACCOUNT,
       'Hmm... Something went wrong.',
       'Your name could not be updated.'
     );
