@@ -14,6 +14,9 @@
 - Supabase
 - trpc
 - Stripe
+- Vercel
+- React
+- Tailwindcss
 
 ## 🫶 Contributions:
 
