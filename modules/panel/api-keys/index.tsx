@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow
 } from '@/shared/components/ui/table';
+import { SwarmApiKey } from '@/shared/models/db-types';
 import { trpc } from '@/shared/utils/trpc/trpc';
 
 import {
@@ -27,54 +28,8 @@ import {
   getCoreRowModel,
   useReactTable
 } from '@tanstack/react-table';
+import { useState } from 'react';
 
-type ApiKey = {
-  id: string;
-  name: string;
-  key: string;
-  createdDate: string;
-};
-
-export const apiKeys: ApiKey[] = [
-  {
-    createdDate: '2021-09-01T12:00:00Z',
-    id: '489e1d42',
-    key: 'sk_test_4eC39HqLyjWDarjtT1zdp7dc',
-    name: 'Default'
-  },
-  {
-    createdDate: '2021-09-01T12:00:00Z',
-    id: '489e1d42',
-    key: 'sk_test_4eC39HqLyjWDarjtT1zdp7dc',
-    name: 'general'
-  },
-  {
-    createdDate: '2021-09-01T12:00:00Z',
-    id: '489e1d42',
-    key: 'sk_test_4eC39HqLyjWDarjtT1zdp7dc',
-    name: 'randomfdfd'
-  }
-];
-
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-}
-const columns: ColumnDef<ApiKey>[] = [
-  {
-    accessorKey: 'name',
-    header: 'Name'
-  },
-  {
-    accessorKey: 'key',
-    header: 'Key'
-  },
-  {
-    accessorKey: 'createdDate',
-    header: 'Created date',
-    cell: (cell) => formatDate(cell.getValue<string>())
-  }
-];
 const formatDate = (date: string) => {
   // like: Jul 28, 2022
   return new Date(date).toLocaleDateString('en-US', {
@@ -84,11 +39,52 @@ const formatDate = (date: string) => {
   });
 };
 const ApiKeys = () => {
-  const test = trpc.test.useQuery();
-  console.log(test.data);
+  const apiKeys = trpc.getApiKeys.useQuery();
+  const addApiKey = trpc.addApiKey.useMutation();
+  const [keyName, setKeyName] = useState<string>('');
+  const [generatedKey, setGeneratedKey] = useState<string | null>('');
+
+  const columns: ColumnDef<Partial<SwarmApiKey>>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Name'
+    },
+    {
+      accessorKey: 'key',
+      header: 'Key'
+    },
+    {
+      accessorKey: 'created_at',
+      header: 'Created date',
+      cell: (cell) => formatDate(cell.getValue<string>())
+    },
+    {
+      accessorKey: 'id',
+      header: 'Actions',
+      cell: (cell) => {
+        const deleteApiKey = trpc.deleteApiKey.useMutation();
+        return (
+          <Button
+            variant="outline"
+            disabled={deleteApiKey.isPending}
+            onClick={() => {
+              deleteApiKey
+                .mutateAsync(cell.row.original.id as string)
+                .then(() => {
+                  apiKeys.refetch();
+                });
+            }}
+          >
+            Delete
+          </Button>
+        );
+      }
+    }
+  ];
+
   const table = useReactTable({
-    data: apiKeys,
-    columns,
+    data: apiKeys?.data ?? [],
+    columns: columns as any,
     getCoreRowModel: getCoreRowModel()
   });
 
@@ -124,80 +120,121 @@ const ApiKeys = () => {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
+              {apiKeys.isPending && (
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No results.
+                    Loading...
                   </TableCell>
                 </TableRow>
               )}
+              {!apiKeys.isPending &&
+                (table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>
         <div className="mt-4">
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" className="shadow-none">
+              <Button
+                onClick={() => {
+                  setGeneratedKey(null);
+                }}
+                variant="outline"
+                className="shadow-none"
+              >
                 Create new API key
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Add new API key</DialogTitle>
+                <DialogTitle>
+                  {generatedKey ? 'Generated key' : 'Create new API key'}
+                </DialogTitle>
                 {/* <DialogDescription>
                   Make changes to your profile here. Click save when you're
                   done.
                 </DialogDescription> */}
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="name" className="text-right">
-                    Name
-                  </label>
-                  <Input
-                    id="name"
-                    defaultValue="Pedro Duarte"
-                    className="col-span-3"
-                    onChange={() => {}}
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="username" className="text-right">
-                    Username
-                  </label>
-                  <Input
-                    id="username"
-                    defaultValue="@peduarte"
-                    className="col-span-3"
-                    onChange={() => {}}
-                  />
-                </div>
+              <div className="gap-2 py-4">
+                {generatedKey ? (
+                  <div>
+                    <p className="text-muted-foreground">
+                      Please copy the key below. You will not be able to see it
+                      again.
+                      <br /> You can use it with OpenAI-compatible apps
+                    </p>
+                    <Input
+                      value={generatedKey}
+                      className="my-2 w-full"
+                      readOnly
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label htmlFor="name" className="text-right">
+                      Name
+                    </label>
+                    <Input
+                      id="name"
+                      value={keyName}
+                      className="my-2 w-full"
+                      onChange={(value) => {
+                        setKeyName(value);
+                      }}
+                    />
+                  </div>
+                )}
               </div>
-              <DialogFooter>
-                <Button type="submit">Save changes</Button>
-              </DialogFooter>
+
+              {!generatedKey && (
+                <DialogFooter>
+                  <Button
+                    disabled={addApiKey.isPending}
+                    type="button"
+                    onClick={() => {
+                      addApiKey.mutateAsync({ name: keyName }).then((data) => {
+                        setKeyName('');
+                        setGeneratedKey(data?.key ?? '');
+                        apiKeys.refetch();
+                      });
+                    }}
+                  >
+                    Generate key
+                  </Button>
+                </DialogFooter>
+              )}
             </DialogContent>
           </Dialog>
         </div>
+        <div className="py-8" />
       </div>
     </>
   );

@@ -131,3 +131,15 @@ export const getErrorRedirect = (
     disableButton,
     arbitraryParams
   );
+
+export function generateApiKey() {
+  // Generate a random hexadecimal string of length 64
+  var randomHex = '';
+  for (var i = 0; i < 64; i++) {
+    randomHex += Math.floor(Math.random() * 16).toString(16);
+  }
+
+  // Construct the API key in the required format
+  var apiKey = 'sk-' + randomHex;
+  return apiKey;
+}

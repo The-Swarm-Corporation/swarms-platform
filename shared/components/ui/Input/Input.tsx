@@ -5,7 +5,7 @@ import s from './Input.module.css';
 
 interface Props extends Omit<InputHTMLAttributes<any>, 'onChange'> {
   className?: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
 }
 const Input = (props: Props) => {
   const { className, children, onChange, ...rest } = props;
@@ -20,7 +20,6 @@ const Input = (props: Props) => {
   };
 
   return (
-    <label>
       <input
         className={rootClassName}
         onChange={handleOnChange}
@@ -30,7 +29,6 @@ const Input = (props: Props) => {
         spellCheck="false"
         {...rest}
       />
-    </label>
   );
 };
 

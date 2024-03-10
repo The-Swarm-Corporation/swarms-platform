@@ -14,7 +14,7 @@ const TRIAL_PERIOD_DAYS = 0;
 // as it has admin privileges and overwrites RLS policies!
 
 
-const supabaseAdmin = createClient<Database>(
+export const supabaseAdmin = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
@@ -42,7 +42,7 @@ const upsertPriceRecord = async (
   retryCount = 0,
   maxRetries = 3
 ) => {
-  const priceData: Price = {
+  const priceData: Partial<Price> = {
     id: price.id,
     product_id: typeof price.product === 'string' ? price.product : '',
     active: price.active,
@@ -51,12 +51,12 @@ const upsertPriceRecord = async (
     unit_amount: price.unit_amount ?? null,
     interval: price.recurring?.interval ?? null,
     interval_count: price.recurring?.interval_count ?? null,
-    trial_period_days: price.recurring?.trial_period_days ?? TRIAL_PERIOD_DAYS
+    trial_period_days: price.recurring?.trial_period_days ?? TRIAL_PERIOD_DAYS,
   };
 
   const { error: upsertError } = await supabaseAdmin
     .from('prices')
-    .upsert([priceData]);
+    .upsert([priceData as Price]);
 
   if (upsertError?.message.includes('foreign key constraint')) {
     if (retryCount < maxRetries) {
