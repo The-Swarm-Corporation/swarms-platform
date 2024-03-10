@@ -18,9 +18,11 @@ export const viewport: Viewport = {
 
 
 const meta = {
-  title: 'Swarms',
+  title: 'Swarms Platform',
   description: '',
-  url: getURL()
+  url: getURL(),
+  favicon: '/favicon.svg',
+
 };
 export default async function Panel({ children }: { children: React.ReactNode }) {
   await checkUserSession();

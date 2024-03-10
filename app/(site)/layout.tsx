@@ -21,7 +21,7 @@ const meta = {
   description: '',
   cardImage: '/og.png',
   robots: 'follow, index',
-  favicon: '/favicon.png',
+  favicon: '/favicon.svg',
   url: getURL()
 };
 
