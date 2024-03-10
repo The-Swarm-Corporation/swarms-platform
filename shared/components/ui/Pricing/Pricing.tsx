@@ -95,7 +95,7 @@ export default function Pricing({ user, products, subscription }: Props) {
             >
              Swarms
             </a>
-            .
+            
           </p>
         </div>
         <LogoCloud />
