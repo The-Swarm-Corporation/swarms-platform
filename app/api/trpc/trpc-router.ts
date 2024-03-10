@@ -42,12 +42,13 @@ export const userProcedure = publicProcedure
     return opts.next();
   })
   .use(async (opts) => {
-    /*         if (!opts.ctx.user) {
-            throw new TRPCError({
-                code: 'FORBIDDEN',
-                message: "We don't take kindly to out-of-town folk",
-            });
-        } */
+    const user = opts.ctx?.session?.data?.session?.user;
+    if (!user) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "You don't have access to this resource"
+      });
+    }
 
     return opts.next();
   });

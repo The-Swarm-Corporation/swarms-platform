@@ -1,23 +1,26 @@
-import {
-    FetchCreateContextFnOptions,
-} from "@trpc/server/adapters/fetch";
-const createContext = async function (
-    opts: FetchCreateContextFnOptions
-): Promise<{
-    req: FetchCreateContextFnOptions["req"],
-}> {
-    // midleware for requests , to add user to context
-    try {
-    
-    } catch (e) {
-    }
-    // todo: find better approach
-    return {
-        req: opts.req,
-    } as {
-        req: FetchCreateContextFnOptions["req"],
-    }
+import { FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
+import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { Database } from '@/types_db';
+import { supabaseAdmin } from '@/shared/utils/supabase/admin';
+const createContext = async function (opts: FetchCreateContextFnOptions) {
+  // midleware for requests , to add user to context
+  try {
+  } catch (e) {}
 
-}
+  const cookieStore = cookies();
+
+  const supabase = createRouteHandlerClient<Database>({
+    cookies: () => cookieStore
+  });
+
+  const session = await supabase.auth.getSession();
+
+  return {
+    session,
+    supabase: supabaseAdmin,
+    ...opts
+  };
+};
 export default createContext;
 export type Context = Awaited<ReturnType<typeof createContext>>;
