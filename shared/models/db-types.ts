@@ -1,3 +1,5 @@
-import { Database } from '@/types_db';
+import { Tables } from '@/types_db';
 
-export type SwarmApiKey = Database['public']['Tables']['swarms_cloud_api_keys']["Row"];
+export type SwarmApiKey = Tables<'swarms_cloud_api_keys'>;
+export type SwarmApiActivity = Tables<'swarms_cloud_api_activities'>;
+export type SwarmApiModels = Tables<'swarms_cloud_models'>;

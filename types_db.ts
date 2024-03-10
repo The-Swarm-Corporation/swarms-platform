@@ -240,24 +240,27 @@ export type Database = {
       swarms_cloud_api_keys: {
         Row: {
           created_at: string
-          id: string | null
-          key: string | null
+          id: string
+          is_deleted: boolean | null
+          key: string
           limit_credit_dollar: number | null
           name: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
-          id?: string | null
-          key?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          key: string
           limit_credit_dollar?: number | null
           name?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
-          id?: string | null
-          key?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          key?: string
           limit_credit_dollar?: number | null
           name?: string | null
           user_id?: string
