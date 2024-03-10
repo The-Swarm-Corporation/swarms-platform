@@ -2,6 +2,7 @@
 
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -42,7 +43,7 @@ const ApiKeys = () => {
   const addApiKey = trpc.addApiKey.useMutation();
   const [keyName, setKeyName] = useState<string>('');
   const [generatedKey, setGeneratedKey] = useState<string | null>('');
-
+  const toast = useToast();
   const columns: ColumnDef<Partial<SwarmApiKey>>[] = useMemo(() => {
     return [
       {
@@ -72,6 +73,9 @@ const ApiKeys = () => {
                   .mutateAsync(cell.row.original.id as string)
                   .then(() => {
                     apiKeys.refetch();
+                    toast.toast({
+                      title: 'API key deleted'
+                    });
                   });
               }}
             >
@@ -89,7 +93,7 @@ const ApiKeys = () => {
     getCoreRowModel: getCoreRowModel()
   });
   console.log('test');
-  
+
   return (
     <>
       <div className="flex flex-col w-5/6">
