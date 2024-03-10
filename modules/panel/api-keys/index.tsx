@@ -28,7 +28,7 @@ import {
   getCoreRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 const formatDate = (date: string) => {
   // like: Jul 28, 2022
@@ -44,50 +44,53 @@ const ApiKeys = () => {
   const [keyName, setKeyName] = useState<string>('');
   const [generatedKey, setGeneratedKey] = useState<string | null>('');
 
-  const columns: ColumnDef<Partial<SwarmApiKey>>[] = [
-    {
-      accessorKey: 'name',
-      header: 'Name'
-    },
-    {
-      accessorKey: 'key',
-      header: 'Key'
-    },
-    {
-      accessorKey: 'created_at',
-      header: 'Created date',
-      cell: (cell) => formatDate(cell.getValue<string>())
-    },
-    {
-      accessorKey: 'id',
-      header: 'Actions',
-      cell: (cell) => {
-        const deleteApiKey = trpc.deleteApiKey.useMutation();
-        return (
-          <Button
-            variant="outline"
-            disabled={deleteApiKey.isPending}
-            onClick={() => {
-              deleteApiKey
-                .mutateAsync(cell.row.original.id as string)
-                .then(() => {
-                  apiKeys.refetch();
-                });
-            }}
-          >
-            Delete
-          </Button>
-        );
+  const columns: ColumnDef<Partial<SwarmApiKey>>[] = useMemo(() => {
+    return [
+      {
+        accessorKey: 'name',
+        header: 'Name'
+      },
+      {
+        accessorKey: 'key',
+        header: 'Key'
+      },
+      {
+        accessorKey: 'created_at',
+        header: 'Created date',
+        cell: (cell) => formatDate(cell.getValue<string>())
+      },
+      {
+        accessorKey: 'id',
+        header: 'Actions',
+        cell: (cell) => {
+          const deleteApiKey = trpc.deleteApiKey.useMutation();
+          return (
+            <Button
+              variant="outline"
+              disabled={deleteApiKey.isPending}
+              onClick={() => {
+                deleteApiKey
+                  .mutateAsync(cell.row.original.id as string)
+                  .then(() => {
+                    apiKeys.refetch();
+                  });
+              }}
+            >
+              Delete
+            </Button>
+          );
+        }
       }
-    }
-  ];
+    ];
+  }, []);
 
   const table = useReactTable({
     data: apiKeys?.data ?? [],
     columns: columns as any,
     getCoreRowModel: getCoreRowModel()
   });
-
+  console.log('test');
+  
   return (
     <>
       <div className="flex flex-col w-5/6">
