@@ -3,7 +3,13 @@ import Link from 'next/link';
 
 const Logo = ({ ...props }) => (
   <Link href={'/'} className="inline-block">
-    <div className="bg-[url(/swarms-dark.svg)] dark:bg-[url(/swarms.svg)] bg-no-repeat object-contain w-[40px] h-[40px]"></div>
+    {/* <div className="bg-[url(/swarms-logo.svg)] bg-no-repeat object-contain"></div> */}
+    <Image
+      src="/swarms-logo.svg"
+      alt="Swarms logo"
+      width={40}
+      height={40}
+    />
   </Link>
 );
 
