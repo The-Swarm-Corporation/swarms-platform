@@ -46,10 +46,50 @@ export default function Footer() {
             </li>
             <li className="py-3 md:py-0 md:pb-4">
               <Link
-                href="/"
+                href="https://swarms.apac.ai/en/latest/"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
                 Blog
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://swarms.apac.ai/en/latest/"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Documentation
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://github.com/kyegomez/swarms"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Github
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://github.com/kyegomez/swarm-ecosystem"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Swarms Ecosystem
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://github.com/kyegomez/swarm-ecosystem"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Swarms Ecosystem
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://discord.gg/gRXy5mpFHz"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Swarms Community
               </Link>
             </li>
           </ul>
