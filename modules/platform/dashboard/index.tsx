@@ -9,10 +9,10 @@ const Dashboard = () => {
       <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
         Dashboard
       </h1>
-      <h2 className="text-3xl mt-4">What are you going to build next?</h2>
+      <h2 className="text-3xl mt-4">What are you creating? </h2>
       <span className="text-base text-muted-foreground">
         Use this dashboard to configure your account and begin building AI
-        products with our API.
+        products with Swarms API.
       </span>
       <div className="flex flex-col gap-4 mt-8">
         <div className="border rounded-md p-8 py-10">
@@ -23,15 +23,15 @@ const Dashboard = () => {
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">1000 free requests</span>
+              <span className="text-white">Access to the best Multi-Modal models</span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">1000 free requests</span>
+              <span className="text-white">Usage-Based Pricing</span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">1000 free requests</span>
+              <span className="text-white">100% Uptime with 24/7 Support</span>
             </div>
           </div>
           <Button className="mt-4" variant={'default'}>
