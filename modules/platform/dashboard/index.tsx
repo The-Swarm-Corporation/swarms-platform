@@ -1,9 +1,12 @@
+'use client';
 import { Button } from '@/shared/components/ui/Button';
 import { PLATFORM } from '@/shared/constants/links';
+import useSubscription from '@/shared/hooks/subscription';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
 
 const Dashboard = () => {
+  const subscription = useSubscription();
   return (
     <div className="w-full flex flex-col">
       <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
@@ -15,31 +18,40 @@ const Dashboard = () => {
         products with Swarms API.
       </span>
       <div className="flex flex-col gap-4 mt-8">
-        <div className="border rounded-md p-8 py-10">
-          <h2 className="text-2xl font-bold">Subscribe now to get access</h2>
-          <span className="text-muted-foreground">
-            Swarms AI API subscription includes:
-          </span>
-          <div className="flex flex-col gap-2 mt-4">
-            <div className="flex  items-center gap-2">
-              <Check size={24} />
-              <span className="text-white">Access to the best Multi-Modal models</span>
+        {!subscription.isSubscribed && (
+          <div className="border rounded-md p-8 py-10">
+            <h2 className="text-2xl font-bold">Subscribe now to get access</h2>
+            <span className="text-muted-foreground">
+              Swarms AI API subscription includes:
+            </span>
+            <div className="flex flex-col gap-2 mt-4">
+              <div className="flex  items-center gap-2">
+                <Check size={24} />
+                <span className="text-white">
+                  Access to the best Multi-Modal models
+                </span>
+              </div>
+              <div className="flex  items-center gap-2">
+                <Check size={24} />
+                <span className="text-white">Usage-Based Pricing</span>
+              </div>
+              <div className="flex  items-center gap-2">
+                <Check size={24} />
+                <span className="text-white">
+                  100% Uptime with 24/7 Support
+                </span>
+              </div>
             </div>
-            <div className="flex  items-center gap-2">
-              <Check size={24} />
-              <span className="text-white">Usage-Based Pricing</span>
-            </div>
-            <div className="flex  items-center gap-2">
-              <Check size={24} />
-              <span className="text-white">100% Uptime with 24/7 Support</span>
-            </div>
+            <Button
+              className="mt-4"
+              variant={'default'}
+              disabled={subscription.createSubscriptionPortalLoading}
+              onClick={subscription.createSubscriptionPortal}
+            >
+              Subscribe
+            </Button>
           </div>
-          <Link href="https://buy.stripe.com/5kAfZo54O4abad29AA">
-              <Button className="mt-4" variant={'default'}>
-                Subscribe
-              </Button>
-            </Link>
-        </div>
+        )}
         <div className="flex gap-4">
           <div className="w-1/2 flex flex-col gap-2 border rounded-md p-8">
             <h2 className="text-2xl font-bold">API Keys</h2>
