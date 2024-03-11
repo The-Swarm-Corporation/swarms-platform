@@ -143,3 +143,13 @@ export function generateApiKey() {
   var apiKey = 'sk-' + randomHex;
   return apiKey;
 }
+
+
+export const formatDate = (date: string) => {
+  // like: Jul 28, 2022
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};

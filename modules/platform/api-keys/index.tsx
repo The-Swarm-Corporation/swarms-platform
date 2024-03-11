@@ -20,6 +20,7 @@ import {
   TableRow
 } from '@/shared/components/ui/table';
 import { SwarmApiKey } from '@/shared/models/db-types';
+import { formatDate } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 
 import {
@@ -30,14 +31,7 @@ import {
 } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 
-const formatDate = (date: string) => {
-  // like: Jul 28, 2022
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-};
+
 const ApiKeys = () => {
   const apiKeys = trpc.getApiKeys.useQuery();
   const addApiKey = trpc.addApiKey.useMutation();

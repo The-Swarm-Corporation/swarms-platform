@@ -1,9 +1,8 @@
 'use client';
 
-import {Button} from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/Button';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { createStripePortal } from '@/shared/utils/stripe/server';
 import Link from 'next/link';
 import Card from '@/shared/components/ui/Card';
 import { Tables } from '@/types_db';
@@ -38,10 +37,12 @@ export default function CustomerPortalForm({ subscription }: Props) {
     }).format((subscription?.prices?.unit_amount || 0) / 100);
 
   const handleStripePortalRequest = async () => {
+    /* 
     setIsSubmitting(true);
     const redirectUrl = await createStripePortal(currentPath);
     setIsSubmitting(false);
-    return router.push(redirectUrl);
+    return router.push(redirectUrl); 
+    */
   };
 
   return (

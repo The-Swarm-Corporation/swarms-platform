@@ -13,3 +13,10 @@ export const getStripe = () => {
 
   return stripePromise;
 };
+
+export async function createPaymentSession(userId: string) {
+  const productId = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_PRODUCT_ID;
+  return {
+    url: `https://buy.stripe.com/${productId}?client_reference_id=${userId}`
+  };
+}

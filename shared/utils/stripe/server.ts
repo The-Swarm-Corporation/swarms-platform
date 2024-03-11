@@ -11,8 +11,9 @@ import {
 } from '@/shared/utils/helpers';
 import { Tables } from '@/types_db';
 import { PLATFORM } from '@/shared/constants/links';
+import { ProductPrice } from '@/shared/models/db-types';
+import { User } from '@supabase/supabase-js';
 
-type Price = Tables<'prices'>;
 
 type CheckoutResponse = {
   errorRedirect?: string;
@@ -20,7 +21,7 @@ type CheckoutResponse = {
 };
 
 export async function checkoutWithStripe(
-  price: Price,
+  price: ProductPrice,
   redirectPath: string = PLATFORM.ACCOUNT
 ): Promise<CheckoutResponse> {
   try {
@@ -120,18 +121,11 @@ export async function checkoutWithStripe(
   }
 }
 
-export async function createStripePortal(currentPath: string) {
+export async function createStripePortal(user:User,currentPath: string) {
   try {
-    const supabase = createClient();
-    const {
-      error,
-      data: { user }
-    } = await supabase.auth.getUser();
+
 
     if (!user) {
-      if (error) {
-        console.error(error);
-      }
       throw new Error('Could not get user session.');
     }
 

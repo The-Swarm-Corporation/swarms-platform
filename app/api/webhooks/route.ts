@@ -5,7 +5,8 @@ import {
   upsertPriceRecord,
   manageSubscriptionStatusChange,
   deleteProductRecord,
-  deletePriceRecord
+  deletePriceRecord,
+  increaseUserCredit
 } from '@/shared/utils/supabase/admin';
 
 const relevantEvents = new Set([
@@ -18,7 +19,8 @@ const relevantEvents = new Set([
   'checkout.session.completed',
   'customer.subscription.created',
   'customer.subscription.updated',
-  'customer.subscription.deleted'
+  'customer.subscription.deleted',
+  'payment_intent.succeeded'
 ]);
 
 export async function POST(req: Request) {
@@ -73,10 +75,30 @@ export async function POST(req: Request) {
               checkoutSession.customer as string,
               true
             );
+          } else if (checkoutSession.mode === 'payment') {
+            const amount = checkoutSession?.amount_total ?? 0;
+            const userId = checkoutSession.client_reference_id;
+            const amount_received_dec = amount / 100;
+            if (userId && amount && checkoutSession.status === 'complete') {
+              try {
+                await increaseUserCredit(userId, amount_received_dec);
+              } catch (error) {
+                console.log(error);
+                // cancel the payment
+                const paymentIntentId =
+                  checkoutSession.payment_intent as string;
+                if (paymentIntentId) {
+                  const refund = await stripe.refunds.create({
+                    payment_intent: paymentIntentId
+                  });
+                  console.log('Refund:', refund);
+                }
+              }
+            }
           }
           break;
         default:
-          throw new Error('Unhandled relevant event!');
+          console.log('Unhandled relevant event!');
       }
     } catch (error) {
       console.log(error);

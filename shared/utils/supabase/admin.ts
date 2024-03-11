@@ -13,7 +13,6 @@ const TRIAL_PERIOD_DAYS = 0;
 // Note: supabaseAdmin uses the SERVICE_ROLE_KEY which you must only use in a secure server-side context
 // as it has admin privileges and overwrites RLS policies!
 
-
 export const supabaseAdmin = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -51,7 +50,7 @@ const upsertPriceRecord = async (
     unit_amount: price.unit_amount ?? null,
     interval: price.recurring?.interval ?? null,
     interval_count: price.recurring?.interval_count ?? null,
-    trial_period_days: price.recurring?.trial_period_days ?? TRIAL_PERIOD_DAYS,
+    trial_period_days: price.recurring?.trial_period_days ?? TRIAL_PERIOD_DAYS
   };
 
   const { error: upsertError } = await supabaseAdmin
@@ -290,7 +289,47 @@ const manageSubscriptionStatusChange = async (
     );
 };
 
+const increaseUserCredit = async (uuid: string, amount: number) => {
+  const currentCredit = await getUserCredit(uuid);
+  // Increase credit amount
+  const newCredit = currentCredit + amount;
+
+  // Perform upsert operation
+  const response = await supabaseAdmin
+    .from('swarms_cloud_users_credits')
+    .upsert(
+      {
+        user_id: uuid,
+        credit: newCredit
+      },
+      {
+        onConflict: 'user_id'
+      }
+    );
+
+  if (response.error) {
+    throw new Error(response.error.message);
+  } else {
+    console.log('Upsert operation successful');
+  }
+};
+const getUserCredit = async (uuid: string) => {
+  const { data, error } = await supabaseAdmin
+    .from('swarms_cloud_users_credits')
+    .select('credit')
+    .eq('user_id', uuid)
+    .single();
+  if (error) {
+    console.error(error.message);
+    return 0;
+  }
+  return data?.credit ?? 0;
+};
+
+
 export {
+  getUserCredit,
+  increaseUserCredit,
   upsertProductRecord,
   upsertPriceRecord,
   deleteProductRecord,
