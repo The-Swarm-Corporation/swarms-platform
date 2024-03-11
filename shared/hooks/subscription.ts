@@ -4,11 +4,7 @@ import { getStripe } from '../utils/stripe/client';
 
 const useSubscription = () => {
   const chargeAccountPortal = trpc.createStripePaymentSession.useMutation();
-  const userCreditQuery = trpc.getUserCredit.useQuery();
-  const userCredit = useQuery({
-    queryKey: ['user-credit'],
-    queryFn: () => userCreditQuery.data
-  });
+  const userCredit = trpc.getUserCredit.useQuery();
 
   const openChargeAccountPortal = () => {
     chargeAccountPortal.mutateAsync().then((url) => {
@@ -20,7 +16,7 @@ const useSubscription = () => {
   const makeCustomerPortal = trpc.createStripePortalLink.useMutation();
 
   const data = useQuery({
-    queryKey: ['subscription-status'],
+    queryKey: ['subscription-status', getSubscriptionStatus.data],
     queryFn: () => getSubscriptionStatus.data
   });
   const makeSubsctiptionSession =
