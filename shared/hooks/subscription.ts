@@ -34,6 +34,7 @@ const useSubscription = () => {
     creditLoading: userCredit.isLoading,
     data: getSubscription,
     statusLoading: getSubscription.isLoading,
+    status: getSubscription.data?.status,
     isLoading: getSubscription.isLoading,
     isSubscribed: getSubscription.data?.status === 'active' ?? false,
     isCanceled: getSubscription.data?.isCanceled,
