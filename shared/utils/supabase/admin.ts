@@ -314,18 +314,22 @@ const increaseUserCredit = async (uuid: string, amount: number) => {
   }
 };
 const getUserCredit = async (uuid: string) => {
-  const { data, error } = await supabaseAdmin
-    .from('swarms_cloud_users_credits')
-    .select('credit')
-    .eq('user_id', uuid)
-    .single();
-  if (error) {
-    console.error(error.message);
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('swarms_cloud_users_credits')
+      .select('credit')
+      .eq('user_id', uuid)
+      .single();
+    if (error) {
+      console.error(error.message);
+      return 0;
+    }
+    return data?.credit ?? 0;
+  } catch (e) {
+    console.error(e);
     return 0;
   }
-  return data?.credit ?? 0;
 };
-
 
 export {
   getUserCredit,
