@@ -34,9 +34,11 @@ const Dashboard = () => {
               <span className="text-white">100% Uptime with 24/7 Support</span>
             </div>
           </div>
-          <Button className="mt-4" variant={'default'}>
-            Subscribe
-          </Button>
+          <Link href="https://buy.stripe.com/5kAfZo54O4abad29AA">
+              <Button className="mt-4" variant={'default'}>
+                Subscrube
+              </Button>
+            </Link>
         </div>
         <div className="flex gap-4">
           <div className="w-1/2 flex flex-col gap-2 border rounded-md p-8">
@@ -55,7 +57,7 @@ const Dashboard = () => {
             <span className="text-muted-foreground">
               Learn how to use Swarms API with our documentation.
             </span>
-            <Link href={PLATFORM.API_KEYS}>
+            <Link href="https://swarms.apac.ai/en/latest/">
               <Button className="mt-4" variant={'default'}>
                 Documention
               </Button>
