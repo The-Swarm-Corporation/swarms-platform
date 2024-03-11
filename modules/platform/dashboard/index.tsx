@@ -36,7 +36,7 @@ const Dashboard = () => {
           </div>
           <Link href="https://buy.stripe.com/5kAfZo54O4abad29AA">
               <Button className="mt-4" variant={'default'}>
-                Subscrube
+                Subscribe
               </Button>
             </Link>
         </div>
