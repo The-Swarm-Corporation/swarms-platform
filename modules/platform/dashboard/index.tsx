@@ -7,6 +7,7 @@ import Link from 'next/link';
 
 const Dashboard = () => {
   const subscription = useSubscription();
+
   return (
     <div className="w-full flex flex-col">
       <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
@@ -18,7 +19,7 @@ const Dashboard = () => {
         products with Swarms API.
       </span>
       <div className="flex flex-col gap-4 mt-8">
-        {!subscription.isSubscribed && (
+        {subscription.isSubscribed ? (
           <div className="border rounded-md p-8 py-10">
             <h2 className="text-2xl font-bold">Subscribe now to get access</h2>
             <span className="text-muted-foreground">
@@ -51,7 +52,11 @@ const Dashboard = () => {
               Subscribe
             </Button>
           </div>
-        )}
+        ):
+        <div>
+          Loading...
+        </div>
+        }
         <div className="flex gap-4">
           <div className="w-1/2 flex flex-col gap-2 border rounded-md p-8">
             <h2 className="text-2xl font-bold">API Keys</h2>

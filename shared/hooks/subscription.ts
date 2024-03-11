@@ -12,13 +12,9 @@ const useSubscription = () => {
     });
   };
 
-  const getSubscriptionStatus = trpc.getSubscriptionStatus.useQuery();
+  const getSubscription = trpc.getSubscriptionStatus.useQuery();
   const makeCustomerPortal = trpc.createStripePortalLink.useMutation();
 
-  const data = useQuery({
-    queryKey: ['subscription-status', getSubscriptionStatus.data],
-    queryFn: () => getSubscriptionStatus.data
-  });
   const makeSubsctiptionSession =
     trpc.createSubscriptionCheckoutSession.useMutation();
 
@@ -36,10 +32,11 @@ const useSubscription = () => {
   return {
     credit: userCredit.data ?? 0,
     creditLoading: userCredit.isLoading,
-    data,
-    status: data.data?.status,
-    isSubscribed: data.data?.status === 'active',
-    isCanceled: data.data?.isCanceled,
+    data: getSubscription,
+    statusLoading: getSubscription.isLoading,
+    isLoading: getSubscription.isLoading,
+    isSubscribed: getSubscription.data?.status === 'active' ?? false,
+    isCanceled: getSubscription.data?.isCanceled,
     //
     createSubscriptionPortalLoading: makeSubsctiptionSession.isPending,
     createSubscriptionPortal,
