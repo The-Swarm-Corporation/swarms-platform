@@ -69,7 +69,7 @@ const SubscriptionStatus = () => {
             ) : (
               <Button
                 disabled={makeSubsctiptionSession.isPending}
-                variant="outline"
+                variant="default"
                 onClick={createSubscriptionPortal}
               >
                 Subscribe
