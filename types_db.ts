@@ -184,7 +184,7 @@ export type Database = {
           api_key_id: string | null
           created_at: string
           gpu_compute_seconds: number | null
-          id: string | null
+          id: string
           input_cost: number | null
           input_tokens: number | null
           messages: Json | null
@@ -200,7 +200,7 @@ export type Database = {
           api_key_id?: string | null
           created_at?: string
           gpu_compute_seconds?: number | null
-          id?: string | null
+          id?: string
           input_cost?: number | null
           input_tokens?: number | null
           messages?: Json | null
@@ -216,7 +216,7 @@ export type Database = {
           api_key_id?: string | null
           created_at?: string
           gpu_compute_seconds?: number | null
-          id?: string | null
+          id?: string
           input_cost?: number | null
           input_tokens?: number | null
           messages?: Json | null
@@ -228,6 +228,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_api_activities_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_api_keys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_swarms_cloud_api_activities_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_models"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "public_swarms_cloud_api_activities_user_id_fkey"
             columns: ["user_id"]
@@ -328,6 +342,35 @@ export type Database = {
           updated_date?: string | null
         }
         Relationships: []
+      }
+      swarms_cloud_users_credits: {
+        Row: {
+          created_at: string
+          credit: number | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          credit?: number | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          credit?: number | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_users_credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       users: {
         Row: {
