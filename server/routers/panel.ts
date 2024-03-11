@@ -7,7 +7,8 @@ import { createPaymentSession } from '@/shared/utils/stripe/client';
 import { getUserCredit } from '@/shared/utils/supabase/admin';
 import {
   checkoutWithStripe,
-  createStripePortal
+  createStripePortal,
+  makeSureStripeCustomerExists
 } from '@/shared/utils/stripe/server';
 import { PLATFORM } from '@/shared/constants/links';
 import { stripe } from '@/shared/utils/stripe/config';
@@ -76,7 +77,13 @@ const panelRouter = router({
   // payment
   createStripePaymentSession: userProcedure.mutation(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
-    console.log('user', user.id);
+    const customer = await makeSureStripeCustomerExists(user);
+    if (!customer) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error while creating stripe customer'
+      });
+    }
 
     const stripeSession = await createPaymentSession(user.id);
     return stripeSession.url;
@@ -86,24 +93,26 @@ const panelRouter = router({
     const userCredit = await getUserCredit(user.id);
     return userCredit;
   }),
+
   // subscription
   createSubscriptionCheckoutSession: userProcedure.mutation(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
     const stripe_product_id = process.env
       .NEXT_PUBLIC_STRIPE_SUBSCRIPTION_PRODUCT_ID as string;
+
     if (!stripe_product_id) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Stripe product id not found'
       });
     }
+
     const res = await ctx.supabase
       .from('prices')
       .select('*')
       .eq('id', stripe_product_id)
       .eq('type', 'recurring')
       .single();
-    console.log('res', res);
 
     if (res.error) {
       throw new TRPCError({

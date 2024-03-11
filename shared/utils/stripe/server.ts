@@ -14,12 +14,23 @@ import { PLATFORM } from '@/shared/constants/links';
 import { ProductPrice } from '@/shared/models/db-types';
 import { User } from '@supabase/supabase-js';
 
-
 type CheckoutResponse = {
   errorRedirect?: string;
   sessionId?: string;
 };
 
+export async function makeSureStripeCustomerExists(user: User) {
+  // Retrieve or create the customer in Stripe
+  try {
+    return await createOrRetrieveCustomer({
+      uuid: user?.id || '',
+      email: user?.email || ''
+    });
+  } catch (err) {
+    console.error(err);
+    throw new Error('Unable to access customer record.');
+  }
+}
 export async function checkoutWithStripe(
   price: ProductPrice,
   redirectPath: string = PLATFORM.ACCOUNT
@@ -38,16 +49,7 @@ export async function checkoutWithStripe(
     }
 
     // Retrieve or create the customer in Stripe
-    let customer: string;
-    try {
-      customer = await createOrRetrieveCustomer({
-        uuid: user?.id || '',
-        email: user?.email || ''
-      });
-    } catch (err) {
-      console.error(err);
-      throw new Error('Unable to access customer record.');
-    }
+    const customer = await makeSureStripeCustomerExists(user);
 
     let params: Stripe.Checkout.SessionCreateParams = {
       allow_promotion_codes: true,
@@ -121,24 +123,12 @@ export async function checkoutWithStripe(
   }
 }
 
-export async function createStripePortal(user:User,currentPath: string) {
+export async function createStripePortal(user: User, currentPath: string) {
   try {
-
-
     if (!user) {
       throw new Error('Could not get user session.');
     }
-
-    let customer;
-    try {
-      customer = await createOrRetrieveCustomer({
-        uuid: user.id || '',
-        email: user.email || ''
-      });
-    } catch (err) {
-      console.error(err);
-      throw new Error('Unable to access customer record.');
-    }
+    const customer = await makeSureStripeCustomerExists(user);
 
     if (!customer) {
       throw new Error('Could not get customer.');
