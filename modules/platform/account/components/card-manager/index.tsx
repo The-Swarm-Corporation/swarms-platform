@@ -46,7 +46,7 @@ const CardManagerInside = () => {
           payment_method_id: result.paymentMethod.id
         })
         .then((res) => {
-          console.log('res', res);
+          manager.methods.refetch();
           toast.toast({
             title: 'Card Added'
           });
@@ -54,8 +54,6 @@ const CardManagerInside = () => {
         });
     }
   };
-
-  console.log('manager.cards', manager.methods.data);
 
   const detachCard = (id: string) => {
     if (manager.detach.isPending) return;
