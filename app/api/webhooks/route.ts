@@ -8,6 +8,7 @@ import {
   deletePriceRecord,
   increaseUserCredit
 } from '@/shared/utils/supabase/admin';
+import { addPaymentMethodIfNotExists } from '@/shared/utils/stripe/server';
 
 const relevantEvents = new Set([
   'product.created',
@@ -68,6 +69,8 @@ export async function POST(req: Request) {
           break;
         case 'checkout.session.completed':
           const checkoutSession = event.data.object as Stripe.Checkout.Session;
+          console.log('checkoutSession:', checkoutSession);
+
           if (checkoutSession.mode === 'subscription') {
             const subscriptionId = checkoutSession.subscription;
             await manageSubscriptionStatusChange(
@@ -83,7 +86,7 @@ export async function POST(req: Request) {
               try {
                 await increaseUserCredit(userId, amount_received_dec);
               } catch (error) {
-                console.log(error);
+                /*                 console.log(error);
                 // cancel the payment
                 const paymentIntentId =
                   checkoutSession.payment_intent as string;
@@ -92,8 +95,21 @@ export async function POST(req: Request) {
                     payment_intent: paymentIntentId
                   });
                   console.log('Refund:', refund);
-                }
+                } */
               }
+            }
+          }
+          if (checkoutSession.status === 'complete') {
+            // Access payment method through payment intent
+            const paymentIntent = await stripe.paymentIntents.retrieve(
+              checkoutSession.payment_intent as string
+            );
+            const paymentMethodId = paymentIntent.payment_method;
+            if (paymentMethodId) {
+              await addPaymentMethodIfNotExists(
+                checkoutSession.customer as string,
+                paymentMethodId as string
+              );
             }
           }
           break;
