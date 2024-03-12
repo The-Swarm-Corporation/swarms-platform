@@ -4,6 +4,7 @@ import { SubscriptionWithPriceAndProduct } from '@/shared/models/supscription';
 import { getURL } from '@/shared/utils/helpers';
 import { stripe } from '@/shared/utils/stripe/config';
 import {
+  addPaymentMethodIfNotExists,
   checkoutWithStripe,
   createStripePortal,
   makeSureStripeCustomerExists
@@ -14,8 +15,6 @@ import Stripe from 'stripe';
 import { z } from 'zod';
 
 const paymentRouter = router({
-
-  
   createSubscriptionCheckoutSession: userProcedure.mutation(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
     const stripe_product_id = process.env
@@ -125,19 +124,24 @@ const paymentRouter = router({
           message: 'Error while creating stripe customer'
         });
       }
-      const paymentMethod = await stripe.paymentMethods.attach(
-        input.payment_method_id,
-        {
-          customer: stripeCustomerId
+      try {
+        const paymentMethod = await addPaymentMethodIfNotExists(
+          stripeCustomerId,
+          input.payment_method_id
+        );
+        if (!paymentMethod) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while attaching payment method'
+          });
         }
-      );
-      if (!paymentMethod) {
+        return paymentMethod;
+      } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while attaching payment method'
+          message: error as string
         });
       }
-      return paymentMethod;
     }),
   detachPaymentMethod: userProcedure
     .input(
@@ -202,7 +206,9 @@ const paymentRouter = router({
         message: 'Error while creating stripe customer'
       });
     }
-    const customer = await stripe.customers.retrieve(stripeCustomerId) as Stripe.Customer;
+    const customer = (await stripe.customers.retrieve(
+      stripeCustomerId
+    )) as Stripe.Customer;
     if (!customer) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',

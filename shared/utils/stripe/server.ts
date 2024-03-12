@@ -9,7 +9,6 @@ import {
   getErrorRedirect,
   calculateTrialEndUnixTimestamp
 } from '@/shared/utils/helpers';
-import { Tables } from '@/types_db';
 import { PLATFORM } from '@/shared/constants/links';
 import { ProductPrice } from '@/shared/models/db-types';
 import { User } from '@supabase/supabase-js';
@@ -163,4 +162,35 @@ export async function createStripePortal(user: User, currentPath: string) {
       );
     }
   }
+}
+
+export async function addPaymentMethodIfNotExists(
+  stripeCustomerId: string,
+  paymentMethodId: string
+) {
+  // make sure its not duplicate, check with fingerprint
+  // save to stripe
+  const paymentMethods = await stripe.paymentMethods.list({
+    customer: stripeCustomerId,
+    type: 'card'
+  });
+  const paymentMethod = (await stripe.paymentMethods.retrieve(
+    paymentMethodId
+  )) as Stripe.PaymentMethod;
+
+  if (!paymentMethod) {
+    return;
+  }
+  const existingPaymentMethod = paymentMethods.data.find(
+    (method) => method.card?.fingerprint === paymentMethod.card?.fingerprint
+  );
+  if (existingPaymentMethod) {
+    throw new Error('Payment method already exists');
+  }
+  // attach
+  const attachedPaymentMethod = await stripe.paymentMethods.attach(
+    paymentMethod.id,
+    { customer: stripeCustomerId }
+  );
+  return attachedPaymentMethod;
 }
