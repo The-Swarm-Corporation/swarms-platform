@@ -73,6 +73,8 @@ const CardManagerInside = () => {
 
   const setPaymentMethodAsDefault = (id: string) => {
     if (manager.setAsDefault.isPending) return;
+    // if its already default, dont do anything
+    if (manager.getDefaultMethod.data === id) return;
     manager.setAsDefault
       .mutateAsync({
         payment_method_id: id
