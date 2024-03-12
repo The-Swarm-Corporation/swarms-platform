@@ -2,13 +2,14 @@
 import { Button } from '@/shared/components/ui/Button';
 import useSubscription from '@/shared/hooks/subscription';
 import { formatDate } from '@/shared/utils/helpers';
+import { trpc } from '@/shared/utils/trpc/trpc';
 
 const SubscriptionStatus = () => {
   const subscription = useSubscription();
   const status = subscription.status;
   const isLoading = subscription.data.isLoading;
-
   const subscriptionData = subscription.data.data;
+
   return (
     <div className="flex flex-col gap-4 w-full border rounded-md p-4 text-card-foreground">
       <h1>Subscription Status</h1>

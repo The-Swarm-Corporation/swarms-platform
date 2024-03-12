@@ -1,4 +1,5 @@
 'use client';
+import CardManager from './components/card-manager';
 import Credit from './components/credit';
 import SubscriptionStatus from './components/subscription-status';
 
@@ -11,7 +12,8 @@ export default function Account() {
             Account
           </h1>
           {/* charge button */}
-          <div className="w-full my-8 flex flex-col gap-4 md:w-1/3 lg:w-2/6">
+          <div className="w-full my-8 flex flex-col gap-4 md:w-2/3  lg:w-2/6">
+            <CardManager />
             <Credit />
             <SubscriptionStatus />
           </div>
