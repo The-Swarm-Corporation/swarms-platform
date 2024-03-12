@@ -3,9 +3,20 @@
 ## Todos
 
 - **Frontend**
-  - Implement API key page
-  - Implement playground page
-  - Clean up old code
+
+  - Implement account/playground page ui
+  - Implement account/usage page
+  - Clean up old codes
+  - improve ui
+  - google auth
+  - access management
+  - test all the payment actions 100%
+
+- **Backend**
+  - account/usage api's
+  - account/playground api's
+- **host**
+  - make stage version for supabase/nextjs
 
 ## Technologies
 
