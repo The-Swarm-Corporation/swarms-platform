@@ -296,16 +296,17 @@ export type Database = {
           creator: string | null
           default_config: Json | null
           description: string | null
+          docs: Json | null
           enabled: boolean | null
           id: string
           model_parameter: string | null
-          model_type: number
+          model_type: Database["public"]["Enums"]["model_type"] | null
           name: string | null
           per_1k_input_price: number | null
           per_1k_output_price: number | null
           provider: string | null
           unique_name: string
-          updated_date: string | null
+          updated_at: string | null
         }
         Insert: {
           context_length?: number | null
@@ -313,16 +314,17 @@ export type Database = {
           creator?: string | null
           default_config?: Json | null
           description?: string | null
+          docs?: Json | null
           enabled?: boolean | null
           id?: string
           model_parameter?: string | null
-          model_type: number
+          model_type?: Database["public"]["Enums"]["model_type"] | null
           name?: string | null
           per_1k_input_price?: number | null
           per_1k_output_price?: number | null
           provider?: string | null
           unique_name: string
-          updated_date?: string | null
+          updated_at?: string | null
         }
         Update: {
           context_length?: number | null
@@ -330,18 +332,99 @@ export type Database = {
           creator?: string | null
           default_config?: Json | null
           description?: string | null
+          docs?: Json | null
           enabled?: boolean | null
           id?: string
           model_parameter?: string | null
-          model_type?: number
+          model_type?: Database["public"]["Enums"]["model_type"] | null
           name?: string | null
           per_1k_input_price?: number | null
           per_1k_output_price?: number | null
           provider?: string | null
           unique_name?: string
-          updated_date?: string | null
+          updated_at?: string | null
         }
         Relationships: []
+      }
+      swarms_cloud_monthly_usage: {
+        Row: {
+          api_requests_count: number | null
+          created_at: string
+          id: string
+          month: string | null
+          usage: number | null
+          user_id: string | null
+        }
+        Insert: {
+          api_requests_count?: number | null
+          created_at?: string
+          id?: string
+          month?: string | null
+          usage?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          api_requests_count?: number | null
+          created_at?: string
+          id?: string
+          month?: string | null
+          usage?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_monthly_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      swarms_cloud_stripe_invoices: {
+        Row: {
+          amount: number | null
+          created_at: string
+          id: number
+          monthly_usage_id: string | null
+          status: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          id?: number
+          monthly_usage_id?: string | null
+          status?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          id?: number
+          monthly_usage_id?: string | null
+          status?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_stripe_invoices_monthly_usage_id_fkey"
+            columns: ["monthly_usage_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_monthly_usage"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_swarms_cloud_stripe_invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       swarms_cloud_users_credits: {
         Row: {
@@ -366,7 +449,7 @@ export type Database = {
           {
             foreignKeyName: "public_swarms_cloud_users_credits_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           }
@@ -412,6 +495,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      model_type: "text" | "vision"
       pricing_plan_interval: "day" | "week" | "month" | "year"
       pricing_type: "one_time" | "recurring"
       subscription_status:

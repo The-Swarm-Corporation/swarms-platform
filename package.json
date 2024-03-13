@@ -25,6 +25,8 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-slider": "^1.1.2",
     "@radix-ui/react-toast": "^1.1.5",
     "@stripe/react-stripe-js": "^2.6.0",
     "@stripe/stripe-js": "2.4.0",
@@ -43,6 +45,7 @@
     "lucide-react": "^0.352.0",
     "next": "latest",
     "next-themes": "^0.2.1",
+    "openai": "^4.28.4",
     "rate-limiter-flexible": "^5.0.0",
     "react": "latest",
     "react-dom": "latest",
