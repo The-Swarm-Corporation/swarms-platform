@@ -126,6 +126,13 @@ const CardManagerInside = () => {
         <h1 className="text-base font-bold text-white">Manage Cards</h1>
         <div className="flex flex-col items-center justify-center p-1 gap-2">
           {manager.methods.isLoading && <LoadingSpinner />}
+          {
+            !manager.methods.data?.length && !manager.methods.isLoading && (
+              <div className="text-muted-foreground">
+                No cards added yet
+              </div>
+            )
+          }
           {manager.methods.data?.map(({ card, id }) => {
             return (
               <div
