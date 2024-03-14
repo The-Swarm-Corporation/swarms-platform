@@ -29,8 +29,8 @@ import {
   getCoreRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
-
+import { useMemo, useRef, useState } from 'react';
+import confetti from 'canvas-confetti';
 
 const ApiKeys = () => {
   const apiKeys = trpc.getApiKeys.useQuery();
@@ -86,8 +86,22 @@ const ApiKeys = () => {
     columns: columns as any,
     getCoreRowModel: getCoreRowModel()
   });
-  console.log('test');
 
+  const generate = () => {
+    addApiKey.mutateAsync({ name: keyName }).then((data) => {
+      setKeyName('');
+      setGeneratedKey(data?.key ?? '');
+      apiKeys.refetch();
+      toast.toast({
+        title: 'API key created'
+      });
+      confetti({
+        particleCount: 150,
+        spread: 90,
+        origin: { y: 0.6 }
+      });
+    });
+  };
   return (
     <>
       <div className="flex flex-col w-5/6">
@@ -219,13 +233,7 @@ const ApiKeys = () => {
                   <Button
                     disabled={addApiKey.isPending}
                     type="button"
-                    onClick={() => {
-                      addApiKey.mutateAsync({ name: keyName }).then((data) => {
-                        setKeyName('');
-                        setGeneratedKey(data?.key ?? '');
-                        apiKeys.refetch();
-                      });
-                    }}
+                    onClick={generate}
                   >
                     Generate key
                   </Button>
