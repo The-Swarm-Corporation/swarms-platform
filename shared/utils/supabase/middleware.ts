@@ -52,7 +52,7 @@ export const createClient = (request: NextRequest) => {
             value: '',
             ...options
           });
-        }
+        },
       }
     }
   );

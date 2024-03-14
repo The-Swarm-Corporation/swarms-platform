@@ -108,6 +108,13 @@ const upsertCustomerToSupabase = async (uuid: string, customerId: string) => {
 };
 
 const createCustomerInStripe = async (uuid: string, email: string) => {
+  // first check if the customer already exists in stripe
+  const { data: existingStripeCustomer } = await stripe.customers.list({
+    email
+  });
+  if (existingStripeCustomer.length > 0 && !existingStripeCustomer[0].deleted) {
+    return existingStripeCustomer[0].id;
+  }
   const customerData = { metadata: { supabaseUUID: uuid }, email: email };
   const newCustomer = await stripe.customers.create(customerData);
   if (!newCustomer) throw new Error('Stripe customer creation failed.');
@@ -115,7 +122,26 @@ const createCustomerInStripe = async (uuid: string, email: string) => {
   return newCustomer.id;
 };
 
-const createOrRetrieveCustomer = async ({
+const retrieveUserStripeCustomerId = async (uuid: string) => {
+  // Check if the customer already exists in Supabase
+  const { data: existingSupabaseCustomer, error: queryError } =
+    await supabaseAdmin
+      .from('customers')
+      .select('*')
+      .eq('id', uuid)
+      .maybeSingle();
+
+  if (queryError) {
+    throw new Error(`Supabase customer lookup failed: ${queryError.message}`);
+  }
+
+  if (existingSupabaseCustomer?.stripe_customer_id) {
+    return existingSupabaseCustomer.stripe_customer_id;
+  } else {
+    throw new Error('No stripe customer id found');
+  }
+};
+const createOrRetrieveStripeCustomer = async ({
   email,
   uuid
 }: {
@@ -137,13 +163,18 @@ const createOrRetrieveCustomer = async ({
   // Retrieve the Stripe customer ID using the Supabase customer ID, with email fallback
   let stripeCustomerId: string | undefined;
   if (existingSupabaseCustomer?.stripe_customer_id) {
-    const existingStripeCustomer = await stripe.customers.retrieve(
-      existingSupabaseCustomer.stripe_customer_id
-    );
-    stripeCustomerId = existingStripeCustomer.id;
+    try {
+      const existingStripeCustomer = await stripe.customers.retrieve(
+        existingSupabaseCustomer.stripe_customer_id
+      );
+      if (!existingStripeCustomer.deleted) {
+        stripeCustomerId = existingStripeCustomer?.id;
+      }
+    } catch (e) {}
   } else {
     // If Stripe ID is missing from Supabase, try to retrieve Stripe customer ID by email
     const stripeCustomers = await stripe.customers.list({ email: email });
+
     stripeCustomerId =
       stripeCustomers.data.length > 0 ? stripeCustomers.data[0].id : undefined;
   }
@@ -338,6 +369,7 @@ export {
   upsertPriceRecord,
   deleteProductRecord,
   deletePriceRecord,
-  createOrRetrieveCustomer,
-  manageSubscriptionStatusChange
+  createOrRetrieveStripeCustomer,
+  manageSubscriptionStatusChange,
+  retrieveUserStripeCustomerId
 };

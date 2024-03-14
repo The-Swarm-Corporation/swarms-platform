@@ -23,7 +23,8 @@ export const getURL = (path: string = '') => {
   path = path.replace(/^\/+/, '');
 
   // Concatenate the URL and the path.
-  return path ? `${url}/${path}` : url;
+  const fullPath = `${url}/${path}`;
+  return fullPath;
 };
 
 export const postData = async ({
@@ -143,7 +144,6 @@ export function generateApiKey() {
   var apiKey = 'sk-' + randomHex;
   return apiKey;
 }
-
 
 export const formatDate = (date: string) => {
   // like: Jul 28, 2022

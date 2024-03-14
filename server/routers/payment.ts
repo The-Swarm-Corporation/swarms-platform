@@ -7,7 +7,7 @@ import {
   addPaymentMethodIfNotExists,
   checkoutWithStripe,
   createStripePortal,
-  makeSureStripeCustomerExists
+  getUserStripeCustomerId
 } from '@/shared/utils/stripe/server';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
@@ -95,7 +95,7 @@ const paymentRouter = router({
   //
   getUserPaymentMethods: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
-    const stripeCustomerId = await makeSureStripeCustomerExists(user);
+    const stripeCustomerId = await getUserStripeCustomerId(user);
     if (!stripeCustomerId) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -117,7 +117,7 @@ const paymentRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
-      const stripeCustomerId = await makeSureStripeCustomerExists(user);
+      const stripeCustomerId = await getUserStripeCustomerId(user);
       if (!stripeCustomerId) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -151,7 +151,7 @@ const paymentRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
-      const stripeCustomerId = await makeSureStripeCustomerExists(user);
+      const stripeCustomerId = await getUserStripeCustomerId(user);
       if (!stripeCustomerId) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -177,7 +177,7 @@ const paymentRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
-      const stripeCustomerId = await makeSureStripeCustomerExists(user);
+      const stripeCustomerId = await getUserStripeCustomerId(user);
       if (!stripeCustomerId) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -199,7 +199,7 @@ const paymentRouter = router({
     }),
   getDefaultPaymentMethod: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
-    const stripeCustomerId = await makeSureStripeCustomerExists(user);
+    const stripeCustomerId = await getUserStripeCustomerId(user);
     if (!stripeCustomerId) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',

@@ -10,12 +10,22 @@ import {
 } from '@/shared/utils/helpers';
 import { getAuthTypes } from '@/shared/utils/auth-helpers/settings';
 import { PLATFORM } from '@/shared/constants/links';
+import { User } from '@supabase/supabase-js';
+import { createOrRetrieveStripeCustomer } from '../supabase/admin';
+import { NextResponse } from 'next/server';
 
 function isValidEmail(email: string) {
   var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
   return regex.test(email);
 }
 
+export async function afterSignin(user: User) {
+  const stripeCustomerId = await createOrRetrieveStripeCustomer({
+    email: user?.email || '',
+    uuid: user.id
+  });
+  redirect(getURL(PLATFORM.DASHBOARD));
+}
 export async function checkUserSession() {
   const supabase = createClient();
   const {
@@ -151,7 +161,7 @@ export async function signInWithPassword(formData: FormData) {
   const cookieStore = cookies();
   const email = String(formData.get('email')).trim();
   const password = String(formData.get('password')).trim();
-  let redirectPath: string;
+  let redirectPath: string | undefined;
 
   const supabase = createClient();
   const { error, data } = await supabase.auth.signInWithPassword({
@@ -167,7 +177,8 @@ export async function signInWithPassword(formData: FormData) {
     );
   } else if (data.user) {
     cookieStore.set('preferredSignInView', 'password_signin', { path: '/' });
-    redirectPath = getStatusRedirect('/', 'Success!', 'You are now signed in.');
+    afterSignin(data.user);
+    return null;
   } else {
     redirectPath = getErrorRedirect(
       '/signin/password_signin',
@@ -296,7 +307,11 @@ export async function updateEmail(formData: FormData) {
   const supabase = createClient();
 
   const callbackUrl = getURL(
-    getStatusRedirect(PLATFORM.ACCOUNT, 'Success!', `Your email has been updated.`)
+    getStatusRedirect(
+      PLATFORM.ACCOUNT,
+      'Success!',
+      `Your email has been updated.`
+    )
   );
 
   const { error } = await supabase.auth.updateUser(

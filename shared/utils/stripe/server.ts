@@ -3,7 +3,9 @@
 import Stripe from 'stripe';
 import { stripe } from '@/shared/utils/stripe/config';
 import { createClient } from '@/shared/utils/supabase/server';
-import { createOrRetrieveCustomer } from '@/shared/utils/supabase/admin';
+import {
+  retrieveUserStripeCustomerId
+} from '@/shared/utils/supabase/admin';
 import {
   getURL,
   getErrorRedirect,
@@ -18,13 +20,10 @@ type CheckoutResponse = {
   sessionId?: string;
 };
 
-export async function makeSureStripeCustomerExists(user: User) {
-  // Retrieve or create the customer in Stripe
+export async function getUserStripeCustomerId(user: User) {
+  // Retrieve the customer in Stripe
   try {
-    return await createOrRetrieveCustomer({
-      uuid: user?.id || '',
-      email: user?.email || ''
-    });
+    return await retrieveUserStripeCustomerId(user.id);
   } catch (err) {
     console.error(err);
     throw new Error('Unable to access customer record.');
@@ -48,7 +47,7 @@ export async function checkoutWithStripe(
     }
 
     // Retrieve or create the customer in Stripe
-    const customer = await makeSureStripeCustomerExists(user);
+    const customer = await getUserStripeCustomerId(user);
 
     let params: Stripe.Checkout.SessionCreateParams = {
       allow_promotion_codes: true,
@@ -127,7 +126,7 @@ export async function createStripePortal(user: User, currentPath: string) {
     if (!user) {
       throw new Error('Could not get user session.');
     }
-    const customer = await makeSureStripeCustomerExists(user);
+    const customer = await getUserStripeCustomerId(user);
 
     if (!customer) {
       throw new Error('Could not get customer.');

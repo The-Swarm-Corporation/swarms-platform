@@ -6,7 +6,7 @@ import { generateApiKey } from '@/shared/utils/helpers';
 import { createPaymentSession } from '@/shared/utils/stripe/client';
 import { getUserCredit } from '@/shared/utils/supabase/admin';
 import {
-  makeSureStripeCustomerExists
+  getUserStripeCustomerId
 } from '@/shared/utils/stripe/server';
 const panelRouter = router({
   // api key page
@@ -72,7 +72,7 @@ const panelRouter = router({
   // payment
   createStripePaymentSession: userProcedure.mutation(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
-    const customer = await makeSureStripeCustomerExists(user);
+    const customer = await getUserStripeCustomerId(user);
     if (!customer) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
