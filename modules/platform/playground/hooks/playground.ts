@@ -64,7 +64,7 @@ const usePlayground = () => {
     } else {
       setIsSending(true);
 
-      const url = 'http://api.swarms.world/v1/chat/completions';
+      const url = 'https://api.swarms.world/v1/chat/completions';
 
       const messagesToSend = messages.map((message) => ({
         ...message
