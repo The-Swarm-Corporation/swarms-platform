@@ -5,9 +5,7 @@ import { User } from '@supabase/supabase-js';
 import { generateApiKey } from '@/shared/utils/helpers';
 import { createPaymentSession } from '@/shared/utils/stripe/client';
 import { getUserCredit } from '@/shared/utils/supabase/admin';
-import {
-  getUserStripeCustomerId
-} from '@/shared/utils/stripe/server';
+import { getUserStripeCustomerId } from '@/shared/utils/stripe/server';
 const panelRouter = router({
   // api key page
   getApiKeys: userProcedure.query(async ({ ctx }) => {
@@ -56,6 +54,26 @@ const panelRouter = router({
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
+      const apiKey = await ctx.supabase
+        .from('swarms_cloud_api_keys')
+        .select('*')
+        .eq('id', input)
+        .eq('user_id', user.id)
+        .single();
+      // dont allow delete 'playground' api key
+      if (apiKey.error) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Invalid api key'
+        });
+      }
+
+      if (apiKey.data.name == 'playground') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Cannot delete playground api key'
+        });
+      }
       const updatedApiKey = await ctx.supabase
         .from('swarms_cloud_api_keys')
         .update({ is_deleted: true })
@@ -87,7 +105,7 @@ const panelRouter = router({
     const user = ctx.session.data.session?.user as User;
     const userCredit = await getUserCredit(user.id);
     return userCredit;
-  }),
+  })
 });
 
 export default panelRouter;
