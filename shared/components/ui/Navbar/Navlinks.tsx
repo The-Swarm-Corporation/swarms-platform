@@ -24,7 +24,7 @@ export default function Navlinks({ user }: NavlinksProps) {
           <Logo />
         </div>
         <nav className="flex ml-2 md:ml-6 gap-3">
-          <Link href="/" className={s.link}>
+          <Link href="/pricing" className={s.link}>
             Pricing
           </Link>
           <Link href={SWARMS_GITHUB} className={cn(s.link, 'hidden md:inline')}>
@@ -33,7 +33,6 @@ export default function Navlinks({ user }: NavlinksProps) {
           <Link href={DISCORD} className={cn(s.link, 'hidden md:inline')}>
             Community
           </Link>
-
           {user && (
             <Link href={PLATFORM.DASHBOARD} className={s.link}>
               Dashboard

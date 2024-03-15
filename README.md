@@ -1,5 +1,15 @@
 # Swarms Cloud Platform
 
+
+## install
+`yarn install`
+
+`yarn run dev`
+
+
+
+
+
 ## Todos
 
 - **Frontend**
@@ -28,6 +38,7 @@
 - Vercel
 - React
 - Tailwindcss
+
 
 ## 🫶 Contributions:
 
