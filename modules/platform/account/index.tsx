@@ -1,7 +1,10 @@
 'use client';
+import { Button } from '@/shared/components/ui/Button';
 import CardManager from './components/card-manager';
 import Credit from './components/credit';
 import SubscriptionStatus from './components/subscription-status';
+import Link from 'next/link';
+import { AUTH } from '@/shared/constants/links';
 
 export default function Account() {
   return (
@@ -16,6 +19,13 @@ export default function Account() {
             <CardManager />
             <Credit />
             <SubscriptionStatus />
+
+            <div className="flex flex-col gap-2">
+              <h2 className="text-white text-xl font-bold">Password</h2>
+              <Link href={AUTH.CHANGE_PASSWORD}>
+                <Button variant={'outline'}>Change password</Button>
+              </Link>
+            </div>
           </div>
           {/* show credit */}
         </div>
