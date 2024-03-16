@@ -1,3 +1,5 @@
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import useSubscription from '@/shared/hooks/subscription';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { useEffect, useRef, useState } from 'react';
@@ -54,9 +56,16 @@ const usePlayground = () => {
     (model) => model.id === selectedModelId
   );
   const fetchControllerRef = useRef(new AbortController());
-  const signal = fetchControllerRef.current.signal;
 
+  const subscription = useSubscription();
+  const toast = useToast();
   const submit = async () => {
+    if (subscription.status !== 'active') {
+      toast.toast({
+        title: 'Subscription required'
+      });
+      return;
+    }
     if (isSending) {
       // cancel
       fetchControllerRef.current.abort();

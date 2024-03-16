@@ -5,7 +5,10 @@ import { User } from '@supabase/supabase-js';
 import { generateApiKey } from '@/shared/utils/helpers';
 import { createPaymentSession } from '@/shared/utils/stripe/client';
 import { getUserCredit } from '@/shared/utils/supabase/admin';
-import { getUserStripeCustomerId } from '@/shared/utils/stripe/server';
+import {
+  getSubscriptionStatus,
+  getUserStripeCustomerId
+} from '@/shared/utils/stripe/server';
 const panelRouter = router({
   // api key page
   getApiKeys: userProcedure.query(async ({ ctx }) => {
@@ -25,6 +28,15 @@ const panelRouter = router({
   addApiKey: userProcedure
     .input(z.object({ name: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const user = ctx.session.data.session?.user as User;
+      // check subscription status
+      const sub = await getSubscriptionStatus(user);
+      if (sub.status !== 'active') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Subscription is required'
+        });
+      }
       const name = input.name.trim();
       if (name == '') {
         throw new TRPCError({
@@ -41,7 +53,6 @@ const panelRouter = router({
         });
       }
       try {
-        const user = ctx.session.data.session?.user as User;
         const key = generateApiKey();
         const newApiKey = await ctx.supabase
           .from('swarms_cloud_api_keys')

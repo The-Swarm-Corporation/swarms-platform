@@ -1,12 +1,12 @@
 import { router, userProcedure } from '@/app/api/trpc/trpc-router';
 import { PLATFORM } from '@/shared/constants/links';
-import { SubscriptionWithPriceAndProduct } from '@/shared/models/supscription';
 import { getURL } from '@/shared/utils/helpers';
 import { stripe } from '@/shared/utils/stripe/config';
 import {
   addPaymentMethodIfNotExists,
   checkoutWithStripe,
   createStripePortal,
+  getSubscriptionStatus,
   getUserStripeCustomerId
 } from '@/shared/utils/stripe/server';
 import { User } from '@supabase/supabase-js';
@@ -71,26 +71,7 @@ const paymentRouter = router({
   }),
   getSubscriptionStatus: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
-    const { data } = await ctx.supabase
-      .from('subscriptions')
-      .select('*, prices(*, products(*))')
-      .eq('user_id', user.id)
-      .in('status', ['trialing', 'active'])
-      .maybeSingle();
-    const subscription: SubscriptionWithPriceAndProduct | null = data;
-    const subscriptionPrice =
-      subscription &&
-      new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: subscription?.prices?.currency!,
-        minimumFractionDigits: 0
-      }).format((subscription?.prices?.unit_amount || 0) / 100);
-    return {
-      status: subscription?.status,
-      subscriptionPrice,
-      isCanceled: subscription?.cancel_at_period_end,
-      renewAt: subscription?.current_period_end
-    };
+    return await getSubscriptionStatus(user);
   }),
   //
   getUserPaymentMethods: userProcedure.query(async ({ ctx }) => {
