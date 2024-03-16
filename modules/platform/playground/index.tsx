@@ -29,8 +29,8 @@ const ImageMessageRender = ({
 }) => {
   return (
     <div className="w-full relative">
-      <div className="absolute top-2 right-2 z-10 p-2 transition-all bg-red-500 rounded-md group-hover:opacity-100 opacity-0 cursor-pointer">
-        <Trash onClick={remove} className="text-white/80  " size={20} />
+      <div onClick={remove} className="absolute top-2 right-2 z-10 p-2 transition-all bg-red-500 rounded-md group-hover:opacity-100 opacity-0 cursor-pointer text-white/80">
+        <Trash size={20} />
       </div>
       <img
         src={url}
