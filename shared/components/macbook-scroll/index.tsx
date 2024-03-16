@@ -69,7 +69,7 @@ const MacbookScroll = ({
   return (
     <div
       ref={ref}
-      className="min-h-[200vh]  flex flex-col items-center py-0 md:py-80 justify-start flex-shrink-0 [perspective:800px] transform md:scale-100  scale-[0.35] sm:scale-50"
+      className="h-[100vh] sm:min-h-[140vh] md:min-h-[180vh]  flex flex-col items-center pt-5 sm:pt-52 justify-start flex-shrink-0 [perspective:800px] transform  scale-[0.45] sm:scale-75 md:scale-125"
     >
       <motion.h2
         style={{
@@ -79,7 +79,7 @@ const MacbookScroll = ({
         className="dark:text-white text-neutral-800 text-3xl font-bold mb-20 text-center"
       >
         {title || (
-          <span>
+         <span>
             This Macbook is built with Tailwindcss. <br /> No kidding.
           </span>
         )}
