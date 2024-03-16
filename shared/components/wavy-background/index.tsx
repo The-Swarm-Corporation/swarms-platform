@@ -1,5 +1,6 @@
 "use client";
 import { cn } from "@/shared/utils/cn";
+import hslToHex from "@/shared/utils/hsl-to-hex";
 import React, { useEffect, useRef, useState } from "react";
 import { createNoise3D } from "simplex-noise";
  
@@ -50,7 +51,7 @@ const WavyBackground = ({
         return 0.001;
     }
   };
- 
+  let waveColors:any;
   const init = () => {
     canvas = canvasRef.current;
     canvasContainer = containerRef.current as HTMLDivElement;
@@ -64,16 +65,21 @@ const WavyBackground = ({
       h = ctx.canvas.height = window.innerHeight;
       ctx.filter = `blur(${blur}px)`;
     };
+    const primaryColor = window.getComputedStyle(document.documentElement).getPropertyValue('--primary');
+    const primaryColorHex = hslToHex(primaryColor);
+    
+    waveColors= colors ?? [
+      primaryColorHex,
+      "#26dcdc",
+      primaryColorHex,
+      "#8126dc",
+      primaryColorHex,
+   
+    ];
     render();
   };
- 
-  const waveColors = colors ?? [
-    "#38bdf8",
-    "#818cf8",
-    "#c084fc",
-    "#e879f9",
-    "#22d3ee",
-  ];
+  
+
   const drawWave = (n: number) => {
     nt += getSpeed();
     for (i = 0; i < n; i++) {
