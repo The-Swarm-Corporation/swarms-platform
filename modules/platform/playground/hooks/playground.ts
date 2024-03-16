@@ -81,6 +81,39 @@ const usePlayground = () => {
         temperature,
         top_p: topP,
         max_tokens: maxTokens
+        // for next version
+        /*         functions: [
+          {
+            name: 'detection',
+            description: 'Detect objects in the image.',
+            parameters: {
+              type: 'object',
+              properties: {
+                objects: {
+                  type: 'array',
+                  description: 'The objects present in the image.',
+                  items: {
+                    type: 'string',
+                    enum: ['dog', 'person', 'tree', 'path', 'sun']
+                  }
+                },
+                animals: {
+                  type: 'array',
+                  description: 'The animals present in the image.',
+                  items: {
+                    type: 'string',
+                    enum: ['dog']
+                  }
+                },
+                people: {
+                  type: 'boolean',
+                  description: 'Whether there are people in the image.',
+                  enum: [true]
+                }
+              }
+            }
+          }
+        ] */
       };
 
       // Send the request
@@ -98,6 +131,8 @@ const usePlayground = () => {
           // Print the response from the server
           //   const message=data.
           const message = data.choices[0].message as ChatCompletionMessageParam;
+          console.log('message', message);
+
           //   append
           const newMessages = [...messages];
           newMessages.push(message);

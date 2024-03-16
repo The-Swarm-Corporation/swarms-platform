@@ -16,7 +16,6 @@ import { Button } from '@/shared/components/ui/Button';
 import { Slider } from '@/shared/components/ui/slider';
 import { MessageItem } from './components/message';
 
-
 const Playground = () => {
   const playground = usePlayground();
   const messages = playground.messages;
@@ -34,12 +33,12 @@ const Playground = () => {
           />
         </div>
         <div className="w-3/6 ">
-          <div className={
-            cn(
-              "h-full overflow-auto pb-16",
-              playground.isSending && "opacity-80 pointer-events-none"
-            )
-          }>
+          <div
+            className={cn(
+              'h-full overflow-auto pb-16',
+              playground.isSending && 'opacity-80 pointer-events-none'
+            )}
+          >
             {/* messages */}
             {messages.map((msg, i) => {
               return (
@@ -89,7 +88,7 @@ const Playground = () => {
             </Button>
           </div>
         </div>
-        <div className="w-1/6 flex flex-col gap-8">
+        <div className="w-1/6 flex flex-col gap-4">
           {/* loading */}
           {playground.models.isLoading && (
             <div className="w-full flex justify-center items-center">
@@ -98,8 +97,6 @@ const Playground = () => {
           )}
           {playground.models.isFetched && (
             <>
-              {/* models */}
-
               <div>
                 <Select
                   onValueChange={(value) => {
@@ -119,51 +116,60 @@ const Playground = () => {
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* temereture */}
-              <div className="w-full flex flex-col gap-2 ">
-                <span className="flex justify-between">
-                  <span>Temperature:</span>
-                  <span>{playground.temperature}</span>
-                </span>
-                <Slider
-                  value={[playground.temperature]}
-                  onValueChange={(v) => {
-                    playground.setTemperature(v[0]);
-                  }}
-                  max={2}
-                  step={0.1}
-                />
-              </div>
-              {/* top p */}
-              <div className="w-full flex flex-col gap-2">
-                <span className="flex justify-between">
-                  <span>Top p:</span>
-                  <span>{playground.topP}</span>
-                </span>
-                <Slider
-                  value={[playground.topP]}
-                  onValueChange={(v) => {
-                    playground.setTopP(v[0]);
-                  }}
-                  max={1}
-                  step={0.1}
-                />
-              </div>
-              {/* max tokens */}
-              <div className="w-full flex flex-col gap-2">
-                <span className="flex justify-between">
-                  <span>Max tokens:</span>
-                  <span>{playground.maxTokens}</span>
-                </span>
-                <Slider
-                  value={[playground.maxTokens]}
-                  onValueChange={(v) => {
-                    playground.setMaxTokens(v[0]);
-                  }}
-                  max={8096}
-                  step={64}
-                />
+              {/* models */}
+              {/*               {playground.selectedModel?.support_functions && (
+                <div>
+                  <Button className="w-full" variant={'outline'}>
+                    Functions
+                  </Button>
+                </div>
+              )} */}
+              <div className="flex flex-col gap-4 w-full">
+                {/* temereture */}
+                <div className="w-full flex flex-col gap-2">
+                  <span className="flex justify-between">
+                    <span>Temperature:</span>
+                    <span>{playground.temperature}</span>
+                  </span>
+                  <Slider
+                    value={[playground.temperature]}
+                    onValueChange={(v) => {
+                      playground.setTemperature(v[0]);
+                    }}
+                    max={2}
+                    step={0.1}
+                  />
+                </div>
+                {/* top p */}
+                <div className="w-full flex flex-col gap-2">
+                  <span className="flex justify-between">
+                    <span>Top p:</span>
+                    <span>{playground.topP}</span>
+                  </span>
+                  <Slider
+                    value={[playground.topP]}
+                    onValueChange={(v) => {
+                      playground.setTopP(v[0]);
+                    }}
+                    max={1}
+                    step={0.1}
+                  />
+                </div>
+                {/* max tokens */}
+                <div className="w-full flex flex-col gap-2">
+                  <span className="flex justify-between">
+                    <span>Max tokens:</span>
+                    <span>{playground.maxTokens}</span>
+                  </span>
+                  <Slider
+                    value={[playground.maxTokens]}
+                    onValueChange={(v) => {
+                      playground.setMaxTokens(v[0]);
+                    }}
+                    max={8096}
+                    step={64}
+                  />
+                </div>
               </div>
             </>
           )}

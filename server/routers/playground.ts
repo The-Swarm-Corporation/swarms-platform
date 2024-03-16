@@ -16,7 +16,8 @@ const playgroundRouter = router({
           id: model.id,
           name: model.name,
           unique_name: model.unique_name,
-          model_type: model.model_type
+          model_type: model.model_type,
+          support_functions: model.support_functions
         }) as SwarmApiModel
     );
   }),
