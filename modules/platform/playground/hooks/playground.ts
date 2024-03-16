@@ -127,9 +127,6 @@ const usePlayground = () => {
         .then((response) => response.json())
         .then((data) => {
           console.log('Success:', data);
-
-          // Print the response from the server
-          //   const message=data.
           const message = data.choices[0].message as ChatCompletionMessageParam;
           console.log('message', message);
 
