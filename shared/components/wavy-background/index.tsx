@@ -61,7 +61,7 @@ const WavyBackground = ({
     ctx.filter = `blur(${blur}px)`;
     nt = 0;
     window.onresize = function () {
-      w = ctx.canvas.width = window.innerWidth;
+      w = ctx.canvas.width = canvasContainer.offsetWidth;
       h = ctx.canvas.height = window.innerHeight;
       ctx.filter = `blur(${blur}px)`;
     };
@@ -70,10 +70,9 @@ const WavyBackground = ({
     
     waveColors= colors ?? [
       primaryColorHex,
-      "#26dcdc",
-      primaryColorHex,
       "#8126dc",
       primaryColorHex,
+      "#8126dc",
    
     ];
     render();
