@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { SwarmApiModel } from '@/shared/models/db-types';
 import { createCallerFactory } from '@trpc/server/unstable-core-do-not-import';
 import panelRouter from './panel';
+import { generateApiKey } from '@/shared/utils/helpers';
 const playgroundRouter = router({
   playgroundListModels: userProcedure.query(async ({ ctx }) => {
     const models = await supabaseAdmin
@@ -25,16 +26,22 @@ const playgroundRouter = router({
     const currentPlaygroundApiKey = await supabaseAdmin
       .from('swarms_cloud_api_keys')
       .select('*')
-      .eq('name', 'playground');
+      .eq('name', 'playground')
+      .single();
 
-    let apiKey = currentPlaygroundApiKey.data?.[0]?.key;
+    if (!currentPlaygroundApiKey) {
+      const user = ctx.session.data?.session?.user;
+      if (!user) {
+        throw new Error('User not found');
+      }
+      const key = generateApiKey();
+      const newApiKey = await ctx.supabase
+        .from('swarms_cloud_api_keys')
+        .insert({ name: 'playground', key, user_id: user.id });
 
-    if (!apiKey) {
-      const createCaller = createCallerFactory();
-      const routerCaller = createCaller(panelRouter);
-      const res = await routerCaller({}).addApiKey({ name: 'playground' });
-      apiKey = res?.key;
+      return key;
     }
+    return currentPlaygroundApiKey.data?.key;
   })
 });
 

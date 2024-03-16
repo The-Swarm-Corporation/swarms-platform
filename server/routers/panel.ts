@@ -25,10 +25,19 @@ const panelRouter = router({
   addApiKey: userProcedure
     .input(z.object({ name: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      if (input.name.trim() == '') {
+      const name = input.name.trim();
+      if (name == '') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Name is required'
+        });
+      }
+
+      if (name == 'playground') {
+        // error
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'cannot create api key with name "playground"'
         });
       }
       try {
@@ -36,11 +45,11 @@ const panelRouter = router({
         const key = generateApiKey();
         const newApiKey = await ctx.supabase
           .from('swarms_cloud_api_keys')
-          .insert({ name: input.name, key, user_id: user.id });
+          .insert({ name: name, key, user_id: user.id });
         if (!newApiKey.error) {
           return {
             key,
-            name: input.name
+            name
           };
         }
       } catch (e) {

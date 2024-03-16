@@ -29,7 +29,7 @@ import {
   getCoreRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
 
 const ApiKeys = () => {
