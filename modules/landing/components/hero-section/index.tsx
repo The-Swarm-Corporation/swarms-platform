@@ -9,7 +9,7 @@ import WavyBackground from "@/shared/components/wavy-background";
 
 const HeroSection = () => {
     return(
-      <WavyBackground className="mx-auto pb-40 w-full">
+      <WavyBackground className="mx-auto md:pb-40 w-full">
         <div className="flex flex-col items-center px-4 py-8 mx-auto sm:py-24 sm:px-6 lg:px-8 gap-6 text-center">
            <h1 className="text-6xl md:text-7xl font-bold text-primary">
              Swarms
