@@ -30,7 +30,6 @@ const MacbookScroll = ({
   src,
   showGradient,
   title,
-  badge,
 }: {
   src?: string | StaticImageData;
   showGradient?: boolean;
@@ -78,7 +77,7 @@ const MacbookScroll = ({
       </motion.h2>
     <div
       ref={ref}
-      className="h-[110vh] sm:min-h-[140vh] md:min-h-[180vh]  flex flex-col items-center pt-5 sm:pt-60 justify-start flex-shrink-0 [perspective:800px] transform  scale-[0.50] sm:scale-75 md:scale-110"
+      className="h-[110vh] sm:min-h-[140vh] md:min-h-[235vh]  2xl:min-h-[180vh]  flex flex-col items-center pt-5 md:pt-60 justify-start flex-shrink-0 [perspective:800px] transform  scale-[0.50] sm:scale-75 md:scale-110"
     >
       {/* Lid */}
       <Lid
@@ -110,7 +109,6 @@ const MacbookScroll = ({
         {showGradient && (
           <div className="h-40 w-full absolute bottom-0 inset-x-0 bg-gradient-to-t dark:from-black from-white via-white dark:via-black to-transparent z-50"></div>
         )}
-        {badge && <div className="absolute bottom-4 left-4">{badge}</div>}
       </div>
     </div>
     </>

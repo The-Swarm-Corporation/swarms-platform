@@ -54,11 +54,6 @@ const PanelSection = () => {
             Swarm Platform <br /> You Can Use and Test Our Models Easily
           </span>
         }
-        badge={
-          <Link href="https://peerlist.io/manuarora">
-            <Badge className="h-10 w-10 transform -rotate-12" />
-          </Link>
-        }
         src={ImageScreen}
         showGradient={false}
       />
