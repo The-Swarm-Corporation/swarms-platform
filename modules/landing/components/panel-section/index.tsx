@@ -51,7 +51,7 @@ const PanelSection = () => {
       <MacbookScroll
         title={
           <span>
-            This Macbook is built with Tailwindcss. <br /> No kidding.
+            Swarm Platform <br /> You Can Use and Test Our Models Easily
           </span>
         }
         badge={
