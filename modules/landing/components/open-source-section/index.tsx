@@ -1,45 +1,93 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-
+import { Spotlight } from "@/shared/components/spotlight";
+import Image from "next/image";
+import GitHubImage from "@/public/svg/github.svg"
+import DiscordImage from "@/public/svg/discord.svg"
+import TwitterImage from "@/public/svg/twitter.svg"
+import AnimatedTooltip from "@/shared/components/tool-tip";
 
 const OpenSourceSection = () => {
     return(
       <div className="flex max-md:flex-col">
-        <div className="flex-1 bg-red-600">
-          <div className="flex flex-row items-center justify-center py-20 h-screen md:h-auto bg-black relative w-full">
-            <div className="max-w-7xl mx-auto w-full relative overflow-hidden h-full md:h-[40rem] px-4">
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  y: 20,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                transition={{
-                  duration: 1,
-                }}
-                className="div"
-              >
-                <h2 className="text-center text-xl md:text-4xl font-bold text-black dark:text-white">
-                  We sell soap worldwide
-                </h2>
-                <p className="text-center text-base md:text-lg font-normal text-neutral-700 dark:text-neutral-200 max-w-md mt-2 mx-auto">
-                  This globe is interactive and customizable. Have fun with it, and
-                  don&apos;t forget to share it.
-                </p>
-              </motion.div>
-              <div className="absolute w-full bottom-0 inset-x-0 h-40 bg-gradient-to-b pointer-events-none select-none from-transparent to-black z-40" />
-              <div className="absolute w-full -bottom-20 h-72 md:h-full z-10">
-          
-              </div>
-            </div>
+        <div className="flex-1 h-[40rem] w-full rounded-md flex md:items-center md:justify-center bg-black/[0.96] antialiased bg-grid-white/[0.02] relative overflow-hidden">
+          <Spotlight
+          className="-top-40 left-0 md:left-60 md:-top-20"
+          fill="white"
+          />
+          <div className=" p-4 max-w-7xl  mx-auto relative z-10  w-full pt-20 md:pt-0">
+            <h1 className="text-4xl md:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">
+            Everything Is <br /> Open Source
+            </h1>
+            <p className="mt-4 font-normal text-base text-neutral-300 max-w-lg text-center mx-auto">
+              Spotlight effect is a great way to draw attention to a specific part
+              of the page. Here, we are drawing the attention towards the text
+              section of the page. I don&apos;t know why but I&apos;m running out of
+              copy.
+            </p>
           </div>
         </div>
-        <div className="flex-1 bg-blue-600">
-
+        <div className="min-h-72 flex-1 flex justify-center items-center relative overflow-hidden bg-black/[0.96]">         
+            <motion.div
+              transition={{duration: 10, repeat: Infinity, ease: "easeIn" }}
+              initial="rest"
+              animate={{
+                x: [-50, -10, -50], 
+                y: [-70, 10, -70],         
+              }}
+              className="flex flex-col items-center gap-10"
+            >
+              <AnimatedTooltip tooltip={<p className="text-base md:text-2xl font-bold"> Join To Discord Server </p>}>
+              <div className="w-24 h-24 md:w-32 md:h-32">
+                <Image
+                  alt="discord" 
+                  fill
+                  className="object-fill object-left-top absolute rounded-lg inset-0"
+                  src={DiscordImage} />
+                </div>
+              </AnimatedTooltip>
+              
+            </motion.div>
+            <motion.div
+              transition={{duration: 3, repeat: Infinity, ease: "easeIn" }}
+              initial="rest"
+              animate={{
+                x: [10, -5, 10], 
+                y: [10, -5, 10],         
+              }}
+              className="flex flex-col items-center gap-10"
+            >
+              <AnimatedTooltip tooltip={<p className="text-base md:text-2xl font-bold"> Join Us </p>}>
+              <div className="w-28 h-28 md:w-60 md:h-60">
+                <Image
+                  alt="github" 
+                  fill
+                  className="object-fill object-left-top absolute rounded-lg inset-0"
+                  src={GitHubImage} />
+                </div>
+              </AnimatedTooltip>
+           
+            </motion.div>
+            <motion.div
+              transition={{duration: 7, repeat: Infinity, ease: "easeIn" }}
+              initial="rest"
+              animate={{
+                x: [50, 30, 50], 
+                y: [-10, 5, -10],         
+              }}
+              className="flex flex-col items-center gap-10"
+            >
+              <AnimatedTooltip tooltip={<p className="text-base md:text-2xl font-bold"> Follow Us on X </p>}>
+                <div className="w-24 h-24 md:w-32 md:h-32">
+                  <Image
+                    alt="twitter" 
+                    fill
+                    className="object-fill object-left-top absolute rounded-lg inset-0"
+                    src={TwitterImage} />
+                </div>
+                </AnimatedTooltip>
+            </motion.div>
         </div>
       </div>
     )
