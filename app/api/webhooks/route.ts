@@ -84,7 +84,14 @@ export async function POST(req: Request) {
             const amount_received_dec = amount / 100;
             if (userId && amount && checkoutSession.status === 'complete') {
               try {
-                await increaseUserCredit(userId, amount_received_dec);
+                const ok = await increaseUserCredit(
+                  userId,
+                  amount_received_dec
+                );
+                if (ok) {
+                  // return success to stripe
+                  return new Response(JSON.stringify({ received: true }));
+                }
               } catch (error) {
                 /*                 console.log(error);
                 // cancel the payment
