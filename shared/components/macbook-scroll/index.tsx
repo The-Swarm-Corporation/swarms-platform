@@ -63,27 +63,23 @@ const MacbookScroll = ({
   );
   const translate = useTransform(scrollYProgress, [0, 1], [0, 1500]);
   const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
-  const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
+  // const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   return (
-    <div
-      ref={ref}
-      className="h-[100vh] sm:min-h-[140vh] md:min-h-[180vh]  flex flex-col items-center pt-5 sm:pt-52 justify-start flex-shrink-0 [perspective:800px] transform  scale-[0.45] sm:scale-75 md:scale-125"
-    >
+    <>
       <motion.h2
         style={{
-          translateY: textTransform,
           opacity: textOpacity,
         }}
-        className="dark:text-white text-neutral-800 text-3xl font-bold mb-20 text-center"
+        className="text-white text-3xl font-bold text-center absolute top-10 p-2 right-[50%] w-full translate-x-1/2"
       >
-        {title || (
-         <span>
-            This Macbook is built with Tailwindcss. <br /> No kidding.
-          </span>
-        )}
+        {title}
       </motion.h2>
+    <div
+      ref={ref}
+      className="h-[110vh] sm:min-h-[140vh] md:min-h-[180vh]  flex flex-col items-center pt-5 sm:pt-60 justify-start flex-shrink-0 [perspective:800px] transform  scale-[0.50] sm:scale-75 md:scale-110"
+    >
       {/* Lid */}
       <Lid
         src={src}
@@ -117,6 +113,7 @@ const MacbookScroll = ({
         {badge && <div className="absolute bottom-4 left-4">{badge}</div>}
       </div>
     </div>
+    </>
   );
 };
 
