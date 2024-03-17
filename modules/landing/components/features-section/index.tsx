@@ -6,6 +6,8 @@ import Link from "next/link";
 import Card3D, { CardBody, CardItem } from "@/shared/components/3d-card";
 import ImageScreen from '@/public/images/panel-screen.png';
 
+import { motion } from "framer-motion";
+
 const items = [
     {
         image: ImageScreen,
@@ -26,7 +28,30 @@ const items = [
 
 const FeaturesSection = () => {
   return (
-    <div className="flex max-md:flex-col container mx-auto gap-4 py-8">
+    <div className="flex flex-col container mx-auto py-16">
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            duration: 1,
+          }}
+          className="div"
+        >
+          <h2 className="text-center text-xl md:text-4xl font-bold text-black dark:text-white">
+            We sell soap worldwide
+          </h2>
+          <p className="text-center text-base md:text-lg font-normal text-neutral-700 dark:text-neutral-200 max-w-md mt-2 mx-auto">
+            This globe is interactive and customizable. Have fun with it, and
+            don&apos;t forget to share it.
+          </p>
+        </motion.div>
+        <div className="flex max-md:flex-col container mx-auto gap-4 py-8">
         {items.map(item => (
             <Card3D className="inter-var">
             <CardBody className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border">
@@ -73,6 +98,7 @@ const FeaturesSection = () => {
             </CardBody>
           </Card3D>
         ))}
+        </div>
     </div>
   );
 }
