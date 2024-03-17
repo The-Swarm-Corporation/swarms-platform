@@ -146,6 +146,11 @@ const usePlayground = () => {
         })
         .catch((error) => {
           console.error('Error:', error);
+          toast.toast({
+            title: 'Error',
+            description: error.message,
+            variant: 'destructive'
+          });
         })
         .finally(() => {
           setIsSending(false);

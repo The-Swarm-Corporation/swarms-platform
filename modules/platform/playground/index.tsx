@@ -2,7 +2,7 @@
 
 import { Textarea } from '@/shared/components/ui/textarea';
 import { cn } from '@/shared/utils/cn';
-import { Plus } from 'lucide-react';
+import { LoaderCircle, Plus } from 'lucide-react';
 import usePlayground from './hooks/playground';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import {
@@ -80,11 +80,14 @@ const Playground = () => {
               disabled={playground.models.isLoading}
               onClick={playground.submit}
               className={cn(
-                'w-auto p-2 bg-primary rounded-md text-white transition-all',
+                'flex gap-2 w-auto p-2 bg-primary rounded-md text-white transition-all',
                 playground.isSending && 'bg-gray-600/90 hover:bg-gray-600'
               )}
             >
-              {playground.isSending ? 'cancel' : 'Submit'}
+              <span>{playground.isSending ? 'cancel' : 'Submit'}</span>
+              {playground.isSending && (
+                <LoaderCircle size={16} className="animate-spin" />
+              )}
             </Button>
           </div>
         </div>
