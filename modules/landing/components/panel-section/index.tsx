@@ -47,7 +47,7 @@ const Badge = ({ className }: { className?: string }) => {
 
 const PanelSection = () => {
     return(
-      <div className="overflow-hidden dark:bg-[#0B0B0F] bg-white w-full">
+      <div className="overflow-hidden bg-[#0B0B0F] w-full relative">
       <MacbookScroll
         title={
           <span>
