@@ -57,12 +57,12 @@ const WavyBackground = ({
     canvasContainer = containerRef.current as HTMLDivElement;
     ctx = canvas.getContext("2d");
     w = ctx.canvas.width = canvasContainer.offsetWidth;
-    h = ctx.canvas.height = window.innerHeight;
+    h = ctx.canvas.height = canvasContainer.offsetHeight;
     ctx.filter = `blur(${blur}px)`;
     nt = 0;
     window.onresize = function () {
       w = ctx.canvas.width = canvasContainer.offsetWidth;
-      h = ctx.canvas.height = window.innerHeight;
+      h = ctx.canvas.height = canvasContainer.offsetHeight;
       ctx.filter = `blur(${blur}px)`;
     };
     const primaryColor = window.getComputedStyle(document.documentElement).getPropertyValue('--primary');
@@ -124,12 +124,12 @@ const WavyBackground = ({
     <div
       ref={containerRef}
       className={cn(
-        "h-screen flex flex-col items-center justify-center",
+        "h-[calc(100vh-80px)] flex flex-col items-center justify-center bg-black",
         containerClassName
       )}
     >
       <canvas
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 top-[80px]"
         ref={canvasRef}
         id="canvas"
         style={{
