@@ -7,8 +7,8 @@ const Logo = ({ ...props }) => (
     <Image
       src="/swarms-logo.svg"
       alt="Swarms logo"
-      width={40}
-      height={40}
+      width={props?.width || 40}
+      height={props?.height || 40}
     />
   </Link>
 );
