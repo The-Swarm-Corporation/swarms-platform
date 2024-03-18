@@ -3,9 +3,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Spotlight } from "@/shared/components/spotlight";
 import Image from "next/image";
-import GitHubImage from "@/public/svg/github.svg"
-import DiscordImage from "@/public/svg/discord.svg"
-import TwitterImage from "@/public/svg/twitter.svg"
+import GitHubImage from "@/public/images/github.png"
+import DiscordImage from "@/public/images/discord.png"
+import TwitterImage from "@/public/images/twitter.png"
 import AnimatedTooltip from "@/shared/components/tool-tip";
 
 const OpenSourceSection = () => {
