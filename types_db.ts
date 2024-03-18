@@ -24,7 +24,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "customers_id_fkey"
+            foreignKeyName: "public_customers_id_fkey"
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "users"
@@ -305,6 +305,7 @@ export type Database = {
           per_1k_input_price: number | null
           per_1k_output_price: number | null
           provider: string | null
+          support_functions: boolean | null
           unique_name: string
           updated_at: string | null
         }
@@ -323,6 +324,7 @@ export type Database = {
           per_1k_input_price?: number | null
           per_1k_output_price?: number | null
           provider?: string | null
+          support_functions?: boolean | null
           unique_name: string
           updated_at?: string | null
         }
@@ -341,6 +343,7 @@ export type Database = {
           per_1k_input_price?: number | null
           per_1k_output_price?: number | null
           provider?: string | null
+          support_functions?: boolean | null
           unique_name?: string
           updated_at?: string | null
         }

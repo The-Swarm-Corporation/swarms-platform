@@ -342,6 +342,7 @@ const increaseUserCredit = async (uuid: string, amount: number) => {
     throw new Error(response.error.message);
   } else {
     console.log('Upsert operation successful');
+    return true;
   }
 };
 const getUserCredit = async (uuid: string) => {

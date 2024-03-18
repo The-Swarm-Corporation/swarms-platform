@@ -1,3 +1,5 @@
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import useSubscription from '@/shared/hooks/subscription';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { useEffect, useRef, useState } from 'react';
@@ -54,9 +56,16 @@ const usePlayground = () => {
     (model) => model.id === selectedModelId
   );
   const fetchControllerRef = useRef(new AbortController());
-  const signal = fetchControllerRef.current.signal;
 
+  const subscription = useSubscription();
+  const toast = useToast();
   const submit = async () => {
+    if (subscription.status !== 'active') {
+      toast.toast({
+        title: 'Subscription required'
+      });
+      return;
+    }
     if (isSending) {
       // cancel
       fetchControllerRef.current.abort();
@@ -81,6 +90,39 @@ const usePlayground = () => {
         temperature,
         top_p: topP,
         max_tokens: maxTokens
+        // for next version
+        /*         functions: [
+          {
+            name: 'detection',
+            description: 'Detect objects in the image.',
+            parameters: {
+              type: 'object',
+              properties: {
+                objects: {
+                  type: 'array',
+                  description: 'The objects present in the image.',
+                  items: {
+                    type: 'string',
+                    enum: ['dog', 'person', 'tree', 'path', 'sun']
+                  }
+                },
+                animals: {
+                  type: 'array',
+                  description: 'The animals present in the image.',
+                  items: {
+                    type: 'string',
+                    enum: ['dog']
+                  }
+                },
+                people: {
+                  type: 'boolean',
+                  description: 'Whether there are people in the image.',
+                  enum: [true]
+                }
+              }
+            }
+          }
+        ] */
       };
 
       // Send the request
@@ -94,10 +136,9 @@ const usePlayground = () => {
         .then((response) => response.json())
         .then((data) => {
           console.log('Success:', data);
-
-          // Print the response from the server
-          //   const message=data.
           const message = data.choices[0].message as ChatCompletionMessageParam;
+          console.log('message', message);
+
           //   append
           const newMessages = [...messages];
           newMessages.push(message);
@@ -105,6 +146,11 @@ const usePlayground = () => {
         })
         .catch((error) => {
           console.error('Error:', error);
+          toast.toast({
+            title: 'Error',
+            description: error.message,
+            variant: 'destructive'
+          });
         })
         .finally(() => {
           setIsSending(false);

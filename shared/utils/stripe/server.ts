@@ -4,7 +4,8 @@ import Stripe from 'stripe';
 import { stripe } from '@/shared/utils/stripe/config';
 import { createClient } from '@/shared/utils/supabase/server';
 import {
-  retrieveUserStripeCustomerId
+  retrieveUserStripeCustomerId,
+  supabaseAdmin
 } from '@/shared/utils/supabase/admin';
 import {
   getURL,
@@ -14,12 +15,35 @@ import {
 import { PLATFORM } from '@/shared/constants/links';
 import { ProductPrice } from '@/shared/models/db-types';
 import { User } from '@supabase/supabase-js';
+import { SubscriptionWithPriceAndProduct } from '@/shared/models/supscription';
 
 type CheckoutResponse = {
   errorRedirect?: string;
   sessionId?: string;
 };
 
+export async function getSubscriptionStatus(user: User) {
+  const { data } = await supabaseAdmin
+    .from('subscriptions')
+    .select('*, prices(*, products(*))')
+    .eq('user_id', user.id)
+    .in('status', ['trialing', 'active'])
+    .maybeSingle();
+  const subscription: SubscriptionWithPriceAndProduct | null = data;
+  const subscriptionPrice =
+    subscription &&
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: subscription?.prices?.currency!,
+      minimumFractionDigits: 0
+    }).format((subscription?.prices?.unit_amount || 0) / 100);
+  return {
+    status: subscription?.status,
+    subscriptionPrice,
+    isCanceled: subscription?.cancel_at_period_end,
+    renewAt: subscription?.current_period_end
+  };
+}
 export async function getUserStripeCustomerId(user: User) {
   // Retrieve the customer in Stripe
   try {
@@ -133,7 +157,7 @@ export async function createStripePortal(user: User, currentPath: string) {
     }
 
     try {
-      const { url } = await stripe.billingPortal.sessions.create({
+      const { url,...rest } = await stripe.billingPortal.sessions.create({
         customer,
         return_url: getURL(PLATFORM.ACCOUNT)
       });
