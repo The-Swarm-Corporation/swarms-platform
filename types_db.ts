@@ -32,6 +32,65 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          created: string | null
+          created_at: string
+          id: string
+          is_paid: boolean | null
+          metadata: Json | null
+          period_at: string | null
+          period_end: string | null
+          reason: string | null
+          status: string | null
+          status_transitions: Json | null
+          stripe_customer_id: string | null
+          total: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created?: string | null
+          created_at?: string
+          id: string
+          is_paid?: boolean | null
+          metadata?: Json | null
+          period_at?: string | null
+          period_end?: string | null
+          reason?: string | null
+          status?: string | null
+          status_transitions?: Json | null
+          stripe_customer_id?: string | null
+          total?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created?: string | null
+          created_at?: string
+          id?: string
+          is_paid?: boolean | null
+          metadata?: Json | null
+          period_at?: string | null
+          period_end?: string | null
+          reason?: string | null
+          status?: string | null
+          status_transitions?: Json | null
+          stripe_customer_id?: string | null
+          total?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prices: {
         Row: {
           active: boolean | null
@@ -389,51 +448,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "public_swarms_cloud_monthly_usage_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      swarms_cloud_stripe_invoices: {
-        Row: {
-          amount: number | null
-          created_at: string
-          id: number
-          monthly_usage_id: string | null
-          status: number | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          amount?: number | null
-          created_at?: string
-          id?: number
-          monthly_usage_id?: string | null
-          status?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          amount?: number | null
-          created_at?: string
-          id?: number
-          monthly_usage_id?: string | null
-          status?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_swarms_cloud_stripe_invoices_monthly_usage_id_fkey"
-            columns: ["monthly_usage_id"]
-            isOneToOne: false
-            referencedRelation: "swarms_cloud_monthly_usage"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_swarms_cloud_stripe_invoices_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"

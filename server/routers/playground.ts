@@ -29,7 +29,6 @@ const playgroundRouter = router({
       .eq('name', 'playground')
       .single();
 
-      
     if (!currentPlaygroundApiKey?.data) {
       const user = ctx.session.data?.session?.user;
       if (!user) {
