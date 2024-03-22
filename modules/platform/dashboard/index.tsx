@@ -1,9 +1,11 @@
 'use client';
+import CodeBox from '@/shared/components/code-box';
 import { Button } from '@/shared/components/ui/Button';
 import { PLATFORM } from '@/shared/constants/links';
 import useSubscription from '@/shared/hooks/subscription';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
+import { SAMPLE_GO, SAMPLE_JS, SAMPLE_PY } from './data/samples';
 
 const Dashboard = () => {
   const subscription = useSubscription();
@@ -13,13 +15,38 @@ const Dashboard = () => {
       <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
         Dashboard
       </h1>
-      <h2 className="text-3xl mt-4">What are you creating? </h2>
-      <span className="text-base text-muted-foreground">
-        Use this dashboard to configure your account and begin building AI
-        products with Swarms API.
-      </span>
+      <h2 className="text-3xl mt-4">
+        {subscription.isSubscribed
+          ? 'Welcome to Swarms AI API'
+          : 'Subscribe to Swarms AI API'}
+      </h2>
       <div className="flex flex-col gap-4 mt-8">
         {subscription.statusLoading && <div>Loading...</div>}
+        {!subscription.isLoading && subscription.isSubscribed && (
+          <div>
+            <div className="border rounded-md relative">
+              <CodeBox
+                classes={{
+                  content: 'h-[50vh] overflow-y-auto'
+                }}
+                sampleCodes={{
+                  python: {
+                    sourceCode: SAMPLE_PY,
+                    title: 'main.py'
+                  },
+                  javascript: {
+                    sourceCode: SAMPLE_JS,
+                    title: 'main.js'
+                  },
+                  go: {
+                    sourceCode: SAMPLE_GO,
+                    title: 'main.go'
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {!subscription.isSubscribed && (
           <div className="border rounded-md p-8 py-10">
