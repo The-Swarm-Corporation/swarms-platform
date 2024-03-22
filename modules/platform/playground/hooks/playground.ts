@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 
 const usePlayground = () => {
   const models = trpc.playgroundListModels.useQuery();
+  const playgroundApiKey = trpc.getPlaygroundApiKey.useQuery();
   const [systemMessage, setSystemMessage] = useState<string>('');
   // config
   const [temperature, setTemperature] = useState<number>(0.8);
@@ -63,6 +64,12 @@ const usePlayground = () => {
     if (subscription.status !== 'active') {
       toast.toast({
         title: 'Subscription required'
+      });
+      return;
+    }
+    if (playgroundApiKey.isLoading) {
+      toast.toast({
+        title: 'Api Key not loaded yet'
       });
       return;
     }
@@ -130,7 +137,8 @@ const usePlayground = () => {
         method: 'POST',
         body: JSON.stringify(data),
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${playgroundApiKey.data}`
         }
       })
         .then((response) => response.json())
@@ -176,7 +184,8 @@ const usePlayground = () => {
     selectedModel,
     selectedModelId,
     setSelectedModelId,
-    isSending
+    isSending,
+    playgroundApiKey
   };
 };
 

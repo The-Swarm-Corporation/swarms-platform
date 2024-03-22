@@ -29,13 +29,13 @@ const playgroundRouter = router({
       .eq('name', 'playground')
       .single();
 
-    if (!currentPlaygroundApiKey) {
+    if (!currentPlaygroundApiKey?.data) {
       const user = ctx.session.data?.session?.user;
       if (!user) {
         throw new Error('User not found');
       }
       const key = generateApiKey();
-      const newApiKey = await ctx.supabase
+      await ctx.supabase
         .from('swarms_cloud_api_keys')
         .insert({ name: 'playground', key, user_id: user.id });
 

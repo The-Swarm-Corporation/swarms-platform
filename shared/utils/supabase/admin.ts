@@ -18,6 +18,43 @@ export const supabaseAdmin = createClient<Database>(
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
+const upsertInvoiceRecord = async (invoice: Stripe.Invoice) => {
+  const customerId = invoice.customer as string;
+  const userId = await retrieveUserStripeCustomerId(customerId);
+
+  let reason: string | null = null;
+  // extract reason from metadata
+  try {
+    if (invoice.metadata && invoice.metadata.reason) {
+      reason = invoice.metadata.reason;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  const data: TablesInsert<'invoices'> = {
+    id: invoice.id,
+    created: toDateTime(invoice.created).toISOString(),
+    stripe_customer_id: customerId,
+    user_id: userId,
+    is_paid: invoice.paid,
+    metadata: invoice?.metadata ?? {},
+    status: invoice.status,
+    status_transitions: invoice.status_transitions as any,
+    total: invoice.total,
+    period_at: toDateTime(invoice.period_start).toISOString(),
+    period_end: toDateTime(invoice.period_end).toISOString(),
+    reason
+  };
+
+  const { error: upsertError } = await supabaseAdmin
+    .from('invoices')
+    .upsert([data]);
+  if (upsertError)
+    throw new Error(`Invoice insert/update failed: ${upsertError.message}`);
+
+  return true;
+};
+
 const upsertProductRecord = async (product: Stripe.Product) => {
   const productData: Product = {
     id: product.id,
@@ -372,5 +409,6 @@ export {
   deletePriceRecord,
   createOrRetrieveStripeCustomer,
   manageSubscriptionStatusChange,
-  retrieveUserStripeCustomerId
+  retrieveUserStripeCustomerId,
+  upsertInvoiceRecord
 };
