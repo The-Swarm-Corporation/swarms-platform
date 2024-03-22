@@ -57,6 +57,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-merge-refs": "^2.1.1",
+    "recharts": "^2.12.3",
     "simplex-noise": "^4.0.1",
     "stripe": "^14.16.0",
     "superjson": "^2.2.1",
