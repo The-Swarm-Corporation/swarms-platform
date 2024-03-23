@@ -6,6 +6,7 @@ import { cn } from '@/shared/utils/cn';
 import { Github } from 'lucide-react';
 import Link from 'next/link';
 import WavyBackground from "@/shared/components/wavy-background";
+import CodeBox from "@/shared/components/code-box";
 
 const HeroSection = () => {
     return(
@@ -20,6 +21,14 @@ const HeroSection = () => {
            <span className="text-2xl font-medium">
              Production-Grade Agents Through Multi-Agent Collaboration
            </span>
+           <CodeBox 
+            sampleCodes={{
+              "bash": {
+                title: "bash",
+                sourceCode: "pip3 install -U swarms"
+              }
+            }}
+           />
            <div className="flex gap-4 mt-8">
             <Link href={PLATFORM.DASHBOARD} target="_blank">
               <Button

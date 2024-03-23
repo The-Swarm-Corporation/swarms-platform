@@ -5,7 +5,7 @@ import '@/shared/styles/prism-one-dark.css';
 import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-go';
-
+import 'prismjs/components/prism-bash';
 import { cn } from '@/shared/utils/cn';
 import {
   Select,
@@ -38,11 +38,11 @@ const CodeBox = ({ sampleCodes, initLanguage, classes }: ICodeBoxProps) => {
   );
 
   return (
-    <div className={cn('rounded-lg bg-slate-900', classes?.root)}>
+    <div className={cn('rounded-xl bg-slate-900', classes?.root)}>
       <div
         className={cn('p-2 flex justify-center items-center', classes?.title)}
       >
-        <p className="flex-1">{sampleCodes[selectedLanguage].title}</p>
+        <p className="flex-1 text-start">{sampleCodes[selectedLanguage].title}</p>
         {Object.keys(sampleCodes).length > 1 && (
           <div className="w-fit">
             <Select
@@ -68,7 +68,7 @@ const CodeBox = ({ sampleCodes, initLanguage, classes }: ICodeBoxProps) => {
       </div>
       <ReactPrismjs
         className={cn(
-          '!m-0 !bg-[rgb(22 24 29)] rounded-b-lg',
+          '!m-0 !bg-[rgb(22 24 29)] rounded-b-xl',
           classes?.content
         )}
         prefixCls="prism"
