@@ -30,7 +30,7 @@
 @media (max-width: 999px) {
     code {
         display: inline-block;
-        width: calc(100vw - 4rem);
+        max-width: calc(100vw - 4rem);
         overflow-x: auto;
     }
 }
