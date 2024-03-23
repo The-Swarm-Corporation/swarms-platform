@@ -14,14 +14,16 @@ import {
   SelectValue
 } from '@/shared/components/ui/select';
 
-interface CodeBoxItems {
+export interface ICodeBoxItems {
   title?: string;
   sourceCode: string;
 }
 
+export type ISampleCodes = Record<string, ICodeBoxItems>;
+
 interface ICodeBoxProps {
   initLanguage?: string;
-  sampleCodes: Record<string, CodeBoxItems>;
+  sampleCodes: ISampleCodes;
   classes?: {
     root?: string;
     title?: string;
