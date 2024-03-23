@@ -7,14 +7,19 @@ import { cn } from "@/shared/utils/cn"
 
 const Tabs = TabsPrimitive.Root
 
+interface TabsListProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> {
+  orientation?: "vertical" | "horizontal"
+}
+
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+  TabsListProps
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+      props.orientation === "vertical" ? "flex flex-col h-auto" : "inline-flex h-10",
+      " items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
       className
     )}
     {...props}
