@@ -1,3 +1,4 @@
+'use client'
 import { useState } from 'react';
 import ReactPrismjs from '@uiw/react-prismjs';
 import '@/shared/styles/prism-one-dark.css';

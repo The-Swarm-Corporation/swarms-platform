@@ -27,7 +27,13 @@
  * --syntax-gutter-background-color-selected: hsl(220, 13%, 26%);
  * --syntax-cursor-line: hsla(220, 100%, 80%, 0.04);
  */
-
+@media (max-width: 999px) {
+    code {
+        display: inline-block;
+        width: calc(100vw - 4rem);
+        overflow-x: auto;
+    }
+}
  code[class*="language-"],
  pre[class*="language-"] {
      background: hsl(220, 13%, 18%);
