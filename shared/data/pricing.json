@@ -1,0 +1,17 @@
+{
+ Premium: {
+    title: 'Premium',
+    description: 'For small teams with big ambitions.',
+    link: '',
+    features: [
+      'Access to the best Multi-Modal models',
+      '100% Uptime with 24/7 Support'
+    ]
+  },
+  Enterprise: {
+    title: 'Enterprise',
+    description: 'Enterprise-grade support and features.',
+    features: []
+  },
+}
+
