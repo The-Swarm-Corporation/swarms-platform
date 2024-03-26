@@ -20,7 +20,7 @@ export const supabaseAdmin = createClient<Database>(
 
 const upsertInvoiceRecord = async (invoice: Stripe.Invoice) => {
   const customerId = invoice.customer as string;
-  const userId = await retrieveUserStripeCustomerId(customerId);
+  const userId = await retrieveUserIdFromCustomerId(customerId);
 
   let reason: string | null = null;
   // extract reason from metadata
@@ -159,6 +159,18 @@ const createCustomerInStripe = async (uuid: string, email: string) => {
   return newCustomer.id;
 };
 
+const retrieveUserIdFromCustomerId = async (customerId: string) => {
+  const { data: customerData, error: noCustomerError } = await supabaseAdmin
+    .from('customers')
+    .select('id')
+    .eq('stripe_customer_id', customerId)
+    .single();
+
+  if (noCustomerError)
+    throw new Error(`Customer lookup failed: ${noCustomerError.message}`);
+
+  return customerData.id;
+};
 const retrieveUserStripeCustomerId = async (uuid: string) => {
   // Check if the customer already exists in Supabase
   const { data: existingSupabaseCustomer, error: queryError } =
@@ -410,5 +422,6 @@ export {
   createOrRetrieveStripeCustomer,
   manageSubscriptionStatusChange,
   retrieveUserStripeCustomerId,
-  upsertInvoiceRecord
+  upsertInvoiceRecord,
+  retrieveUserIdFromCustomerId
 };
