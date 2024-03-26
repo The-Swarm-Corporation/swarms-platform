@@ -94,12 +94,11 @@ export async function POST(req: Request) {
           ) {
             const amount = checkoutSession?.amount_total ?? 0;
             const userId = checkoutSession.client_reference_id;
-            const amount_received_dec = amount / 100;
             if (userId && amount) {
               try {
                 const ok = await increaseUserCredit(
                   userId,
-                  amount_received_dec
+                  amount
                 );
                 if (ok) {
                   // return success to stripe
