@@ -2,7 +2,8 @@
  "Premium": {
     "title": "Premium",
     "description": "For small teams with big ambitions.",
-    "link": "",
+     "link": "platform/account",
+    "price": "20",
     "buttonTitle": "Subscribe",
     "features": [
       "Access to the best Multi-Modal models",
@@ -12,7 +13,7 @@
   },
   "Enterprise": {
     "title": "Enterprise",
-    "link": "",
+    "link": "platform/account",
     "buttonTitle": "Contact us",
     "description": "Enterprise-grade support and features.",
     "features": [

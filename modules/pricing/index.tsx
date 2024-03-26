@@ -112,7 +112,7 @@ const Pricing = () => {
                     <span className="text-6xl font-bold tracking-wide text-white uppercase">Pricing</span>
                     <p className="mt-8 text-4xl font-semibold tracking-tight text-white lg:text-5xl">
                         Equip your business
-                        <span className="md:block"> with world className software</span>
+                        <span className="md:block"> with AI SWARM</span>
                     </p>
                 </div>
                 <div className="grid grid-cols-1 gap-8 mt-12 lg:ap-2 lg:grid-cols-2">
@@ -142,13 +142,13 @@ const Pricing = () => {
                                 </p>
                                 <div className="flex mt-6">
                                     <Link
-                                    className={cn(
-                                        "items-center justify-between inline-flex w-full font-medium",
-                                        "px-6 py-2.5 text-center text-black duration-200 bg-white rounded-xl",
-                                        "h-14 hover:bg-white/20 hover:border-white hover:text-white focus:outline-none",
-                                        "focus-visible:outline-black text-base focus-visible:ring-black"
-                                    )} 
-                                    href={pricingData.Enterprise.link}>
+                                        className={cn(
+                                            "items-center justify-between inline-flex w-full font-medium",
+                                            "px-6 py-2.5 text-center text-black duration-200 bg-white rounded-xl",
+                                            "h-14 hover:bg-white/20 hover:border-white hover:text-white focus:outline-none",
+                                            "focus-visible:outline-black text-base focus-visible:ring-black"
+                                        )}
+                                        href={pricingData.Enterprise.link}>
                                         {
                                             pricingData.Enterprise.buttonTitle
                                         }
@@ -196,23 +196,31 @@ const Pricing = () => {
                                             </defs>
                                         </svg>
                                         <p className="text-base font-medium text-white uppercase">
-                                            Silver Surfer
+                                            {pricingData.Premium.title}
                                         </p>
                                     </div>
                                     <p>
                                         <span className="text-lg font-medium text-white uppercase lg:text-xl">
-                                            $15</span>
+                                            ${pricingData.Premium.price}</span>
                                         <span className="text-base font-medium text-gray-500"> /mo</span>
                                     </p>
                                 </div>
                                 <p className="mt-8 text-sm font-medium text-gray-300">
-                                    This plan is ideal for individual users and hobbyists who are
-                                    looking for essential functionalities to support.
+                                    {pricingData.Premium.description}
                                 </p>
                                 <div className="flex mt-6">
-                                    <a className="items-center justify-between inline-flex w-full font-medium px-6 py-2.5 text-center text-white duration-200 bg-white/5 border border-white/5 rounded-xl h-14 hover:bg-white/10 hover:border-white/10 focus:outline-none focus-visible:outline-black text-base focus-visible:ring-black" href="#_">
-                                        Get starter <span>→</span>
-                                    </a>
+                                    <Link
+                                        className={cn(
+                                            "items-center justify-between inline-flex w-full font-medium px-6 py-2.5 text-center", 
+                                            "text-white duration-200 bg-white/5 border", 
+                                            "border-white/5 rounded-xl h-14 hover:bg-white/10 hover:border-white/10",
+                                             "focus:outline-none focus-visible:outline-black text-base focus-visible:ring-black"
+                                        )}
+                                        href={pricingData.Premium.link}>
+                                        {
+                                            pricingData.Premium.buttonTitle
+                                        }
+                                    </Link>
                                 </div>
                             </div>
                             <div className="px-8">
@@ -221,46 +229,16 @@ const Pricing = () => {
                                         Features
                                     </p>
                                     <ul className="order-last gap-4 mt-4 space-y-3 text-gray-300 list-none" role="list">
-                                        <li className="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="size-5 text-gray-300 icon icon-tabler icon-tabler-circle-check" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-                                                <path d="M9 12l2 2l4 -4"></path>
-                                            </svg>
-                                            <span> 10 deploys</span>
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="size-5 text-gray-300 icon icon-tabler icon-tabler-circle-check" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-                                                <path d="M9 12l2 2l4 -4"></path>
-                                            </svg>
-                                            <span>1 members</span>
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="size-5 text-gray-300 icon icon-tabler icon-tabler-circle-check" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-                                                <path d="M9 12l2 2l4 -4"></path>
-                                            </svg>
-                                            <span> 5 TB cloud storage</span>
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="size-5 text-gray-300 icon icon-tabler icon-tabler-circle-check" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-                                                <path d="M9 12l2 2l4 -4"></path>
-                                            </svg>
-                                            <span> Growth oriented</span>
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="size-5 text-gray-300 icon icon-tabler icon-tabler-circle-check" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-                                                <path d="M9 12l2 2l4 -4"></path>
-                                            </svg>
-                                            <span> Marketing campaigns</span>
-                                        </li>
+                                        {
+                                            pricingData.Premium.features.map((item, index) => {
+                                                return (
+                                                    <li className="flex items-center gap-2">
+                                                        <CheckCircle className='size-4 text-gray-500 icon icon-tabler icon-tabler-circle-check' />
+                                                        <span>{item}</span>
+                                                    </li>
+                                                )
+                                            })
+                                        }
                                     </ul>
                                 </div>
                             </div>
@@ -268,7 +246,7 @@ const Pricing = () => {
                     </div>
                 </div>
             </div>
-        </section>
+        </section >
     )
 };
 
