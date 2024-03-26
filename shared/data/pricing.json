@@ -1,0 +1,27 @@
+{
+ "Premium": {
+    "title": "Premium",
+    "description": "For small teams with big ambitions.",
+     "link": "platform/account",
+    "price": "20",
+    "buttonTitle": "Subscribe",
+    "features": [
+      "Access to the best Multi-Modal models",
+      "100% Uptime with 24/7 Support",
+      "5 TB cloud storage"
+    ]
+  },
+  "Enterprise": {
+    "title": "Enterprise",
+    "link": "platform/account",
+    "buttonTitle": "Contact us",
+    "description": "Enterprise-grade support and features.",
+    "features": [
+      "Access to the best Multi-Modal models",
+      "100% Uptime with 24/7 Support",
+      "5 TB cloud storage",
+      "Marketing campaigns"
+    ]
+  }
+}
+
