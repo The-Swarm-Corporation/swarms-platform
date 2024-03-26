@@ -1,4 +1,4 @@
-const SAMPLE_PY = `import requests
+const VLM_SAMPLE_PY = `import requests
 import base64
 from PIL import Image
 from io import BytesIO
@@ -38,7 +38,7 @@ response = requests.post(url, json=request_data)
 # Print the response from the server
 print(response.text)`;
 
-const SAMPLE_GO = `package main
+const VLM_SAMPLE_GO = `package main
 
 import (
     "bytes"
@@ -128,7 +128,7 @@ func main() {
     fmt.Println("Response:", string(responseBody))
 }`;
 
-const SAMPLE_JS = `const fs = require('fs');
+const VLM_SAMPLE_JS = `const fs = require('fs');
 const https = require('https');
 const sharp = require('sharp');
 
@@ -193,8 +193,4 @@ async function main() {
 main();`;
 
 
-export {
-    SAMPLE_PY,
-    SAMPLE_GO,
-    SAMPLE_JS
-}
+export { VLM_SAMPLE_PY, VLM_SAMPLE_GO, VLM_SAMPLE_JS };

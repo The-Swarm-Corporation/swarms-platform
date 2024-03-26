@@ -7,6 +7,7 @@ import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
 import { ThemeProvider } from '@/shared/components/ui/theme-provider';
 import { Inter } from 'next/font/google';
+import { TrpcProvider } from '@/shared/utils/trpc/trpc-provider';
 
 const inter = Inter({ subsets: ['latin'] });
 export const viewport: Viewport = {
@@ -64,14 +65,16 @@ export default async function RootLayout({ children }: PropsWithChildren) {
           id="skip"
           className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]"
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+          <TrpcProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </TrpcProvider>
         </main>
         <Footer />
         <Suspense>

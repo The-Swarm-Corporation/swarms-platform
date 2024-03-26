@@ -2,10 +2,10 @@
 import CodeBox from '@/shared/components/code-box';
 import { Button } from '@/shared/components/ui/Button';
 import { PLATFORM } from '@/shared/constants/links';
+import { VLM_SAMPLE_GO, VLM_SAMPLE_JS, VLM_SAMPLE_PY } from '@/shared/data/vlm-sample';
 import useSubscription from '@/shared/hooks/subscription';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
-import { SAMPLE_GO, SAMPLE_JS, SAMPLE_PY } from './data/samples';
 
 const Dashboard = () => {
   const subscription = useSubscription();
@@ -31,15 +31,15 @@ const Dashboard = () => {
                 }}
                 sampleCodes={{
                   python: {
-                    sourceCode: SAMPLE_PY,
+                    sourceCode: VLM_SAMPLE_PY,
                     title: 'main.py'
                   },
                   javascript: {
-                    sourceCode: SAMPLE_JS,
+                    sourceCode: VLM_SAMPLE_JS,
                     title: 'main.js'
                   },
                   go: {
-                    sourceCode: SAMPLE_GO,
+                    sourceCode: VLM_SAMPLE_GO,
                     title: 'main.go'
                   }
                 }}
