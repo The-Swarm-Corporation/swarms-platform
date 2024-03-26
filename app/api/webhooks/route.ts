@@ -48,7 +48,10 @@ export async function POST(req: Request) {
       switch (event.type) {
         case 'invoice.created':
         case 'invoice.updated':
-          await upsertInvoiceRecord(event.data.object as Stripe.Invoice);
+          const ok = await upsertInvoiceRecord(
+            event.data.object as Stripe.Invoice
+          );
+          if (ok) new Response(JSON.stringify({ received: true }));
           break;
 
         case 'product.created':
