@@ -6,11 +6,14 @@ import {
   manageSubscriptionStatusChange,
   deleteProductRecord,
   deletePriceRecord,
-  increaseUserCredit
+  increaseUserCredit,
+  upsertInvoiceRecord
 } from '@/shared/utils/supabase/admin';
 import { addPaymentMethodIfNotExists } from '@/shared/utils/stripe/server';
 
 const relevantEvents = new Set([
+  'invoice.created',
+  'invoice.updated',
   'product.created',
   'product.updated',
   'product.deleted',
@@ -43,6 +46,11 @@ export async function POST(req: Request) {
   if (relevantEvents.has(event.type)) {
     try {
       switch (event.type) {
+        case 'invoice.created':
+        case 'invoice.updated':
+          await upsertInvoiceRecord(event.data.object as Stripe.Invoice);
+          break;
+
         case 'product.created':
         case 'product.updated':
           await upsertProductRecord(event.data.object as Stripe.Product);
@@ -69,7 +77,6 @@ export async function POST(req: Request) {
           break;
         case 'checkout.session.completed':
           const checkoutSession = event.data.object as Stripe.Checkout.Session;
-          console.log('checkoutSession:', checkoutSession);
 
           if (checkoutSession.mode === 'subscription') {
             const subscriptionId = checkoutSession.subscription;
@@ -78,11 +85,14 @@ export async function POST(req: Request) {
               checkoutSession.customer as string,
               true
             );
-          } else if (checkoutSession.mode === 'payment') {
+          } else if (
+            checkoutSession.mode === 'payment' &&
+            checkoutSession.status === 'complete'
+          ) {
             const amount = checkoutSession?.amount_total ?? 0;
             const userId = checkoutSession.client_reference_id;
             const amount_received_dec = amount / 100;
-            if (userId && amount && checkoutSession.status === 'complete') {
+            if (userId && amount) {
               try {
                 const ok = await increaseUserCredit(
                   userId,
@@ -92,18 +102,7 @@ export async function POST(req: Request) {
                   // return success to stripe
                   return new Response(JSON.stringify({ received: true }));
                 }
-              } catch (error) {
-                /*                 console.log(error);
-                // cancel the payment
-                const paymentIntentId =
-                  checkoutSession.payment_intent as string;
-                if (paymentIntentId) {
-                  const refund = await stripe.refunds.create({
-                    payment_intent: paymentIntentId
-                  });
-                  console.log('Refund:', refund);
-                } */
-              }
+              } catch (error) {}
             }
           }
           if (checkoutSession.status === 'complete') {

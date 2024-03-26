@@ -153,3 +153,28 @@ export const formatDate = (date: string) => {
     day: 'numeric'
   });
 };
+
+export const commaSeparated = (value: number) =>
+  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+export const formatSepndTime = (value: number) => {
+  // convert seconds to : months, days, hours, minutes, seconds
+  const months = Math.floor(value / 2592000);
+  const days = Math.floor((value % 2592000) / 86400);
+  const hours = Math.floor((value % 86400) / 3600);
+  const minutes = Math.floor((value % 3600) / 60);
+  const seconds = value % 60;
+
+  // return the biggest unit that is not 0
+  if (months > 0) {
+    return `${months} months`;
+  } else if (days > 0) {
+    return `${days} days`;
+  } else if (hours > 0) {
+    return `${hours} hours`;
+  } else if (minutes > 0) {
+    return `${minutes} minutes`;
+  } else {
+    return `${seconds} seconds`;
+  }   
+};

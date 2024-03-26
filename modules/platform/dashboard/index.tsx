@@ -1,25 +1,79 @@
 'use client';
+import CodeBox from '@/shared/components/code-box';
 import { Button } from '@/shared/components/ui/Button';
 import { PLATFORM } from '@/shared/constants/links';
+import {
+  VLM_SAMPLE_GO,
+  VLM_SAMPLE_JS,
+  VLM_SAMPLE_PY
+} from '@/shared/data/vlm-sample';
 import useSubscription from '@/shared/hooks/subscription';
+import { commaSeparated, formatSepndTime } from '@/shared/utils/helpers';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
 
 const Dashboard = () => {
   const subscription = useSubscription();
 
+  const timeSaved = formatSepndTime(
+    9998777
+    // seconds
+  ).split(' ');
   return (
     <div className="w-full flex flex-col">
       <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
         Dashboard
       </h1>
-      <h2 className="text-3xl mt-4">What are you creating? </h2>
-      <span className="text-base text-muted-foreground">
-        Use this dashboard to configure your account and begin building AI
-        products with Swarms API.
-      </span>
+      <div className="mt-2 flex gap-16 p-4">
+        <div className="flex flex-col gap-4 ">
+          {/* api calls */}
+          <span className="text-primary text-4xl">{commaSeparated(12000)}</span>
+          <span className="text-bold text-2xl">Api Calls</span>
+        </div>
+        {/* agents collaborated */}
+        <div className="flex flex-col gap-4 ">
+          <span className="text-cyan-400 text-4xl">
+            {commaSeparated(99974)}
+          </span>
+          <span className="text-bold text-2xl">Agents Collaborated</span>
+        </div>
+
+        {/* time saved */}
+        <div className="flex flex-col gap-4 ">
+          <span className="flex items-end text-yellow-600 text-4xl gap-2">
+            <span>{timeSaved[0]}</span>
+            <span className="text-3xl">{timeSaved[1]}</span>
+          </span>
+          <span className="text-bold text-2xl">Time Saved</span>
+        </div>
+      </div>
       <div className="flex flex-col gap-4 mt-8">
         {subscription.statusLoading && <div>Loading...</div>}
+        {!subscription.isLoading && subscription.isSubscribed && (
+          <div>
+            <div className="border rounded-md relative">
+              <CodeBox
+                classes={{
+                  content: 'h-[50vh] overflow-y-auto'
+                }}
+                sampleCodes={{
+                  python: {
+                    sourceCode: VLM_SAMPLE_PY,
+                    title: 'main.py'
+                  },
+                  javascript: {
+                    sourceCode: VLM_SAMPLE_JS,
+                    title: 'main.js'
+                  },
+                  go: {
+                    sourceCode: VLM_SAMPLE_GO,
+                    title: 'main.go'
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {!subscription.isSubscribed && (
           <div className="border rounded-md p-8 py-10">

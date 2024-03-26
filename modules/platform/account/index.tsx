@@ -17,7 +17,7 @@ export default function Account() {
           {/* charge button */}
           <div className="w-full my-8 flex flex-col gap-4 md:w-2/3  lg:w-2/6">
             <CardManager />
-            <Credit />
+            {/* <Credit /> */}
             <SubscriptionStatus />
 
             <div className="flex flex-col gap-2">

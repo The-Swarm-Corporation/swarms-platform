@@ -7,7 +7,6 @@ import { Viewport } from 'next';
 import { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 
-
 const inter = Inter({ subsets: ['latin'] });
 export const viewport: Viewport = {
   themeColor: [
@@ -16,15 +15,17 @@ export const viewport: Viewport = {
   ]
 };
 
-
 const meta = {
   title: 'Swarms Platform',
   description: '',
   url: getURL(),
-  favicon: '/favicon.svg',
-
+  favicon: '/favicon.svg'
 };
-export default async function Panel({ children }: { children: React.ReactNode }) {
+export default async function Panel({
+  children
+}: {
+  children: React.ReactNode;
+}) {
   await checkUserSession();
 
   return (

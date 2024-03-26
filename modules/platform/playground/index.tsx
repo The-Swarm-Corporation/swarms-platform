@@ -77,7 +77,10 @@ const Playground = () => {
           </div>
           <div className="sticky bottom-0">
             <Button
-              disabled={playground.models.isLoading}
+              disabled={
+                playground.models.isLoading ||
+                playground.playgroundApiKey.isLoading
+              }
               onClick={playground.submit}
               className={cn(
                 'flex gap-2 w-auto p-2 bg-primary rounded-md text-white transition-all',
