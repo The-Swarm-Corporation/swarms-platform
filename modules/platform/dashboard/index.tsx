@@ -46,7 +46,7 @@ const Dashboard = () => {
           <span className="text-bold text-2xl">Time Saved</span>
         </div>
       </div>
-      <div className="flex flex-col gap-4 mt-8">
+      <div className="flex flex-col gap-4 mt-4">
         {subscription.statusLoading && <div>Loading...</div>}
         {!subscription.isLoading && subscription.isSubscribed && (
           <div>
@@ -132,7 +132,7 @@ const Dashboard = () => {
             </Link>
           </div>
         </div>
-        <div className="mt-2 flex gap-4 border p-4 rounded-md mb-8">
+        <div className="flex gap-4 border p-4 rounded-md mb-8">
           <div className="w-full flex flex-col gap-2">
             <h2 className="text-2xl font-bold">Support & Contact us</h2>
             <span className="text-muted-foreground">
