@@ -17,7 +17,6 @@ const Step = ( { title, description, sourceCode} : IStepProps) => {
           <h4 className="text-4xl font-bold max-sm:text-center">{title}</h4>
           <p className="text-lg max-sm:text-center">{description}</p>
         </div>
-        {/*  max-sm:min-w-[100%] max-sm:max-w-[100%] */}
         <div className="min-w-[50%] max-w-[50%] max-sm:min-w-[100%] max-sm:max-w-[100%] sm:ms-4">
           <CodeBox
             sampleCodes={sourceCode}  
@@ -41,7 +40,7 @@ const CodeSampleSection = () => {
   }, []);
 
   return (
-    <div className="container p-10">
+    <div className="container p-10 bg-background">
       <h2 className="text-8xl max-sm:text-4xl font-bold text-center mb-12">Code Samples</h2>
       <Tabs className="flex flex-col justify-center items-center gap-6"  defaultValue="0">
         <TabsList orientation={isMobile ?"vertical" : "horizontal" }>
