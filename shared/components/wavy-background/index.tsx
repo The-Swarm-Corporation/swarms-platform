@@ -124,18 +124,18 @@ const WavyBackground = ({
     <div
       ref={containerRef}
       className={cn(
-        "h-[calc(100vh-80px)] flex flex-col items-center justify-center bg-black",
+        "h-[calc(100vh-80px)] flex flex-col items-center justify-center bg-background",
         containerClassName
       )}
     >
       <canvas
-        className="absolute inset-0 z-0 top-[80px]"
+        className="absolute inset-0 z-0 top-[80px] bg-background"
         ref={canvasRef}
         id="canvas"
         style={{
           ...(isSafari ? { filter: `blur(${blur}px)` } : {}),
         }}
-      ></canvas>
+      />
       <div className={cn("relative z-10", className)} {...props}>
         {children}
       </div>
