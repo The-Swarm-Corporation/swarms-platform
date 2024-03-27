@@ -6,10 +6,9 @@ import { PropsWithChildren, Suspense } from 'react';
 import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
 import { ThemeProvider } from '@/shared/components/ui/theme-provider';
-import { Inter } from 'next/font/google';
 import { TrpcProvider } from '@/shared/utils/trpc/trpc-provider';
+import { helvetica } from '@/shared/styles/fonts';
 
-const inter = Inter({ subsets: ['latin'] });
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: 'white' },
@@ -59,7 +58,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={helvetica.className}>
         <Navbar />
         <main
           id="skip"
