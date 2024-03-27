@@ -1,9 +1,9 @@
 {
  "Premium": {
-    "title": "Premium",
+    "title": "PREMIUM",
     "description": "For small teams with big ambitions.",
      "link": "platform/account",
-    "price": "20",
+    "price": "99",
     "buttonTitle": "Subscribe",
     "features": [
       "Access to the best Multi-Modal models",
@@ -12,8 +12,8 @@
     ]
   },
   "Enterprise": {
-    "title": "Enterprise",
-    "link": "platform/account",
+    "title": "ENTERPRISE",
+    "link": "https://calendly.com/swarm-corp/30min",
     "buttonTitle": "Contact us",
     "description": "Enterprise-grade support and features.",
     "features": [

@@ -110,10 +110,6 @@ const Pricing = () => {
             <div className="relative flex flex-col items-center justify-center max-w-6xl px-8 py-12 mx-auto lg:py-24">
                 <div>
                     <span className="text-6xl font-bold tracking-wide text-white uppercase">Pricing</span>
-                    <p className="mt-8 text-4xl font-semibold tracking-tight text-white lg:text-5xl">
-                        Equip your business
-                        <span className="md:block"> with (AI Platform)</span>
-                    </p>
                 </div>
                 <div className="grid grid-cols-1 gap-8 mt-12 lg:ap-2 lg:grid-cols-2">
                     <div className="lg:order-last max-w-sm">

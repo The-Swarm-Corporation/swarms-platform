@@ -48,7 +48,7 @@ export const GoogleGeminiEffect = ({
     const updateTextContent = () => {
       const scrollProgress = scrollYProgress.get();
       if (scrollProgress < 0.1) {
-        setTextContent({ title: "Swarms How to Work...", description: '' });
+        setTextContent({ title: "Swarms how to work...", description: '' });
       } else if (scrollProgress < 0.2) {
         setTextContent({
           title: "Data Aggregation",
@@ -89,7 +89,7 @@ export const GoogleGeminiEffect = ({
   }, [])
   return (
     <div
-      className="h-[400vh] bg-black w-full rounded-md relative pt-40 overflow-clip"
+      className="h-[400vh] bg-background w-full rounded-md relative pt-40 overflow-clip"
       ref={ref}
     >
       <div className={cn("sticky top-64 sm:top-32", className)}>

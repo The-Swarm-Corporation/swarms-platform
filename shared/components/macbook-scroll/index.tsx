@@ -71,7 +71,7 @@ const MacbookScroll = ({
         style={{
           opacity: textOpacity,
         }}
-        className="text-white text-3xl font-bold text-center absolute top-10 p-2 right-[50%] w-full translate-x-1/2"
+        className="text-white text-3xl font-bold text-center absolute top-24 p-2 right-[50%] w-full translate-x-1/2"
       >
         {title}
       </motion.h2>

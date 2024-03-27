@@ -11,8 +11,8 @@ export default function Landing() {
       <HeroSection />
       <CodeSampleSection />
       <GoogleGeminiEffect />
-      <PricingSection />
       <PanelSection />
+      <PricingSection />
       <FeaturesSection />
       <OpenSourceSection />
     </>
