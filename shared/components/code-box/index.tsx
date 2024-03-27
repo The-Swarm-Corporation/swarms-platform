@@ -51,7 +51,7 @@ const CodeBox = ({
   }, [value]);
 
   return (
-    <div className={cn('rounded-xl bg-slate-900', classes?.root)}>
+    <div className={cn('rounded-xl bg-primary border-primary border-2', classes?.root)}>
       <div
         className={cn('p-2 flex justify-center items-center', classes?.title)}
       >
@@ -85,7 +85,7 @@ const CodeBox = ({
       </div>
       <ReactPrismjs
         className={cn(
-          '!m-0 !bg-[rgb(22 24 29)] rounded-b-xl',
+          '!m-0 !bg-[rgb(0 0 0)] rounded-b-xl',
           classes?.content
         )}
         prefixCls="prism"
