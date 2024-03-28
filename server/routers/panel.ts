@@ -154,7 +154,9 @@ const panelRouter = router({
         company_name: z.string().optional(),
         job_title: z.string().optional(),
         country_code: z.string().optional(),
-        basic_onboarding_completed: z.boolean()
+        basic_onboarding_completed: z.boolean(),
+        referral: z.string().optional(),
+        signup_reason: z.string().optional()
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -162,7 +164,7 @@ const panelRouter = router({
       const updatedOnboarding = await ctx.supabase
         .from('users')
         .update(input)
-        .eq('user_id', user.id);
+        .eq('id', user.id);
       if (updatedOnboarding.error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',

@@ -527,6 +527,8 @@ export type Database = {
           id: string
           job_title: string | null
           payment_method: Json | null
+          referral: string | null
+          signup_reason: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -538,6 +540,8 @@ export type Database = {
           id: string
           job_title?: string | null
           payment_method?: Json | null
+          referral?: string | null
+          signup_reason?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -549,6 +553,8 @@ export type Database = {
           id?: string
           job_title?: string | null
           payment_method?: Json | null
+          referral?: string | null
+          signup_reason?: string | null
         }
         Relationships: [
           {
