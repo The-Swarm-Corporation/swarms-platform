@@ -20,15 +20,15 @@ const Input = (props: Props) => {
   };
 
   return (
-      <input
-        className={rootClassName}
-        onChange={handleOnChange}
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="off"
-        spellCheck="false"
-        {...rest}
-      />
+    <input
+      className={rootClassName}
+      onChange={handleOnChange}
+      autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize="off"
+      spellCheck="false"
+      {...rest}
+    />
   );
 };
 

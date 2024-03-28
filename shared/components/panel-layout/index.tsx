@@ -2,6 +2,7 @@
 import PanelLayoutSidebar from './sidebar';
 import { ThemeProvider } from '../ui/theme-provider';
 import { TrpcProvider } from '@/shared/utils/trpc/trpc-provider';
+import BasicOnboardingModal from '../basic-onboarding-modal';
 
 const PanelLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -23,6 +24,7 @@ const PanelLayout = ({ children }: { children: React.ReactNode }) => {
               {children}
             </div>
           </div>
+          <BasicOnboardingModal />
         </TrpcProvider>
       </ThemeProvider>
     </>

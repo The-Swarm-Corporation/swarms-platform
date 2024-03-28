@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
         )
       );
     }
-    return afterSignin(data.user);
+    const url = await afterSignin(data.user);
+    return NextResponse.redirect(url);
   }
   NextResponse.redirect(getStatusRedirect('/', 'You have been signed in.'));
 }
