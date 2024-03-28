@@ -5,11 +5,10 @@ import { PLATFORM, SWARMS_GITHUB } from '@/shared/constants/links';
 import { cn } from '@/shared/utils/cn';
 import { Github } from 'lucide-react';
 import Link from 'next/link';
-import WavyBackground from '@/shared/components/wavy-background';
 
 const HeroSection = () => {
   return (
-    <WavyBackground className="mx-auto md:pb-40 w-full">
+    <div className="mx-auto md:pb-40 w-full">
       <div className="flex flex-col items-center px-4 py-8 mx-auto sm:py-24 sm:px-6 lg:px-8 gap-6 text-center">
         <h1 className="text-6xl md:text-7xl font-bold ">
           Orchestrate Agents with
@@ -31,7 +30,7 @@ const HeroSection = () => {
                 'hover:bg-primary/90',
                 'text-white',
                 'px-10 py-6',
-                'rounded-full'
+                'rounded-md'
               )}
             >
               Swarms Cloud
@@ -45,7 +44,7 @@ const HeroSection = () => {
                 'hover:bg-white/90',
                 'text-background',
                 'px-10 py-6',
-                'rounded-full'
+                'rounded-md'
               )}
             >
               <Github size={18} />
@@ -54,7 +53,7 @@ const HeroSection = () => {
           </Link>
         </div>
       </div>
-    </WavyBackground>
+    </div>
   );
 };
 

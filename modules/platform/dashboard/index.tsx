@@ -112,7 +112,7 @@ const Dashboard = () => {
           <div className="w-1/2 flex flex-col gap-2 border rounded-md p-4">
             <h2 className="text-2xl font-bold">API Keys</h2>
             <span className="text-muted-foreground">
-              Create now an API key to access Swarams AI API.
+              Create now an API key to access an API Key.
             </span>
             <Link href={PLATFORM.API_KEYS}>
               <Button className="mt-4" variant={'default'}>
@@ -123,7 +123,7 @@ const Dashboard = () => {
           <div className="w-1/2 flex flex-col gap-2 border rounded-md p-4">
             <h2 className="text-2xl font-bold">Documention</h2>
             <span className="text-muted-foreground">
-              Learn how to use Swarms API with our documentation.
+              Learn more about Swarms through our documentation.
             </span>
             <Link href="https://swarms.apac.ai/en/latest/">
               <Button className="mt-4" variant={'default'}>
