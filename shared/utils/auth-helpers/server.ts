@@ -24,7 +24,12 @@ export async function afterSignin(user: User) {
     email: user?.email || '',
     uuid: user.id
   });
-  redirect(getURL(PLATFORM.DASHBOARD));
+  return getStatusRedirect(
+    PLATFORM.DASHBOARD,
+    'Success!',
+    'You are now signed in.',
+    false
+  );
 }
 export async function checkUserSession() {
   const supabase = createClient();
@@ -177,8 +182,7 @@ export async function signInWithPassword(formData: FormData) {
     );
   } else if (data.user) {
     cookieStore.set('preferredSignInView', 'password_signin', { path: '/' });
-    afterSignin(data.user);
-    return null;
+    return await afterSignin(data.user);
   } else {
     redirectPath = getErrorRedirect(
       '/signin/password_signin',
