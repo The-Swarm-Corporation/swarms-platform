@@ -519,23 +519,35 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
+          basic_onboarding_completed: boolean | null
           billing_address: Json | null
+          company_name: string | null
+          country_code: string | null
           full_name: string | null
           id: string
+          job_title: string | null
           payment_method: Json | null
         }
         Insert: {
           avatar_url?: string | null
+          basic_onboarding_completed?: boolean | null
           billing_address?: Json | null
+          company_name?: string | null
+          country_code?: string | null
           full_name?: string | null
           id: string
+          job_title?: string | null
           payment_method?: Json | null
         }
         Update: {
           avatar_url?: string | null
+          basic_onboarding_completed?: boolean | null
           billing_address?: Json | null
+          company_name?: string | null
+          country_code?: string | null
           full_name?: string | null
           id?: string
+          job_title?: string | null
           payment_method?: Json | null
         }
         Relationships: [
