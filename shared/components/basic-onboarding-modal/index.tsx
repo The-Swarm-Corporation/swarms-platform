@@ -268,7 +268,7 @@ const BasicOnboardingModal = () => {
                 Book a discovery call with Founder to learn more about them and
                 how Swarm Corp should help.
               </p>
-              <Link href={SWARM_CALENDLY}>
+              <Link href={SWARM_CALENDLY} target="_blank">
                 <Button>Book a call</Button>
               </Link>
             </div>
