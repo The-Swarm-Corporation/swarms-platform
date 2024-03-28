@@ -156,7 +156,8 @@ const panelRouter = router({
         country_code: z.string().optional(),
         basic_onboarding_completed: z.boolean(),
         referral: z.string().optional(),
-        signup_reason: z.string().optional()
+        signup_reason: z.string().optional(),
+        about_company: z.string().optional()
       })
     )
     .mutation(async ({ ctx, input }) => {

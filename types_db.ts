@@ -518,6 +518,7 @@ export type Database = {
       }
       users: {
         Row: {
+          about_company: string | null
           avatar_url: string | null
           basic_onboarding_completed: boolean | null
           billing_address: Json | null
@@ -531,6 +532,7 @@ export type Database = {
           signup_reason: string | null
         }
         Insert: {
+          about_company?: string | null
           avatar_url?: string | null
           basic_onboarding_completed?: boolean | null
           billing_address?: Json | null
@@ -544,6 +546,7 @@ export type Database = {
           signup_reason?: string | null
         }
         Update: {
+          about_company?: string | null
           avatar_url?: string | null
           basic_onboarding_completed?: boolean | null
           billing_address?: Json | null

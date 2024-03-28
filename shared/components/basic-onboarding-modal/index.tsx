@@ -14,6 +14,7 @@ import { useToast } from '../ui/Toasts/use-toast';
 import Link from 'next/link';
 import { SWARM_CALENDLY } from '@/shared/constants/links';
 import { ArrowLeft } from 'lucide-react';
+import { Textarea } from '../ui/textarea';
 
 const BasicOnboardingModal = () => {
   const helper = useOnboardingHelper();
@@ -23,6 +24,7 @@ const BasicOnboardingModal = () => {
   const [companyName, setCompanyName] = useState('');
   const [howDidYouFindUs, setHowDidYouFindUs] = useState('');
   const [whyDidYouSignUp, setWhyDidYouSignUp] = useState('');
+  const [aboutCompany, setAboutCompany] = useState('');
 
   const toast = useToast();
   const [step, setStep] = useState<'basic' | 'company' | 'referral' | 'done'>(
@@ -69,6 +71,7 @@ const BasicOnboardingModal = () => {
         .mutateAsync({
           full_name: fullName,
           company_name: companyName,
+          about_company: aboutCompany,
           job_title: jobTitle,
           referral: howDidYouFindUs,
           signup_reason: whyDidYouSignUp,
@@ -101,6 +104,7 @@ const BasicOnboardingModal = () => {
 
   const howDidYouFindUsOptions = [
     'Google',
+    'Github',
     'Facebook',
     'X / Twitter',
     'Youtube',
@@ -137,10 +141,17 @@ const BasicOnboardingModal = () => {
 
         {step != 'done' && (
           <div className="flex justify-center">
-            <h1 className="text-2xl">Welcome to Swarms!</h1>
+            <h1 className="text-xl">
+              {
+                {
+                  basic: 'Welcome to Swarms!',
+                  company: 'Tell us about your company',
+                  referral: 'How did you find us?'
+                }[step]
+              }
+            </h1>
           </div>
         )}
-
         <div className="flex flex-col my-2 gap-4">
           {step === 'basic' && (
             <>
@@ -154,6 +165,7 @@ const BasicOnboardingModal = () => {
                 </label>
                 <Input
                   id="full_name"
+                  placeholder="John Doe"
                   value={fullName}
                   onChange={(v) => {
                     setFullName(v);
@@ -200,6 +212,7 @@ const BasicOnboardingModal = () => {
                   Why did you sign up?
                 </label>
                 <Input
+                  placeholder="I want to automate my operations."
                   id="why_did_you_sign_up"
                   value={whyDidYouSignUp}
                   onChange={(v) => {
@@ -226,6 +239,7 @@ const BasicOnboardingModal = () => {
                   Company Name
                 </label>
                 <Input
+                  placeholder="Google"
                   id="company_name"
                   value={companyName}
                   onChange={(v) => {
@@ -259,14 +273,37 @@ const BasicOnboardingModal = () => {
                   </SelectContent>
                 </Select>
               </div>
+              {/* about company */}
+              <div>
+                <label
+                  htmlFor="about_company"
+                  className="block text-sm font-medium"
+                >
+                  About Company
+                </label>
+                <Textarea
+                  placeholder="What does your company do?"
+                  id="about_company"
+                  value={aboutCompany}
+                  onChange={(e) => {
+                    setAboutCompany(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      next();
+                    }
+                  }}
+                  className="mt-1"
+                />
+              </div>
             </>
           )}
           {step === 'done' && (
             <div className="flex flex-col gap-4 items-center">
               <h1 className="text-2xl text-center">Thank you!</h1>
               <p className="text-center">
-                Book a discovery call with Founder to learn more about them and
-                how Swarm Corp should help.
+                Book a discovery call to learn more about Swarms and how Swarms
+                can help you automate operations!
               </p>
               <Link href={SWARM_CALENDLY} target="_blank">
                 <Button>Book a call</Button>
