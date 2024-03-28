@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import Input from '../ui/Input';
 import { Button } from '../ui/Button';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '../ui/select';
 import { useToast } from '../ui/Toasts/use-toast';
 import Link from 'next/link';
@@ -42,7 +42,7 @@ const BasicOnboardingModal = () => {
   const next = async () => {
     if (step === 'basic') {
       // check if not empty
-      if (!fullName) {
+      if (fullName.trim() === '') {
         toast.toast({
           title: 'Full name is required'
         });
@@ -51,7 +51,7 @@ const BasicOnboardingModal = () => {
       setStep('company');
     } else if (step === 'company') {
       // check if not empty
-      if (!companyName || jobTitle.trim() === '') {
+      if (companyName.trim() === '' || jobTitle.trim() === '') {
         toast.toast({
           title: 'Company name and job title is required'
         });
