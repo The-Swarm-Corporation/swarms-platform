@@ -218,6 +218,11 @@ const ApiKeys = () => {
                     </label>
                     <Input
                       id="name"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          generate();
+                        }
+                      }}
                       value={keyName}
                       className="my-2 w-full"
                       onChange={(value) => {
