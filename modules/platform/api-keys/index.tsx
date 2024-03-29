@@ -88,6 +88,9 @@ const ApiKeys = () => {
   });
 
   const generate = () => {
+    if (addApiKey.isPending) {
+      return;
+    }
     addApiKey.mutateAsync({ name: keyName }).then((data) => {
       setKeyName('');
       setGeneratedKey(data?.key ?? '');
