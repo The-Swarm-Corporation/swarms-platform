@@ -1,6 +1,7 @@
 'use client';
 import { cn } from '@/shared/utils/cn';
 import {
+  Blocks,
   CircleGauge,
   LayoutDashboard,
   LockKeyhole,
@@ -32,6 +33,11 @@ const panelMenu: {
     link: PLATFORM.PLAYGROUND
   },
   {
+    icon: <Blocks size={24} />,
+    title: 'Explorer',
+    link: PLATFORM.EXPLORER
+  },
+  {
     icon: <LockKeyhole size={24} />,
     title: 'API keys',
     link: PLATFORM.API_KEYS
@@ -44,8 +50,8 @@ const panelMenu: {
   {
     icon: <User size={24} />,
     title: 'Account',
-    link: PLATFORM.ACCOUNT,
-/*     items: [
+    link: PLATFORM.ACCOUNT
+    /*     items: [
       {
         title: 'Profile',
         link: PLATFORM.ACCOUNT_PROFILE
