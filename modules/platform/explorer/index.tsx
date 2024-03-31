@@ -9,7 +9,7 @@ import { PUBLIC } from '@/shared/constants/links';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 
 const Explorer = () => {
-  const models = trpc.getExplorerModels.useQuery();
+  const models = trpc.explorer.getModels.useQuery();
   return (
     <div className="w-full flex flex-col h-full">
       <div className="flex flex-col">

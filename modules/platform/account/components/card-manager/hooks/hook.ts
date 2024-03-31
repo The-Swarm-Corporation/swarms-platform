@@ -1,11 +1,11 @@
 import { trpc } from '@/shared/utils/trpc/trpc';
 
 const useCardManager = () => {
-  const methods = trpc.getUserPaymentMethods.useQuery();
-  const attach = trpc.attachPaymentMethod.useMutation();
-  const detach = trpc.detachPaymentMethod.useMutation();
-  const getDefaultMethod = trpc.getDefaultPaymentMethod.useQuery();
-  const setAsDefault = trpc.setDefaultPaymentMethod.useMutation();
+  const methods = trpc.payment.getUserPaymentMethods.useQuery();
+  const attach = trpc.payment.attachPaymentMethod.useMutation();
+  const detach = trpc.payment.detachPaymentMethod.useMutation();
+  const getDefaultMethod = trpc.payment.getDefaultPaymentMethod.useQuery();
+  const setAsDefault = trpc.payment.setDefaultPaymentMethod.useMutation();
 
   return {
     methods,

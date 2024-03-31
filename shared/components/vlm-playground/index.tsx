@@ -43,7 +43,8 @@ const VlmPlayground = ({ model }: Props) => {
   const [temperature, setTemperature] = useState<number>(0.8);
   const [input, setInput] = useState<string>('Describe what is in the image');
 
-  const publicPlaygroundvLM = trpc.vlmMessageCompletion.useMutation();
+  const publicPlaygroundvLM =
+    trpc.publicPlayground.vlmMessageCompletion.useMutation();
   const submit = () => {
     publicPlaygroundvLM.mutateAsync({
       model,

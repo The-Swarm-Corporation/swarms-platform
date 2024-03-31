@@ -33,8 +33,8 @@ import { useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
 
 const ApiKeys = () => {
-  const apiKeys = trpc.getApiKeys.useQuery();
-  const addApiKey = trpc.addApiKey.useMutation();
+  const apiKeys = trpc.apiKey.getApiKeys.useQuery();
+  const addApiKey = trpc.apiKey.addApiKey.useMutation();
   const [keyName, setKeyName] = useState<string>('');
   const [generatedKey, setGeneratedKey] = useState<string | null>('');
   const toast = useToast();
@@ -57,7 +57,7 @@ const ApiKeys = () => {
         accessorKey: 'id',
         header: 'Actions',
         cell: (cell) => {
-          const deleteApiKey = trpc.deleteApiKey.useMutation();
+          const deleteApiKey = trpc.apiKey.deleteApiKey.useMutation();
           return (
             <Button
               variant="outline"
