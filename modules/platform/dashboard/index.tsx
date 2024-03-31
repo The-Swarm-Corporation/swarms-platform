@@ -50,7 +50,7 @@ const Dashboard = () => {
         {subscription.statusLoading && <div>Loading...</div>}
         {!subscription.isLoading && subscription.isSubscribed && (
           <div>
-            <div className="border rounded-md relative">
+            <div className="relative">
               <CodeBox
                 classes={{
                   content: 'h-[50vh] overflow-y-auto'
