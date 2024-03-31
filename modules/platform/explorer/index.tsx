@@ -6,6 +6,7 @@ import { ScanEye, TextQuote } from 'lucide-react';
 import Link from 'next/link';
 import { makeUrl } from '@/shared/utils/helpers';
 import { PUBLIC } from '@/shared/constants/links';
+import LoadingSpinner from '@/shared/components/loading-spinner';
 
 const Explorer = () => {
   const models = trpc.getExplorerModels.useQuery();
@@ -22,23 +23,25 @@ const Explorer = () => {
         <div className="flex flex-col h-1/2 gap-2 py-8">
           <h1 className="text-3xl font-bold">Models</h1>
           <div className="flex flex-wrap gap-4">
-            {models.data?.data?.map((model) => (
-              <Link
-                key={model.id}
-                className="w-full h-[180px] sm:w-full md:w-1/3 lg:w-1/3"
-                target="_blank"
-                href={makeUrl(PUBLIC.MODEL, { name: model.unique_name })}
-              >
-                <InfoCard
-                  title={model.name || ''}
-                  description={model.description || ''}
-                  icon={
-                    model.model_type == 'vision' ? <ScanEye /> : <TextQuote />
-                  }
-                  className="w-full h-full"
-                />
-              </Link>
-            ))}
+            {models.isLoading && <LoadingSpinner size={24} />}
+            {!models.isLoading &&
+              models.data?.data?.map((model) => (
+                <Link
+                  key={model.id}
+                  className="w-full h-[180px] sm:w-full md:w-1/3 lg:w-1/3"
+                  target="_blank"
+                  href={makeUrl(PUBLIC.MODEL, { name: model.unique_name })}
+                >
+                  <InfoCard
+                    title={model.name || ''}
+                    description={model.description || ''}
+                    icon={
+                      model.model_type == 'vision' ? <ScanEye /> : <TextQuote />
+                    }
+                    className="w-full h-full"
+                  />
+                </Link>
+              ))}
           </div>
         </div>
         <div className="flex flex-col h-1/2 gap-2 py-8">
