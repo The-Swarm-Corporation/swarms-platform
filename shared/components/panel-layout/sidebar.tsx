@@ -19,6 +19,7 @@ const panelMenu: {
   icon?: React.ReactNode;
   title: string;
   link: string;
+  items?: { title: string; link: string }[];
 }[] = [
   {
     icon: <LayoutDashboard size={24} />,
@@ -43,7 +44,17 @@ const panelMenu: {
   {
     icon: <User size={24} />,
     title: 'Account',
-    link: PLATFORM.ACCOUNT
+    link: PLATFORM.ACCOUNT,
+/*     items: [
+      {
+        title: 'Profile',
+        link: PLATFORM.ACCOUNT_PROFILE
+      },
+      {
+        title: 'billing',
+        link: PLATFORM.ACCOUNT_BILLING
+      }
+    ] */
   }
 ];
 
@@ -63,26 +74,43 @@ const PanelLayoutSidebar = () => {
           {/* menu */}
           <div className="mt-8">
             {panelMenu.map((item, index) => (
-              <Link
-                key={index}
-                href={item.link}
-                className={cn(
-                  'group flex items-center justify-start p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md outline-none',
-                  item.link === path && 'bg-primary text-white'
+              <div className="flex flex-col gap-2" key={index}>
+                <Link
+                  href={item.link}
+                  className={cn(
+                    'group flex items-center justify-start p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md outline-none',
+                    item.link === path && 'bg-primary text-white'
+                  )}
+                >
+                  {item.icon && (
+                    <span
+                      className={cn(
+                        'mr-2 text-black dark:text-white group-hover:text-white',
+                        item.link === path && 'text-white'
+                      )}
+                    >
+                      {item.icon}
+                    </span>
+                  )}
+                  <span>{item.title}</span>
+                </Link>
+                {/* sub items */}
+                {item.link === path && item.items?.length && (
+                  <div className="flex flex-col gap-2">
+                    {item.items?.map((subItem) => (
+                      <Link
+                        href={subItem.link}
+                        className={cn(
+                          'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
+                          subItem.link === path && 'bg-primary text-white'
+                        )}
+                      >
+                        <span>{subItem.title}</span>
+                      </Link>
+                    ))}
+                  </div>
                 )}
-              >
-                {item.icon && (
-                  <span
-                    className={cn(
-                      'mr-2 text-black dark:text-white group-hover:text-white',
-                      item.link === path && 'text-white'
-                    )}
-                  >
-                    {item.icon}
-                  </span>
-                )}
-                <span>{item.title}</span>
-              </Link>
+              </div>
             ))}
           </div>
         </div>

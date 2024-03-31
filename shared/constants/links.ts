@@ -3,7 +3,11 @@ export const PLATFORM = {
   API_KEYS: '/platform/api-keys',
   USAGE: '/platform/usage',
   ACCOUNT: '/platform/account',
-  PLAYGROUND: '/platform/playground'
+  ACCOUNT_PROFILE: '/platform/account/profile',
+  ACCOUNT_BILLING: '/platform/account/billing',
+
+  PLAYGROUND: '/platform/playground',
+
 };
 export const AUTH = {
   CHANGE_PASSWORD: '/signin/update_password'
