@@ -109,7 +109,8 @@ const ApiKeys = () => {
 
   const redirectToExplorer = () => {
     // redirect to subscription page using router
-    router.push('https://swarms.world/platform/explorer');
+    // router.push('https://swarms.world/platform/explorer');
+    router.push('/platform/explorer');
   }
 
   return (
