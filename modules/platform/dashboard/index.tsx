@@ -22,7 +22,7 @@ const Dashboard = () => {
   return (
     <div className="w-full flex flex-col">
       <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
-        Dashboard
+        Home
       </h1>
       <div className="mt-4 flex gap-8">
         <div className="w-1/3 flex flex-col gap-4 border p-4 rounded-md">
@@ -132,16 +132,26 @@ const Dashboard = () => {
         </div>
         <div className="flex gap-4 border p-4 rounded-md mb-8">
           <div className="w-full flex flex-col gap-2">
-            <h2 className="text-2xl font-bold">Support & Contact us</h2>
+            <h2 className="text-2xl font-bold">Community</h2>
             <span className="text-muted-foreground">
-              Join the Swarms community real-time support and asistance,
+              Join the Swarms community for real-time support, assistance, and conversations with friends!
             </span>
             <div className="flex gap-4 mt-4">
               <Link href={DISCORD}>
                 <Button className= "hover:bg-red-900" variant={'default'}>Discord</Button>
               </Link>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-4 border p-4 rounded-md mb-8">
+          <div className="w-full flex flex-col gap-2">
+            <h2 className="text-2xl font-bold">Get Demo</h2>
+            <span className="text-muted-foreground">
+              Get a demo of the Swarms platform and learn how it can help you automate your operations.
+            </span>
+            <div className="flex gap-4 mt-4">
               <Link href={SWARM_CALENDLY}>
-                <Button className='hover:bg-red-900' variant={'default'}>Book a meeting</Button>
+                <Button className='hover:bg-red-900' variant={'default'}>Get Demo</Button>
               </Link>
             </div>
           </div>
