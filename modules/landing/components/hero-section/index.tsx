@@ -10,12 +10,12 @@ const HeroSection = () => {
   return (
     <div className="mx-auto md:pb-40 w-full">
       <div className="flex flex-col items-center px-4 py-8 mx-auto sm:py-24 sm:px-6 lg:px-8 gap-6 text-center">
-        <h1 className="text-6xl md:text-7xl font-bold ">
-          Orchestrate Agents with
-        </h1>
         <h1 className="text-6xl md:text-7xl font-bold text-primary">Swarms</h1>
+        <h2 className="text-4xl md:text-7xl font-bold ">
+          Orchestrate Agents
+        </h2>
         <span className="text-2xl font-medium">
-          Production-Grade Agents Through Multi-Agent Collaboration
+          The Multi-Agent Collaboration Platform
         </span>
         <div className="flex flex-col bg-background rounded-xl overflow-hidden">
           <span className="w-full bg-primary text-white p-1">Terminal</span>
