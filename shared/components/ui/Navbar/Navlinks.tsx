@@ -9,6 +9,12 @@ import { getRedirectMethod } from '@/shared/utils/auth-helpers/settings';
 import s from './Navbar.module.css';
 import { DISCORD, PLATFORM, SWARMS_GITHUB } from '@/shared/constants/links';
 import { cn } from '@/shared/utils/cn';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTrigger,
+} from "../drawer";
+import { Button } from '../Button';
 
 interface NavlinksProps {
   user?: any;
@@ -34,8 +40,8 @@ export default function Navlinks({ user }: NavlinksProps) {
             Community
           </Link>
           <Link href="https://swarms.apac.ai/en/latest/" className={s.link}>
-              Docs
-            </Link>
+            Docs
+          </Link>
           {user && (
             <Link href={PLATFORM.DASHBOARD} className={s.link}>
               Dashboard
@@ -57,9 +63,20 @@ export default function Navlinks({ user }: NavlinksProps) {
           </Link>
         )}
         <Link href="https://calendly.com/swarm-corp/30min" className={s.link}>
-            Get Demo
-          </Link>
+          Get Demo
+        </Link>
       </div>
+
+      <Drawer direction="right">
+      <DrawerTrigger asChild>
+        <Button>Open Drawer</Button>
+      </DrawerTrigger>
+        <DrawerContent className="flex flex-col h-full w-[400px] mt-24 fixed bottom-0 rounded-none">
+          <div className="p-4 bg-white flex-1 h-full">
+            
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
