@@ -83,17 +83,47 @@ const Dashboard = () => {
             <div className="flex  items-center gap-2">
               <Check size={24} />
               <span className="text-white">
-                Access to the best Multi-Modal models
+                Access to the best Multi-Modal Models
               </span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">Usage-Based Pricing</span>
+              <span className="text-white">
+                Access to the swarms for special workflows
+              </span>
+            </div>
+            <div className="flex  items-center gap-2">
+              <Check size={24} />
+              <span className="text-white">Usage-Based Pricing for models and swarms</span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
               <span className="text-white">
-                100% Uptime with 24/7 Support
+                99% Uptime with 24/7 Support
+              </span>
+            </div>
+            <div className="flex  items-center gap-2">
+              <Check size={24} />
+              <span className="text-white">
+                The Explorer: Explore Multi-Modal Models and Swarms
+              </span>
+            </div>
+            <div className="flex  items-center gap-2">
+              <Check size={24} />
+              <span className="text-white">
+                Early Access to new models, swarms, and features!
+              </span>
+            </div>
+            <div className="flex  items-center gap-2">
+              <Check size={24} />
+              <span className="text-white">
+                Coupons and Discounts for usage-based pricing!
+              </span>
+            </div>
+            <div className="flex  items-center gap-2">
+              <Check size={24} />
+              <span className="text-white">
+                
               </span>
             </div>
           </div>
@@ -138,7 +168,7 @@ const Dashboard = () => {
             </span>
             <div className="flex gap-4 mt-4">
               <Link href={DISCORD}>
-                <Button className= "hover:bg-red-900" variant={'default'}>Discord</Button>
+                <Button className= "hover:bg-red-900" variant={'default'}>Join Community!</Button>
               </Link>
             </div>
           </div>
@@ -151,7 +181,7 @@ const Dashboard = () => {
             </span>
             <div className="flex gap-4 mt-4">
               <Link href={SWARM_CALENDLY}>
-                <Button className='hover:bg-red-900' variant={'default'}>Get Demo</Button>
+                <Button className='hover:bg-red-900' variant={'default'}>Get Demo!</Button>
               </Link>
             </div>
           </div>
