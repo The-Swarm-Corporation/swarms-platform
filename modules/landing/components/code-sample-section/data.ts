@@ -1,4 +1,5 @@
-const codeStep1 = `from swarms import Agent, ChromaDB, OpenAIChat
+const codeStep1 = `
+from swarms import Agent, ChromaDB, OpenAIChat, tool
 
 # Making an instance of the ChromaDB class
 memory = ChromaDB(
@@ -7,6 +8,12 @@ memory = ChromaDB(
     output_dir="results",
     docs_folder="docs",
 )
+
+# Initialize a tool
+@tool
+def search_api(query: str):
+    # Add your logic here
+    return query
 
 # Initializing the agent with the Gemini instance and other parameters
 agent = Agent(
@@ -20,6 +27,7 @@ agent = Agent(
     verbose=True,
     long_term_memory=memory,
     stopping_condition="finish",
+    tools=[search_api],
 )
 
 # Defining the task and image path
@@ -28,71 +36,104 @@ task = ("What are the symptoms of COVID-19?",)
 # Running the agent with the specified task and image
 out = agent.run(task)
 print(out)
+
 `;
 
-const codeStep2 = `from swarms import QwenVLMultiModal
+const codeStep2 = `
+import os
 
-# Instantiate the QwenVLMultiModal model
-model = QwenVLMultiModal(
-    model_name="Qwen/Qwen-VL-Chat",
-    device="cuda",
-    quantize=True,
+from dotenv import load_dotenv
+
+from swarms import Agent, OpenAIChat, SequentialWorkflow
+
+load_dotenv()
+
+# Load the environment variables
+api_key = os.getenv("OPENAI_API_KEY")
+
+
+# Initialize the language agent
+llm = OpenAIChat(
+    temperature=0.5, model_name="gpt-4", openai_api_key=api_key, max_tokens=4000
 )
 
-# Run the model
-response = model("Hello, how are you?", "https://example.com/image.jpg")
 
-# Print the response
-print(response)`;
-const codeStep3 = `from pydantic import BaseModel, Field
-from transformers import AutoModelForCausalLM, AutoTokenizer
+# Initialize the agent with the language agent
+agent1 = Agent(llm=llm, max_loops=1)
 
-from swarms import ToolAgent
-from swarms.utils.json_utils import base_model_to_json
+# Create another agent for a different task
+agent2 = Agent(llm=llm, max_loops=1)
 
-# Load the pre-trained model and tokenizer
-model = AutoModelForCausalLM.from_pretrained(
-    "databricks/dolly-v2-12b",
-    load_in_4bit=True,
-    device_map="auto",
-)
-tokenizer = AutoTokenizer.from_pretrained("databricks/dolly-v2-12b")
+# Create another agent for a different task
+agent3 = Agent(llm=llm, max_loops=1)
 
+# Create the workflow
+workflow = SequentialWorkflow(max_loops=1)
 
-# Initialize the schema for the person's information
-class Schema(BaseModel):
-    name: str = Field(..., title="Name of the person")
-    agent: int = Field(..., title="Age of the person")
-    is_student: bool = Field(
-        ..., title="Whether the person is a student"
-    )
-    courses: list[str] = Field(
-        ..., title="List of courses the person is taking"
-    )
-
-
-# Convert the schema to a JSON string
-tool_schema = base_model_to_json(Schema)
-
-# Define the task to generate a person's information
-task = (
-    "Generate a person's information based on the following schema:"
+# Add tasks to the workflow
+workflow.add(
+    agent1,
+    "Generate a 10,000 word blog on health and wellness.",
 )
 
-# Create an instance of the ToolAgent class
-agent = ToolAgent(
-    name="dolly-function-agent",
-    description="Ana gent to create a child data",
-    model=model,
-    tokenizer=tokenizer,
-    json_schema=tool_schema,
+# Suppose the next task takes the output of the first task as input
+workflow.add(
+    agent2,
+    "Summarize the generated blog",
 )
 
-# Run the agent to generate the person's information
-generated_data = agent.run(task)
+# Run the workflow
+workflow.run()
 
-# Print the generated data
-print(f"Generated data: {generated_data}")
+# Output the results
+for task in workflow.tasks:
+    print(f"Task: {task.description}, Result: {task.result}")
+`;
+const codeStep3 = `
+import os
+
+from dotenv import load_dotenv
+
+# Import the OpenAIChat model and the Agent struct
+from swarms import Agent, OpenAIChat, SwarmNetwork
+
+# Load the environment variables
+load_dotenv()
+
+# Get the API key from the environment
+api_key = os.environ.get("OPENAI_API_KEY")
+
+# Initialize the language model
+llm = OpenAIChat(
+    temperature=0.5,
+    openai_api_key=api_key,
+)
+
+## Initialize the workflow
+agent = Agent(llm=llm, max_loops=1, agent_name="Social Media Manager")
+agent2 = Agent(llm=llm, max_loops=1, agent_name=" Product Manager")
+agent3 = Agent(llm=llm, max_loops=1, agent_name="SEO Manager")
+
+
+# Load the swarmnet with the agents
+swarmnet = SwarmNetwork(
+    agents=[agent, agent2, agent3],
+)
+
+# List the agents in the swarm network
+out = swarmnet.list_agents()
+print(out)
+
+# Run the workflow on a task
+out = swarmnet.run_single_agent(
+    agent2.id, "Generate a 10,000 word blog on health and wellness."
+)
+print(out)
+
+
+# Run all the agents in the swarm network on a task
+out = swarmnet.run_many_agents("Generate a 10,000 word blog on health and wellness.")
+print(out)
 `;
 const codeStep4 = `from swarms.models import HuggingfaceLLM
 
@@ -115,9 +156,9 @@ print(generated_text)`;
 
 const content = [
   {
-    title: 'Long Term Memory',
+    title: 'Agent with Tools and Memory',
     description:
-      'Agent equipped with quasi-infinite long term memory. Great for long document understanding, analysis, and retrieval.',
+      'An LLM backed agent with long term memory and tool usage. Great for complex multi-step activities in the real-world like sales, marketing, and accounting.',
     sampleCodes: {
       python: {
         sourceCode: codeStep1,
@@ -126,9 +167,9 @@ const content = [
     }
   },
   {
-    title: 'Multi Modal',
+    title: 'Sequential Workflow',
     description:
-      'A radically simple interface for QwenVLMultiModal comes complete with Quantization to turn it on just set quantize to true!',
+      'Sequential Workflow enables you to sequentially execute tasks with Agent and then pass the output into the next agent and onwards until you have specified your max loops. SequentialWorkflow is wonderful for real-world business tasks like sending emails, summarizing documents, and analyzing data.      ',
     sampleCodes: {
       python: {
         sourceCode: codeStep2,
@@ -137,9 +178,9 @@ const content = [
     }
   },
   {
-    title: 'Tools',
+    title: 'Swarm Network',
     description:
-      'ToolAgent is an agent that can use tools through JSON function calling. It intakes any open source model from huggingface and is extremely modular and plug in and play. We need help adding general support to all models soon.',
+      'SwarmNetwork provides the infrasturcture for building extremely dense and complex multi-agent applications that span across various types of agents.      ',
     sampleCodes: {
       python: {
         sourceCode: codeStep3,
@@ -147,17 +188,17 @@ const content = [
       }
     }
   },
-  {
-    title: 'HuggingFace LLM',
-    description:
-      "The HuggingFaceLLM class in the Zeta library provides a simple and easy-to-use interface to harness the power of Hugging Face's transformer-based language models, specifically for causal language modeling.",
-    sampleCodes: {
-      python: {
-        sourceCode: codeStep4,
-        title: 'python.py'
-      }
-    }
-  }
+  // {
+  //   title: 'HuggingFace LLM',
+  //   description:
+  //     "The HuggingFaceLLM class in the Zeta library provides a simple and easy-to-use interface to harness the power of Hugging Face's transformer-based language models, specifically for causal language modeling.",
+  //   sampleCodes: {
+  //     python: {
+  //       sourceCode: codeStep4,
+  //       title: 'python.py'
+  //     }
+  //   }
+  // }
 ];
 
 export default content;
