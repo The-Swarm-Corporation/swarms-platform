@@ -29,13 +29,13 @@ const Dashboard = () => {
           <span className="text-primary text-4xl font-bold">
             {commaSeparated(12000)}
           </span>
-          <span className="text-bold text-2xl">Tasks automated</span>
+          <span className="text-bold text-2xl">Tasks Automated</span>
         </div>
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md">
           <span className="text-primary text-4xl font-bold">
             {commaSeparated(99974)}
           </span>
-          <span className="text-bold text-2xl">Agents Collaborated</span>
+          <span className="text-bold text-2xl">Agents</span>
         </div>
 
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md">
@@ -115,7 +115,7 @@ const Dashboard = () => {
               Create now an API key to access an API Key.
             </span>
             <Link href={PLATFORM.API_KEYS}>
-              <Button className="mt-4" variant={'default'}>
+              <Button className="mt-4 hover:bg-red-900" variant={'default'}>
                 Create API Key
               </Button>
             </Link>
@@ -140,10 +140,10 @@ const Dashboard = () => {
             </span>
             <div className="flex gap-4 mt-4">
               <Link href={DISCORD}>
-                <Button variant={'default'}>Discord</Button>
+                <Button className= "hover:bg-red-900" variant={'default'}>Discord</Button>
               </Link>
               <Link href={SWARM_CALENDLY}>
-                <Button variant={'default'}>Book a meeting</Button>
+                <Button className='hover:bg-red-900' variant={'default'}>Book a meeting</Button>
               </Link>
             </div>
           </div>
