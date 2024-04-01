@@ -54,7 +54,7 @@ const CogvlmModel = () => {
             Groundbreaking multimodal model designed to understand and reason
             about visual elements in images.
           </div>
-          <div className="flex gap-2 mt-4 select-none">
+          <div className="flex gap-2 mt-4 select-none flex-wrap">
             {tags.map((tag) => (
               <div className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70">
                 {tag}
