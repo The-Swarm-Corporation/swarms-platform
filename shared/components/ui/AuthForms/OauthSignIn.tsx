@@ -5,6 +5,7 @@ import { signInWithOAuth } from '@/shared/utils/auth-helpers/client';
 import { type Provider } from '@supabase/supabase-js';
 import { Github } from 'lucide-react';
 import { useState } from 'react';
+import Google from '@/shared/components/icons/Google';
 
 type OAuthProviders = {
   name: Provider;
@@ -14,6 +15,11 @@ type OAuthProviders = {
 
 export default function OauthSignIn() {
   const oAuthProviders: OAuthProviders[] = [
+    {
+      name: 'google',
+      displayName: 'Google',
+      icon: <Google />
+    },
     {
       name: 'github',
       displayName: 'GitHub',
