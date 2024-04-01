@@ -154,7 +154,7 @@ const Dashboard = () => {
             </Link>
           </div>
         </div>
-        <div className="flex gap-4 border p-4 rounded-md mb-8">
+        <div className="flex gap-4 border p-4 rounded-md">
           <div className="w-full flex flex-col gap-2">
             <h2 className="text-2xl font-bold">Community</h2>
             <span className="text-muted-foreground">
