@@ -31,6 +31,7 @@ import {
 } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
+import router from 'next/router';
 
 const ApiKeys = () => {
   const apiKeys = trpc.apiKey.getApiKeys.useQuery();
@@ -105,6 +106,12 @@ const ApiKeys = () => {
       });
     });
   };
+
+  const redirectToExplorer = () => {
+    // redirect to subscription page using router
+    router.push('https://swarms.world/platform/explorer');
+  }
+
   return (
     <>
       <div className="flex flex-col w-5/6">
@@ -113,7 +120,7 @@ const ApiKeys = () => {
           Your secret API keys are listed below. Please note that we do not
           display your secret API keys again after you generate them. Do not
           share your API key with others, or expose it in the browser or other
-          client-side code. In order to protect the security of your account,
+          client-side code. 
         </span>
         <div className="mt-4">
           {/* api keys table */}
@@ -206,13 +213,19 @@ const ApiKeys = () => {
                     <p className="text-muted-foreground">
                       Please copy the key below. You will not be able to see it
                       again.
-                      <br /> You can use it with OpenAI-compatible apps
                     </p>
                     <Input
                       value={generatedKey}
                       className="my-2 w-full"
                       readOnly
                     />
+                      <Button
+                      className="mt-4 hover:bg-red-900"
+                      variant={'default'}
+                      onClick={redirectToExplorer}
+                    >
+                      Explore Models and Swarms
+                    </Button>
                   </div>
                 ) : (
                   <div>
