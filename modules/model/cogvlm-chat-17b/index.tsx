@@ -56,7 +56,7 @@ const CogvlmModel = () => {
           </div>
           <div className="flex gap-2 mt-4 select-none">
             {tags.map((tag) => (
-              <div className="text-sm text-gray-400 px-2 py-1 rounded-2xl !text-red-500/70 border border-white">
+              <div className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70">
                 {tag}
               </div>
             ))}
