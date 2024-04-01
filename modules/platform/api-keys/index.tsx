@@ -32,6 +32,8 @@ import {
 import { useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
 import router from 'next/router';
+import Link from 'next/link';
+import { PLATFORM } from '@/shared/constants/links';
 
 const ApiKeys = () => {
   const apiKeys = trpc.apiKey.getApiKeys.useQuery();
@@ -107,12 +109,6 @@ const ApiKeys = () => {
     });
   };
 
-  const redirectToExplorer = () => {
-    // redirect to subscription page using router
-    // router.push('https://swarms.world/platform/explorer');
-    router.push('/platform/explorer');
-  }
-
   return (
     <>
       <div className="flex flex-col w-5/6">
@@ -121,7 +117,7 @@ const ApiKeys = () => {
           Your secret API keys are listed below. Please note that we do not
           display your secret API keys again after you generate them. Do not
           share your API key with others, or expose it in the browser or other
-          client-side code. 
+          client-side code.
         </span>
         <div className="mt-4">
           {/* api keys table */}
@@ -220,13 +216,14 @@ const ApiKeys = () => {
                       className="my-2 w-full"
                       readOnly
                     />
+                    <Link href={PLATFORM.EXPLORER} target="_blank">
                       <Button
-                      className="mt-4 hover:bg-red-900"
-                      variant={'default'}
-                      onClick={redirectToExplorer}
-                    >
-                      Explore Models and Swarms
-                    </Button>
+                        className="mt-4 hover:bg-red-900"
+                        variant={'default'}
+                      >
+                        Explore Models and Swarms
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
                   <div>
