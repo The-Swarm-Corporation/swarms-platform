@@ -98,7 +98,7 @@ const Dashboard = () => {
             </div>
           </div>
           <Button
-            className="mt-4"
+            className="mt-4 hover:bg-red-900"
             variant={'default'}
             disabled={subscription.createSubscriptionPortalLoading}
             onClick={subscription.createSubscriptionPortal}
@@ -124,7 +124,7 @@ const Dashboard = () => {
               Learn more about Swarms through our documentation.
             </span>
             <Link href="https://swarms.apac.ai/en/latest/">
-              <Button className="mt-4" variant={'default'}>
+              <Button className="mt-4 hover:bg-red-900" variant={'default'}>
                 Documention
               </Button>
             </Link>
