@@ -120,12 +120,6 @@ const Dashboard = () => {
                 Coupons and Discounts for usage-based pricing!
               </span>
             </div>
-            <div className="flex  items-center gap-2">
-              <Check size={24} />
-              <span className="text-white">
-                
-              </span>
-            </div>
           </div>
           <Button
             className="mt-4 hover:bg-red-900"
