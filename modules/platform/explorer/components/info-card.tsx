@@ -35,7 +35,7 @@ const InfoCard = ({ title, description, icon, className }: Props) => {
           <path d="M21 0H95V25H0L21 0Z" fill="#FB0101" />
         </svg>
         <div className="absolute  right-0 bottom-0 text-white px-4 py-1">
-          <div className="relative flex items-center gap-2">
+          <div className="relative flex hover:bg-red-800 items-center gap-2">
             <span>preview</span>
             <svg
               width="16"
