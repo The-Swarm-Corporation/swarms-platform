@@ -74,40 +74,38 @@ const Dashboard = () => {
           </div>
         )}
 
-        {!subscription.isSubscribed && (
-          <div className="border rounded-md p-8 py-10">
-            <h2 className="text-2xl font-bold">Subscribe now to get access</h2>
-            <span className="text-muted-foreground">
-              Swarms AI API subscription includes:
-            </span>
-            <div className="flex flex-col gap-2 mt-4">
-              <div className="flex  items-center gap-2">
-                <Check size={24} />
-                <span className="text-white">
-                  Access to the best Multi-Modal models
-                </span>
-              </div>
-              <div className="flex  items-center gap-2">
-                <Check size={24} />
-                <span className="text-white">Usage-Based Pricing</span>
-              </div>
-              <div className="flex  items-center gap-2">
-                <Check size={24} />
-                <span className="text-white">
-                  100% Uptime with 24/7 Support
-                </span>
-              </div>
+        <div className="border rounded-md p-8 py-10">
+          <h2 className="text-2xl font-bold">Subscribe now to get access</h2>
+          <span className="text-muted-foreground">
+            Swarms AI API subscription includes:
+          </span>
+          <div className="flex flex-col gap-2 mt-4">
+            <div className="flex  items-center gap-2">
+              <Check size={24} />
+              <span className="text-white">
+                Access to the best Multi-Modal models
+              </span>
             </div>
-            <Button
-              className="mt-4"
-              variant={'default'}
-              disabled={subscription.createSubscriptionPortalLoading}
-              onClick={subscription.createSubscriptionPortal}
-            >
-              Subscribe
-            </Button>
+            <div className="flex  items-center gap-2">
+              <Check size={24} />
+              <span className="text-white">Usage-Based Pricing</span>
+            </div>
+            <div className="flex  items-center gap-2">
+              <Check size={24} />
+              <span className="text-white">
+                100% Uptime with 24/7 Support
+              </span>
+            </div>
           </div>
-        )}
+          <Button
+            className="mt-4"
+            variant={'default'}
+            disabled={subscription.createSubscriptionPortalLoading}
+            onClick={subscription.createSubscriptionPortal}
+          >
+            Subscribe
+          </Button>
+        </div>
         <div className="flex gap-4">
           <div className="w-1/2 flex flex-col gap-2 border rounded-md p-4">
             <h2 className="text-2xl font-bold">API Keys</h2>
