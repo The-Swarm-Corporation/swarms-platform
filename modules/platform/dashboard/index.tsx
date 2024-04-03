@@ -24,21 +24,21 @@ const Dashboard = () => {
       <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
         Home
       </h1>
-      <div className="mt-4 flex gap-8">
-        <div className="w-1/3 flex flex-col gap-4 border p-4 rounded-md">
+      <div className="mt-4 flex gap-4 max-md:flex-col">
+        <div className="w-1/3 flex flex-col gap-4 border p-4 rounded-md max-md:w-full">
           <span className="text-primary text-4xl font-bold">
             {commaSeparated(12000)}
           </span>
           <span className="text-bold text-2xl">Tasks Automated</span>
         </div>
-        <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md">
+        <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">
           <span className="text-primary text-4xl font-bold">
             {commaSeparated(99974)}
           </span>
           <span className="text-bold text-2xl">Agents</span>
         </div>
 
-        <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md">
+        <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">
           <span className="flex items-end text-primary text-4xl gap-2 font-bold">
             <span>{timeSaved[0]}</span>
             <span className="text-3xl">{timeSaved[1]}</span>
