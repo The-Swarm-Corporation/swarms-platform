@@ -16,7 +16,7 @@ import {
   DrawerClose
 } from "../drawer";
 import { Button } from '../Button';
-import { Menu, SquareX } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 interface NavlinksProps {
   user?: any;
@@ -67,7 +67,7 @@ export default function Navlinks({ user }: NavlinksProps) {
                 <h2 className='font-bold text-primary'>SWARMS</h2>
                 </div>
                 <DrawerClose className='absolute top-4 right-4'>  
-                  <SquareX />
+                  <X />
                 </DrawerClose>
                 <Link href="/pricing" className={s.link}>
                   Pricing
