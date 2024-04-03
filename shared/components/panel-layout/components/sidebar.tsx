@@ -6,9 +6,7 @@ import {
   LayoutDashboard,
   LockKeyhole,
   Menu,
-  SquareChevronRight,
-  SquareX,
-  User,
+  SquareChevronRight, User,
   X
 } from 'lucide-react';
 import Link from 'next/link';
