@@ -78,7 +78,7 @@ Never made an open source contribution before? And wondering how to contribute t
 Check your Supabase project's API settings to find these values
 ``` 
 
-**Note:** _You can use random values if you intend to view the home page on the browser only._
+**Note:** _You can use random values if you intend to view the non-protected pages on the browser only._
 
 
 ## Setting up Supabase
