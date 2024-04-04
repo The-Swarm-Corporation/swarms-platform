@@ -203,3 +203,14 @@ implementing features, refactoring code, e.t.c), it's important to discuss the c
 
 Please adhere to the coding conventions used throughout a project (indentation, accurate comments, etc.) and any other requirements (such as file structure).
 
+## License
+
+View [Project License][license]
+
+This project is licensed under the terms of the [MIT license](https://opensource.org/license/mit/). The MIT license is a permissive free software license that allows you to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software. It is a simple and short license that is compatible with most open source licenses and is widely used in the open source community.
+
+The MIT license includes a disclaimer of liability, meaning that the project's authors or contributors cannot be held liable for any damages that may arise from the use of the software. It also requires that any copies or modifications of the software include the same license terms and copyright notice as the original software.
+
+## Your Support means a lot
+
+Give a ⭐ to the project if you liked it.
