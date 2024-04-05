@@ -121,7 +121,7 @@ Access to the Swarms platform's dashboard requires authentication via Supabase. 
 
 To get started:
 
-1. Copy the provided schema containing the user's data table.
+1. Copy the provided [schema](./schema.sql) containing the user's data table.
 
    ```sh
    create table users (
