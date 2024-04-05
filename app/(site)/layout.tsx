@@ -1,13 +1,9 @@
 import { Metadata, Viewport } from 'next';
 import Footer from '@/shared/components/ui/Footer';
 import Navbar from '@/shared/components/ui/Navbar';
-import { Toaster } from '@/shared/components/ui/Toasts/toaster';
-import { PropsWithChildren, Suspense } from 'react';
+import { PropsWithChildren } from 'react';
 import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
-import { ThemeProvider } from '@/shared/components/ui/theme-provider';
-import { TrpcProvider } from '@/shared/utils/trpc/trpc-provider';
-import { helvetica } from '@/shared/styles/fonts';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -57,29 +53,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 export default async function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={helvetica.className}>
-        <Navbar />
-        <main
-          id="skip"
-          className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]"
-        >
-          <TrpcProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-            </ThemeProvider>
-          </TrpcProvider>
-        </main>
-        <Footer />
-        <Suspense>
-          <Toaster />
-        </Suspense>
-      </body>
-    </html>
+    <>
+      <Navbar />
+      <main className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]">
+        {children}
+      </main>
+      <Footer />
+    </>
   );
 }
