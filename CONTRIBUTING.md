@@ -102,7 +102,8 @@ We have provided some helpful materials to guide you through the process.
 1. [Supabase Docs](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs)
 2. [FreeCodeCamp - Learn Supabase](https://www.freecodecamp.org/news/learn-supabase-open-source-firebase-alternative/)
 
-> **IMPORTANT:** To note that no page can be viewed on the browser without values for the env variables (NEXT_PUBLIC_SUPABASE_ANON_KEY & NEXT_PUBLIC_SUPABASE_URL).
+> **IMPORTANT:** To note that no page can be viewed on the browser without values for the env variables:
+> NEXT_PUBLIC_SUPABASE_ANON_KEY & NEXT_PUBLIC_SUPABASE_URL
 
 You may come across the error shown below in your local machine or terminal.
 ![Terminal Error](./public/images/readme/terminal-error.webp)
@@ -177,6 +178,7 @@ requests](#pull-requests), but please respect the following restrictions:
 ### Bug reports
 
 A bug refers to _an issue in the code_ that exists in the repository and _can be demonstrated_.
+<br />
 Good bug reports are extremely helpful—thank you!
 
 Guidelines for bug reports:
@@ -224,8 +226,6 @@ Pull requests are the best way to propose changes to the codebase. We actively w
 Please adhere to the coding conventions used throughout the project (indentation, accurate comments, etc.) and any other requirements (such as maintaining the file structure).
 
 ## License
-
-View [Project License](/LICENSE)
 
 This project is licensed under the terms of the [MIT license](https://opensource.org/license/mit/). The MIT license is a permissive free software license that allows you to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software. It is a simple and short license that is compatible with most open source licenses and is widely used in the open source community.
 
