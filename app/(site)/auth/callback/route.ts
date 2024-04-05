@@ -2,7 +2,6 @@ import { createClient } from '@/shared/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import { getErrorRedirect, getStatusRedirect } from '@/shared/utils/helpers';
-import { PLATFORM } from '@/shared/constants/links';
 import { afterSignin } from '@/shared/utils/auth-helpers/server';
 
 export async function GET(request: NextRequest) {

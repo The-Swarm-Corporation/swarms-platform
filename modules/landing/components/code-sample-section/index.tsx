@@ -41,7 +41,7 @@ const CodeSampleSection = () => {
 
   return (
     <div className="container p-10 bg-background">
-      <h2 className="text-8xl max-sm:text-4xl font-bold text-center mb-12">Code Samples</h2>
+      <h2 className="text-8xl max-sm:text-4xl font-bold text-center mb-12">Get Started</h2>
       <Tabs className="flex flex-col justify-center items-center gap-6"  defaultValue="0">
         <TabsList orientation={isMobile ?"vertical" : "horizontal" }>
           {Object.values(TabsData).map((tab, index) => (

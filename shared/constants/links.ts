@@ -3,10 +3,17 @@ export const PLATFORM = {
   API_KEYS: '/platform/api-keys',
   USAGE: '/platform/usage',
   ACCOUNT: '/platform/account',
-  PLAYGROUND: '/platform/playground'
+  ACCOUNT_PROFILE: '/platform/account/profile',
+  ACCOUNT_BILLING: '/platform/account/billing',
+
+  PLAYGROUND: '/platform/playground',
+  EXPLORER: '/platform/explorer'
 };
 export const AUTH = {
   CHANGE_PASSWORD: '/signin/update_password'
+};
+export const PUBLIC = {
+  MODEL: '/model/{name}'
 };
 export const SWARMS_GITHUB = 'https://github.com/kyegomez/swarms';
 export const DISCORD = 'https://discord.gg/gRXy5mpFHz';

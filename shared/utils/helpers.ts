@@ -176,5 +176,12 @@ export const formatSepndTime = (value: number) => {
     return `${minutes} minutes`;
   } else {
     return `${seconds} seconds`;
-  }   
+  }
+};
+
+export const makeUrl = (url: string, data: any) => {
+  // replace all [key], {key} with data[key]
+  return url.replace(/\[(.*?)\]|\{(.*?)\}/g, (match, p1, p2) => {
+    return data[p1 || p2];
+  });
 };

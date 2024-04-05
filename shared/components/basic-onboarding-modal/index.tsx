@@ -300,13 +300,19 @@ const BasicOnboardingModal = () => {
           )}
           {step === 'done' && (
             <div className="flex flex-col gap-4 items-center">
-              <h1 className="text-2xl text-center">Thank you!</h1>
+              <h1 className="text-2xl text-center">Welcome to Swarms</h1>
               <p className="text-center">
                 Book a discovery call to learn more about Swarms and how Swarms
                 can help you automate operations!
               </p>
               <Link href={SWARM_CALENDLY} target="_blank">
                 <Button>Book a call</Button>
+              </Link>
+              <Link href="https://swarms.world/platform/explorer" target="_blank">
+                <Button>Explore Models & Swarms</Button>
+              </Link>
+              <Link href="https://swarms.world/platform/api-keys" target="_blank">
+                <Button>Create API Key</Button>
               </Link>
             </div>
           )}

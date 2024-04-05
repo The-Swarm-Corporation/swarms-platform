@@ -54,9 +54,9 @@ const CogvlmModel = () => {
             Groundbreaking multimodal model designed to understand and reason
             about visual elements in images.
           </div>
-          <div className="flex gap-2 mt-4 select-none">
+          <div className="flex gap-2 mt-4 select-none flex-wrap">
             {tags.map((tag) => (
-              <div className="text-sm text-gray-400 px-2 py-1 rounded-2xl !text-cyan-500/70 border border-cyan-500/70">
+              <div className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70">
                 {tag}
               </div>
             ))}
@@ -64,13 +64,13 @@ const CogvlmModel = () => {
         </div>
         <div className="flex flex-col gap-4">
           <h2 className="text-4xl">Usecases</h2>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-col md:flex-row">
             {usecases.map((usecase) => (
               <Card3D
-                containerClassName="flex-1 max-w-sm"
-                className="inter-var"
+                containerClassName="flex-1 "
+                className="inter-var w-full"
               >
-                <CardBody className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto h-auto rounded-xl p-6 border">
+                <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto h-[180px] rounded-xl p-6 border flex flex-col ">
                   <CardItem
                     translateZ="50"
                     className="text-xl font-bold text-neutral-600 dark:text-white"

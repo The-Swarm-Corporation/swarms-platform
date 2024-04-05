@@ -5,7 +5,7 @@ import { createCallerFactory } from '@trpc/server/unstable-core-do-not-import';
 import panelRouter from './panel';
 import { generateApiKey } from '@/shared/utils/helpers';
 const playgroundRouter = router({
-  playgroundListModels: userProcedure.query(async ({ ctx }) => {
+  models: userProcedure.query(async ({ ctx }) => {
     const models = await supabaseAdmin
       .from('swarms_cloud_models')
       .select('*')

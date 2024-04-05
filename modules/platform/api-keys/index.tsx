@@ -31,10 +31,13 @@ import {
 } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
+import router from 'next/router';
+import Link from 'next/link';
+import { PLATFORM } from '@/shared/constants/links';
 
 const ApiKeys = () => {
-  const apiKeys = trpc.getApiKeys.useQuery();
-  const addApiKey = trpc.addApiKey.useMutation();
+  const apiKeys = trpc.apiKey.getApiKeys.useQuery();
+  const addApiKey = trpc.apiKey.addApiKey.useMutation();
   const [keyName, setKeyName] = useState<string>('');
   const [generatedKey, setGeneratedKey] = useState<string | null>('');
   const toast = useToast();
@@ -57,7 +60,7 @@ const ApiKeys = () => {
         accessorKey: 'id',
         header: 'Actions',
         cell: (cell) => {
-          const deleteApiKey = trpc.deleteApiKey.useMutation();
+          const deleteApiKey = trpc.apiKey.deleteApiKey.useMutation();
           return (
             <Button
               variant="outline"
@@ -88,6 +91,9 @@ const ApiKeys = () => {
   });
 
   const generate = () => {
+    if (addApiKey.isPending) {
+      return;
+    }
     addApiKey.mutateAsync({ name: keyName }).then((data) => {
       setKeyName('');
       setGeneratedKey(data?.key ?? '');
@@ -102,6 +108,7 @@ const ApiKeys = () => {
       });
     });
   };
+
   return (
     <>
       <div className="flex flex-col w-5/6">
@@ -110,7 +117,7 @@ const ApiKeys = () => {
           Your secret API keys are listed below. Please note that we do not
           display your secret API keys again after you generate them. Do not
           share your API key with others, or expose it in the browser or other
-          client-side code. In order to protect the security of your account,
+          client-side code.
         </span>
         <div className="mt-4">
           {/* api keys table */}
@@ -203,13 +210,20 @@ const ApiKeys = () => {
                     <p className="text-muted-foreground">
                       Please copy the key below. You will not be able to see it
                       again.
-                      <br /> You can use it with OpenAI-compatible apps
                     </p>
                     <Input
                       value={generatedKey}
                       className="my-2 w-full"
                       readOnly
                     />
+                    <Link href={PLATFORM.EXPLORER} target="_blank">
+                      <Button
+                        className="mt-4 hover:bg-red-900"
+                        variant={'default'}
+                      >
+                        Explore Models and Swarms
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
                   <div>

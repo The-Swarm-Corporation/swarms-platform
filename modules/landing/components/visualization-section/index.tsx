@@ -48,7 +48,7 @@ export const GoogleGeminiEffect = ({
     const updateTextContent = () => {
       const scrollProgress = scrollYProgress.get();
       if (scrollProgress < 0.1) {
-        setTextContent({ title: "Swarms how to work...", description: '' });
+        setTextContent({ title: "How Swarms Works", description: '' });
       } else if (scrollProgress < 0.2) {
         setTextContent({
           title: "Data Aggregation",

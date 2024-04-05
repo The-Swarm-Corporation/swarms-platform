@@ -24,12 +24,7 @@ export async function afterSignin(user: User) {
     email: user?.email || '',
     uuid: user.id
   });
-  return getStatusRedirect(
-    PLATFORM.DASHBOARD,
-    'Success!',
-    'You are now signed in.',
-    false
-  );
+  return PLATFORM.DASHBOARD;
 }
 export async function checkUserSession() {
   const supabase = createClient();

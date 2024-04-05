@@ -1,9 +1,11 @@
 import { LoaderCircle } from 'lucide-react';
 
-const LoadingSpinner = () => {
+const LoadingSpinner = ({size}:{
+  size?: number
+}) => {
   return (
     <div className="loading-spinner animate-spin">
-        <LoaderCircle />
+        <LoaderCircle size={size} />
     </div>
   );
 };

@@ -14,14 +14,14 @@
 
 - **Frontend**
 
-  - Implement account/usage page
+  - Implement usage page
   - Clean up old codes
   - improve ui
-  - google auth
   - test all the payment actions 100%
+  - responsive pages
 
 - **Backend**
-  - account/usage api's
+  - usage page api's
 
 ## Technologies
 

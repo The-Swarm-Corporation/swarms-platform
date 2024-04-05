@@ -25,14 +25,14 @@ const Playground = () => {
       <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
         Playground
       </h1>
-      <div className="w-full h-full flex gap-4 py-4 overflow-hidden px-1">
-        <div className="sm:hidden lg:flex w-2/6 ">
+      <div className="w-full h-full flex gap-4 py-4 overflow-hidden px-1 max-md:flex-col-reverse">
+        <div className="max-lg:hidden w-2/6 ">
           <Textarea
             className="h-full resize-none"
             placeholder="You are a helpful assistant"
           />
         </div>
-        <div className="w-4/6 lg:w-3/6  ">
+        <div className="w-4/6 max-md:w-full">
           <div
             className={cn(
               'h-full overflow-auto pb-16',
@@ -94,7 +94,7 @@ const Playground = () => {
             </Button>
           </div>
         </div>
-        <div className="w-2/6 lg:w-1/6  flex flex-col gap-4 ">
+        <div className="w-2/6 flex flex-col gap-4 max-md:w-full ">
           {/* loading */}
           {playground.models.isLoading && (
             <div className="w-full flex justify-center items-center">

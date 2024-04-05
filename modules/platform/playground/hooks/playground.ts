@@ -5,8 +5,8 @@ import { ChatCompletionMessageParam } from 'openai/resources';
 import { useEffect, useRef, useState } from 'react';
 
 const usePlayground = () => {
-  const models = trpc.playgroundListModels.useQuery();
-  const playgroundApiKey = trpc.getPlaygroundApiKey.useQuery();
+  const models = trpc.playground.models.useQuery();
+  const playgroundApiKey = trpc.playground.getPlaygroundApiKey.useQuery();
   const [systemMessage, setSystemMessage] = useState<string>('');
   // config
   const [temperature, setTemperature] = useState<number>(0.8);
