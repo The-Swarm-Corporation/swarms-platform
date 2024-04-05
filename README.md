@@ -36,6 +36,7 @@
 
 
 ## 🫶 Contributions:
+For detailed instructions on how to setup project and contribute, please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 The easiest way to contribute is to pick any issue with the `good first issue` tag 💪. Read the Contributing guidelines [here](/CONTRIBUTING.md). Bug Report? [File here](https://github.com/kyegomez/swarms-platform/issues)
 Swarms is an open-source project, and contributions are VERY welcome. If you want to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/kyegomez/swarms/blob/master/CONTRIBUTING.md) and our [contributing board](https://github.com/users/kyegomez/projects/1) to participate in Roadmap discussions!
