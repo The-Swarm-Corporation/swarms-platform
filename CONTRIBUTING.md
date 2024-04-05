@@ -11,6 +11,7 @@ Of course, this document is subject to change as it's a living document. You're 
   - [Installation](#installation)
 - [Setting up Supabase](#setting-up-supabase)
   - [Authentication](#authentication)
+  - [Working with Providers](#working-with-providers)
     - [Setting up Github OAuth](#setting-up-github-oauth)
     - [Setting up Google OAuth](#setting-up-google-oauth)
 - [Using the issue tracker](#using-the-issue-tracker)
@@ -26,79 +27,68 @@ Never made an open source contribution before? Are you wondering how to contribu
 
 ### Installation
 
-1. Fork the repo, clone your fork, and configure the remotes:
-   ![Fork Repo](./public/images/readme/Fork-repo.webp)
+1.  Fork the repo, clone your fork, and configure the remotes:
+    ![Fork Repo](./public/images/readme/Fork-repo.webp)
 
-   ```sh
-   # Clone your fork of the repo into the current directory
-   git clone https://github.com/<your-username>/swarms-platform
-   # Navigate to the newly cloned directory
-   cd swarms-platform
-   ```
+    ```sh
+    # Clone your fork of the repo into the current directory
+    git clone https://github.com/<your-username>/swarms-platform
+    # Navigate to the newly cloned directory
+    cd swarms-platform
+    ```
 
-2. If you cloned a while ago, get the latest changes from origin `main`:
+2.  If you cloned a while ago, get the latest changes from origin `main`:
 
-   ```sh
-   git checkout <main-branch>
-   git pull origin <main-branch>
-   ```
+    ```sh
+    git checkout <main-branch>
+    git pull origin <main-branch>
+    ```
 
-3. Create a new branch (off the main project branch) to contain your feature, change, or fix:
+3.  Create a new branch (off the main project branch) to contain your feature, change, or fix:
 
-   ```sh
-   git checkout -b <new-branch-name>
-   ```
+    ```sh
+    git checkout -b <new-branch-name>
+    ```
 
-4. Install the dependencies
+4.  Install the dependencies
 
-   > As Swarms Platform uses an npm package manager, it is believed you've a node stable version installed, [install node][https://nodejs.org/en/download]
+    > As Swarms Platform uses an npm package manager, it is believed you've a node stable version installed, [install node](https://nodejs.org/en/download)
 
-   ```sh
-   npm install
-   ```
+    ```sh
+    npm install
+    ```
 
-5. Make .env.local file in root directory with these variables
+5.  Make .env.local file in root directory with these variables
 
-   > This step is NOT optional, Add this step if you want to run the complete web application in your terminal
+    > This step is NOT optional, Add this step if you want to run the complete web application in your terminal
 
-    <!-- These environment variables are used for Supabase Local Dev -->
+    ```
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=
+    NEXT_PUBLIC_SUPABASE_URL=
+    SUPABASE_SERVICE_ROLE_KEY=
+    ```
 
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=
-   NEXT_PUBLIC_SUPABASE_URL=
-   SUPABASE_SERVICE_ROLE_KEY=
+6.  Make and commit your changes following the [WARP](https://github.com/kyegomez/WARP?tab=readme-ov-file#warp) format.
+    Please adhere to these guideline when it comes to [commit Structure](https://github.com/kyegomez/WARP?tab=readme-ov-file#types-of-changes) with [examples](https://github.com/kyegomez/WARP?tab=readme-ov-file#examples) and [best commit practices](https://github.com/kyegomez/WARP?tab=readme-ov-file#best-practices-for-using-warp).
 
-6. Make and commit your changes following the [WARP](https://github.com/kyegomez/WARP?tab=readme-ov-file#warp) format. Please adhere to these guideline when it comes to [commit Structure](https://github.com/kyegomez/WARP?tab=readme-ov-file#types-of-changes) with [examples](https://github.com/kyegomez/WARP?tab=readme-ov-file#examples) and [best commit practices](https://github.com/kyegomez/WARP?tab=readme-ov-file#best-practices-for-using-warp).
+7.  Locally merge (or rebase) the main branch into your working branch:
 
-7. Locally merge (or rebase) the main branch into your working branch:
-
-   ```bash
-   git pull origin main
-   ```
+    ```sh
+    git pull origin main
+    ```
 
 8. Push your working branch up to your fork:
 
-   ```bash
+   ```sh
    git push -u origin <branch-name>
    ```
 
 9. [Open a Pull Request](https://github.com/kyegomez/swarms-platform/pulls)
    with a clear title and description.
-
-**IMPORTANT**: By submitting a patch, you agree to allow the project owner or maintainer to license your work under the same license as that used by the project.
+   
+   > **IMPORTANT**: By submitting a patch, you agree to allow the project owner or maintainer to license your work under the same license as that used by the project.
 
 8. Wait for the pull request to be reviewed by us and make appropriate changes if the maintainer recommends you to and submit it.
-
-**IMPORTANT** to note that the index UI cannot be viewed on the browser without values for the env variables (NEXT_PUBLIC_SUPABASE_ANON_KEY & NEXT_PUBLIC_SUPABASE_URL).
-
-You may come across the error shown below in your local machine or terminal.
-![Terminal Error](./public/images/readme/terminal-error.webp)
-
-```sh
-⨯ Error: Your project's URL and Key are required to create a Supabase client!
-Check your Supabase project's API settings to find these values
-```
-
-**Note:** _You can use random values for viewing non-protected pages on your browser._
 
 ## Setting up Supabase
 
@@ -111,6 +101,18 @@ We have provided some helpful materials to guide you through the process.
 
 1. [Supabase Docs](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs)
 2. [FreeCodeCamp - Learn Supabase](https://www.freecodecamp.org/news/learn-supabase-open-source-firebase-alternative/)
+
+> **IMPORTANT** to note that the index UI cannot be viewed on the browser without values for the env variables (NEXT_PUBLIC_SUPABASE_ANON_KEY & NEXT_PUBLIC_SUPABASE_URL).
+
+You may come across the error shown below in your local machine or terminal.
+![Terminal Error](./public/images/readme/terminal-error.webp)
+
+```sh
+⨯ Error: Your project's URL and Key are required to create a Supabase client!
+Check your Supabase project's API settings to find these values
+```
+
+> **Note:** _You can use random values for viewing non-protected pages on your browser._
 
 ### Authentication
 
@@ -146,13 +148,13 @@ create policy "Can update own user data." on users for update using (auth.uid() 
 5. Check the "Table" column to view your newly created table.
 6. Assign the right values to the supabase environment variables listed above
 
-> Working with providers
+### Working with providers
 
 #### Setting up Github OAuth
 
 To configure your GitHub client ID and client secrets, we recommend following the steps outlined in either the [Supabase Docs](https://supabase.com/docs/guides/auth/social-login/auth-github) or [Github Docs](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app).
 
-**Note** that when setting the "Authorization callback URL" parameter to "https://<reference*id>.supabase.co/auth/v1/callback", the "\_https://<reference_id>.supabase.co*" part of the URL is taken from the API column in the project settings of the Supabase dashboard.
+**Note** that when setting the "Authorization callback URL" parameter to "https://<reference_id>.supabase.co/auth/v1/callback", the "_https://<reference_id>.supabase.co_" part of the URL is taken from the API column in the project settings of the Supabase dashboard.
 
 The GitHub client ID and secret are also important, as they are used as values if GitHub is set up as a provider within the Supabase Authentication column
 
@@ -171,8 +173,6 @@ requests](#pull-requests), but please respect the following restrictions:
 - Please **do not** use the issue tracker for personal support requests (use [Stack Overflow](http://stackoverflow.com) or AI models specifically for help including [ChatGPT](https://chat.openai.com/), [Blackbox](https://www.blackbox.ai/)).
 
 - Please **do not** derail or troll issues. Keep the discussion on topic and respect the opinions of others.
-
-<a name="bugs"></a>
 
 ### Bug reports
 
@@ -211,13 +211,9 @@ Example:
 > This might include the lines of code that you have identified as causing the bug,
 > and potential solutions (and your opinions on their merits).
 
-<a name="features"></a>
-
 ### Feature requests
 
 We welcome feature requests, but before submitting one, please ensure that your idea aligns with the project's scope and objectives. It is _your responsibility_ to persuade the developers of the feature's benefits by presenting a compelling argument. Please provide as much detail and context as possible.
-
-<a name="pull-requests"></a>
 
 ### Pull requests
 
@@ -229,7 +225,7 @@ Please adhere to the coding conventions used throughout the project (indentation
 
 ## License
 
-View [Project License][license]
+View [Project License](/LICENSE)
 
 This project is licensed under the terms of the [MIT license](https://opensource.org/license/mit/). The MIT license is a permissive free software license that allows you to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software. It is a simple and short license that is compatible with most open source licenses and is widely used in the open source community.
 
