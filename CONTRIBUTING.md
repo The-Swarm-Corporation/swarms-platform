@@ -102,12 +102,12 @@ We have provided some helpful materials to guide you through the process.
 1. [Supabase Docs](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs)
 2. [FreeCodeCamp - Learn Supabase](https://www.freecodecamp.org/news/learn-supabase-open-source-firebase-alternative/)
 
-> **IMPORTANT** to note that the index UI cannot be viewed on the browser without values for the env variables (NEXT_PUBLIC_SUPABASE_ANON_KEY & NEXT_PUBLIC_SUPABASE_URL).
+> **IMPORTANT:** To note that no page can be viewed on the browser without values for the env variables (NEXT_PUBLIC_SUPABASE_ANON_KEY & NEXT_PUBLIC_SUPABASE_URL).
 
 You may come across the error shown below in your local machine or terminal.
 ![Terminal Error](./public/images/readme/terminal-error.webp)
 
-```sh
+```
 ⨯ Error: Your project's URL and Key are required to create a Supabase client!
 Check your Supabase project's API settings to find these values
 ```
@@ -122,21 +122,21 @@ To get started:
 
 1. Copy the provided schema containing the user's data table.
 
-```sh
-create table users (
-  -- UUID from auth.users
-  id uuid references auth.users not null primary key,
-  full_name text,
-  avatar_url text,
-  -- The customer's billing address, stored in JSON format.
-  billing_address jsonb,
-  -- Stores your customer's payment instruments.
-  payment_method jsonb
-);
-alter table users enable row level security;
-create policy "Can view own user data." on users for select using (auth.uid() = id);
-create policy "Can update own user data." on users for update using (auth.uid() = id);
-```
+   ```sh
+   create table users (
+     -- UUID from auth.users
+     id uuid references auth.users not null primary key,
+     full_name text,
+     avatar_url text,
+     -- The customer's billing address, stored in JSON format.
+     billing_address jsonb,
+     -- Stores your customer's payment instruments.
+     payment_method jsonb
+   );
+   alter table users enable row level security;
+   create policy "Can view own user data." on users for select using (auth.uid() = id);
+   create policy "Can update own user data." on users for update using (auth.uid() = id);
+   ```
 
 2. Move the schema to the SQL editor column in your Supabase project dashboard.
    ![Sql Editor](./public/images/readme/sql-editor.webp)
