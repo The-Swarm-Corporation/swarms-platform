@@ -5,11 +5,11 @@ import { PLATFORM, SWARMS_GITHUB } from '@/shared/constants/links';
 import { cn } from '@/shared/utils/cn';
 import { Github } from 'lucide-react';
 import Link from 'next/link';
-
+import Rive from '@rive-app/react-canvas';
 const HeroSection = () => {
   return (
-    <div className="mx-auto md:pb-40 w-full flex-row flex h-screen items-center">
-      <div className="flex-1 flex flex-col items-start px-4 py-8 sm:py-24 sm:px-6 lg:px-8 gap-6 text-left">
+    <div className="mx-auto container md:pb-40 w-full flex-row flex h-screen items-center">
+      <div className="flex-2 flex flex-col items-start px-4 py-8 sm:py-24 sm:px-6 lg:px-8 gap-6 text-left">
         <h1 className="text-6xl md:text-7xl font-bold text-primary">Swarms</h1>
         <h2 className="text-4xl md:text-7xl font-bold">
           Orchestrate Agents
@@ -53,8 +53,12 @@ const HeroSection = () => {
           </Link>
         </div>
       </div>
-      <div className="flex-1 flex flex-col items-start px-4 py-8 sm:py-24 sm:px-6 lg:px-8 gap-6 text-left">
-        hi man
+      <div className="flex-1 flex flex-col items-start px-4 py-8 sm:py-24 sm:px-6 lg:px-8 gap-6 text-left h-full">
+        <Rive
+
+            src={'/animation-hero.riv'}
+            stateMachines="Branchs"
+        />
       </div>
     </div>
   );
