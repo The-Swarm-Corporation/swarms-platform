@@ -109,16 +109,16 @@ const Pricing = () => {
             </svg>
             <div className="relative flex flex-col items-center justify-center max-w-6xl px-8 py-12 mx-auto lg:py-24">
                 <div>
-                    <span className="text-6xl font-bold tracking-wide text-white uppercase">Pricing</span>
+                    <span className="text-6xl font-bold tracking-wide text-foreground uppercase">Pricing</span>
                 </div>
                 <div className="grid grid-cols-1 gap-8 mt-12 lg:ap-2 lg:grid-cols-2">
                     <div className="lg:order-last max-w-sm">
                         <div className="flex flex-col">
                             <div className="p-8 shadow-2xl rounded-3xl bg-primary ring-1 ring-white/10">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 text-white">
                                         <Gem />
-                                        <p className="text-base font-medium text-white uppercase">
+                                        <p className="text-base font-medium uppercase">
                                             {pricingData.Enterprise.title}
                                         </p>
                                     </div>
@@ -145,10 +145,10 @@ const Pricing = () => {
                                 !!pricingData.Enterprise.features.length &&
                                 <div className="px-8">
                                     <div>
-                                        <p className="mt-4 text-lg font-medium text-white uppercase lg:mt-8">
+                                        <p className="mt-4 text-lg font-medium text-foreground uppercase lg:mt-8">
                                             Features
                                         </p>
-                                        <ul className="gap-4 mt-4 space-y-3 text-gray-300 list-none" role="list">
+                                        <ul className="gap-4 mt-4 space-y-3 text-gray-700 dark:text-gray-300 list-none" role="list">
                                             {
                                                 pricingData.Enterprise.features.map((item, index) => {
                                                     return (
@@ -169,9 +169,9 @@ const Pricing = () => {
                         <div className="flex flex-col">
                             <div className="p-8 rounded-3xl bg-black ring-1 ring-white/10 shadow-2xl">
                                 <div className="flex justify-between">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 text-white">
                                         <Bolt />
-                                        <p className="text-base font-medium text-white uppercase">
+                                        <p className="text-base font-medium uppercase">
                                             {pricingData.Premium.title}
                                         </p>
                                     </div>
@@ -188,8 +188,8 @@ const Pricing = () => {
                                     <Link
                                         className={cn(
                                             "items-center justify-between inline-flex w-full font-medium px-6 py-2.5 text-center", 
-                                            "text-white duration-200 bg-white/5 border", 
-                                            "border-white/5 rounded-xl h-14 hover:bg-white/10 hover:border-white/10",
+                                            "text-white duration-200 bg-white/10 dark:bg-white/5 border", 
+                                            "border-white/5 dark:border-white/10 rounded-xl h-14 hover:bg-white/10 hover:border-white/10",
                                              "focus:outline-none focus-visible:outline-black text-base focus-visible:ring-black"
                                         )}
                                         href={pricingData.Premium.link}>
@@ -201,10 +201,10 @@ const Pricing = () => {
                             </div>
                             <div className="px-8">
                                 <div>
-                                    <p className="mt-4 text-lg font-medium text-white uppercase lg:mt-8">
+                                    <p className="mt-4 text-lg font-medium text-foreground uppercase lg:mt-8">
                                         Features
                                     </p>
-                                    <ul className="order-last gap-4 mt-4 space-y-3 text-gray-300 list-none" role="list">
+                                    <ul className="order-last gap-4 mt-4 space-y-3 text-gray-700 dark:text-gray-300 list-none" role="list">
                                         {
                                             pricingData.Premium.features.map((item, index) => {
                                                 return (
