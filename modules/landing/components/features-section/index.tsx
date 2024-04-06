@@ -54,14 +54,14 @@ const FeaturesSection = () => {
             <CardBody className="relative group/card  hover:shadow-2xl hover:shadow-primary/[0.2] bg-black dark:border-white/[0.2] w-auto h-auto rounded-xl p-6 border">
               <CardItem
                 translateZ="50"
-                className="text-xl font-bold text-neutral-600 dark:text-white"
+                className="text-xl font-bold text-white"
               >
                 {item.title}
               </CardItem>
               <CardItem
                 as="p"
                 translateZ="60"
-                className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
+                className="text-sm max-w-sm mt-2 text-neutral-300"
               >
                 {item.description}
               </CardItem>
