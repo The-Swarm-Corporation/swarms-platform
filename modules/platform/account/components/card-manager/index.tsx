@@ -123,7 +123,7 @@ const CardManagerInside = () => {
         </form>
       </Modal>
       <div className="flex flex-col gap-4 w-full border rounded-md p-4 text-card-foreground">
-        <h1 className="text-base font-bold text-white">Manage Cards</h1>
+        <h1 className="text-base font-bold">Manage Cards</h1>
         <div className="flex flex-col items-center justify-center p-1 gap-2">
           {manager.methods.isLoading && <LoadingSpinner />}
           {

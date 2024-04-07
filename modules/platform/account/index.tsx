@@ -11,7 +11,7 @@ export default function Account() {
     <section className="w-full mb-32">
       <div>
         <div className="flex flex-col">
-          <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
+          <h1 className="text-3xl font-extrabold sm:text-4xl">
             Account
           </h1>
           {/* charge button */}
@@ -21,7 +21,7 @@ export default function Account() {
             <SubscriptionStatus />
 
             <div className="flex flex-col gap-2">
-              <h2 className="text-white text-xl font-bold">Password</h2>
+              <h2 className="text-xl font-bold">Password</h2>
               <Link href={AUTH.CHANGE_PASSWORD}>
                 <Button variant={'outline'}>Change password</Button>
               </Link>

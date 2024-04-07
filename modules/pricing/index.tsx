@@ -109,7 +109,7 @@ const Pricing = () => {
             </svg>
             <div className="relative flex flex-col items-center justify-center max-w-6xl px-8 py-12 mx-auto lg:py-24">
                 <div>
-                    <span className="text-6xl font-bold tracking-wide text-foreground uppercase">Pricing</span>
+                    <span className="text-6xl font-bold tracking-wide uppercase">Pricing</span>
                 </div>
                 <div className="grid grid-cols-1 gap-8 mt-12 lg:ap-2 lg:grid-cols-2">
                     <div className="lg:order-last max-w-sm">

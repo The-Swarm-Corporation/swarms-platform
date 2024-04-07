@@ -55,7 +55,7 @@ const Usage = () => {
   };
   return (
     <div className="flex flex-col w-full">
-      <h1 className="text-3xl font-extrabold text-white sm:text-4xl">Usage</h1>
+      <h1 className="text-3xl font-extrabold sm:text-4xl">Usage</h1>
       <div className="mt-4 w-1/2 h-1/2">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>

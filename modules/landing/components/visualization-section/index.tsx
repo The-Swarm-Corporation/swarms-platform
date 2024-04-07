@@ -47,7 +47,7 @@ export const GoogleGeminiEffect = ({
   };
   const [textContent, setTextContent] = useState({ title: "", description: "" });
 
-  const strokeColor = theme === 'dark' ? '#FFF' : '#00000056';
+  const strokeColor = theme === 'light' ? '#00000056' : '#FFF';
 
   useEffect(() => {
     const updateTextContent = () => {

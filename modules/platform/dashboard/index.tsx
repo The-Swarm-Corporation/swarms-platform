@@ -21,7 +21,7 @@ const Dashboard = () => {
   ).split(' ');
   return (
     <div className="w-full flex flex-col">
-      <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
+      <h1 className="text-3xl font-extrabold sm:text-4xl">
         Home
       </h1>
       <div className="mt-4 flex gap-4 max-md:flex-col">
@@ -82,41 +82,41 @@ const Dashboard = () => {
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">
+              <span>
                 Access to the best Multi-Modal Models
               </span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">
+              <span>
                 Access to the swarms for special workflows
               </span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">Usage-Based Pricing for models and swarms</span>
+              <span>Usage-Based Pricing for models and swarms</span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">
+              <span>
                 99% Uptime with 24/7 Support
               </span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">
+              <span>
                 The Explorer: Explore Multi-Modal Models and Swarms
               </span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">
+              <span>
                 Early Access to new models, swarms, and features!
               </span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span className="text-white">
+              <span>
                 Coupons and Discounts for usage-based pricing!
               </span>
             </div>
