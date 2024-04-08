@@ -62,7 +62,9 @@ export default function ThemeCard({
               : ''
           )}
         />
-        <span className="first-letter:capitalize">{themeLabel} default</span>
+        <span className="first-letter:capitalize">
+          {themeLabel} {isDark && '(default)'}
+        </span>
       </div>
     </div>
   );

@@ -20,16 +20,17 @@ enum THEMES {
   DARK = 'dark',
   SYSTEM = 'system'
 }
-const themes = [THEMES.LIGHT, THEMES.DARK];
+const themes: THEMES[] = [THEMES.LIGHT, THEMES.DARK];
+const SINGLE = 'single';
 const themeOptions = [
-  { label: 'Single theme', value: 'single' },
+  { label: 'Single theme', value: SINGLE },
   { label: 'Sync with your system', value: THEMES.SYSTEM }
 ] as const;
 
 export default function ThemeToggle() {
   const { setTheme, theme, resolvedTheme } = useTheme();
   const [themeOption, setThemeOption] = useState(
-    theme === THEMES.SYSTEM ? THEMES.SYSTEM : 'single'
+    theme === THEMES.SYSTEM ? THEMES.SYSTEM : SINGLE
   );
 
   const placeholder = themeOptions.find(
@@ -39,11 +40,8 @@ export default function ThemeToggle() {
   function handleThemeOptionChange(value: string) {
     setThemeOption(value);
 
-    if (value === THEMES.SYSTEM) {
-      setTheme(THEMES.SYSTEM);
-    } else {
-      setTheme(THEMES.DARK);
-    }
+    if (value === THEMES.SYSTEM) return setTheme(THEMES.SYSTEM);
+    return setTheme(THEMES.DARK);
   }
 
   return (
