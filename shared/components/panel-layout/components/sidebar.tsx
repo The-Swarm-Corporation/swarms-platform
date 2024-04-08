@@ -144,7 +144,7 @@ const PanelLayoutSidebar = () => {
         <Drawer direction="left">
           <DrawerTrigger asChild>
             <div className="flex w-full h-auto py-2 backdrop-blur-md bg-background/70 top-0 absolute z-[20] ">
-              <Button className="text-white" variant="link">
+              <Button className="text-foreground" variant="link">
                 <Menu />
               </Button>
             </div>

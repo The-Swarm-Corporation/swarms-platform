@@ -61,7 +61,7 @@ export default function ThemeToggle() {
           }}
           value={themeOption}
         >
-          <SelectTrigger className="w-2/4">
+          <SelectTrigger className="xl:w-2/4">
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>
