@@ -1,7 +1,9 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import React, { useState } from 'react';
+import { useTheme } from 'next-themes';
+import { useState } from 'react';
+
 import {
   Select,
   SelectContent,
@@ -9,23 +11,11 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/shared/components/ui/select';
-import { useTheme } from 'next-themes';
+import { SINGLE, themeOptions, themes, THEMES } from '@/shared/constants/theme';
 
 const ThemeCard = dynamic(() => import('./components/theme-card'), {
   ssr: false
 });
-
-enum THEMES {
-  LIGHT = 'light',
-  DARK = 'dark',
-  SYSTEM = 'system'
-}
-const themes: THEMES[] = [THEMES.LIGHT, THEMES.DARK];
-const SINGLE = 'single';
-const themeOptions = [
-  { label: 'Single theme', value: SINGLE },
-  { label: 'Sync with your system', value: THEMES.SYSTEM }
-] as const;
 
 export default function ThemeToggle() {
   const { setTheme, theme, resolvedTheme } = useTheme();

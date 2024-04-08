@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { StrokeColor, THEMES } from "@/shared/constants/theme";
 
 const transition = {
   duration: 0,
@@ -47,9 +48,10 @@ export const GoogleGeminiEffect = ({
   };
   const [textContent, setTextContent] = useState({ title: "", description: "" });
 
-  console.log({ resolvedTheme })
-
-  const strokeColor = theme === 'light' || resolvedTheme === "light" ? '#00000056' : '#FFF';
+  const strokeColor =
+  theme === THEMES.LIGHT || resolvedTheme === THEMES.LIGHT
+    ? StrokeColor.DARK
+    : StrokeColor.LIGHT;
 
   useEffect(() => {
     const updateTextContent = () => {
