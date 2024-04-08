@@ -20,7 +20,7 @@ export const GoogleGeminiEffect = ({
   description?: string;
   className?: string;
 }) => {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
   const [primaryColor, setPrimaryColor] = useState("");
   const ref = React.useRef(null);
   const { scrollYProgress } = useScroll({
@@ -47,7 +47,9 @@ export const GoogleGeminiEffect = ({
   };
   const [textContent, setTextContent] = useState({ title: "", description: "" });
 
-  const strokeColor = theme === 'light' ? '#00000056' : '#FFF';
+  console.log({ resolvedTheme })
+
+  const strokeColor = theme === 'light' || resolvedTheme === "light" ? '#00000056' : '#FFF';
 
   useEffect(() => {
     const updateTextContent = () => {

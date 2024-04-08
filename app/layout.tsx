@@ -22,7 +22,8 @@ export default async function Layout({
       <body className={helvetica.className}>
         <ThemeProvider
           attribute="class"
-          enableSystem={false}
+          defaultTheme="dark"
+          enableSystem
           disableTransitionOnChange
         >
           <TrpcProvider>{children}</TrpcProvider>
