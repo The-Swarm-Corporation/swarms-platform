@@ -118,8 +118,8 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div className="flex flex-col items-center justify-between py-12 space-y-4 md:flex-row bg-zinc-900">
-        <div>
+      <div className="flex flex-col items-center justify-between py-12 space-y-4 text-white md:flex-row bg-zinc-900">
+        <div className='w-full text-center'>
           <span>
             &copy; {new Date().getFullYear()} TGSC, Inc. All rights reserved.
           </span>

@@ -17,10 +17,10 @@ const OpenSourceSection = () => {
           fill="white"
           /> */}
           <div className=" p-4 max-w-7xl  mx-auto relative z-10  w-full pt-20 md:pt-0">
-            <h1 className="text-4xl md:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">
+            <h1 className="text-4xl md:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 to-neutral-600 dark:from-neutral-50 dark:to-neutral-400 bg-opacity-50">
             Everything Is <br /> Open Source
             </h1>
-            <p className="mt-4 font-normal text-base text-neutral-300 max-w-lg text-center mx-auto">
+            <p className="mt-4 font-normal text-base text-neutral-700 dark:text-neutral-300 max-w-lg text-center mx-auto">
               TGSC is radically focused on transparency and open source. We believe that the best way to build a better future is by working together.
             </p>
           </div>
@@ -35,7 +35,7 @@ const OpenSourceSection = () => {
               }}
               className="flex flex-col items-center gap-10"
             >
-              <AnimatedTooltip tooltip={<p className="text-base md:text-2xl font-bold"> Join Community </p>}>
+              <AnimatedTooltip tooltip={<p className="text-base md:text-2xl text-secondary font-bold"> Join Community </p>}>
               <div className="w-24 h-24 md:w-32 md:h-32">
                 <Image
                   alt="discord" 
@@ -55,7 +55,7 @@ const OpenSourceSection = () => {
               }}
               className="flex flex-col items-center gap-10"
             >
-              <AnimatedTooltip tooltip={<p className="text-base md:text-2xl font-bold"> Join Us </p>}>
+              <AnimatedTooltip tooltip={<p className="text-base md:text-2xl text-secondary font-bold"> Join Us </p>}>
               <div className="w-28 h-28 md:w-60 md:h-60">
                 <Image
                   alt="github" 
@@ -75,7 +75,7 @@ const OpenSourceSection = () => {
               }}
               className="flex flex-col items-center gap-10"
             >
-              <AnimatedTooltip tooltip={<p className="text-base md:text-2xl font-bold"> Follow Us on X </p>}>
+              <AnimatedTooltip tooltip={<p className="text-base md:text-2xl text-secondary font-bold"> Follow Us on X </p>}>
                 <div className="w-24 h-24 md:w-32 md:h-32">
                   <Image
                     alt="twitter" 

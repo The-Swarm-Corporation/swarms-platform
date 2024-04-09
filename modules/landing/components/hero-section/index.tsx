@@ -19,7 +19,7 @@ const HeroSection = () => {
         </span>
         <div className="flex flex-col bg-background rounded-xl overflow-hidden">
           <span className="w-full bg-primary text-white p-1">Terminal</span>
-          <span className="p-3 text-white">pip3 install -U swarms</span>
+          <span className="p-3">pip3 install -U swarms</span>
         </div>
         <div className="flex gap-4 mt-8">
           <Link href={PLATFORM.DASHBOARD} target="_blank">
@@ -40,12 +40,10 @@ const HeroSection = () => {
             <Button
               className={cn(
                 'text-base flex gap-2 font-normal',
-                'bg-white',
-                'hover:bg-white/90',
-                'text-background',
                 'px-10 py-6',
                 'rounded-md'
               )}
+              variant="foreground"
             >
               <Github size={18} />
               Github

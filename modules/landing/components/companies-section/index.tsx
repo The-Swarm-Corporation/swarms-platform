@@ -42,12 +42,31 @@ const CompaniesSection = () => {
                     className="grid grid-cols-2 gap-8 text-gray-500 sm:gap-12 md:grid-cols-3 lg:grid-cols-6 dark:text-gray-400">
                     {
                         companies.map((company, index) => {
-                            return(
-                                <a key={`LANDING_COMPANY_${index}`} href="#" className="flex justify-between items-center flex-col gap-2 hover:scale-110 transition-transform duration-300">
-                                    <Image src={company.logo} alt={company.name} width={100} height={100} />
-                                    <p className="font-bold text-2xl text-center">{company.name}</p>
-                                </a>
-                            )
+                            return (
+                              <a
+                                key={`LANDING_COMPANY_${index}`}
+                                href="#"
+                                className="flex justify-between items-center flex-col gap-2 hover:scale-110 transition-transform duration-300"
+                              >
+                                <div
+                                  className={
+                                    company.name === 'GM'
+                                      ? 'bg-black rounded-[17px]'
+                                      : ''
+                                  }
+                                >
+                                  <Image
+                                    src={company.logo}
+                                    alt={company.name}
+                                    width={100}
+                                    height={100}
+                                  />
+                                </div>
+                                <p className="font-bold text-2xl text-center">
+                                  {company.name}
+                                </p>
+                              </a>
+                            );
                         })
                     }
 

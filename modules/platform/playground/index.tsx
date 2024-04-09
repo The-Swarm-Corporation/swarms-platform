@@ -22,10 +22,10 @@ const Playground = () => {
 
   return (
     <div className="w-full flex flex-col">
-      <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
+      <h1 className="text-3xl font-extrabold sm:text-4xl">
         Playground
       </h1>
-      <div className="w-full h-full flex gap-4 py-4 overflow-hidden px-1 max-md:flex-col-reverse">
+      <div className="w-full h-full flex gap-4 py-4 overflow-hidden px-1 max-md:flex-col-reverse mt-4 sm:mt-0">
         <div className="max-lg:hidden w-2/6 ">
           <Textarea
             className="h-full resize-none"
@@ -69,7 +69,7 @@ const Playground = () => {
             {/* add message */}
             <div
               onClick={playground.addMessage}
-              className="w-full flex gap-2 py-3 p-2  px-4 cursor-pointer hover:bg-gray-700/50 rounded-md"
+              className="w-full flex gap-2 py-3 p-2  px-4 cursor-pointer hover:bg-gray-700/50 hover:text-white rounded-md mt-2"
             >
               <Plus size={20} />
               <span>Add message</span>

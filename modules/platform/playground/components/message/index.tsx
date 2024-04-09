@@ -53,7 +53,7 @@ const TextMessageRender = ({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         className={cn(
-          'w-full p-1 bg-transparent focus:bg-background focus:outline-2 outline-purple-500 rounded-md resize-none overflow-scroll'
+          'w-full p-1 bg-transparent focus:bg-background focus:outline-2 outline-purple-500 border border-gray-700/50 focus:border-none rounded-md resize-none overflow-scroll'
         )}
         value={text}
         onChange={(e) => updateContentText(e.target.value)}
@@ -160,7 +160,7 @@ const MessageItem = ({
         accept="image/*"
         onChange={onChooseFile}
       />
-      <div className="border-b-2 border-gray-700/50 group">
+      <div className="border-b-2 border-gray-700/50 group flex flex-col">
         <div
           className={cn(
             'flex flex-col px-4',
@@ -170,19 +170,19 @@ const MessageItem = ({
         >
           <div className="flex py-4">
             <div
-              className="w-3/12 select-none cursor-pointer"
+              className="w-3/12 select-none cursor-pointer -translate-x-3 xl:translate-x-0"
               onClick={toggleRole}
             >
               <span
                 className={cn(
-                  'text-sm group-hover:bg-gray-700 p-1 rounded-lg text-white uppercase',
-                  isFocused && 'bg-gray-700'
+                  'text-xs xl:text-sm group-hover:bg-gray-700 group-hover:text-white p-1 rounded-lg uppercase',
+                  isFocused && 'bg-gray-700 text-white'
                 )}
               >
                 {message.role}
               </span>
             </div>
-            <div className="w-8/12">
+            <div className="flex-grow group-hover:flex-grow-0 group-hover:w-8/12">
               {message.content &&
                 typeof message.content === 'object' &&
                 message.content.map((content, j) => {
@@ -234,7 +234,7 @@ const MessageItem = ({
                 )
               }
             </div>
-            <div className="w-1/12 flex justify-end">
+            <div className="w-0 flex justify-end group-hover:w-1/12">
               <CircleMinus
                 onClick={remove}
                 className={cn(
