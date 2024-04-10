@@ -362,6 +362,7 @@ export type Database = {
       }
       swarms_cloud_models: {
         Row: {
+          api_endpoint: string | null
           context_length: number | null
           created_at: string
           creator: string | null
@@ -381,6 +382,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          api_endpoint?: string | null
           context_length?: number | null
           created_at?: string
           creator?: string | null
@@ -400,6 +402,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          api_endpoint?: string | null
           context_length?: number | null
           created_at?: string
           creator?: string | null
