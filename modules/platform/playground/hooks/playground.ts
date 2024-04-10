@@ -80,7 +80,8 @@ const usePlayground = () => {
     } else {
       setIsSending(true);
 
-      const url = 'https://api.swarms.world/v1/chat/completions';
+      const model_api_endpoint = selectedModel?.api_endpoint;
+      const url = `${model_api_endpoint ?? 'https://api.swarms.world/v1'}/chat/completions`;
 
       const messagesToSend = messages.map((message) => ({
         ...message
