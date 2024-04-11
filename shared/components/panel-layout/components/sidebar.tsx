@@ -13,9 +13,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
+import useToggle from '@/shared/hooks/toggle';
 import Logo from '../../icons/Logo';
 import { PLATFORM } from '@/shared/constants/links';
 import {
@@ -78,19 +79,7 @@ const collapsedMenu = 'collapsedMenu';
 const PanelLayoutSidebar = () => {
   const path = usePathname();
   const router = useRouter();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  function toggleSidebar() {
-    setIsCollapsed(!isCollapsed);
-    localStorage.setItem(collapsedMenu, JSON.stringify(!isCollapsed));
-  }
-
-  useEffect(() => {
-    const value = localStorage.getItem(collapsedMenu);
-    if (value) {
-      setIsCollapsed(JSON.parse(value));
-    }
-  }, []);
+  const { isOn, toggle } = useToggle("off", collapsedMenu);
 
   return (
     <>
@@ -98,23 +87,23 @@ const PanelLayoutSidebar = () => {
       <div
         className={cn(
           'flex flex-col relative flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 h-screen border-r border-gray-900 max-lg:hidden',
-          isCollapsed && 'max-w-0 -translate-x-full'
+          isOn && 'max-w-0 -translate-x-full'
         )}
       >
         <Button
-          onClick={toggleSidebar}
+          onClick={toggle}
           className={cn(
             'rounded-full absolute -right-4 top-9 max-w-8 h-8 w-full cursor-pointer flex p-0 transition-all duration-300 shadow-md',
-            isCollapsed &&
+            isOn &&
               'rounded-l-[12px] rounded-r-sm top-28 -right-10 max-w-[none] w-12 h-[30px]'
           )}
         >
-          {isCollapsed ? <Menu /> : <ChevronsLeft />}
+          {isOn ? <Menu /> : <ChevronsLeft />}
         </Button>
         <div
           className={cn(
             'flex flex-col justify-between p-4 w-full h-screen visible',
-            isCollapsed && 'invisible'
+            isOn && 'invisible'
           )}
         >
           <div className="h-full">
