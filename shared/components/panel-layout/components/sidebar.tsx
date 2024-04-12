@@ -6,14 +6,17 @@ import {
   LayoutDashboard,
   LockKeyhole,
   Menu,
-  SquareChevronRight, User,
-  X
+  SquareChevronRight,
+  User,
+  X,
+  ChevronsLeft
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
+import useToggle from '@/shared/hooks/toggle';
 import Logo from '../../icons/Logo';
 import { PLATFORM } from '@/shared/constants/links';
 import {
@@ -72,15 +75,37 @@ const panelMenu: {
   }
 ];
 
+const collapsedMenu = 'collapsedMenu';
 const PanelLayoutSidebar = () => {
   const path = usePathname();
   const router = useRouter();
+  const { isOn, toggle } = useToggle("off", collapsedMenu);
 
   return (
     <>
       {/* desktop */}
-      <div className="flex flex-col flex-shrink-0 w-[250px] h-screen border-r border-gray-900 max-md:hidden">
-        <div className="flex flex-col justify-between p-4 w-full h-screen ">
+      <div
+        className={cn(
+          'flex flex-col relative flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 h-screen border-r border-gray-900 max-lg:hidden',
+          isOn && 'max-w-0 -translate-x-full'
+        )}
+      >
+        <Button
+          onClick={toggle}
+          className={cn(
+            'rounded-full absolute -right-4 top-9 max-w-8 h-8 w-full cursor-pointer flex p-0 transition-all duration-300 shadow-md',
+            isOn &&
+              'rounded-l-[12px] rounded-r-sm top-28 -right-10 max-w-[none] w-12 h-[30px]'
+          )}
+        >
+          {isOn ? <Menu /> : <ChevronsLeft />}
+        </Button>
+        <div
+          className={cn(
+            'flex flex-col justify-between p-4 w-full h-screen visible',
+            isOn && 'invisible'
+          )}
+        >
           <div className="h-full">
             <div>
               {/* logo */}
@@ -140,7 +165,7 @@ const PanelLayoutSidebar = () => {
       </div>
 
       {/* mobile */}
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <Drawer direction="left">
           <DrawerTrigger asChild>
             <div className="flex w-full h-auto py-2 backdrop-blur-md bg-background/70 top-0 absolute z-[20] ">
