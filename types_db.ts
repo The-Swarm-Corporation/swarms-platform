@@ -458,6 +458,161 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_organization_member_invites: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          invite_by_user_id: string | null
+          organization_id: string | null
+          secret_code: string | null
+          status:
+            | Database["public"]["Enums"]["organization_member_invite_status"]
+            | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          invite_by_user_id?: string | null
+          organization_id?: string | null
+          secret_code?: string | null
+          status?:
+            | Database["public"]["Enums"]["organization_member_invite_status"]
+            | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          invite_by_user_id?: string | null
+          organization_id?: string | null
+          secret_code?: string | null
+          status?:
+            | Database["public"]["Enums"]["organization_member_invite_status"]
+            | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_organization_member_invites_invite_by_user_"
+            columns: ["invite_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_swarms_cloud_organization_member_invites_organization_id"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_swarms_cloud_organization_member_invites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_organization_members: {
+        Row: {
+          created_at: string
+          deleted_by_user_id: string | null
+          id: string
+          invited_by_user_id: string | null
+          is_deleted: boolean | null
+          organization_id: string | null
+          role: Database["public"]["Enums"]["organization_member_role"] | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          deleted_by_user_id?: string | null
+          id?: string
+          invited_by_user_id?: string | null
+          is_deleted?: boolean | null
+          organization_id?: string | null
+          role?: Database["public"]["Enums"]["organization_member_role"] | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          deleted_by_user_id?: string | null
+          id?: string
+          invited_by_user_id?: string | null
+          is_deleted?: boolean | null
+          organization_id?: string | null
+          role?: Database["public"]["Enums"]["organization_member_role"] | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_organization_members_deleted_by_user_id_fke"
+            columns: ["deleted_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_swarms_cloud_organization_members_invited_by_user_id_fke"
+            columns: ["invited_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_swarms_cloud_organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_swarms_cloud_organization_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          owner_user_id: string | null
+          public_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          owner_user_id?: string | null
+          public_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          owner_user_id?: string | null
+          public_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_organizations_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       swarms_cloud_users_credits: {
         Row: {
           created_at: string
@@ -581,6 +736,8 @@ export type Database = {
     }
     Enums: {
       model_type: "text" | "vision"
+      organization_member_invite_status: "waiting" | "joined" | "expired"
+      organization_member_role: "manager" | "reader"
       pricing_plan_interval: "day" | "week" | "month" | "year"
       pricing_type: "one_time" | "recurring"
       subscription_status:
