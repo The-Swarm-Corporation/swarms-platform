@@ -49,7 +49,7 @@ const organizationRouter = router({
       .from('swarms_cloud_organization_members')
       .select('*')
       .eq('user_id', user.id)
-      .filter('is_deleted', 'not.is', 'true');
+      .neq('is_deleted', true);
 
     if (members.data) {
       for (const member of members.data) {
@@ -205,7 +205,7 @@ const organizationRouter = router({
         .from('swarms_cloud_organization_members')
         .select('*')
         .eq('organization_id', id)
-        .filter('is_deleted', 'not.is', 'true');
+        .neq('is_deleted', true);
 
       if (orgMembers.data) {
         for (const member of orgMembers.data) {
