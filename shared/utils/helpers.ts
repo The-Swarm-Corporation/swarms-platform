@@ -185,3 +185,12 @@ export const makeUrl = (url: string, data: any) => {
     return data[p1 || p2];
   });
 };
+
+// shorten string to num and attached endLabel to shortened string
+export function getTruncatedString(str: string, num: number, endLabel = "...") {
+  if (!str) return null;
+
+  const words = str.split("").splice(0, num);
+  if (str.split("").length > num) return `${words.join("")}${endLabel}`;
+  return str;
+}
