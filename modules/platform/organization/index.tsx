@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { Cross, Plus, PlusCircle, X } from 'lucide-react';
+import React, { useMemo, useRef, useState } from 'react';
+import { ShieldX, CheckCheck, Plus, PlusCircle, Trash2, X } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -19,6 +19,9 @@ import {
 } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
+import useToggle from '@/shared/hooks/toggle';
+import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
+import { cn } from '@/shared/utils/cn';
 
 const roles = [
   { label: 'List Team roles', value: 'Team roles' },
@@ -35,8 +38,11 @@ export const team = [
   { email: 'diaznunez@gmail.com', role: 'owner' }
 ];
 export default function Organization({ user }: { user: any }) {
-  console.log({ user });
+  const userRoleRef = useRef(null);
   const [organizationName, setOrganizationName] = useState('');
+  const [organizationList, setOrganizationList] = useState([
+    { name: 'Swarms', role: 'Owner', id: '0' }
+  ]);
   const [email, setEmail] = useState('');
   const [filterRole, setFilterRole] = useState<string>(roles[0]?.value);
   const [inviteRole, setInviteRole] = useState<string>(
@@ -44,6 +50,10 @@ export default function Organization({ user }: { user: any }) {
   );
   const [invites, setInvites] = useState([{ role: 'reader' }]);
   const [userRole, setUserRole] = useState('Reader');
+  const { isOn, setOff, setOn } = useToggle();
+  const [pendingInvitations, setPendingInvitations] = useState([]);
+
+  useOnClickOutside(userRoleRef, setOff);
 
   const allUserRoles = useMemo(
     () =>
@@ -52,8 +62,6 @@ export default function Organization({ user }: { user: any }) {
         .map((role) => role.value),
     []
   );
-
-  console.log({ allUserRoles });
 
   const isMoreInvites = invites.length > 1;
   const inviteButtonText = isMoreInvites ? 'Invite All' : 'Invite';
@@ -70,6 +78,7 @@ export default function Organization({ user }: { user: any }) {
 
   function changeUserRole(role: string) {
     setUserRole(role);
+    setOff();
   }
 
   return (
@@ -121,7 +130,27 @@ export default function Organization({ user }: { user: any }) {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-center border rounded-md px-4 py-8 text-card-foreground my-8 cursor-pointer hover:opacity-80"></div>
+        <div className="flex flex-col items-center justify-center border rounded-md px-4 py-8 text-card-foreground my-8">
+          {organizationList.map((org) => (
+            <div
+              key={org.id}
+              className="flex justify-between border rounded-md px-4 py-8 text-card-foreground hover:opacity-80 w-full cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <span className="w-10 h-10 flex justify-center items-center bg-secondary text-white rounded-full uppercase">
+                  {org.name.charAt(0)}
+                </span>
+                <p>{org.name}</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <p className="capitalize">{org.role}</p>
+                <Button className="gap-2">
+                  Remove <Trash2 size={15} />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="mt-16">
@@ -245,11 +274,22 @@ export default function Organization({ user }: { user: any }) {
             <p>{team[0].email}</p>
           </div>
           <div className="relative">
-            <div className="border w-28 py-1 text-center rounded-md capitalize">{userRole}</div>
-            <ul className="absolute list-none border bg-secondary w-32 flex flex-col items-center rounded-md bottom-8 -right-14">
+            <div
+              className="border w-28 py-1 text-center rounded-md capitalize"
+              onClick={setOn}
+            >
+              {userRole}
+            </div>
+            <ul
+              ref={userRoleRef}
+              className={cn(
+                'absolute list-none border bg-secondary w-32 flex flex-col items-center rounded-md bottom-8 -right-14 transition-all invisible',
+                isOn && 'visible'
+              )}
+            >
               {allUserRoles.map((role) => (
                 <li
-                  onClick={() => setUserRole(role)}
+                  onClick={() => changeUserRole(role)}
                   className="hover:text-secondary hover:bg-foreground capitalize w-full py-2 text-center"
                 >
                   {role}
@@ -258,6 +298,46 @@ export default function Organization({ user }: { user: any }) {
             </ul>
           </div>
           <Button>Leave</Button>
+        </div>
+      </div>
+
+      <div className="mt-16">
+        <h3 className="mb-2 text-xl">Pending invitations</h3>
+        <span className="text-muted-foreground text-sm">
+          All invitations waiting to be accepted
+        </span>
+
+        <div className="flex flex-col items-center justify-center border rounded-md px-4 py-16 text-card-foreground my-8">
+          {pendingInvitations.length > 0 ? (
+            pendingInvitations.map((item) => (
+              <div
+                key={item?.id}
+                className="flex justify-between border rounded-md px-4 py-8 text-card-foreground hover:opacity-80 w-full cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-10 h-10 flex justify-center items-center bg-secondary text-white rounded-full uppercase">
+                    {item?.name.charAt(0)}
+                  </span>
+                  <p>{item?.name}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Button className="gap-2" variant="outline">
+                    Accept <CheckCheck size={20} />
+                  </Button>
+                  <Button className="gap-2" variant="destructive">
+                    Cancel <ShieldX size={20} />
+                  </Button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-1 opacity-80">
+              <h3 className="mb-2 text-xl">Invite Team Members</h3>
+              <Button className="gap-0.5" variant="secondary">
+                <Plus size={20} /> Invite
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </section>
