@@ -465,6 +465,7 @@ export type Database = {
           id: string
           invite_by_user_id: string | null
           organization_id: string | null
+          role: Database["public"]["Enums"]["organization_member_role"] | null
           secret_code: string | null
           status:
             | Database["public"]["Enums"]["organization_member_invite_status"]
@@ -477,6 +478,7 @@ export type Database = {
           id?: string
           invite_by_user_id?: string | null
           organization_id?: string | null
+          role?: Database["public"]["Enums"]["organization_member_role"] | null
           secret_code?: string | null
           status?:
             | Database["public"]["Enums"]["organization_member_invite_status"]
@@ -489,6 +491,7 @@ export type Database = {
           id?: string
           invite_by_user_id?: string | null
           organization_id?: string | null
+          role?: Database["public"]["Enums"]["organization_member_role"] | null
           secret_code?: string | null
           status?:
             | Database["public"]["Enums"]["organization_member_invite_status"]
@@ -524,7 +527,7 @@ export type Database = {
           created_at: string
           deleted_by_user_id: string | null
           id: string
-          invited_by_user_id: string | null
+          invite_by_user_id: string | null
           is_deleted: boolean | null
           organization_id: string | null
           role: Database["public"]["Enums"]["organization_member_role"] | null
@@ -534,7 +537,7 @@ export type Database = {
           created_at?: string
           deleted_by_user_id?: string | null
           id?: string
-          invited_by_user_id?: string | null
+          invite_by_user_id?: string | null
           is_deleted?: boolean | null
           organization_id?: string | null
           role?: Database["public"]["Enums"]["organization_member_role"] | null
@@ -544,7 +547,7 @@ export type Database = {
           created_at?: string
           deleted_by_user_id?: string | null
           id?: string
-          invited_by_user_id?: string | null
+          invite_by_user_id?: string | null
           is_deleted?: boolean | null
           organization_id?: string | null
           role?: Database["public"]["Enums"]["organization_member_role"] | null
@@ -560,7 +563,7 @@ export type Database = {
           },
           {
             foreignKeyName: "public_swarms_cloud_organization_members_invited_by_user_id_fke"
-            columns: ["invited_by_user_id"]
+            columns: ["invite_by_user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]

@@ -44,6 +44,7 @@ const Test = () => {
     invite
       .mutateAsync({
         id: orgId,
+        role: 'manager',
         email: 'amir0friday@gmail.com'
       })
       .then((res) => {

@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { getUserOrganizationRole } from '@/shared/utils/supabase/organization';
 import { Enums, Tables } from '@/types_db';
+import { ORG_MEMBER_INVITE_TIMEOUT } from '@/shared/constants/common';
 
 const organizationRouter = router({
   // get user organization info
@@ -48,7 +49,7 @@ const organizationRouter = router({
       .from('swarms_cloud_organization_members')
       .select('*')
       .eq('user_id', user.id)
-      .neq('is_deleted', true);
+      .filter('is_deleted', 'not.is', 'true');
 
     if (members.data) {
       for (const member of members.data) {
@@ -190,7 +191,7 @@ const organizationRouter = router({
         .from('swarms_cloud_organization_members')
         .select('*')
         .eq('organization_id', id)
-        .neq('is_deleted', true);
+        .filter('is_deleted', 'not.is', 'true');
 
       if (orgMembers.data) {
         for (const member of orgMembers.data) {
@@ -211,10 +212,11 @@ const organizationRouter = router({
     .input(
       z.object({
         id: z.string(),
-        email: z.string().email()
+        email: z.string().email(),
+        role: z.enum(['manager', 'member', 'reader'])
       })
     )
-    .mutation(async ({ ctx, input: { id, email } }) => {
+    .mutation(async ({ ctx, input: { id, email, role } }) => {
       // check access: user should be owner or member with manager role
 
       const user = ctx.session.data.session?.user as User;
@@ -222,6 +224,9 @@ const organizationRouter = router({
 
       if (!userRole || userRole == 'reader') {
         throw new Error('Access denied');
+      }
+      if (userRole !== 'owner' && role == 'manager') {
+        throw new Error('you can not invite manager');
       }
       const orgRes = await ctx.supabase
         .from('swarms_cloud_organizations')
@@ -236,11 +241,54 @@ const organizationRouter = router({
       }
 
       // check email already have account
-      const { data: userByEmail } = await ctx.supabase
-        .from('auth.users')
+      const { data, error } = await ctx.supabase.rpc(
+        // @ts-ignore
+        'get_user_id_by_email',
+        {
+          email
+        }
+      );
+      // @ts-ignore
+      const invitedUser = (data as { id: string }[])?.[0];
+      if (error) {
+        throw new Error('Failed to check email');
+      }
+      if (!invitedUser) {
+        // Todo: fix soon
+        throw new Error('User need to signup first');
+      }
+
+      console.log('invitedUser', invitedUser);
+
+      // check duplicate member
+      const { data: member } = await ctx.supabase
+        .from('swarms_cloud_organization_members')
         .select('*')
-        .eq('email', email)
+        .eq('organization_id', id)
+        .eq('user_id', invitedUser.id)
+        .filter('is_deleted', 'not.is', 'true')
         .limit(1);
+
+      console.log('member', {
+        id,
+        invitedUser,
+        member
+      });
+
+      if (member?.length) {
+        throw new Error('User already member of this organization');
+      }
+
+      // inviter only can invite 10 times in hour
+      const { data: invites } = await ctx.supabase
+        .from('swarms_cloud_organization_member_invites')
+        .select('*')
+        .eq('invite_by_user_id', user.id)
+        .gte('created_at', new Date(new Date().getTime() - 60 * 60 * 1000));
+
+      if ((invites?.length ?? 0) >= 10) {
+        throw new Error('You can only invite 10 times in an hour');
+      }
 
       // check last invite record
       const { data: lastInvites } = await ctx.supabase
@@ -249,15 +297,16 @@ const organizationRouter = router({
         .eq('organization_id', id)
         .eq('email', email)
         .eq('status', 'waiting')
+        .order('created_at', { ascending: false })
         .limit(1);
 
       const lastInvite = lastInvites?.[0];
+
       if (lastInvite) {
-        const expireTimeout = 60 * 60 * 24 * 1; // 1 days
         // check if its not  expired
         if (
           new Date().getTime() - new Date(lastInvite.created_at).getTime() <
-          expireTimeout
+          ORG_MEMBER_INVITE_TIMEOUT
         ) {
           throw new Error('Invite already sent');
         } else {
@@ -274,8 +323,8 @@ const organizationRouter = router({
       const mail = mailer();
 
       const secret_code = uuidv4();
-      const html = `You have been invited to join ${org?.name} Organization. Click here to accept: ${host_url}api/organization/accept-invite?code=${secret_code}`;
-      console.log(`to`, email, html);
+      const accept_code_api = 'organization/accept-invite';
+      const html = `You have been invited to join ${org?.name} Organization. Click here to accept: ${host_url}api/${accept_code_api}?code=${secret_code}`;
 
       try {
         const sendEmail = await mail.sendMail({
@@ -294,9 +343,10 @@ const organizationRouter = router({
             organization_id: id,
             email,
             secret_code,
-            user_id: userByEmail?.[0].id,
+            user_id: invitedUser.id,
             invite_by_user_id: user.id,
-            status: 'waiting'
+            status: 'waiting',
+            role: role as Enums<'organization_member_role'>
           });
 
         return true;
