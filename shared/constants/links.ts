@@ -7,7 +7,8 @@ export const PLATFORM = {
   ACCOUNT_BILLING: '/platform/account/billing',
 
   PLAYGROUND: '/platform/playground',
-  EXPLORER: '/platform/explorer'
+  EXPLORER: '/platform/explorer',
+  ORGANIZATION: "/platform/organization"
 };
 export const AUTH = {
   CHANGE_PASSWORD: '/signin/update_password'

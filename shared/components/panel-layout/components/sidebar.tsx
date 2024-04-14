@@ -9,7 +9,8 @@ import {
   SquareChevronRight,
   User,
   X,
-  ChevronsLeft
+  ChevronsLeft,
+  Building2
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -57,6 +58,11 @@ const panelMenu: {
     icon: <CircleGauge size={24} />,
     title: 'Usage',
     link: PLATFORM.USAGE
+  },
+  {
+    icon: <Building2 size={24} />,
+    title: 'Organization',
+    link: PLATFORM.ORGANIZATION
   },
   {
     icon: <User size={24} />,
