@@ -3,13 +3,15 @@
 import React, { useState } from 'react';
 import { ShieldX, CheckCheck, Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
+import InviteModal from './team/components/invite-modal';
+import { OptionRoles } from '../types';
 
 interface PendingInvitesProps {
   id: string;
   organizationName: string;
 }
 
-export default function PendingInvites() {
+export default function PendingInvites({ roles }: { roles: OptionRoles[] }) {
   const [pendingInvitations, setPendingInvitations] = useState<
     PendingInvitesProps[]
   >([]);
@@ -47,9 +49,7 @@ export default function PendingInvites() {
         ) : (
           <div className="flex flex-col items-center justify-center gap-1 opacity-80">
             <h3 className="mb-2 text-xl">Invite Team Members</h3>
-            <Button className="gap-0.5" variant="secondary">
-              <Plus size={20} /> Invite
-            </Button>
+            <InviteModal roles={roles} />
           </div>
         )}
       </div>

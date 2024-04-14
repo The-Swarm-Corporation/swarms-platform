@@ -17,7 +17,7 @@ import { getTruncatedString } from '@/shared/utils/helpers';
 export default function OrganizationList() {
   const [organizationName, setOrganizationName] = useState('');
   const [organizationList, setOrganizationList] = useState([
-    { name: 'Swarms', role: 'Owner', id: '0' }
+    { name: 'Swarms', role: 'Owner', id: '0' },
   ]);
 
   return (
@@ -88,7 +88,7 @@ export default function OrganizationList() {
                 </span>
                 <p className="text-xs sm:text-base">{orgName}</p>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 sm:justify-between sm:max-w-48 sm:w-full">
                 <p className="capitalize text-xs sm:text-base">{org.role}</p>
                 <Button
                   aria-label="Remove"
