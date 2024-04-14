@@ -171,18 +171,32 @@ const organizationRouter = router({
 
       const members: {
         user_id: string;
+        name: string;
         role: Enums<'organization_member_role'> | 'owner';
       }[] = [];
 
-      const orgOwner = await ctx.supabase
+      const { data: org } = await ctx.supabase
         .from('swarms_cloud_organizations')
         .select('*')
         .eq('id', id)
         .limit(1);
 
-      if (orgOwner.data?.[0]) {
+      if (!org?.length) {
+        throw new Error('Organization not found');
+      }
+      const { data: orgOwnerRes } = await ctx.supabase
+        .from('users')
+        .select('*')
+        .eq('id', org?.[0]?.owner_user_id ?? '')
+        .limit(1);
+      if (!orgOwnerRes?.length) {
+        throw new Error('Organization owner not found');
+      }
+      const orgOwner = orgOwnerRes?.[0];
+      if (orgOwner) {
         members.push({
-          user_id: orgOwner.data[0].owner_user_id as string,
+          user_id: orgOwner.id,
+          name: orgOwner.full_name || '',
           role: 'owner'
         });
       }
@@ -198,8 +212,18 @@ const organizationRouter = router({
           if (!member.user_id || !member.role) {
             continue;
           }
+          const { data: memberRes } = await ctx.supabase
+            .from('users')
+            .select('*')
+            .eq('id', member.user_id)
+            .limit(1);
+          if (!memberRes?.length) {
+            continue;
+          }
+          const member_user = memberRes[0];
           members.push({
             user_id: member.user_id,
+            name: member_user.full_name || '',
             role: member.role
           });
         }
