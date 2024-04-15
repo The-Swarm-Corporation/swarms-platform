@@ -8,8 +8,8 @@ import Link from 'next/link';
 import Rive from '@rive-app/react-canvas';
 const HeroSection = () => {
   return (
-    <div className="mx-auto container md:pb-40 w-full flex-row flex h-screen items-center">
-      <div className="flex-2 flex flex-col items-start px-4 py-8 sm:py-24 sm:px-6 lg:px-8 gap-6 text-left">
+    <div className="mx-auto container w-full flex flex-col  md:flex-row md:h-screen justify-center items-center gap-8 md:gap-0">
+      <div className="md:flex-[1.5] flex flex-col items-center text-center md:text-left md:items-start md:px-4 gap-6 ">
         <h1 className="text-6xl md:text-7xl font-bold text-primary">Swarms</h1>
         <h2 className="text-4xl md:text-7xl font-bold">
           Orchestrate Agents
@@ -53,9 +53,8 @@ const HeroSection = () => {
           </Link>
         </div>
       </div>
-      <div className="flex-1 flex flex-col items-start px-4 py-8 sm:py-24 sm:px-6 lg:px-8 gap-6 text-left h-full">
+      <div className="flex w-full h-[300px] md:h-full flex-col items-start md:flex-1 md:px-4 gap-6 text-left">
         <Rive
-
             src={'/animation-hero.riv'}
             stateMachines="Branchs"
         />
