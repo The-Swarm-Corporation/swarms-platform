@@ -50,21 +50,21 @@ export const submitInviteCode = async (code: string, userId: string) => {
 
   // check user is already member
   const orgId = invite.data?.[0].organization_id ?? '';
-  const isMember = await supabaseAdmin
-    .from('swarms_cloud_organization_members')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('organization_id', orgId)
-    .neq('is_deleted', true)
-    .limit(1);
+  const userRole = await getUserOrganizationRole(orgId, userId);
 
-  if (isMember.data?.length) {
+  if (userRole) {
     throw new Error('Already a member');
   }
 
   if (invite.data?.length) {
-    // check its not expired
     const inviteData = invite.data[0];
+    // check if its cancelled
+    if (inviteData.status === 'canceled') {
+      throw new Error('Invite cancelled');
+    }
+
+    // check its not expired
+
     const now = new Date().getTime();
     const inviteTime = new Date(inviteData.created_at).getTime();
     const diff = (now - inviteTime) / 1000;
