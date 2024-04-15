@@ -5,19 +5,19 @@ import { PLATFORM, SWARMS_GITHUB } from '@/shared/constants/links';
 import { cn } from '@/shared/utils/cn';
 import { Github } from 'lucide-react';
 import Link from 'next/link';
-
+import Rive from '@rive-app/react-canvas';
 const HeroSection = () => {
   return (
-    <div className="mx-auto md:pb-40 w-full">
-      <div className="flex flex-col items-center px-4 py-8 mx-auto sm:py-24 sm:px-6 lg:px-8 gap-6 text-center">
+    <div className="mx-auto container w-full flex flex-col  md:flex-row md:h-screen justify-center items-center gap-8 md:gap-0">
+      <div className="md:flex-1 flex flex-col items-center text-center md:text-left md:items-start md:px-4 gap-6 ">
         <h1 className="text-6xl md:text-7xl font-bold text-primary">Swarms</h1>
-        <h2 className="text-4xl md:text-7xl font-bold ">
+        <h2 className="text-4xl md:text-5xl font-bold">
           Orchestrate Agents
         </h2>
         <span className="text-2xl font-medium">
           The Multi-Agent Collaboration Platform
         </span>
-        <div className="flex flex-col bg-background rounded-xl overflow-hidden">
+        <div className="flex flex-col bg-background rounded-xl overflow-hidden border-2 border-primary">
           <span className="w-full bg-primary text-white p-1">Terminal</span>
           <span className="p-3">pip3 install -U swarms</span>
         </div>
@@ -50,6 +50,12 @@ const HeroSection = () => {
             </Button>
           </Link>
         </div>
+      </div>
+      <div className="flex w-full h-[300px] md:h-full flex-col items-start md:flex-1 md:px-4 gap-6 text-left">
+        <Rive
+            src={'/animation-hero.riv'}
+            stateMachines="Branchs"
+        />
       </div>
     </div>
   );
