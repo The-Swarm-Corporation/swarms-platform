@@ -70,10 +70,6 @@ const panelMenu: {
         link: PLATFORM.ORGANIZATION
       },
       {
-        title: 'Team',
-        link: PLATFORM.TEAM,
-      },
-      {
         title: 'Account',
         link: PLATFORM.ACCOUNT,
       },
@@ -126,7 +122,7 @@ const PanelLayoutSidebar = () => {
                     href={item.link}
                     className={cn(
                       'group flex items-center justify-start p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md outline-none',
-                      item.link === path && item?.items?.length === 0 && 'bg-primary text-white'
+                      item.link === path && !item?.items && 'bg-primary text-white'
                     )}
                   >
                     {item.icon && (

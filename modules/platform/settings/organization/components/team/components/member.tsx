@@ -34,7 +34,7 @@ export default function TeamMember({
 
   return (
     <div
-      className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between border rounded-md px-2 py-4 sm:px-4 sm:py-8 text-card-foreground hover:opacity-80 w-full max-sm:gap-2"
+      className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between border rounded-md px-2 py-4 sm:p-4 text-card-foreground hover:opacity-80 w-full max-sm:gap-2"
     >
       <div className="flex items-center gap-2 basis-1/2">
         <span className="h-7 w-7 sm:w-10 sm:h-10 text-sm sm:text-base flex justify-center items-center bg-slate-500 text-white rounded-full uppercase">

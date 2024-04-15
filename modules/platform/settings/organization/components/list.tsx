@@ -30,8 +30,22 @@ export default function OrganizationList({
   const popupRef = useRef(null);
   const { isOn, setOff, setOn } = useToggle();
   const [organizationName, setOrganizationName] = useState('');
+  const [activeOrg, setActiveOrg] = useState(organizationList[0].name);
+  const [searchOrg, setSearchOrg] = useState('');
 
   useOnClickOutside(popupRef, setOff);
+
+  const isOrgList = organizationList?.length > 1;
+
+  function handleSearchChange(value: string) {
+    if (!isOrgList) return;
+    setSearchOrg(value);
+  }
+
+  function handleActiveOrg(name: string, id: string) {
+    setActiveOrg(name);
+    getTeam(id);
+  }
 
   return (
     <section className="mt-9">
@@ -44,7 +58,13 @@ export default function OrganizationList({
         </div>
 
         <div className="flex items-center justify-center gap-3 mt-2 sm:mt-0">
-          <Input onChange={() => null} placeholder="Search orgs..." />
+          <Input
+            value={searchOrg}
+            disabled={!isOrgList}
+            readOnly={!isOrgList}
+            placeholder="Search orgs..."
+            onChange={handleSearchChange}
+          />
 
           <Dialog>
             <DialogTrigger asChild>
@@ -88,86 +108,101 @@ export default function OrganizationList({
       </div>
 
       <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground my-8 gap-2">
-        {organizationList?.map((org) => {
-          const orgName = getTruncatedString(org?.name, 20);
-          return (
-            <div
-              key={org?.id}
-              onClick={() => getTeam(org?.id)}
-              className="flex justify-between border rounded-md p-2 sm:p-4 text-card-foreground hover:opacity-80 w-full cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <span className="h-7 w-7 sm:w-10 sm:h-10 text-sm sm:text-base flex justify-center items-center bg-secondary text-white rounded-full uppercase">
-                  {org?.name.charAt(0)}
-                </span>
-                <p className="text-xs sm:text-base">{orgName}</p>
-              </div>
-              <div className="flex items-center gap-4 sm:justify-between sm:max-w-48 sm:w-full">
-                <p className="capitalize text-xs sm:text-base">{org?.role}</p>
-                {org?.role === 'owner' ? (
-                  <div className="relative">
-                    <Button
-                      aria-label="Options"
-                      className={cn(
-                        'gap-2 py-0 h-8 px-2 sm:px-4 sm:h-9',
-                        isOn && 'bg-accent'
-                      )}
-                      variant="ghost"
-                      onClick={setOn}
-                    >
-                      <Ellipsis />
-                    </Button>
-
-                    <div
-                      ref={popupRef}
-                      className={cn(
-                        'absolute list-none border dark:border-white/[0.2] bg-secondary w-28 flex flex-col items-center rounded-md bottom-8 left-0 transition-all invisible',
-                        isOn && 'visible'
-                      )}
-                    >
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <div onClick={setOff} className="hover:text-secondary hover:bg-foreground capitalize w-full py-2 text-center">
-                            Edit
-                          </div>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-[320px] sm:max-w-[425px]">
-                          <DialogHeader>
-                            <DialogTitle>Update organization name</DialogTitle>
-                          </DialogHeader>
-                          <form className="mt-2">
-                            <label htmlFor="name" className="text-right">
-                              Name
-                            </label>
-                            <Input
-                              id="name"
-                              value={organizationName}
-                              className="my-2 w-full"
-                              onChange={(value) => {
-                                setOrganizationName(value);
-                              }}
-                            />
-                            <DialogFooter className="mt-3 sm:justify-center">
-                              <Button
-                                type="button"
-                                className="w-2/4"
-                                aria-label="Create organization"
-                              >
-                                Edit
-                              </Button>
-                            </DialogFooter>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </div>
-                ) : (
-                  <div />
+        {isOrgList ? (
+          organizationList?.map((org) => {
+            const orgName = getTruncatedString(org?.name, 20);
+            const isActive = activeOrg === org.name;
+            return (
+              <div
+                key={org?.id}
+                onClick={() => handleActiveOrg(org?.name, org?.id)}
+                className={cn(
+                  'flex justify-between border rounded-md p-2 sm:p-4 text-card-foreground hover:opacity-80 w-full transition cursor-pointer',
+                  isActive && 'bg-primary shadow'
                 )}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="h-7 w-7 sm:w-10 sm:h-10 text-sm sm:text-base flex justify-center items-center bg-secondary text-white rounded-full uppercase">
+                    {org?.name.charAt(0)}
+                  </span>
+                  <p className="text-xs sm:text-base">{orgName}</p>
+                </div>
+                <div className="flex items-center gap-4 sm:justify-between sm:max-w-48 sm:w-full">
+                  <p className="capitalize text-xs sm:text-base">{org?.role}</p>
+                  {org?.role === 'owner' ? (
+                    <div className="relative">
+                      <Button
+                        aria-label="Options"
+                        className={cn(
+                          'gap-2 py-0 h-8 px-2 sm:px-4 sm:h-9',
+                          isOn && 'bg-accent'
+                        )}
+                        variant="ghost"
+                        onClick={setOn}
+                      >
+                        <Ellipsis />
+                      </Button>
+
+                      <div
+                        ref={popupRef}
+                        className={cn(
+                          'absolute list-none border dark:border-white/[0.2] bg-secondary w-28 flex flex-col items-center rounded-md bottom-8 left-0 transition-all invisible',
+                          isOn && 'visible'
+                        )}
+                      >
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <div
+                              onClick={setOff}
+                              className="hover:text-secondary hover:bg-foreground capitalize w-full py-2 text-center"
+                            >
+                              Edit
+                            </div>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-[320px] sm:max-w-[425px]">
+                            <DialogHeader>
+                              <DialogTitle>
+                                Update organization name
+                              </DialogTitle>
+                            </DialogHeader>
+                            <form className="mt-2">
+                              <label htmlFor="name" className="text-right">
+                                Name
+                              </label>
+                              <Input
+                                id="name"
+                                value={organizationName}
+                                className="my-2 w-full"
+                                onChange={(value) => {
+                                  setOrganizationName(value);
+                                }}
+                              />
+                              <DialogFooter className="mt-3 sm:justify-center">
+                                <Button
+                                  type="button"
+                                  className="w-2/4"
+                                  aria-label="Edit organization"
+                                >
+                                  Edit
+                                </Button>
+                              </DialogFooter>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+                  ) : (
+                    <div />
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <div className="bg-secondary p-6 shadow-lg rounded-md">
+            <h3>Create an Organization</h3>
+          </div>
+        )}
       </div>
     </section>
   );

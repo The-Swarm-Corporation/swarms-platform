@@ -10,7 +10,6 @@ export const PLATFORM = {
   EXPLORER: '/platform/explorer',
   SETTINGS: '/platform/organization',
   ORGANIZATION: "/platform/organization",
-  TEAM: "/platform/team",
 };
 export const AUTH = {
   CHANGE_PASSWORD: '/signin/update_password'
