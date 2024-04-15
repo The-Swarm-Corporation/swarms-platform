@@ -378,8 +378,63 @@ const organizationRouter = router({
         console.log(error);
         throw new Error('Failed to send email');
       }
+    }),
+  pendingInvites: userProcedure
+    .input(z.object({ organization_id: z.string() }))
+    .query(async ({ ctx, input: { organization_id } }) => {
+      const user = ctx.session.data.session?.user as User;
+      const userRole = await getUserOrganizationRole(organization_id, user.id);
+
+      if (!userRole || userRole == 'reader') {
+        throw new Error('Access denied');
+      }
+
+      const invites = await ctx.supabase
+        .from('swarms_cloud_organization_member_invites')
+        .select('id,email,role,created_at')
+        .eq('organization_id', organization_id)
+        .eq('status', 'waiting');
+
+      return invites.data;
+    }),
+
+  cancelInvite: userProcedure
+    .input(
+      z.object({
+        organization_id: z.string(),
+        email: z.string().email()
+      })
+    )
+    .mutation(async ({ ctx, input: { organization_id, email } }) => {
+      const user = ctx.session.data.session?.user as User;
+
+      // check access: user should be owner or member with manager role
+
+      const userRole = await getUserOrganizationRole(organization_id, user.id);
+
+      if (!userRole || userRole == 'reader') {
+        throw new Error('Access denied');
+      }
+
+      const invites = await ctx.supabase
+        .from('swarms_cloud_organization_member_invites')
+        .select('*')
+        .eq('organization_id', organization_id)
+        .eq('email', email)
+        .eq('status', 'waiting')
+        .limit(1);
+
+      if (!invites.data?.length) {
+        throw new Error('Invite not found');
+      }
+
+      await ctx.supabase
+        .from('swarms_cloud_organization_member_invites')
+        .update({ status: 'canceled' })
+        .eq('id', invites.data[0].id);
+
+      return true;
     })
-  // , remove, change role : soon
 });
 
 export { organizationRouter };

@@ -735,11 +735,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_id_by_email: {
+        Args: {
+          email: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
     }
     Enums: {
       model_type: "text" | "vision"
-      organization_member_invite_status: "waiting" | "joined" | "expired"
+      organization_member_invite_status:
+        | "waiting"
+        | "joined"
+        | "expired"
+        | "canceled"
       organization_member_role: "manager" | "reader"
       pricing_plan_interval: "day" | "week" | "month" | "year"
       pricing_type: "one_time" | "recurring"
