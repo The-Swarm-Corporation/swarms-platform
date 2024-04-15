@@ -40,7 +40,8 @@ ALTER TYPE "public"."model_type" OWNER TO "postgres";
 CREATE TYPE "public"."organization_member_invite_status" AS ENUM (
     'waiting',
     'joined',
-    'expired'
+    'expired',
+    'canceled'
 );
 
 ALTER TYPE "public"."organization_member_invite_status" OWNER TO "postgres";
