@@ -12,21 +12,19 @@ import Input from '@/shared/components/ui/Input';
 import TeamMember from './components/member';
 import { MemberProps, OptionRoles, Role } from '../../types';
 import InviteModal from './components/invite-modal';
+import { cn } from '@/shared/utils/cn';
 
 interface OrganizationTeamProps {
   roles: OptionRoles[];
+  team: MemberProps[];
 }
 
-export const team: MemberProps[] = [
-  { email: 'gilbertoaceville@gmail.com', role: 'owner', id: '0' },
-  { email: 'sammyfall@gmail.com', role: 'manager', id: '1' },
-  { email: 'tawnytray@gmail.com', role: 'reader', id: '2' },
-  { email: 'lebronguana@gmail.com', role: 'reader', id: '3' }
-];
-
-export default function OrganizationTeam({ roles }: OrganizationTeamProps) {
+export default function OrganizationTeam({
+  roles,
+  team
+}: OrganizationTeamProps) {
   const [filterRole, setFilterRole] = useState<string>(roles[0]?.value);
-  const [teamMembers, setTeamMembers] = useState(team);
+  const [search, setSearch] = useState('');
 
   const allMemberRoles = useMemo(
     () =>
@@ -36,15 +34,23 @@ export default function OrganizationTeam({ roles }: OrganizationTeamProps) {
     []
   );
 
+  const isTeamMembers = team?.length > 1;
+
+  function handleSearchChange(value: string) {
+    if (!isTeamMembers) return;
+    setSearch(value);
+  }
+
   function changeUserRole(role: Role, id?: string) {
+    if (!isTeamMembers) return;
     //check if user is owner of org, then update
-    const updatedTeamMembers = [...teamMembers];
+    const updatedTeamMembers = [...team];
     for (const member of updatedTeamMembers) {
       if (member.id === id) {
         member.role = role;
       }
     }
-    setTeamMembers(updatedTeamMembers);
+    return null;
   }
 
   return (
@@ -61,13 +67,21 @@ export default function OrganizationTeam({ roles }: OrganizationTeamProps) {
       </div>
 
       <div className="flex items-center gap-3 mt-8 mb-4">
-        <Input placeholder="Search..." />
+        <Input
+          placeholder="Search..."
+          onChange={handleSearchChange}
+          value={search}
+          disabled={!isTeamMembers}
+          readOnly={!isTeamMembers}
+          className="disabled:cursor-not-allowed disabled:opacity-50"
+        />
 
         <Select
           onValueChange={(value) => {
             setFilterRole(value);
           }}
           value={filterRole}
+          disabled={!isTeamMembers}
         >
           <SelectTrigger className="xl:w-2/4">
             <SelectValue placeholder={filterRole} />
@@ -82,15 +96,26 @@ export default function OrganizationTeam({ roles }: OrganizationTeamProps) {
         </Select>
       </div>
 
-      <div className="flex flex-col items-center justify-center border rounded-md px-2 py-4 sm:px-4 sm:py-8 text-card-foreground my-8 gap-3">
-        {teamMembers.map((member) => (
-          <TeamMember
-            key={member.id}
-            member={member}
-            changeUserRole={changeUserRole}
-            allMemberRoles={allMemberRoles as Role[]}
-          />
-        ))}
+      <div
+        className={cn(
+          'flex flex-col items-center justify-center border rounded-md px-2 py-4 sm:px-4 sm:py-8 text-card-foreground my-8 gap-3',
+          !isTeamMembers && 'opacity-50 cursor-help'
+        )}
+      >
+        {isTeamMembers ? (
+          team?.map((member) => (
+            <TeamMember
+              key={member?.id}
+              member={member}
+              changeUserRole={changeUserRole}
+              allMemberRoles={allMemberRoles as Role[]}
+            />
+          ))
+        ) : (
+          <div className="bg-secondary p-6 shadow-lg rounded-md">
+            <h3>Create or Select Organization at to see Team members</h3>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -10,3 +10,10 @@ export interface OptionRoles {
   label: string;
   value: string | Role;
 }
+
+export interface OrganizationListProps {
+  id: string;
+  name: string;
+  role: Role;
+  members: MemberProps[];
+}

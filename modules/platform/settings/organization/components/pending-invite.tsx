@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShieldX, CheckCheck, Plus } from 'lucide-react';
+import { ShieldX } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import InviteModal from './team/components/invite-modal';
 import { OptionRoles } from '../types';
 
 interface PendingInvitesProps {
   id: string;
-  organizationName: string;
+  memberName: string;
 }
 
 export default function PendingInvites({ roles }: { roles: OptionRoles[] }) {
@@ -32,14 +32,11 @@ export default function PendingInvites({ roles }: { roles: OptionRoles[] }) {
             >
               <div className="flex items-center gap-2">
                 <span className="w-10 h-10 flex justify-center items-center bg-secondary text-white rounded-full uppercase">
-                  {item?.organizationName.charAt(0)}
+                  {item?.memberName.charAt(0)}
                 </span>
-                <p>{item?.organizationName}</p>
+                <p>{item?.memberName}</p>
               </div>
               <div className="flex items-center gap-4">
-                <Button className="gap-2" variant="outline">
-                  Accept <CheckCheck size={20} />
-                </Button>
                 <Button className="gap-2" variant="destructive">
                   Cancel <ShieldX size={20} />
                 </Button>

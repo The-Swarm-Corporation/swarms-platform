@@ -10,7 +10,8 @@ import {
   User,
   X,
   ChevronsLeft,
-  Building2
+  Building2,
+  Settings
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -60,24 +61,23 @@ const panelMenu: {
     link: PLATFORM.USAGE
   },
   {
-    icon: <Building2 size={24} />,
-    title: 'Organization',
-    link: PLATFORM.ORGANIZATION
-  },
-  {
-    icon: <User size={24} />,
-    title: 'Account',
-    link: PLATFORM.ACCOUNT
-    /*     items: [
+    icon: <Settings size={24} />,
+    title: 'Settings',
+    link: PLATFORM.ORGANIZATION,
+    items: [
       {
-        title: 'Profile',
-        link: PLATFORM.ACCOUNT_PROFILE
+        title: 'Organization',
+        link: PLATFORM.ORGANIZATION
       },
       {
-        title: 'billing',
-        link: PLATFORM.ACCOUNT_BILLING
-      }
-    ] */
+        title: 'Team',
+        link: PLATFORM.TEAM,
+      },
+      {
+        title: 'Account',
+        link: PLATFORM.ACCOUNT,
+      },
+    ]
   }
 ];
 
@@ -85,7 +85,7 @@ const collapsedMenu = 'collapsedMenu';
 const PanelLayoutSidebar = () => {
   const path = usePathname();
   const router = useRouter();
-  const { isOn, toggle } = useToggle("off", collapsedMenu);
+  const { isOn, toggle } = useToggle('off', collapsedMenu);
 
   return (
     <>
@@ -125,8 +125,8 @@ const PanelLayoutSidebar = () => {
                   <Link
                     href={item.link}
                     className={cn(
-                      'group flex items-center justify-start p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md outline-none',
-                      item.link === path && 'bg-primary text-white'
+                      'group flex items-center justify-start p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md outline-none',
+                      item.link === path && item?.items?.length === 0 && 'bg-primary text-white'
                     )}
                   >
                     {item.icon && (

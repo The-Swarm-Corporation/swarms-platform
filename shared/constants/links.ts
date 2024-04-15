@@ -8,7 +8,9 @@ export const PLATFORM = {
 
   PLAYGROUND: '/platform/playground',
   EXPLORER: '/platform/explorer',
-  ORGANIZATION: "/platform/organization"
+  SETTINGS: '/platform/organization',
+  ORGANIZATION: "/platform/organization",
+  TEAM: "/platform/team",
 };
 export const AUTH = {
   CHANGE_PASSWORD: '/signin/update_password'

@@ -1,5 +1,5 @@
 import { createClient } from '@/shared/utils/supabase/server';
-import Organization from '@/modules/platform/organization';
+import Organization from '@/modules/platform/settings/organization';
 
 export default async function OrganizationPage() {
   const supabase = createClient();
