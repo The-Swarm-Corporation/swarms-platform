@@ -23,7 +23,7 @@ export default function TeamMember({
   useOnClickOutside(memberRef, setOff);
 
   function handleUserRole(role: Role) {
-    changeUserRole?.(role, member.id);
+    changeUserRole?.(role, member?.user_id);
     setOff()
   }
 
@@ -38,9 +38,9 @@ export default function TeamMember({
     >
       <div className="flex items-center gap-2 basis-1/2">
         <span className="h-7 w-7 sm:w-10 sm:h-10 text-sm sm:text-base flex justify-center items-center bg-slate-500 text-white rounded-full uppercase">
-          {member.email.charAt(0)}
+          {member?.name.charAt(0)}
         </span>
-        <p>{member.email}</p>
+        <p>{member?.name}</p>
       </div>
       <div className="relative basis-1/3">
         <div

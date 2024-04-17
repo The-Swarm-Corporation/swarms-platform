@@ -17,7 +17,7 @@
     "supabase:restart": "npm run supabase:stop && npm run supabase:start",
     "supabase:reset": "npx supabase reset",
     "supabase:link": "npx supabase link",
-    "supabase:generate-types": "npx supabase gen types typescript --project-id 'epvxmjqxtlqhxrpcrldq' --schema public > types_db.ts",
+    "supabase:generate-types": "npx supabase gen types typescript --project-id 'ucbfalysjjvenbohaktl' --schema public > types_db.ts",
     "supabase:generate-migration": "npx supabase db diff | npx supabase migration new",
     "supabase:generate-seed": "npx supabase db dump --data-only -f supabase/seed.sql",
     "supabase:push": "npx supabase push",
@@ -71,7 +71,8 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^9.0.1",
     "vaul": "^0.9.0",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",

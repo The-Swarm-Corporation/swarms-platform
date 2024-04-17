@@ -34,7 +34,7 @@ export default async function Panel({
 }: {
   children: React.ReactNode;
 }) {
-  // await checkUserSession();
+  await checkUserSession();
 
   return <PanelLayout>{children}</PanelLayout>;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -13,18 +13,37 @@ import TeamMember from './components/member';
 import { MemberProps, OptionRoles, Role } from '../../types';
 import InviteModal from './components/invite-modal';
 import { cn } from '@/shared/utils/cn';
+import { trpc } from '@/shared/utils/trpc/trpc';
+import { debounce } from '@/shared/utils/helpers';
+import LoadingSpinner from '@/shared/components/loading-spinner';
 
 interface OrganizationTeamProps {
   roles: OptionRoles[];
-  team: MemberProps[];
+  activeOrgId: string;
 }
 
 export default function OrganizationTeam({
   roles,
-  team
+  activeOrgId
 }: OrganizationTeamProps) {
-  const [filterRole, setFilterRole] = useState<string>(roles[0]?.value);
+  const organizationMembers = trpc.organization.members.useQuery({
+    id: activeOrgId
+  });
+  const [filterRole, setFilterRole] = useState<string>(roles[0].value);
   const [search, setSearch] = useState('');
+  const [teamMembers, setTeamMembersInternal] = useState<MemberProps[]>([]);
+  const setTeamMembers = useCallback((members: MemberProps[]) => {
+    setTeamMembersInternal(members);
+  }, []);
+
+  const debouncedSearch = useMemo(() => {
+    const debouncedFn = debounce((value: string) => {
+      setSearch(value);
+    }, 100);
+    return debouncedFn;
+  }, []);
+
+  const isTeamMembers = teamMembers && teamMembers?.length >= 1;
 
   const allMemberRoles = useMemo(
     () =>
@@ -34,25 +53,42 @@ export default function OrganizationTeam({
     []
   );
 
-  const isTeamMembers = team?.length > 1;
+  const teamMembersToDisplay = useMemo(() => {
+    if (!teamMembers) return [];
+    return teamMembers
+      .filter((member) =>
+        filterRole === 'Team roles' ? true : member.role === filterRole
+      )
+      .filter(
+        (member) =>
+          !search || member.name?.toLowerCase().includes(search.toLowerCase())
+      );
+  }, [teamMembers, filterRole, search]);
 
-  function handleSearchChange(value: string) {
-    if (!isTeamMembers) return;
-    setSearch(value);
-  }
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      debouncedSearch(value);
+    },
+    [debouncedSearch]
+  );
 
-  function changeUserRole(role: Role, id?: string) {
-    if (!isTeamMembers) return;
-    //check if user is owner of org, then update
-    const updatedTeamMembers = [...team];
-    for (const member of updatedTeamMembers) {
-      if (member.id === id) {
-        member.role = role;
-      }
+  const changeUserRole = useCallback(
+    (role: Role, id?: string) => {
+      if (!teamMembers) return;
+      setTeamMembersInternal((prevMembers) =>
+        prevMembers.map((member) =>
+          member.user_id === id ? { ...member, role } : member
+        )
+      );
+    },
+    [teamMembers]
+  );
+
+  useEffect(() => {
+    if (organizationMembers.data && organizationMembers?.data?.length > 0) {
+      setTeamMembers(organizationMembers.data);
     }
-    return null;
-  }
-
+  }, [organizationMembers.data]);
   return (
     <div className="mt-16">
       <div className="flex justify-between">
@@ -63,7 +99,7 @@ export default function OrganizationTeam({
           </span>
         </div>
 
-        <InviteModal roles={roles} />
+        <InviteModal roles={roles} activeOrgId={activeOrgId} />
       </div>
 
       <div className="flex items-center gap-3 mt-8 mb-4">
@@ -99,13 +135,16 @@ export default function OrganizationTeam({
       <div
         className={cn(
           'flex flex-col items-center justify-center border rounded-md px-2 py-4 sm:px-4 sm:py-8 text-card-foreground my-8 gap-3',
-          !isTeamMembers && 'opacity-50 cursor-help'
+          !teamMembersToDisplay.length && 'opacity-50 cursor-help'
         )}
       >
-        {isTeamMembers ? (
-          team?.map((member) => (
+        {organizationMembers.isLoading ? (
+          <LoadingSpinner />
+        ) : teamMembersToDisplay.length > 0 &&
+          !organizationMembers.isLoading ? (
+          teamMembersToDisplay?.map((member) => (
             <TeamMember
-              key={member?.id}
+              key={member?.user_id}
               member={member}
               changeUserRole={changeUserRole}
               allMemberRoles={allMemberRoles as Role[]}
@@ -113,7 +152,7 @@ export default function OrganizationTeam({
           ))
         ) : (
           <div className="bg-secondary p-6 shadow-lg rounded-md">
-            <h3>Create or Select Organization at to see Team members</h3>
+            <h3>No team found. Select attributes to see members</h3>
           </div>
         )}
       </div>

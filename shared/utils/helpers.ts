@@ -194,3 +194,32 @@ export function getTruncatedString(str: string, num: number, endLabel = "...") {
   if (str.split("").length > num) return `${words.join("")}${endLabel}`;
   return str;
 }
+
+export function replaceUndefinedWithNull<T extends Record<string, any>>(obj: T): T {
+  const traverse = (obj: Record<string, any>): Record<string, any> => {
+    const updatedObj: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(obj)) {
+      if (typeof value === 'object' && value !== null) {
+        updatedObj[key] = traverse(value); // Recursively traverse nested objects
+      } else {
+        updatedObj[key] = value === undefined ? null : value; // Replace undefined with null
+      }
+    }
+
+    return updatedObj;
+  };
+
+  return traverse(obj) as T;
+}
+
+
+export const debounce = (callback: (...args: any[]) => any, wait: number) => {
+  let timeoutId: number | undefined;
+  return (...args: any[]) => {
+    window.clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => {
+      callback(...args);
+    }, wait);
+  };
+};
