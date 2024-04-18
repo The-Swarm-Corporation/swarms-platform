@@ -1,72 +1,102 @@
 import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { trpc } from '@/shared/utils/trpc/trpc';
-
-type Role = 'manager' | 'reader' | 'member';
+import { trpc } from '../utils/trpc/trpc';
+import { useEffect, useMemo, useState } from 'react';
+import { UserOrganizationsProps } from '@/modules/platform/settings/organization/types';
+import { isEmpty } from '../utils/helpers';
 
 interface OrganizationStore {
-  organizations: any[];
-  userOrganization: any;
   userOrgId: string | null;
   isLoading: boolean;
-  organizationInfo: Record<string, string> | any;
-  pendingInvites: any;
-  setOrganizations(): void;
-  setUserOrganization(): void;
   setIsLoading(isLoading: boolean): void;
-  setUserOrgId(): void;
-  setOrganizationInfo(orgId: string): void;
-  setPendingInvites(orgId: string): void;
+  setUserOrgId(id: string): void;
 }
 
 export const useOrganizationStore = create<OrganizationStore>(
   persist<OrganizationStore>(
     (set) => ({
-      organizations: [],
       isLoading: false,
       userOrgId: null,
-      userOrganization: { id: '', name: '', role: 'reader' },
-      organizationInfo: {},
-      pendingInvites: [],
-      setOrganizations() {
-        const organizations = trpc.organization.getUserOrganizations.useQuery();
-        set((state) => ({ ...state, organizations: organizations.data }));
-      },
-      setUserOrganization() {
-        const userOrganization =
-          trpc.organization.getUserPersonalOrganization.useQuery();
-        set((state) => ({ ...state, userOrganization }));
-      },
-      setUserOrgId() {
+      setUserOrgId(userOrgId: string) {
         set((state) => ({
           ...state,
-          userOrgId: state.userOrganization?.data?.data?.id
+          userOrgId
         }));
       },
       setIsLoading(isLoading: boolean) {
         set((state) => ({
           ...state,
-          isLoading,
+          isLoading
         }));
-      },
-      setOrganizationInfo(orgId: string) {
-        const organizationInfo = trpc.organization.getOrganizationInfo.useQuery(
-          { id: orgId }
-        );
-        set((state) => ({ ...state, organizationInfo }));
-      },
-      setPendingInvites(orgId: string) {
-        const pendingInvites = trpc.organization.pendingInvites.useQuery({
-          organization_id: orgId
-        });
-        set((state) => ({ ...state, pendingInvites }));
-      },
+      }
     }),
     {
       name: 'user-org-id',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) =>
-        ({ userOrgId: state.userOrgId || null }) as OrganizationStore
+        ({ userOrgId: state.userOrgId }) as OrganizationStore
     }
   ) as StateCreator<OrganizationStore, [], []>
 );
+
+export const useOrganizations = () => {
+  const [currentOrgId, setCurrentOrgId] = useState('');
+  const [organizationList, setOrganizationList] = useState<
+    UserOrganizationsProps[]
+  >([]);
+
+  const userOrganization =
+    trpc.organization.getUserPersonalOrganization.useQuery().data;
+  const userOrganizations =
+    trpc.organization.getUserOrganizations.useQuery().data;
+
+  const filteredOrganizations = useMemo(() => {
+    if (!isEmpty(userOrganizations) && userOrganization?.data?.id) {
+      return userOrganizations?.filter(
+        (org) => org.organization.id !== userOrganization.data.id
+      );
+    } else {
+      return userOrganizations;
+    }
+  }, [userOrganizations, userOrganization?.data?.id]);
+
+  const currentOrganization = useMemo(
+    () =>
+      userOrganizations?.find((org) => org.organization.id === currentOrgId),
+    [userOrganizations, currentOrgId]
+  );
+
+  const handleCurrentOrgId = (id: string) => {
+    setCurrentOrgId(id);
+  };
+
+  useEffect(() => {
+    const currentId = userOrganization?.data?.id
+      ? userOrganization?.data?.id
+      : organizationList?.[0]?.organization?.id;
+
+    if (userOrganization?.data?.id) {
+      useOrganizationStore.getState().setUserOrgId(userOrganization?.data?.id);
+    }
+
+    if (currentId) {
+      setCurrentOrgId(currentId);
+    }
+
+    if (filteredOrganizations && filteredOrganizations.length > 0) {
+      setOrganizationList(filteredOrganizations as UserOrganizationsProps[]);
+    }
+  }, [
+    userOrganization?.data?.id,
+    organizationList?.[0]?.organization?.id,
+    filteredOrganizations,
+  ]);
+
+  return {
+    organizationList,
+    currentOrgId,
+    currentOrganization,
+    userOrganization,
+    handleCurrentOrgId
+  };
+};

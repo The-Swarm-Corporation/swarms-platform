@@ -1,56 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import OrganizationList from './components/list';
 import PendingInvites from './components/pending-invite';
 import OrganizationTeam from './components/team';
 import {
-  MemberProps,
-  OrganizationListProps,
-  Role,
-  UserOrganizationsProps
-} from './types';
-import { useOrganizationStore } from '@/shared/stores/organization';
-import { trpc } from '@/shared/utils/trpc/trpc';
-
-const roles: { label: string; value: Role | string }[] = [
-  { label: 'List Team roles', value: 'Team roles' },
-  { label: 'Owner', value: 'owner' },
-  { label: 'Manager', value: 'manager' },
-  { label: 'Reader', value: 'reader' },
-  { label: 'Member', value: 'member' },
-];
+  useOrganizations,
+  useOrganizationStore
+} from '@/shared/stores/organization';
+import { UserOrganizationProps, UserOrganizationsProps } from './types';
 
 export default function Organization({ user }: { user: any }) {
-  const [activeOrgId, setActiveOrgId] = useState('');
-  const [organizationList, setOrganizationList] = useState<
-    UserOrganizationsProps[]
-  >([]);
-
-  const userOrganization =
-    trpc.organization.getUserPersonalOrganization.useQuery().data;
-  const userOrganizations =
-    trpc.organization.getUserOrganizations.useQuery().data;
-
-  function handleActiveOrgId(id: string) {
-    setActiveOrgId(id);
-  }
-
-  useEffect(() => {
-    if (userOrganizations && userOrganizations.length > 0) {
-      setOrganizationList(userOrganizations as UserOrganizationsProps[]);
-    }
-
-    const orgId =
-      userOrganization?.data?.id || organizationList?.[0]?.organization?.id;
-    if (orgId) {
-      setActiveOrgId(orgId);
-    }
-  }, [
-    userOrganizations,
-    userOrganization?.data?.id,
-    organizationList?.[0]?.organization?.id
-  ]);
+  const {
+    currentOrgId,
+    userOrganization,
+    currentOrganization,
+    organizationList,
+    handleCurrentOrgId
+  } = useOrganizations();
+  const userOrgId = useOrganizationStore((state) => state.userOrgId);
 
   return (
     <article className="w-full">
@@ -58,11 +25,21 @@ export default function Organization({ user }: { user: any }) {
 
       <OrganizationList
         organizationList={organizationList}
-        activeOrgId={activeOrgId}
-        handleActiveOrgId={handleActiveOrgId}
+        currentOrgId={currentOrgId}
+        userOrgId={userOrgId ?? ''}
+        userOrganization={userOrganization?.data as UserOrganizationProps}
+        handleCurrentOrgId={handleCurrentOrgId}
       />
-      <OrganizationTeam roles={roles} activeOrgId={activeOrgId} />
-      <PendingInvites roles={roles} />
+      <OrganizationTeam
+        currentOrgId={currentOrgId}
+        userOrgId={userOrgId ?? ''}
+        user={user}
+        currentOrganization={currentOrganization as UserOrganizationsProps}
+      />
+      <PendingInvites
+        userOrgId={userOrgId ?? ''}
+        currentOrganization={currentOrganization as UserOrganizationsProps}
+      />
     </article>
   );
 }

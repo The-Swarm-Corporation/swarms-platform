@@ -2,6 +2,10 @@ import type { Tables } from '@/types_db';
 
 type Price = Tables<'prices'>;
 
+interface ObjectOrArray {
+  constructor: typeof Object | typeof Array;
+}
+
 export const getURL = (path: string = '') => {
   // Check if NEXT_PUBLIC_SITE_URL is set and non-empty. Set this to your site URL in production env.
   let url =
@@ -195,24 +199,7 @@ export function getTruncatedString(str: string, num: number, endLabel = "...") {
   return str;
 }
 
-export function replaceUndefinedWithNull<T extends Record<string, any>>(obj: T): T {
-  const traverse = (obj: Record<string, any>): Record<string, any> => {
-    const updatedObj: Record<string, any> = {};
-
-    for (const [key, value] of Object.entries(obj)) {
-      if (typeof value === 'object' && value !== null) {
-        updatedObj[key] = traverse(value); // Recursively traverse nested objects
-      } else {
-        updatedObj[key] = value === undefined ? null : value; // Replace undefined with null
-      }
-    }
-
-    return updatedObj;
-  };
-
-  return traverse(obj) as T;
-}
-
+export const isEmpty = (obj: ObjectOrArray | any) => [Object, Array].includes((obj || {}).constructor) && !Object.entries(obj || {}).length;
 
 export const debounce = (callback: (...args: any[]) => any, wait: number) => {
   let timeoutId: number | undefined;

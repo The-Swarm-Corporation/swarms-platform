@@ -10,26 +10,33 @@ import {
 } from '@/shared/components/ui/select';
 import Input from '@/shared/components/ui/Input';
 import TeamMember from './components/member';
-import { MemberProps, OptionRoles, Role } from '../../types';
+import { MemberProps, Role, UserOrganizationsProps } from '../../types';
 import InviteModal from './components/invite-modal';
 import { cn } from '@/shared/utils/cn';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { debounce } from '@/shared/utils/helpers';
 import LoadingSpinner from '@/shared/components/loading-spinner';
+import { ROLES } from '@/shared/constants/organization';
 
 interface OrganizationTeamProps {
-  roles: OptionRoles[];
-  activeOrgId: string;
+  currentOrgId: string;
+  userOrgId: string;
+  user: any;
+  currentOrganization: UserOrganizationsProps;
 }
 
 export default function OrganizationTeam({
-  roles,
-  activeOrgId
+  currentOrgId,
+  userOrgId,
+  user,
+  currentOrganization,
 }: OrganizationTeamProps) {
   const organizationMembers = trpc.organization.members.useQuery({
-    id: activeOrgId
+    id: currentOrgId
   });
-  const [filterRole, setFilterRole] = useState<string>(roles[0].value);
+
+  console.log({ orgMembers: organizationMembers.data, currentOrgId });
+  const [filterRole, setFilterRole] = useState<string>(ROLES[0].value);
   const [search, setSearch] = useState('');
   const [teamMembers, setTeamMembersInternal] = useState<MemberProps[]>([]);
   const setTeamMembers = useCallback((members: MemberProps[]) => {
@@ -47,9 +54,9 @@ export default function OrganizationTeam({
 
   const allMemberRoles = useMemo(
     () =>
-      roles
-        .filter((role) => role.value !== 'Team roles')
-        .map((role) => role.value),
+      ROLES.filter(
+        (role) => role.value !== 'Team roles' && role.value !== 'owner'
+      ).map((role) => role.value),
     []
   );
 
@@ -93,13 +100,25 @@ export default function OrganizationTeam({
     <div className="mt-16">
       <div className="flex justify-between">
         <div>
-          <h3 className="mb-2 text-xl">Team</h3>
-          <span className="text-muted-foreground text-sm">
-            Manage team members and invitation
+          <h3 className="mb-2 text-xl items-end flex gap-1.5">
+            <span>Team:</span>
+            {currentOrganization?.organization?.name && (
+              <span className="text-primary leading-6">
+                {currentOrganization?.organization?.name}
+              </span>
+            )}
+          </h3>
+          <span className="text-muted-foreground text-sm gap-1.5">
+            <span>Manage team members and invitations for</span> {" "}
+            {currentOrganization?.organization?.name && (
+              <span className="text-primary translate-y-1">
+                {currentOrganization?.organization?.name}
+              </span>
+            )}
           </span>
         </div>
 
-        <InviteModal roles={roles} activeOrgId={activeOrgId} />
+        <InviteModal userOrgId={userOrgId} currentOrganization={currentOrganization} />
       </div>
 
       <div className="flex items-center gap-3 mt-8 mb-4">
@@ -123,7 +142,7 @@ export default function OrganizationTeam({
             <SelectValue placeholder={filterRole} />
           </SelectTrigger>
           <SelectContent>
-            {roles?.map((role) => (
+            {ROLES?.map((role) => (
               <SelectItem key={role.label} value={role.value}>
                 {role.label}
               </SelectItem>
@@ -148,6 +167,7 @@ export default function OrganizationTeam({
               member={member}
               changeUserRole={changeUserRole}
               allMemberRoles={allMemberRoles as Role[]}
+              user={user}
             />
           ))
         ) : (

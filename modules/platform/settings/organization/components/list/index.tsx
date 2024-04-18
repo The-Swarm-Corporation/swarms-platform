@@ -15,65 +15,90 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/shared/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/shared/components/ui/select';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
-import { DetailsProps, UserOrganizationsProps } from '../../types';
+import {
+  Role,
+  UserOrganizationProps,
+  UserOrganizationsProps
+} from '../../types';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import OrganizationListItem from './components/item';
-import { debounce } from '@/shared/utils/helpers';
+import { debounce, isEmpty } from '@/shared/utils/helpers';
 
 interface ListProps {
   organizationList: UserOrganizationsProps[];
-  handleActiveOrgId: (name: string, id: string) => void;
-  activeOrgId: string;
+  handleCurrentOrgId: (id: string) => void;
+  currentOrgId: string;
+  userOrgId: string;
+  userOrganization: UserOrganizationProps | null;
 }
 
 export default function OrganizationList({
   organizationList,
-  activeOrgId,
-  handleActiveOrgId
+  currentOrgId,
+  userOrgId,
+  userOrganization,
+  handleCurrentOrgId
 }: ListProps) {
-  const userOrganization =
-    trpc.organization.getUserPersonalOrganization.useQuery();
   const userOrganizations = trpc.organization.getUserOrganizations.useQuery();
   const createOrgMutation = trpc.organization.createOrganization.useMutation();
 
   const isLoading = useOrganizationStore((state) => state.isLoading);
-  const setisLoading = useOrganizationStore((state) => state.setIsLoading);
-
-  const userOrgId = userOrganization?.data?.data?.id;
 
   const toast = useToast();
   const [organizationName, setOrganizationName] = useState('');
-  const [searchOrg, setSearchOrg] = useState('');
 
-  const debouncedSearch = useMemo(() => {
-    const debouncedFn = debounce((value: string) => {
-      setSearchOrg(value);
-    }, 100);
-    return debouncedFn;
-  }, []);
-
-  const isOrgList = organizationList?.length >= 1;
-
-  const organizationsToDisplay = useMemo(() => {
-    if (!organizationList) return [];
-    return organizationList.filter(
-      (org) =>
-        !searchOrg ||
-        org?.organization?.name?.toLowerCase().includes(searchOrg.toLowerCase())
-    );
-  }, [organizationList, searchOrg]);
-
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      debouncedSearch(value);
-    },
-    [debouncedSearch]
+  const [filterOrg, setFilterOrg] = useState('select-org');
+  const activeOrgId = useMemo(
+    () =>
+      organizationList.find((org) => org?.organization?.id === currentOrgId)
+        ?.organization?.id,
+    [organizationList, currentOrgId]
   );
+
+  function handleFilterOrg(value: string) {
+    if (value !== 'select-org') {
+      setFilterOrg(value);
+      handleCurrentOrgId(value);
+    } else {
+      setFilterOrg(activeOrgId ?? '');
+      handleCurrentOrgId(activeOrgId ?? '');
+    }
+  }
+
+  const orgToDisplay = useMemo(() => {
+    if (!organizationList) return {};
+    return organizationList.find((org) => org?.organization?.id === filterOrg);
+  }, [organizationList, filterOrg]) as {
+    organization: UserOrganizationProps;
+    role: Role;
+  };
+
+  console.log({ orgToDisplay, activeOrgId, currentOrgId });
+
+  const ListOfOrgs = useMemo(() => {
+    return organizationList.reduce(
+      (acc, curr) => {
+        acc.push({
+          name: curr?.organization?.name,
+          id: curr?.organization?.id
+        });
+        return acc;
+      },
+      [{ name: 'Select an organization', id: 'select-org' }]
+    );
+  }, [organizationList]);
 
   async function handleCreateOrg(e: FormEvent) {
     e.preventDefault();
@@ -86,7 +111,7 @@ export default function OrganizationList({
       return;
     }
 
-    setisLoading(true);
+    useOrganizationStore.getState().setIsLoading(true);
 
     try {
       const response = await createOrgMutation.mutateAsync({
@@ -108,29 +133,22 @@ export default function OrganizationList({
         toast.toast({ description: (error as any)?.message });
       }
     } finally {
-      setisLoading(false);
+      useOrganizationStore.getState().setIsLoading(false);
     }
   }
 
+  useEffect(() => {
+    if (activeOrgId) {
+      setFilterOrg(activeOrgId);
+    }
+  }, [activeOrgId]);
+
   return (
     <section className="mt-9">
-      <div className="flex justify-between flex-col sm:flex-row">
-        <div>
-          <h3 className="mb-2 text-xl">All Organizations</h3>
-          <span className="text-sm text-muted-foreground">
-            Aggregate of organizations involved in
-          </span>
-        </div>
+      <div className="flex items-center justify-between flex-col sm:flex-row">
+        <h3 className="text-xl">All Organizations</h3>
 
         <div className="flex items-center justify-center gap-3 mt-2 sm:mt-0">
-          <Input
-            value={searchOrg}
-            disabled={!isOrgList}
-            readOnly={!isOrgList}
-            placeholder="Search orgs..."
-            onChange={handleSearchChange}
-          />
-
           <Dialog>
             <DialogTrigger asChild>
               <Button
@@ -178,27 +196,66 @@ export default function OrganizationList({
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground my-8 gap-2">
-        {userOrganizations.isLoading ? (
-          <LoadingSpinner />
-        ) : organizationsToDisplay.length > 0 &&
-          !userOrganizations.isLoading ? (
-          organizationsToDisplay?.map((org) => {
-            const isActive = activeOrgId === org.organization.id;
-            return (
+      <div className="mt-10 mb-14">
+        <h4 className="mb-3 text-muted-foreground">Personal organization</h4>
+
+        <div className="flex flex-col items-center justify-center w-full">
+          {userOrganizations.isLoading ? (
+            <LoadingSpinner />
+          ) : userOrganization?.owner_user_id &&
+            !userOrganizations.isLoading ? (
+            <div className='w-full'>
               <OrganizationListItem
-                key={org.organization.id}
-                name={org.organization.name}
-                id={org.organization.id}
-                role={org.role}
-                isActive={isActive}
-                handleActiveOrgId={handleActiveOrgId}
+                {...userOrganization}
+                role="owner"
+                isActive={currentOrgId === userOrganization.id}
               />
-            );
-          })
-        ) : (
-          <h3 className="opacity-70">No organizations are listed</h3>
-        )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground mb-8 gap-2 w-full">
+              <h3 className="opacity-60">No Organization Created</h3>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="w-full">
+        <div className="flex justify-between items-center mb-5">
+          <h4 className="text-muted-foreground">List of Organizations</h4>
+
+          <Select value={filterOrg} onValueChange={handleFilterOrg}>
+            <SelectTrigger className="w-2/4 md:w-2/4">
+              <SelectValue placeholder={filterOrg} />
+            </SelectTrigger>
+            <SelectContent>
+              {ListOfOrgs?.map((org) => (
+                <SelectItem key={org.id} value={org.id}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground mb-8 gap-2">
+          {userOrganizations.isLoading ? (
+            <LoadingSpinner />
+          ) : !isEmpty(orgToDisplay) && !userOrganizations.isLoading ? (
+            <OrganizationListItem
+              isActive={currentOrgId === orgToDisplay?.organization?.id}
+              role={orgToDisplay?.role}
+              name={orgToDisplay?.organization?.name}
+              id={userOrgId}
+              handleCurrentOrgId={() =>
+                handleCurrentOrgId(orgToDisplay?.organization?.id)
+              }
+            />
+          ) : (
+            <h3 className="opacity-60 py-5">
+              Select from organizations listed
+            </h3>
+          )}
+        </div>
       </div>
     </section>
   );

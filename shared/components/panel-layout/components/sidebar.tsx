@@ -71,8 +71,8 @@ const panelMenu: {
       },
       {
         title: 'Account',
-        link: PLATFORM.ACCOUNT,
-      },
+        link: PLATFORM.ACCOUNT
+      }
     ]
   }
 ];
@@ -88,7 +88,13 @@ const PanelLayoutSidebar = () => {
       {/* desktop */}
       <div
         className={cn(
-          'flex flex-col relative flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 h-screen border-r border-gray-900 max-lg:hidden',
+          'max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 max-lg:hidden',
+          isOn && 'max-w-0 -translate-x-full'
+        )}
+      />
+      <div
+        className={cn(
+          'flex flex-col fixed flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 min-h-screen border-r border-gray-900 max-lg:hidden',
           isOn && 'max-w-0 -translate-x-full'
         )}
       >
@@ -122,7 +128,9 @@ const PanelLayoutSidebar = () => {
                     href={item.link}
                     className={cn(
                       'group flex items-center justify-start p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md outline-none',
-                      item.link === path && !item?.items && 'bg-primary text-white'
+                      item.link === path &&
+                        !item?.items &&
+                        'bg-primary text-white'
                     )}
                   >
                     {item.icon && (

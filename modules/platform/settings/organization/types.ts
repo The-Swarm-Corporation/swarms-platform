@@ -1,12 +1,19 @@
-export type Role = "manager" | "reader" | "owner" | "member";
+export type Role = 'manager' | 'reader' | 'owner' | 'member';
 
-export type InviteRole = Exclude<Role, "owner">;
+export type InviteRole = Exclude<Role, 'owner'>;
 
 export interface MemberProps {
   email?: string;
   name: string;
   role: Role;
   user_id: string;
+}
+
+export interface PendingInvitesProps {
+  created_at: string;
+  email: string | null;
+  id: string;
+  role: Role | null;
 }
 
 export interface OptionRoles {

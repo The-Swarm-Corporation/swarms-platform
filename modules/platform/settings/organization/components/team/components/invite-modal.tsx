@@ -1,4 +1,4 @@
-import React, { FormEvent, useState } from 'react';
+import React, { FormEvent, SyntheticEvent, useState } from 'react';
 import { Plus, PlusCircle, X } from 'lucide-react';
 import {
   Select,
@@ -17,7 +17,12 @@ import {
 } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
-import { InviteRole, OptionRoles, Role } from '../../../types';
+import {
+  InviteRole,
+  OptionRoles,
+  Role,
+  UserOrganizationsProps
+} from '../../../types';
 import { emailRegExp } from './const';
 import { cn } from '@/shared/utils/cn';
 import { trpc } from '@/shared/utils/trpc/trpc';
@@ -25,29 +30,35 @@ import { useOrganizationStore } from '@/shared/stores/organization';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import confetti from 'canvas-confetti';
+import { ROLES } from '@/shared/constants/organization';
 
 interface InviteModalProps {
-  roles: OptionRoles[];
-  activeOrgId: string;
+  userOrgId: string;
+  currentOrganization: UserOrganizationsProps;
 }
 
-export default function InviteModal({ roles, activeOrgId }: InviteModalProps) {
+export default function InviteModal({
+  userOrgId,
+  currentOrganization
+}: InviteModalProps) {
   const inviteEmailMutation =
     trpc.organization.inviteMemberByEmail.useMutation();
+  const pendingInvites = trpc.organization.pendingInvites.useQuery({
+    organization_id: userOrgId
+  });
 
   const toast = useToast();
   const isLoading = useOrganizationStore((state) => state.isLoading);
-  const setisLoading = useOrganizationStore((state) => state.setIsLoading);
 
   const [email, setEmail] = useState('');
   const [isValidEmail, setIsValidEmail] = useState(true);
 
   const [inviteRole, setInviteRole] = useState<InviteRole | string>(
-    roles[roles.length - 1]?.value
+    ROLES[ROLES.length - 1]?.value
   );
   const [invites, setInvites] = useState([{ role: 'reader' }]);
 
-  const inviteRoles = roles.slice(2);
+  const inviteRoles = ROLES.slice(2);
   const isMoreInvites = invites.length > 1;
   const inviteButtonText = isMoreInvites ? 'Invite All' : 'Invite';
 
@@ -73,32 +84,36 @@ export default function InviteModal({ roles, activeOrgId }: InviteModalProps) {
     if (_email.length < 3 && !isValidEmail) {
       toast.toast({
         description: 'Enter a valid email address',
-        color: 'red'
+        style: { color: 'red' }
       });
       return;
     }
 
-    if (!inviteRole || !activeOrgId) {
+    if (!inviteRole || !userOrgId) {
       toast.toast({
         description: 'Missing required values',
-        color: 'red'
+        style: { color: 'red' }
       });
+
       return;
     }
 
-    setisLoading(true);
+    useOrganizationStore.getState().setIsLoading(true);
 
     try {
       const response = await inviteEmailMutation.mutateAsync({
         email,
         role: inviteRole as InviteRole,
-        id: activeOrgId
+        id: userOrgId
       });
       console.log(response);
-      toast.toast({
-        description: `${email} has been invited to join your organization.`,
-        color: 'green'
-      });
+      if (response) {
+        toast.toast({
+          description: `${email} has been invited to join your organization.`,
+          style: { color: 'green' }
+        });
+        pendingInvites.refetch();
+      }
     } catch (error) {
       console.log(error);
       if ((error as any)?.message) {
@@ -108,14 +123,29 @@ export default function InviteModal({ roles, activeOrgId }: InviteModalProps) {
         });
       }
     } finally {
-      setisLoading(false);
+      useOrganizationStore.getState().setIsLoading(false);
+    }
+  }
+
+  function handleOpenModal(e: SyntheticEvent) {
+    if (currentOrganization && currentOrganization?.role === 'reader') {
+      e.preventDefault();
+      toast.toast({
+        description: `Required permissions not found`,
+        style: { color: 'red' }
+      });
+      return;
     }
   }
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="gap-0.5" variant="secondary">
+        <Button
+          className="gap-0.5"
+          variant="secondary"
+          onClick={handleOpenModal}
+        >
           <Plus size={20} /> Invite
         </Button>
       </DialogTrigger>

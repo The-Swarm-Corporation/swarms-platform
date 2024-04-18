@@ -26,7 +26,7 @@ interface OrganizationListItemProps {
   name: string;
   role: Role;
   isActive?: boolean;
-  handleActiveOrgId: (name: string, id: string) => void;
+  handleCurrentOrgId?: () => void;
 }
 
 export default function OrganizationListItem({
@@ -34,7 +34,7 @@ export default function OrganizationListItem({
   name,
   role,
   isActive,
-  handleActiveOrgId
+  handleCurrentOrgId
 }: OrganizationListItemProps) {
   const updateOrgName = trpc.organization.updateOrganizationName.useMutation();
   const userOrganizations = trpc.organization.getUserOrganizations.useQuery();
@@ -86,7 +86,7 @@ export default function OrganizationListItem({
 
   return (
     <div
-      onClick={() => handleActiveOrgId(name, id)}
+      onClick={handleCurrentOrgId}
       className={cn(
         'flex justify-between border rounded-md p-2 sm:p-4 text-card-foreground hover:opacity-80 w-full transition cursor-pointer',
         isActive && 'bg-primary shadow'
@@ -116,7 +116,7 @@ export default function OrganizationListItem({
           <div
             ref={popupRef}
             className={cn(
-              'absolute list-none border dark:border-white/[0.2] bg-secondary w-28 flex flex-col items-center rounded-md bottom-8 left-0 transition-all invisible',
+              'absolute list-none border dark:border-white/[0.2] bg-secondary max-w-28 w-full flex flex-col items-center rounded-md bottom-8 left-0 transition-all invisible',
               isOn && 'visible'
             )}
           >
