@@ -24,7 +24,7 @@ export const getUserOrganizationRole = async (
     .select('*')
     .eq('organization_id', organizationId)
     .eq('user_id', userId)
-    .neq('is_deleted', true)
+    .filter('is_deleted', 'not.is', 'true')
     .limit(1);
 
   if (member.data?.length) {
