@@ -1,6 +1,5 @@
 import React, { FormEvent, useRef, useState } from 'react';
 import { Ellipsis } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +21,6 @@ import { useOrganizationStore } from '@/shared/stores/organization';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 
 interface OrganizationListItemProps {
-  id: string;
   name: string;
   role: Role;
   isActive?: boolean;
@@ -30,17 +28,17 @@ interface OrganizationListItemProps {
 }
 
 export default function OrganizationListItem({
-  id,
   name,
   role,
   isActive,
   handleCurrentOrgId
 }: OrganizationListItemProps) {
-  const updateOrgName = trpc.organization.updateOrganizationName.useMutation();
-  const userOrganizations = trpc.organization.getUserOrganizations.useQuery();
+  const updateOrgNameMutation = trpc.organization.updateOrganizationName.useMutation();
+  const userOrganizationsQuery = trpc.organization.getUserOrganizations.useQuery();
+  const userOrganizationQuery = trpc.organization.getUserPersonalOrganization.useQuery();
 
-  const setisLoading = useOrganizationStore((state) => state.setIsLoading);
   const isLoading = useOrganizationStore((state) => state.isLoading);
+  const userOrgId = useOrganizationStore((state) => state.userOrgId);
 
   const { isOn, setOff, setOn } = useToggle();
   const popupRef = useRef(null);
@@ -56,23 +54,25 @@ export default function OrganizationListItem({
     const name = organizationName.trim();
     if (name && name.length < 3) {
       toast.toast({
-        description: 'Organization name must be at least 3 characters long'
+        description: 'Organization name must be at least 3 characters long',
+        style: { color: "red" }
       });
       return;
     }
 
-    setisLoading(true);
+    useOrganizationStore.getState().setIsLoading(true);
 
     try {
-      const response = await updateOrgName.mutateAsync({
+      const response = await updateOrgNameMutation.mutateAsync({
         name: organizationName,
-        id
+        id: userOrgId ?? ""
       });
       if (response) {
         toast.toast({
           description: `Organization name updated to ${organizationName}.`
         });
-        userOrganizations.refetch();
+        userOrganizationQuery.refetch();
+        userOrganizationsQuery.refetch();
       }
     } catch (error) {
       console.log(error);
@@ -80,7 +80,7 @@ export default function OrganizationListItem({
         toast.toast({ description: (error as any)?.message });
       }
     } finally {
-      setisLoading(false);
+      useOrganizationStore.getState().setIsLoading(false);
     }
   }
 

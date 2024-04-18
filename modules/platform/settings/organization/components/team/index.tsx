@@ -10,32 +10,40 @@ import {
 } from '@/shared/components/ui/select';
 import Input from '@/shared/components/ui/Input';
 import TeamMember from './components/member';
-import { MemberProps, Role, UserOrganizationsProps } from '../../types';
+import {
+  ExcludeOwner,
+  MemberProps,
+  Role,
+  UserOrganizationsProps
+} from '../../types';
 import InviteModal from './components/invite-modal';
 import { cn } from '@/shared/utils/cn';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { debounce } from '@/shared/utils/helpers';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { ROLES } from '@/shared/constants/organization';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { useOrganizationStore } from '@/shared/stores/organization';
 
 interface OrganizationTeamProps {
-  currentOrgId: string;
-  userOrgId: string;
   user: any;
-  currentOrganization: UserOrganizationsProps;
 }
 
-export default function OrganizationTeam({
-  currentOrgId,
-  userOrgId,
-  user,
-  currentOrganization,
-}: OrganizationTeamProps) {
-  const organizationMembers = trpc.organization.members.useQuery({
+export default function OrganizationTeam({ user }: OrganizationTeamProps) {
+  const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
+  const currentOrganization = useOrganizationStore(
+    (state) => state.currentOrganization
+  );
+
+  const organizationMembersQuery = trpc.organization.members.useQuery({
     id: currentOrgId
   });
 
-  console.log({ orgMembers: organizationMembers.data, currentOrgId });
+  const changeRoleMutation = trpc.organization.changeMemberRole.useMutation();
+  const leaveOrgMutation = trpc.organization.leaveOrganization.useMutation();
+  const deleteMemberMutation = trpc.organization.deleteMember.useMutation();
+
+  const toast = useToast();
   const [filterRole, setFilterRole] = useState<string>(ROLES[0].value);
   const [search, setSearch] = useState('');
   const [teamMembers, setTeamMembersInternal] = useState<MemberProps[]>([]);
@@ -51,14 +59,6 @@ export default function OrganizationTeam({
   }, []);
 
   const isTeamMembers = teamMembers && teamMembers?.length >= 1;
-
-  const allMemberRoles = useMemo(
-    () =>
-      ROLES.filter(
-        (role) => role.value !== 'Team roles' && role.value !== 'owner'
-      ).map((role) => role.value),
-    []
-  );
 
   const teamMembersToDisplay = useMemo(() => {
     if (!teamMembers) return [];
@@ -79,23 +79,84 @@ export default function OrganizationTeam({
     [debouncedSearch]
   );
 
-  const changeUserRole = useCallback(
-    (role: Role, id?: string) => {
-      if (!teamMembers) return;
-      setTeamMembersInternal((prevMembers) =>
-        prevMembers.map((member) =>
-          member.user_id === id ? { ...member, role } : member
-        )
-      );
-    },
-    [teamMembers]
-  );
+  async function withOrganizationMutation<T>(
+    mutationFunction: any,
+    data: any,
+    toastMessage: string
+  ) {
+    if (!currentOrgId) {
+      toast.toast({
+        description: 'Organization not found',
+        style: { color: 'red' }
+      });
+      return;
+    }
+
+    useOrganizationStore.getState().setIsLoading(true);
+
+    try {
+      const response = await mutationFunction.mutateAsync(data);
+
+      if (response) {
+        toast.toast({ description: toastMessage });
+        organizationMembersQuery.refetch();
+      }
+    } catch (error) {
+      console.log(error);
+      if ((error as any)?.message) {
+        toast.toast({ description: (error as any)?.message });
+      }
+    } finally {
+      useOrganizationStore.getState().setIsLoading(false);
+    }
+  }
+
+  async function handleRoleChange(user_id: string, role: ExcludeOwner) {
+    if (!user_id || !role) {
+      toast.toast({
+        description: 'Something went wrong; Missing values',
+        style: { color: 'red' }
+      });
+      return;
+    }
+    await withOrganizationMutation(
+      changeRoleMutation,
+      { user_id, role, organization_id: currentOrgId },
+      'Member role updated'
+    );
+  }
+
+  async function handleLeaveOrg() {
+    await withOrganizationMutation(
+      leaveOrgMutation,
+      { organization_id: currentOrgId },
+      "You've successfully left the organization"
+    );
+  }
+
+  async function handleDeleteMember(user_id: string) {
+    if (!user_id) {
+      toast.toast({
+        description: 'Something went wrong; Missing values',
+        style: { color: 'red' }
+      });
+      return;
+    }
+    await withOrganizationMutation(
+      deleteMemberMutation,
+      { user_id, organization_id: currentOrgId },
+      'User has been successfully removed'
+    );
+  }
 
   useEffect(() => {
-    if (organizationMembers.data && organizationMembers?.data?.length > 0) {
-      setTeamMembers(organizationMembers.data);
+    if (
+      organizationMembersQuery.data &&
+      organizationMembersQuery?.data?.length > 0
+    ) {
+      setTeamMembers(organizationMembersQuery.data);
     }
-  }, [organizationMembers.data]);
+  }, [organizationMembersQuery.data]);
   return (
     <div className="mt-16">
       <div className="flex justify-between">
@@ -109,7 +170,7 @@ export default function OrganizationTeam({
             )}
           </h3>
           <span className="text-muted-foreground text-sm gap-1.5">
-            <span>Manage team members and invitations for</span> {" "}
+            <span>Manage team members and invitations for</span>{' '}
             {currentOrganization?.organization?.name && (
               <span className="text-primary translate-y-1">
                 {currentOrganization?.organization?.name}
@@ -118,7 +179,7 @@ export default function OrganizationTeam({
           </span>
         </div>
 
-        <InviteModal userOrgId={userOrgId} currentOrganization={currentOrganization} />
+        <InviteModal />
       </div>
 
       <div className="flex items-center gap-3 mt-8 mb-4">
@@ -138,7 +199,7 @@ export default function OrganizationTeam({
           value={filterRole}
           disabled={!isTeamMembers}
         >
-          <SelectTrigger className="xl:w-2/4">
+          <SelectTrigger className="xl:w-2/4 cursor-pointer">
             <SelectValue placeholder={filterRole} />
           </SelectTrigger>
           <SelectContent>
@@ -157,16 +218,17 @@ export default function OrganizationTeam({
           !teamMembersToDisplay.length && 'opacity-50 cursor-help'
         )}
       >
-        {organizationMembers.isLoading ? (
+        {organizationMembersQuery.isLoading ? (
           <LoadingSpinner />
         ) : teamMembersToDisplay.length > 0 &&
-          !organizationMembers.isLoading ? (
+          !organizationMembersQuery.isLoading ? (
           teamMembersToDisplay?.map((member) => (
             <TeamMember
               key={member?.user_id}
               member={member}
-              changeUserRole={changeUserRole}
-              allMemberRoles={allMemberRoles as Role[]}
+              handleRoleChange={handleRoleChange}
+              handleLeaveOrg={handleLeaveOrg}
+              handleDeleteMember={handleDeleteMember}
               user={user}
             />
           ))

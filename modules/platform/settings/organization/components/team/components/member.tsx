@@ -1,48 +1,60 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import useToggle from '@/shared/hooks/toggle';
 import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 import { cn } from '@/shared/utils/cn';
-import { MemberProps, Role } from '../../../types';
+import { ExcludeOwner, MemberProps } from '../../../types';
 import { useOrganizationStore } from '@/shared/stores/organization';
-import { trpc } from '@/shared/utils/trpc/trpc';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import ModalPrompt from '../../prompt';
+import { ROLES } from '@/shared/constants/organization';
 
 interface TeamMemberProps {
   member: MemberProps;
-  changeUserRole?: (role: Role, id?: string) => void;
-  allMemberRoles?: MemberProps['role'][];
+  handleRoleChange?: (user_id: string, role: ExcludeOwner) => Promise<void>;
+  handleLeaveOrg?: () => Promise<void>;
+  handleDeleteMember?: (user_id: string) => Promise<void>;
   user: any;
 }
 
 export default function TeamMember({
   member,
-  changeUserRole,
-  allMemberRoles,
-  user
+  user,
+  handleRoleChange,
+  handleLeaveOrg,
+  handleDeleteMember
 }: TeamMemberProps) {
   const memberRef = useRef(null);
+  const toast = useToast();
   const { isOn, setOff, setOn } = useToggle();
   const [canRemove, setCanRemove] = useState(false);
-  const userOrg = trpc.organization.getUserPersonalOrganization.useQuery().data;
-
-  console.log(userOrg);
+  const [memberRole, setMemberRole] = useState<ExcludeOwner>('reader');
+  const isLoading = useOrganizationStore((state) => state.isLoading);
 
   useOnClickOutside(memberRef, setOff);
 
   const ownerRole = member.role === 'owner';
-  const isCurrentUser = member.user_id === user.id;
+  const isCurrentUser = member.user_id === user?.id;
 
-  useEffect(() => {
-    if (user.id === member.user_id) {
-      setCanRemove(ownerRole && member.role !== 'owner');
-    } else {
-      setCanRemove(member.role !== 'owner' && member.role !== 'manager');
+  const allMemberRoles = useMemo(() => {
+    const excludedRoles = ['Team roles', 'owner'];
+    if (member.role === 'manager') {
+      excludedRoles.push('manager');
     }
-  }, [user.id, ownerRole, member.role]);
+    return ROLES.filter((role) => !excludedRoles.includes(role.value)).map(
+      (role) => role.value
+    );
+  }, [member.role]);
 
-  function handleUserRole(role: Role) {
-    changeUserRole?.(role, member?.user_id);
+  async function handleUserRole(role: ExcludeOwner) {
+    if (role === memberRole)
+      return toast.toast({
+        description: 'Role already exists',
+        style: { color: 'red' }
+      });
+    await handleRoleChange?.(member.user_id, role as ExcludeOwner);
+    setMemberRole(role);
     setOff();
   }
 
@@ -50,6 +62,20 @@ export default function TeamMember({
     if (ownerRole) return;
     setOn();
   }
+
+  useEffect(() => {
+    if (member?.role) {
+      setMemberRole(member.role as ExcludeOwner);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user?.id === member.user_id) {
+      setCanRemove(ownerRole && member.role !== 'owner');
+    } else {
+      setCanRemove(member.role !== 'owner');
+    }
+  }, [user?.id, ownerRole, member.role]);
 
   return (
     <div className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between border rounded-md px-2 py-4 sm:p-4 text-card-foreground hover:opacity-80 w-full max-sm:gap-2">
@@ -61,7 +87,7 @@ export default function TeamMember({
       </div>
       <div className="relative basis-1/3">
         <div
-          className="border w-28 p-2 text-center rounded-md capitalize flex justify-between items-center"
+          className="border w-28 p-2 cursor-pointer text-center rounded-md capitalize flex justify-between items-center"
           onClick={handleModal}
         >
           <span>{member.role}</span>
@@ -75,29 +101,45 @@ export default function TeamMember({
           )}
         >
           {allMemberRoles?.map((role) => (
-            <li
-              onClick={() => handleUserRole(role)}
-              className="hover:text-secondary hover:bg-foreground capitalize w-full py-2 text-center"
-            >
-              {role}
+            <li className="hover:text-secondary hover:bg-foreground capitalize w-full py-2 text-center">
+              <ModalPrompt
+                content={`Do you wish to change the role for ${member.name || ''}?`}
+                isLoading={isLoading}
+                handleLeftClick={() => null}
+                handleRightClick={() => handleUserRole(role as ExcludeOwner)}
+              >
+                <Button
+                  variant="ghost"
+                  className="capitalize hover:bg-transparent hover:text-black transition-none"
+                  aria-label={role}
+                >
+                  {role}
+                </Button>
+              </ModalPrompt>
             </li>
           ))}
         </ul>
       </div>
       <div className="w-full sm:max-w-[86px] flex justify-center mt-2 md:mt-0">
-        {isCurrentUser ? (
-          <>
-            {ownerRole && canRemove ? (
-              <Button className={cn('h-7 sm:h-10 sm:w-full')}>Remove</Button>
-            ) : (
-              !ownerRole && (
-                <Button className={cn('h-7 sm:h-10 sm:w-full')}>Leave</Button>
-              )
-            )}
-          </>
+        {isCurrentUser && member.role !== 'owner' ? (
+          <ModalPrompt
+            content={`Can you confirm you're leaving?`}
+            isLoading={isLoading}
+            handleLeftClick={() => null}
+            handleRightClick={handleLeaveOrg as () => void}
+          >
+            <Button className={cn('h-7 sm:h-10 sm:w-full')}>Leave</Button>
+          </ModalPrompt>
         ) : (
           canRemove && (
-            <Button className={cn('h-7 sm:h-10 sm:w-full')}>Remove</Button>
+            <ModalPrompt
+              content={`Would you like to remove ${member.name || ''} from this organization?`}
+              isLoading={isLoading}
+              handleLeftClick={() => null}
+              handleRightClick={() => handleDeleteMember?.(member.user_id)}
+            >
+              <Button className={cn('h-7 sm:h-10 sm:w-full')}>Remove</Button>
+            </ModalPrompt>
           )
         )}
       </div>

@@ -237,7 +237,7 @@ const organizationRouter = router({
       z.object({
         id: z.string(),
         email: z.string().email(),
-        role: z.enum(['manager', 'member', 'reader'])
+        role: z.enum(['manager', 'reader'])
       })
     )
     .mutation(async ({ ctx, input: { id, email, role } }) => {
@@ -344,22 +344,24 @@ const organizationRouter = router({
       // make new invite
 
       const host_url = getURL();
-      const mail = mailer();
+      // const mail = mailer();
 
       const secret_code = uuidv4();
       const accept_code_api = 'organization/accept-invite';
       const html = `You have been invited to join ${org?.name} Organization. Click here to accept: ${host_url}api/${accept_code_api}?code=${secret_code}`;
 
+      console.log({ html });
+
       try {
-        const sendEmail = await mail.sendMail({
-          from: `kye@apac.ai`,
-          to: email,
-          subject: 'Invitation to join organization',
-          html
-        });
-        if (!sendEmail) {
-          throw new Error('Failed to send email');
-        }
+        // const sendEmail = await mail.sendMail({
+        //   from: `kye@apac.ai`,
+        //   to: email,
+        //   subject: 'Invitation to join organization',
+        //   html
+        // });
+        // if (!sendEmail) {
+        //   throw new Error('Failed to send email');
+        // }
 
         const res = await ctx.supabase
           .from('swarms_cloud_organization_member_invites')
@@ -432,6 +434,113 @@ const organizationRouter = router({
         .from('swarms_cloud_organization_member_invites')
         .update({ status: 'canceled' })
         .eq('id', invites.data[0].id);
+
+      return true;
+    }),
+
+  leaveOrganization: userProcedure
+    .input(
+      z.object({
+        organization_id: z.string()
+      })
+    )
+    .mutation(async ({ ctx, input: { organization_id } }) => {
+      const user = ctx.session.data.session?.user as User;
+
+      const userRole = await getUserOrganizationRole(organization_id, user.id);
+
+      if (!userRole) {
+        throw new Error('Access denied');
+      }
+
+      if (userRole == 'owner') {
+        throw new Error('Owner can not leave organization');
+      }
+
+      const member = await ctx.supabase
+        .from('swarms_cloud_organization_members')
+        .select('*')
+        .eq('organization_id', organization_id)
+        .eq('user_id', user.id)
+        .filter('is_deleted', 'not.is', 'true')
+        .limit(1);
+
+      if (!member.data?.length) {
+        throw new Error('User not member of this organization');
+      }
+      await ctx.supabase
+        .from('swarms_cloud_organization_members')
+        .update({ is_deleted: true })
+        .eq('id', member.data[0].id);
+
+      return true;
+    }),
+  deleteMember: userProcedure
+    .input(
+      z.object({
+        organization_id: z.string(),
+        user_id: z.string()
+      })
+    )
+    .mutation(async ({ ctx, input: { organization_id, user_id } }) => {
+      const user = ctx.session.data.session?.user as User;
+
+      const userRole = await getUserOrganizationRole(organization_id, user.id);
+
+      if (!userRole || userRole == 'reader') {
+        throw new Error('Access denied');
+      }
+
+      const member = await ctx.supabase
+        .from('swarms_cloud_organization_members')
+        .select('*')
+        .eq('organization_id', organization_id)
+        .eq('user_id', user_id)
+        .filter('is_deleted', 'not.is', 'true')
+        .limit(1);
+
+      if (!member.data?.length) {
+        throw new Error('User not member of this organization');
+      }
+      await ctx.supabase
+        .from('swarms_cloud_organization_members')
+        .update({ is_deleted: true, deleted_by_user_id: user.id })
+        .eq('id', member.data[0].id);
+
+      return true;
+    }),
+  changeMemberRole: userProcedure
+    .input(
+      z.object({
+        organization_id: z.string(),
+        user_id: z.string(),
+        role: z.enum(['manager', 'reader'])
+      })
+    )
+    .mutation(async ({ ctx, input: { organization_id, user_id, role } }) => {
+      const user = ctx.session.data.session?.user as User;
+
+      const userRole = await getUserOrganizationRole(organization_id, user.id);
+
+      if (!userRole || userRole == 'reader') {
+        throw new Error('Access denied');
+      }
+
+      const member = await ctx.supabase
+        .from('swarms_cloud_organization_members')
+        .select('*')
+        .eq('organization_id', organization_id)
+        .eq('user_id', user_id)
+        .filter('is_deleted', 'not.is', 'true')
+        .limit(1);
+
+      if (!member.data?.length) {
+        throw new Error('User not member of this organization');
+      }
+      await ctx.supabase
+        .from('swarms_cloud_organization_members')
+        .update({ role })
+        .eq('id', member.data[0].id);
 
       return true;
     })

@@ -1,6 +1,6 @@
-export type Role = 'manager' | 'reader' | 'owner' | 'member';
+export type Role = 'manager' | 'reader' | 'owner';
 
-export type InviteRole = Exclude<Role, 'owner'>;
+export type ExcludeOwner = Exclude<Role, 'owner'>;
 
 export interface MemberProps {
   email?: string;
@@ -40,4 +40,10 @@ export interface UserOrganizationProps extends DetailsProps {
 export interface UserOrganizationsProps {
   organization: UserOrganizationProps;
   role: Role;
+}
+
+export type PromiseResProps = {
+  role?: ExcludeOwner;
+  organization_id: string;
+  user_id?: string;
 }

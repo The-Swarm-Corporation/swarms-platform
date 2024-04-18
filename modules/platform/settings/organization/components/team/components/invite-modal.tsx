@@ -17,34 +17,25 @@ import {
 } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
-import {
-  InviteRole,
-  OptionRoles,
-  Role,
-  UserOrganizationsProps
-} from '../../../types';
+import { ExcludeOwner } from '../../../types';
 import { emailRegExp } from './const';
 import { cn } from '@/shared/utils/cn';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import LoadingSpinner from '@/shared/components/loading-spinner';
-import confetti from 'canvas-confetti';
 import { ROLES } from '@/shared/constants/organization';
 
-interface InviteModalProps {
-  userOrgId: string;
-  currentOrganization: UserOrganizationsProps;
-}
+export default function InviteModal() {
+  const userOrgId = useOrganizationStore((state) => state.userOrgId);
+  const currentOrganization = useOrganizationStore(
+    (state) => state.currentOrganization
+  );
 
-export default function InviteModal({
-  userOrgId,
-  currentOrganization
-}: InviteModalProps) {
   const inviteEmailMutation =
     trpc.organization.inviteMemberByEmail.useMutation();
-  const pendingInvites = trpc.organization.pendingInvites.useQuery({
-    organization_id: userOrgId
+  const pendingInvitesQuery = trpc.organization.pendingInvites.useQuery({
+    organization_id: userOrgId ?? ''
   });
 
   const toast = useToast();
@@ -53,7 +44,7 @@ export default function InviteModal({
   const [email, setEmail] = useState('');
   const [isValidEmail, setIsValidEmail] = useState(true);
 
-  const [inviteRole, setInviteRole] = useState<InviteRole | string>(
+  const [inviteRole, setInviteRole] = useState<ExcludeOwner | string>(
     ROLES[ROLES.length - 1]?.value
   );
   const [invites, setInvites] = useState([{ role: 'reader' }]);
@@ -103,16 +94,15 @@ export default function InviteModal({
     try {
       const response = await inviteEmailMutation.mutateAsync({
         email,
-        role: inviteRole as InviteRole,
+        role: inviteRole as ExcludeOwner,
         id: userOrgId
       });
-      console.log(response);
       if (response) {
         toast.toast({
           description: `${email} has been invited to join your organization.`,
           style: { color: 'green' }
         });
-        pendingInvites.refetch();
+        pendingInvitesQuery.refetch();
       }
     } catch (error) {
       console.log(error);
@@ -217,14 +207,14 @@ export default function InviteModal({
             Please enter a valid email address
           </small>
           <DialogFooter className="sm:justify-between mt-3">
-            <Button
+            {/* <Button
               type="button"
               variant="outline"
               className="gap-2"
               onClick={addMoreInvites}
             >
               <PlusCircle size={15} /> Add more
-            </Button>
+            </Button> */}
             <Button type="submit" className="w-1/3" disabled={!isValidEmail}>
               {isLoading ? <LoadingSpinner /> : inviteButtonText}
             </Button>

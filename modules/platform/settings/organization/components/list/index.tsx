@@ -24,37 +24,34 @@ import {
 } from '@/shared/components/ui/select';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
-import {
-  Role,
-  UserOrganizationProps,
-  UserOrganizationsProps
-} from '../../types';
+import { Role, UserOrganizationProps } from '../../types';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import OrganizationListItem from './components/item';
-import { debounce, isEmpty } from '@/shared/utils/helpers';
+import { isEmpty } from '@/shared/utils/helpers';
 
 interface ListProps {
-  organizationList: UserOrganizationsProps[];
-  handleCurrentOrgId: (id: string) => void;
-  currentOrgId: string;
-  userOrgId: string;
   userOrganization: UserOrganizationProps | null;
 }
 
-export default function OrganizationList({
-  organizationList,
-  currentOrgId,
-  userOrgId,
-  userOrganization,
-  handleCurrentOrgId
-}: ListProps) {
-  const userOrganizations = trpc.organization.getUserOrganizations.useQuery();
+export default function OrganizationList({ userOrganization }: ListProps) {
+  const userOrganizationsQuery =
+    trpc.organization.getUserOrganizations.useQuery();
+  const userOrganizationQuery =
+    trpc.organization.getUserPersonalOrganization.useQuery();
   const createOrgMutation = trpc.organization.createOrganization.useMutation();
 
   const isLoading = useOrganizationStore((state) => state.isLoading);
+  const userOrgId = useOrganizationStore((state) => state.userOrgId);
+  const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
+  const organizationList = useOrganizationStore(
+    (state) => state.organizationList
+  );
+  const setCurrentOrgId = useOrganizationStore(
+    (state) => state.setCurrentOrgId
+  );
 
   const toast = useToast();
   const [organizationName, setOrganizationName] = useState('');
@@ -67,13 +64,15 @@ export default function OrganizationList({
     [organizationList, currentOrgId]
   );
 
+  console.log({ currentOrgId });
+
   function handleFilterOrg(value: string) {
     if (value !== 'select-org') {
       setFilterOrg(value);
-      handleCurrentOrgId(value);
+      setCurrentOrgId(value);
     } else {
       setFilterOrg(activeOrgId ?? '');
-      handleCurrentOrgId(activeOrgId ?? '');
+      setCurrentOrgId(activeOrgId ?? '');
     }
   }
 
@@ -84,8 +83,6 @@ export default function OrganizationList({
     organization: UserOrganizationProps;
     role: Role;
   };
-
-  console.log({ orgToDisplay, activeOrgId, currentOrgId });
 
   const ListOfOrgs = useMemo(() => {
     return organizationList.reduce(
@@ -106,7 +103,8 @@ export default function OrganizationList({
     const name = organizationName.trim();
     if (name && name.length < 3) {
       toast.toast({
-        description: 'Organization name must be at least 3 characters long'
+        description: 'Organization name must be at least 3 characters long',
+        style: { color: 'red' }
       });
       return;
     }
@@ -126,11 +124,15 @@ export default function OrganizationList({
         spread: 90,
         origin: { y: 0.6 }
       });
-      userOrganizations.refetch();
+      userOrganizationQuery.refetch();
+      userOrganizationsQuery.refetch();
     } catch (error) {
       console.log(error);
       if ((error as any)?.message) {
-        toast.toast({ description: (error as any)?.message });
+        toast.toast({
+          description: (error as any)?.message,
+          style: { color: 'red' }
+        });
       }
     } finally {
       useOrganizationStore.getState().setIsLoading(false);
@@ -156,7 +158,7 @@ export default function OrganizationList({
                 variant="secondary"
                 aria-label="Create organization"
                 title={
-                  !!userOrgId
+                  userOrgId
                     ? 'User already has an organization'
                     : 'Create organization'
                 }
@@ -200,11 +202,11 @@ export default function OrganizationList({
         <h4 className="mb-3 text-muted-foreground">Personal organization</h4>
 
         <div className="flex flex-col items-center justify-center w-full">
-          {userOrganizations.isLoading ? (
+          {userOrganizationsQuery.isLoading ? (
             <LoadingSpinner />
           ) : userOrganization?.owner_user_id &&
-            !userOrganizations.isLoading ? (
-            <div className='w-full'>
+            !userOrganizationsQuery.isLoading ? (
+            <div className="w-full">
               <OrganizationListItem
                 {...userOrganization}
                 role="owner"
@@ -238,16 +240,15 @@ export default function OrganizationList({
         </div>
 
         <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground mb-8 gap-2">
-          {userOrganizations.isLoading ? (
+          {userOrganizationsQuery.isLoading ? (
             <LoadingSpinner />
-          ) : !isEmpty(orgToDisplay) && !userOrganizations.isLoading ? (
+          ) : !isEmpty(orgToDisplay) && !userOrganizationsQuery.isLoading ? (
             <OrganizationListItem
               isActive={currentOrgId === orgToDisplay?.organization?.id}
               role={orgToDisplay?.role}
               name={orgToDisplay?.organization?.name}
-              id={userOrgId}
               handleCurrentOrgId={() =>
-                handleCurrentOrgId(orgToDisplay?.organization?.id)
+                setCurrentOrgId(orgToDisplay?.organization?.id)
               }
             />
           ) : (

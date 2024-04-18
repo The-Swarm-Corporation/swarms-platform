@@ -1,15 +1,21 @@
 import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { trpc } from '../utils/trpc/trpc';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { UserOrganizationsProps } from '@/modules/platform/settings/organization/types';
 import { isEmpty } from '../utils/helpers';
 
 interface OrganizationStore {
+  currentOrganization: UserOrganizationsProps;
+  organizationList: UserOrganizationsProps[];
   userOrgId: string | null;
   isLoading: boolean;
-  setIsLoading(isLoading: boolean): void;
+  currentOrgId: string;
   setUserOrgId(id: string): void;
+  setIsLoading(isLoading: boolean): void;
+  setCurrentOrgId(userOrgId: string): void;
+  setOrganizationList(organizationList: UserOrganizationsProps[]): void;
+  setCurrentOrganization(currentOrganization: UserOrganizationsProps): void;
 }
 
 export const useOrganizationStore = create<OrganizationStore>(
@@ -17,6 +23,12 @@ export const useOrganizationStore = create<OrganizationStore>(
     (set) => ({
       isLoading: false,
       userOrgId: null,
+      currentOrgId: '',
+      organizationList: [],
+      currentOrganization: {
+        role: 'reader',
+        organization: { id: '', name: '' }
+      },
       setUserOrgId(userOrgId: string) {
         set((state) => ({
           ...state,
@@ -27,6 +39,24 @@ export const useOrganizationStore = create<OrganizationStore>(
         set((state) => ({
           ...state,
           isLoading
+        }));
+      },
+      setCurrentOrgId(currentOrgId: string) {
+        set((state) => ({
+          ...state,
+          currentOrgId
+        }));
+      },
+      setOrganizationList(organizationList: UserOrganizationsProps[]) {
+        set((state) => ({
+          ...state,
+          organizationList
+        }));
+      },
+      setCurrentOrganization(currentOrganization: UserOrganizationsProps) {
+        set((state) => ({
+          ...state,
+          currentOrganization
         }));
       }
     }),
@@ -40,63 +70,69 @@ export const useOrganizationStore = create<OrganizationStore>(
 );
 
 export const useOrganizations = () => {
-  const [currentOrgId, setCurrentOrgId] = useState('');
-  const [organizationList, setOrganizationList] = useState<
-    UserOrganizationsProps[]
-  >([]);
-
-  const userOrganization =
+  const userOrganizationQuery =
     trpc.organization.getUserPersonalOrganization.useQuery().data;
-  const userOrganizations =
+  const userOrganizationsQuery =
     trpc.organization.getUserOrganizations.useQuery().data;
+  const organizationList = useOrganizationStore(
+    (state) => state.organizationList
+  );
+  const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
 
   const filteredOrganizations = useMemo(() => {
-    if (!isEmpty(userOrganizations) && userOrganization?.data?.id) {
-      return userOrganizations?.filter(
-        (org) => org.organization.id !== userOrganization.data.id
+    if (!isEmpty(userOrganizationsQuery) && userOrganizationQuery?.data?.id) {
+      return userOrganizationsQuery?.filter(
+        (org) => org.organization.id !== userOrganizationQuery.data.id
       );
     } else {
-      return userOrganizations;
+      return userOrganizationsQuery;
     }
-  }, [userOrganizations, userOrganization?.data?.id]);
+  }, [userOrganizationsQuery, userOrganizationQuery?.data?.id]);
 
   const currentOrganization = useMemo(
     () =>
-      userOrganizations?.find((org) => org.organization.id === currentOrgId),
-    [userOrganizations, currentOrgId]
+      userOrganizationsQuery?.find(
+        (org) => org.organization.id === currentOrgId
+      ),
+    [userOrganizationsQuery, currentOrgId]
   );
 
-  const handleCurrentOrgId = (id: string) => {
-    setCurrentOrgId(id);
-  };
+  const currentId = userOrganizationQuery?.data?.id
+    ? userOrganizationQuery?.data?.id
+    : organizationList?.[0]?.organization?.id;
 
   useEffect(() => {
-    const currentId = userOrganization?.data?.id
-      ? userOrganization?.data?.id
-      : organizationList?.[0]?.organization?.id;
-
-    if (userOrganization?.data?.id) {
-      useOrganizationStore.getState().setUserOrgId(userOrganization?.data?.id);
-    }
-
     if (currentId) {
-      setCurrentOrgId(currentId);
+      useOrganizationStore.getState().setCurrentOrgId(currentId);
+    }
+  }, [currentId]);
+
+  useEffect(() => {
+    if (userOrganizationQuery?.data?.id) {
+      useOrganizationStore
+        .getState()
+        .setUserOrgId(userOrganizationQuery?.data?.id);
     }
 
-    if (filteredOrganizations && filteredOrganizations.length > 0) {
-      setOrganizationList(filteredOrganizations as UserOrganizationsProps[]);
+    if (!isEmpty(filteredOrganizations)) {
+      useOrganizationStore
+        .getState()
+        .setOrganizationList(filteredOrganizations as UserOrganizationsProps[]);
+    }
+
+    if (!isEmpty(currentOrganization)) {
+      useOrganizationStore
+        .getState()
+        .setCurrentOrganization(currentOrganization as UserOrganizationsProps);
     }
   }, [
-    userOrganization?.data?.id,
+    userOrganizationQuery?.data?.id,
     organizationList?.[0]?.organization?.id,
     filteredOrganizations,
+    currentOrganization
   ]);
 
   return {
-    organizationList,
-    currentOrgId,
-    currentOrganization,
-    userOrganization,
-    handleCurrentOrgId
+    userOrganization: userOrganizationQuery
   };
 };
