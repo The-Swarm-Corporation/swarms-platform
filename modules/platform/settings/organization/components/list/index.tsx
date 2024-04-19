@@ -1,12 +1,5 @@
-import React, {
-  FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState
-} from 'react';
+import React, { memo } from 'react';
 import { Plus } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import {
   Dialog,
   DialogContent,
@@ -24,127 +17,36 @@ import {
 } from '@/shared/components/ui/select';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
-import { Role, UserOrganizationProps } from '../../types';
+import { UserOrganizationProps } from '../../types';
 import { useOrganizationStore } from '@/shared/stores/organization';
-import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import LoadingSpinner from '@/shared/components/loading-spinner';
-import { trpc } from '@/shared/utils/trpc/trpc';
 import OrganizationListItem from './components/item';
 import { isEmpty } from '@/shared/utils/helpers';
+import { useOrganizationList } from '../../hooks/component-hooks/useOrganizationList';
+import { useQueryMutaion } from '../../hooks/useQueryMutation';
 
 interface ListProps {
-  userOrganization: UserOrganizationProps | null;
+  userOrgData: UserOrganizationProps | null;
 }
 
-export default function OrganizationList({ userOrganization }: ListProps) {
-  const userOrganizationsQuery =
-    trpc.organization.getUserOrganizations.useQuery();
-  const userOrganizationQuery =
-    trpc.organization.getUserPersonalOrganization.useQuery();
-  const createOrgMutation = trpc.organization.createOrganization.useMutation();
+function OrganizationList({ userOrgData }: ListProps) {
+  const {
+    createOrganization,
+    updateOrganization,
+    handleFilterOrg,
+    listOfOrgs,
+    filteredOrg,
+    filterOrg
+  } = useOrganizationList();
 
-  const isLoading = useOrganizationStore((state) => state.isLoading);
+  const { query } = useQueryMutaion({});
+
   const userOrgId = useOrganizationStore((state) => state.userOrgId);
+  const isLoading = useOrganizationStore((state) => state.isLoading);
   const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
-  const organizationList = useOrganizationStore(
-    (state) => state.organizationList
-  );
   const setCurrentOrgId = useOrganizationStore(
     (state) => state.setCurrentOrgId
   );
-
-  const toast = useToast();
-  const [organizationName, setOrganizationName] = useState('');
-
-  const [filterOrg, setFilterOrg] = useState('select-org');
-  const activeOrgId = useMemo(
-    () =>
-      organizationList.find((org) => org?.organization?.id === currentOrgId)
-        ?.organization?.id,
-    [organizationList, currentOrgId]
-  );
-
-  console.log({ currentOrgId });
-
-  function handleFilterOrg(value: string) {
-    if (value !== 'select-org') {
-      setFilterOrg(value);
-      setCurrentOrgId(value);
-    } else {
-      setFilterOrg(activeOrgId ?? '');
-      setCurrentOrgId(activeOrgId ?? '');
-    }
-  }
-
-  const orgToDisplay = useMemo(() => {
-    if (!organizationList) return {};
-    return organizationList.find((org) => org?.organization?.id === filterOrg);
-  }, [organizationList, filterOrg]) as {
-    organization: UserOrganizationProps;
-    role: Role;
-  };
-
-  const ListOfOrgs = useMemo(() => {
-    return organizationList.reduce(
-      (acc, curr) => {
-        acc.push({
-          name: curr?.organization?.name,
-          id: curr?.organization?.id
-        });
-        return acc;
-      },
-      [{ name: 'Select an organization', id: 'select-org' }]
-    );
-  }, [organizationList]);
-
-  async function handleCreateOrg(e: FormEvent) {
-    e.preventDefault();
-
-    const name = organizationName.trim();
-    if (name && name.length < 3) {
-      toast.toast({
-        description: 'Organization name must be at least 3 characters long',
-        style: { color: 'red' }
-      });
-      return;
-    }
-
-    useOrganizationStore.getState().setIsLoading(true);
-
-    try {
-      const response = await createOrgMutation.mutateAsync({
-        name: organizationName
-      });
-      console.log(response);
-      toast.toast({
-        description: `${organizationName} organization created.`
-      });
-      confetti({
-        particleCount: 150,
-        spread: 90,
-        origin: { y: 0.6 }
-      });
-      userOrganizationQuery.refetch();
-      userOrganizationsQuery.refetch();
-      setOrganizationName("");
-    } catch (error) {
-      console.log(error);
-      if ((error as any)?.message) {
-        toast.toast({
-          description: (error as any)?.message,
-          style: { color: 'red' }
-        });
-      }
-    } finally {
-      useOrganizationStore.getState().setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (activeOrgId) {
-      setFilterOrg(activeOrgId);
-    }
-  }, [activeOrgId]);
 
   return (
     <section className="mt-9">
@@ -172,28 +74,26 @@ export default function OrganizationList({ userOrganization }: ListProps) {
               <DialogHeader>
                 <DialogTitle>Create a new organization</DialogTitle>
               </DialogHeader>
-              <div className="mt-2">
+              <form onSubmit={createOrganization} className="mt-2">
                 <label htmlFor="name" className="text-right">
                   Name
                 </label>
                 <Input
                   id="name"
-                  value={organizationName}
+                  name="name"
+                  aria-label="Name"
                   className="my-2 w-full"
-                  onChange={(value) => {
-                    setOrganizationName(value);
-                  }}
                 />
                 <DialogFooter className="mt-3 sm:justify-center">
                   <Button
+                    type="submit"
                     className="w-2/4"
                     aria-label="Create organization"
-                    onClick={handleCreateOrg}
                   >
                     {isLoading ? <LoadingSpinner /> : 'Create'}
                   </Button>
                 </DialogFooter>
-              </div>
+              </form>
             </DialogContent>
           </Dialog>
         </div>
@@ -203,20 +103,23 @@ export default function OrganizationList({ userOrganization }: ListProps) {
         <h4 className="mb-3 text-muted-foreground">Personal organization</h4>
 
         <div className="flex flex-col items-center justify-center w-full">
-          {userOrganizationsQuery.isLoading ? (
+          {query.organization.isLoading ? (
             <LoadingSpinner />
-          ) : userOrganization?.owner_user_id &&
-            !userOrganizationsQuery.isLoading ? (
+          ) : userOrgData?.owner_user_id && !query.organization.isLoading ? (
             <div className="w-full">
               <OrganizationListItem
-                {...userOrganization}
+                {...userOrgData}
                 role="owner"
-                isActive={currentOrgId === userOrganization.id}
+                isActive={currentOrgId === userOrgData.id}
+                updateOrganization={updateOrganization}
+                handleCurrentOrgId={() =>
+                  setCurrentOrgId(userOrgData.id)
+                }
               />
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground mb-8 gap-2 w-full">
-              <h3 className="opacity-60">No Organization Created</h3>
+              <h3 className="opacity-60">No Personal Organization Created</h3>
             </div>
           )}
         </div>
@@ -231,7 +134,7 @@ export default function OrganizationList({ userOrganization }: ListProps) {
               <SelectValue placeholder={filterOrg} />
             </SelectTrigger>
             <SelectContent>
-              {ListOfOrgs?.map((org) => (
+              {listOfOrgs?.map((org) => (
                 <SelectItem key={org.id} value={org.id}>
                   {org.name}
                 </SelectItem>
@@ -241,15 +144,15 @@ export default function OrganizationList({ userOrganization }: ListProps) {
         </div>
 
         <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground mb-8 gap-2">
-          {userOrganizationsQuery.isLoading ? (
+          {query.organizations.isLoading ? (
             <LoadingSpinner />
-          ) : !isEmpty(orgToDisplay) && !userOrganizationsQuery.isLoading ? (
+          ) : !isEmpty(filteredOrg) && !query.organizations.isLoading ? (
             <OrganizationListItem
-              isActive={currentOrgId === orgToDisplay?.organization?.id}
-              role={orgToDisplay?.role}
-              name={orgToDisplay?.organization?.name}
+              isActive={currentOrgId === filteredOrg?.organization?.id}
+              role={filteredOrg?.role}
+              name={filteredOrg?.organization?.name}
               handleCurrentOrgId={() =>
-                setCurrentOrgId(orgToDisplay?.organization?.id)
+                setCurrentOrgId(filteredOrg?.organization?.id)
               }
             />
           ) : (
@@ -262,3 +165,5 @@ export default function OrganizationList({ userOrganization }: ListProps) {
     </section>
   );
 }
+
+export default memo(OrganizationList);

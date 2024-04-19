@@ -102,8 +102,7 @@ export default function TeamMember({
                 <ModalPrompt
                   content={`Do you wish to change the role for ${member.name || ''}?`}
                   isLoading={isLoading}
-                  handleLeftClick={() => null}
-                  handleRightClick={() => handleUserRole(role as ExcludeOwner)}
+                  handleClick={() => handleUserRole(role as ExcludeOwner)}
                 >
                   <Button
                     variant="ghost"
@@ -124,8 +123,7 @@ export default function TeamMember({
           <ModalPrompt
             content={`Can you confirm you're leaving?`}
             isLoading={isLoading}
-            handleLeftClick={() => null}
-            handleRightClick={handleLeaveOrg as () => void}
+            handleClick={handleLeaveOrg as () => void}
           >
             <Button className={cn('h-7 sm:h-10 sm:w-full')}>Leave</Button>
           </ModalPrompt>
@@ -137,8 +135,7 @@ export default function TeamMember({
           <ModalPrompt
             content={`Would you like to remove ${member.name || ''} from this organization?`}
             isLoading={isLoading}
-            handleLeftClick={() => null}
-            handleRightClick={() => handleDeleteMember?.(member.user_id)}
+            handleClick={() => handleDeleteMember?.(member.user_id)}
           >
             <Button className={cn('h-7 sm:h-10 sm:w-full')}>Remove</Button>
           </ModalPrompt>

@@ -1,16 +1,15 @@
 import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { trpc } from '../utils/trpc/trpc';
-import { useEffect, useMemo } from 'react';
 import { UserOrganizationsProps } from '@/modules/platform/settings/organization/types';
-import { isEmpty } from '../utils/helpers';
 
 interface OrganizationStore {
   currentOrganization: UserOrganizationsProps;
   organizationList: UserOrganizationsProps[];
   userOrgId: string | null;
   isLoading: boolean;
+  isOpenModal: boolean;
   currentOrgId: string;
+  setIsOpenModal(isOpen: boolean): void;
   setUserOrgId(id: string): void;
   setIsLoading(isLoading: boolean): void;
   setCurrentOrgId(userOrgId: string): void;
@@ -24,6 +23,7 @@ export const useOrganizationStore = create<OrganizationStore>(
       isLoading: false,
       userOrgId: null,
       currentOrgId: '',
+      isOpenModal: false,
       organizationList: [],
       currentOrganization: {
         role: 'reader',
@@ -47,6 +47,12 @@ export const useOrganizationStore = create<OrganizationStore>(
           currentOrgId
         }));
       },
+      setIsOpenModal(isOpenModal: boolean) {
+        set((state) => ({
+          ...state,
+          isOpenModal
+        }));
+      },
       setOrganizationList(organizationList: UserOrganizationsProps[]) {
         set((state) => ({
           ...state,
@@ -68,71 +74,3 @@ export const useOrganizationStore = create<OrganizationStore>(
     }
   ) as StateCreator<OrganizationStore, [], []>
 );
-
-export const useOrganizations = () => {
-  const userOrganizationQuery =
-    trpc.organization.getUserPersonalOrganization.useQuery().data;
-  const userOrganizationsQuery =
-    trpc.organization.getUserOrganizations.useQuery().data;
-  const organizationList = useOrganizationStore(
-    (state) => state.organizationList
-  );
-  const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
-
-  const filteredOrganizations = useMemo(() => {
-    if (!isEmpty(userOrganizationsQuery) && userOrganizationQuery?.data?.id) {
-      return userOrganizationsQuery?.filter(
-        (org) => org.organization.id !== userOrganizationQuery.data.id
-      );
-    } else {
-      return userOrganizationsQuery;
-    }
-  }, [userOrganizationsQuery, userOrganizationQuery?.data?.id]);
-
-  const currentOrganization = useMemo(
-    () =>
-      userOrganizationsQuery?.find(
-        (org) => org.organization.id === currentOrgId
-      ),
-    [userOrganizationsQuery, currentOrgId]
-  );
-
-  const currentId = userOrganizationQuery?.data?.id
-    ? userOrganizationQuery?.data?.id
-    : organizationList?.[0]?.organization?.id;
-
-  useEffect(() => {
-    if (currentId) {
-      useOrganizationStore.getState().setCurrentOrgId(currentId);
-    }
-  }, [currentId]);
-
-  useEffect(() => {
-    if (userOrganizationQuery?.data?.id) {
-      useOrganizationStore
-        .getState()
-        .setUserOrgId(userOrganizationQuery?.data?.id);
-    }
-
-    if (!isEmpty(filteredOrganizations)) {
-      useOrganizationStore
-        .getState()
-        .setOrganizationList(filteredOrganizations as UserOrganizationsProps[]);
-    }
-
-    if (!isEmpty(currentOrganization)) {
-      useOrganizationStore
-        .getState()
-        .setCurrentOrganization(currentOrganization as UserOrganizationsProps);
-    }
-  }, [
-    userOrganizationQuery?.data?.id,
-    organizationList?.[0]?.organization?.id,
-    filteredOrganizations,
-    currentOrganization
-  ]);
-
-  return {
-    userOrganization: userOrganizationQuery
-  };
-};

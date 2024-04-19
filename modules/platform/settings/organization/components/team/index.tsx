@@ -13,8 +13,6 @@ import TeamMember from './components/member';
 import {
   ExcludeOwner,
   MemberProps,
-  Role,
-  UserOrganizationsProps
 } from '../../types';
 import InviteModal from './components/invite-modal';
 import { cn } from '@/shared/utils/cn';
@@ -38,7 +36,6 @@ export default function OrganizationTeam({ user }: OrganizationTeamProps) {
   const organizationMembersQuery = trpc.organization.members.useQuery({
     id: currentOrgId
   });
-  console.log({ orgMem: organizationMembersQuery.data });
   const userOrganizationsQuery =
     trpc.organization.getUserOrganizations.useQuery();
 
@@ -99,7 +96,6 @@ export default function OrganizationTeam({ user }: OrganizationTeamProps) {
 
     try {
       const response = await mutationFunction.mutateAsync(data);
-      console.log({ response });
       if (response) {
         toast.toast({ description: toastMessage });
         organizationMembersQuery.refetch();

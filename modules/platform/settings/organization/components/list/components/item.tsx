@@ -1,4 +1,4 @@
-import React, { FormEvent, useRef, useState } from 'react';
+import React, { FormEvent, memo, useRef, useState } from 'react';
 import { Ellipsis } from 'lucide-react';
 import {
   Dialog,
@@ -15,8 +15,6 @@ import useToggle from '@/shared/hooks/toggle';
 import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 import { getTruncatedString } from '@/shared/utils/helpers';
 import { Role } from '../../../types';
-import { trpc } from '@/shared/utils/trpc/trpc';
-import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 
@@ -25,66 +23,25 @@ interface OrganizationListItemProps {
   role: Role;
   isActive?: boolean;
   handleCurrentOrgId?: () => void;
+  updateOrganization?: (event: FormEvent<HTMLFormElement>) => void;
 }
 
-export default function OrganizationListItem({
+function OrganizationListItem({
   name,
   role,
   isActive,
+  updateOrganization,
   handleCurrentOrgId
 }: OrganizationListItemProps) {
-  const updateOrgNameMutation = trpc.organization.updateOrganizationName.useMutation();
-  const userOrganizationsQuery = trpc.organization.getUserOrganizations.useQuery();
-  const userOrganizationQuery = trpc.organization.getUserPersonalOrganization.useQuery();
-
   const isLoading = useOrganizationStore((state) => state.isLoading);
-  const userOrgId = useOrganizationStore((state) => state.userOrgId);
 
   const formRef = useRef<HTMLFormElement>(null);
   const { isOn, setOff, setOn } = useToggle();
   const popupRef = useRef(null);
   const [organizationName, setOrganizationName] = useState('');
-  const toast = useToast();
   const orgName = getTruncatedString(name, 20);
 
   useOnClickOutside(popupRef, setOff);
-
-  async function handleUpdate(e: FormEvent) {
-    e.preventDefault();
-
-    const name = organizationName.trim();
-    if (name && name.length < 3) {
-      toast.toast({
-        description: 'Organization name must be at least 3 characters long',
-        style: { color: "red" }
-      });
-      return;
-    }
-
-    useOrganizationStore.getState().setIsLoading(true);
-
-    try {
-      const response = await updateOrgNameMutation.mutateAsync({
-        name: organizationName,
-        id: userOrgId ?? ""
-      });
-      if (response) {
-        toast.toast({
-          description: `Organization name updated to ${organizationName}.`
-        });
-        userOrganizationQuery.refetch();
-        userOrganizationsQuery.refetch();
-        setOrganizationName("");
-      }
-    } catch (error) {
-      console.log(error);
-      if ((error as any)?.message) {
-        toast.toast({ description: (error as any)?.message });
-      }
-    } finally {
-      useOrganizationStore.getState().setIsLoading(false);
-    }
-  }
 
   return (
     <div
@@ -136,7 +93,11 @@ export default function OrganizationListItem({
                   <DialogHeader>
                     <DialogTitle>Update organization name</DialogTitle>
                   </DialogHeader>
-                  <form ref={formRef} onSubmit={handleUpdate} className="mt-2">
+                  <form
+                    ref={formRef}
+                    onSubmit={updateOrganization}
+                    className="mt-2"
+                  >
                     <label htmlFor="name" className="text-right">
                       Name
                     </label>
@@ -167,3 +128,5 @@ export default function OrganizationListItem({
     </div>
   );
 }
+
+export default memo(OrganizationListItem);

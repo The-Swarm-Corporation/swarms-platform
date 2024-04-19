@@ -4,6 +4,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
   DialogTrigger
 } from '@/shared/components/ui/dialog';
 import { PropsWithChildren } from 'react';
@@ -11,16 +12,14 @@ import { Button } from '@/shared/components/ui/Button';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 
 interface ModalPromptProps extends PropsWithChildren {
-  handleLeftClick?: () => void;
-  handleRightClick: (...rest: any) => void;
+  handleClick: (...rest: any) => void;
   content?: string;
   isLoading?: boolean;
 }
 
 export default function ModalPrompt({
   children,
-  handleRightClick,
-  handleLeftClick,
+  handleClick,
   content,
   isLoading
 }: ModalPromptProps) {
@@ -33,17 +32,18 @@ export default function ModalPrompt({
         </DialogHeader>
         <div className="mt-2">
           <DialogFooter className="mt-3 flex items-center justify-center gap-4">
+            <DialogClose>
+              <Button
+                className="w-2/4"
+                aria-label="Yes"
+              >
+                No
+              </Button>
+            </DialogClose>
             <Button
               className="w-2/4"
               aria-label="Yes"
-              onClick={handleLeftClick}
-            >
-              No
-            </Button>
-            <Button
-              className="w-2/4"
-              aria-label="Yes"
-              onClick={handleRightClick}
+              onClick={handleClick}
             >
               {isLoading ? <LoadingSpinner /> : 'Yes'}
             </Button>

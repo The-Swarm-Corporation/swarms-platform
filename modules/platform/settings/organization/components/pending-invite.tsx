@@ -67,8 +67,7 @@ export default function PendingInvites() {
           <ModalPrompt
             content={`Do you wish to cancel invite for ${email}?`}
             isLoading={isLoading}
-            handleLeftClick={() => null}
-            handleRightClick={() => handleCancelInvite(email as string)}
+            handleClick={() => handleCancelInvite(email as string)}
           >
             <Button
               variant="destructive"

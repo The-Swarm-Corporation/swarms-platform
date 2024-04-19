@@ -46,4 +46,6 @@ export type PromiseResProps = {
   role?: ExcludeOwner;
   organization_id: string;
   user_id?: string;
-}
+};
+
+export type FormProps = { name: string };
