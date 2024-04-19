@@ -102,6 +102,7 @@ export default function InviteModal() {
           description: `${email} has been invited to join your organization.`,
           style: { color: 'green' }
         });
+        setEmail("");
         pendingInvitesQuery.refetch();
       }
     } catch (error) {

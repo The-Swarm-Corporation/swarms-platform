@@ -38,6 +38,9 @@ export default function OrganizationTeam({ user }: OrganizationTeamProps) {
   const organizationMembersQuery = trpc.organization.members.useQuery({
     id: currentOrgId
   });
+  console.log({ orgMem: organizationMembersQuery.data });
+  const userOrganizationsQuery =
+    trpc.organization.getUserOrganizations.useQuery();
 
   const changeRoleMutation = trpc.organization.changeMemberRole.useMutation();
   const leaveOrgMutation = trpc.organization.leaveOrganization.useMutation();
@@ -96,10 +99,11 @@ export default function OrganizationTeam({ user }: OrganizationTeamProps) {
 
     try {
       const response = await mutationFunction.mutateAsync(data);
-
+      console.log({ response });
       if (response) {
         toast.toast({ description: toastMessage });
         organizationMembersQuery.refetch();
+        userOrganizationsQuery.refetch();
       }
     } catch (error) {
       console.log(error);

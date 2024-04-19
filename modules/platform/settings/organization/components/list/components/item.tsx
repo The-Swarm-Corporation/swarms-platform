@@ -40,6 +40,7 @@ export default function OrganizationListItem({
   const isLoading = useOrganizationStore((state) => state.isLoading);
   const userOrgId = useOrganizationStore((state) => state.userOrgId);
 
+  const formRef = useRef<HTMLFormElement>(null);
   const { isOn, setOff, setOn } = useToggle();
   const popupRef = useRef(null);
   const [organizationName, setOrganizationName] = useState('');
@@ -73,6 +74,7 @@ export default function OrganizationListItem({
         });
         userOrganizationQuery.refetch();
         userOrganizationsQuery.refetch();
+        setOrganizationName("");
       }
     } catch (error) {
       console.log(error);
@@ -134,7 +136,7 @@ export default function OrganizationListItem({
                   <DialogHeader>
                     <DialogTitle>Update organization name</DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handleUpdate} className="mt-2">
+                  <form ref={formRef} onSubmit={handleUpdate} className="mt-2">
                     <label htmlFor="name" className="text-right">
                       Name
                     </label>

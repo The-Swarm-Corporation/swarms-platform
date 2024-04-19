@@ -126,6 +126,7 @@ export default function OrganizationList({ userOrganization }: ListProps) {
       });
       userOrganizationQuery.refetch();
       userOrganizationsQuery.refetch();
+      setOrganizationName("");
     } catch (error) {
       console.log(error);
       if ((error as any)?.message) {
