@@ -163,6 +163,7 @@ export function useOrganizationMutation() {
         toast.toast({ description: toastMessage, style: { color: 'green' } });
         query.members.refetch();
         query.organizations.refetch();
+        setOpenDialog(false);
       }
     } catch (error) {
       if ((error as any)?.message) {

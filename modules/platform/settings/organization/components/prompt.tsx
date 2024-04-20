@@ -7,7 +7,7 @@ import {
   DialogClose,
   DialogTrigger
 } from '@/shared/components/ui/dialog';
-import { PropsWithChildren } from 'react';
+import { Dispatch, PropsWithChildren, SetStateAction } from 'react';
 import { Button } from '@/shared/components/ui/Button';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 
@@ -15,16 +15,20 @@ interface ModalPromptProps extends PropsWithChildren {
   handleClick: (...rest: any) => void;
   content?: string;
   isLoading?: boolean;
+  openDialog?: boolean;
+  setOpenDialog?: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function ModalPrompt({
   children,
   handleClick,
   content,
-  isLoading
+  isLoading,
+  openDialog,
+  setOpenDialog,
 }: ModalPromptProps) {
   return (
-    <Dialog>
+    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-[320px] sm:max-w-[425px]">
         <DialogHeader>

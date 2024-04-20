@@ -9,7 +9,7 @@ import { useOrganizationMutation, useQueryMutation } from './organizations';
 export function useOrganizationTeam() {
   const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
   const { query, mutation } = useQueryMutation();
-  const { withOrganizationMutation } = useOrganizationMutation();
+  const { openDialog, setOpenDialog, withOrganizationMutation } = useOrganizationMutation();
 
   const toast = useToast();
   const [filterRole, setFilterRole] = useState<string>(ROLES[0].value);
@@ -87,6 +87,8 @@ export function useOrganizationTeam() {
     isTeamMembers,
     teamMembersToDisplay,
     isLoading: query.members.isLoading,
+    openDialog,
+    setOpenDialog,
     setFilterRole,
     handleSearchChange,
     handleRoleChange,

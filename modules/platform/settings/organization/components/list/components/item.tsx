@@ -1,11 +1,4 @@
-import React, {
-  Dispatch,
-  FormEvent,
-  memo,
-  SetStateAction,
-  useRef,
-  useState
-} from 'react';
+import React, { Dispatch, FormEvent, memo, SetStateAction, useRef, useState } from 'react';
 import { Ellipsis } from 'lucide-react';
 import {
   Dialog,
@@ -30,7 +23,7 @@ interface OrganizationListItemProps {
   role: Role;
   isActive?: boolean;
   openDialog?: boolean;
-  setOpenDialog?: Dispatch<SetStateAction<boolean>>;
+  setOpenDialog?: Dispatch<SetStateAction<boolean>>,
   handleCurrentOrgId?: () => void;
   updateOrganization?: (event: FormEvent<HTMLFormElement>) => void;
 }
@@ -59,11 +52,11 @@ function OrganizationListItem({
       onClick={handleCurrentOrgId}
       className={cn(
         'flex justify-between border rounded-md p-2 sm:p-4 text-card-foreground hover:opacity-80 w-full transition cursor-pointer',
-        isActive && 'bg-primary shadow'
+        isActive && 'bg-primary shadow text-white'
       )}
     >
       <div className="flex items-center gap-2">
-        <span className="h-7 w-7 sm:w-10 sm:h-10 text-sm sm:text-base flex justify-center items-center bg-secondary text-white rounded-full uppercase">
+        <span className="h-7 w-7 sm:w-10 sm:h-10 text-sm sm:text-base flex justify-center items-center bg-secondary text-foreground rounded-full uppercase">
           {name.charAt(0)}
         </span>
         <p className="text-xs sm:text-base">{orgName}</p>
@@ -75,7 +68,7 @@ function OrganizationListItem({
             aria-label="Options"
             className={cn(
               'gap-2 py-0 h-8 px-2 sm:px-4 sm:h-9',
-              isOn && 'bg-accent'
+              isOn && 'bg-accent text-foreground'
             )}
             variant="ghost"
             onClick={setOn}
@@ -90,12 +83,12 @@ function OrganizationListItem({
               isOn && 'visible'
             )}
           >
-            {role === 'owner' && (
+            {role === "owner" && (
               <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 <DialogTrigger asChild>
                   <div
                     onClick={setOff}
-                    className="hover:text-secondary hover:bg-foreground capitalize w-full py-2 text-center"
+                    className="hover:text-secondary hover:bg-foreground text-foreground capitalize w-full py-2 text-center"
                   >
                     Edit
                   </div>

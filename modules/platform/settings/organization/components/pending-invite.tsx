@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ShieldX } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import InviteModal from './team/components/invite-modal';
@@ -17,6 +17,7 @@ export default function PendingInvites() {
   
   const isLoading = useOrganizationStore((state) => state.isLoading);
   const userOrgId = useOrganizationStore((state) => state.userOrgId);
+  const [openDialog, setOpenDialog] = useState(false);
   const currentOrganization = useOrganizationStore(
     (state) => state.currentOrganization
   );
@@ -64,6 +65,8 @@ export default function PendingInvites() {
             content={`Do you wish to cancel invite for ${email}?`}
             isLoading={isLoading}
             handleClick={() => handleCancelInvite(email as string)}
+            openDialog={openDialog}
+            setOpenDialog={setOpenDialog}
           >
             <Button
               variant="destructive"

@@ -20,7 +20,7 @@ export default function TeamMember({ member, user }: TeamMemberProps) {
   const currentOrganization = useOrganizationStore(
     (state) => state.currentOrganization
   );
-  const { handleRoleChange, handleLeaveOrg, handleDeleteMember } =
+  const { openDialog, handleRoleChange, handleLeaveOrg, handleDeleteMember, setOpenDialog } =
     useOrganizationTeam();
 
   const memberRef = useRef(null);
@@ -100,7 +100,7 @@ export default function TeamMember({ member, user }: TeamMemberProps) {
                 >
                   <Button
                     variant="ghost"
-                    className="capitalize hover:bg-transparent hover:text-black transition-none"
+                    className="capitalize hover:bg-transparent hover:text-secondary transition-none"
                     aria-label={role}
                   >
                     {role}
@@ -118,6 +118,8 @@ export default function TeamMember({ member, user }: TeamMemberProps) {
             content={`Can you confirm you're leaving?`}
             isLoading={isLoading}
             handleClick={handleLeaveOrg as () => void}
+            openDialog={openDialog}
+            setOpenDialog={setOpenDialog}
           >
             <Button className={cn('h-7 sm:h-10 sm:w-full')}>Leave</Button>
           </ModalPrompt>
@@ -130,6 +132,8 @@ export default function TeamMember({ member, user }: TeamMemberProps) {
             content={`Would you like to remove ${member.name || ''} from this organization?`}
             isLoading={isLoading}
             handleClick={() => handleDeleteMember?.(member.user_id)}
+            openDialog={openDialog}
+            setOpenDialog={setOpenDialog}
           >
             <Button className={cn('h-7 sm:h-10 sm:w-full')}>Remove</Button>
           </ModalPrompt>

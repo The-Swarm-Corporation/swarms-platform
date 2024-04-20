@@ -28,6 +28,8 @@ export default function InviteModal() {
     email,
     isValidEmail,
     inviteRole,
+    openDialog,
+    setOpenDialog,
     setInviteRole,
     inviteUser,
     handleEmailChange,
@@ -38,7 +40,7 @@ export default function InviteModal() {
   const inviteRoles = ROLES.slice(2);
 
   return (
-    <Dialog>
+    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
         <Button
           className="gap-0.5"

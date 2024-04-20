@@ -16,6 +16,7 @@ export function useInviteModal() {
   const toast = useToast();
   const [email, setEmail] = useState('');
   const [isValidEmail, setIsValidEmail] = useState(true);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const [inviteRole, setInviteRole] = useState<ExcludeOwner | string>(
     ROLES[ROLES.length - 1]?.value
@@ -60,7 +61,7 @@ export function useInviteModal() {
           description: `${email} has been invited to join your organization.`,
           style: { color: 'green' }
         });
-        setEmail('');
+        setOpenDialog(false);
         query.invites.refetch();
       }
     } catch (error) {
@@ -91,6 +92,8 @@ export function useInviteModal() {
     email,
     isValidEmail,
     inviteRole,
+    openDialog,
+    setOpenDialog,
     setInviteRole,
     inviteUser,
     handleEmailChange,
