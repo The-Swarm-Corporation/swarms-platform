@@ -7,9 +7,36 @@ import Link from 'next/link';
 import { makeUrl } from '@/shared/utils/helpers';
 import { PUBLIC } from '@/shared/constants/links';
 import LoadingSpinner from '@/shared/components/loading-spinner';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 
 const Explorer = () => {
   const models = trpc.explorer.getModels.useQuery();
+  const synthifyMagicLink = trpc.explorer.synthifyMagicLink.useMutation();
+
+  const toast = useToast();
+  const trySynthify = async () => {
+    if (synthifyMagicLink.isPending) {
+      return;
+    }
+    const t = toast.toast({
+      title: 'wait a moment...',
+      duration: 10000
+    });
+    synthifyMagicLink
+      .mutateAsync()
+      .then((res) => {
+        window.open(res as string, '_blank');
+      })
+      .catch((err) => {
+        t.update({
+          id: t.id,
+          title: 'Something went wrong',
+          variant: 'destructive',
+          duration: 3000
+        });
+      })
+      .finally(() => {});
+  };
   return (
     <div className="w-full flex flex-col h-full">
       <div className="flex flex-col">
@@ -21,7 +48,7 @@ const Explorer = () => {
       </div>
       <div className="flex flex-col h-full">
         <div className="flex flex-col h-1/2 gap-2 py-8">
-          <h1 className="text-3xl font-bold">Models</h1>
+          <h1 className="text-3xl font-bold pb-2">Models</h1>
           <div className="flex flex-wrap gap-4">
             {models.isLoading && <LoadingSpinner size={24} />}
             {!models.isLoading &&
@@ -45,8 +72,21 @@ const Explorer = () => {
           </div>
         </div>
         <div className="flex flex-col h-1/2 gap-2 py-8">
-          <h1 className="text-3xl font-bold">Swarms</h1>
-          <div>Coming soon!</div>
+          <h1 className="text-3xl font-bold pb-2">Swarms & Services</h1>
+          <div className="flex flex-wrap gap-4">
+            <div
+              className="w-full h-[180px] sm:w-full md:w-1/3 lg:w-1/3 cursor-pointer"
+              onClick={trySynthify}
+            >
+              <InfoCard
+                title="Synthify"
+                description="Synthify is a platform that allows you to create dataset for llms,vlms ."
+                icon={<ScanEye />}
+                btnLabel="try"
+                className="w-full h-full"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

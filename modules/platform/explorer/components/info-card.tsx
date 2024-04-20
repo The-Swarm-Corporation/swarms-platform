@@ -6,8 +6,9 @@ interface Props {
   description: string;
   icon: ReactNode;
   className?: string;
+  btnLabel?: string;
 }
-const InfoCard = ({ title, description, icon, className }: Props) => {
+const InfoCard = ({ title, description, icon, className, btnLabel }: Props) => {
   return (
     <div
       className={cn(
@@ -37,8 +38,8 @@ const InfoCard = ({ title, description, icon, className }: Props) => {
           />
         </svg>
         <div className="absolute  right-0 bottom-0 text-white px-4 py-1">
-          <div className="relative flex items-center gap-2">
-            <span>preview</span>
+          <div className="relative flex items-center justify-center gap-2 w-[95px]">
+            <span>{btnLabel || 'Preview'}</span>
             <svg
               width="16"
               height="16"
