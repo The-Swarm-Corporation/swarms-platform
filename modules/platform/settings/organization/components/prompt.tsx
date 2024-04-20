@@ -32,19 +32,12 @@ export default function ModalPrompt({
         </DialogHeader>
         <div className="mt-2">
           <DialogFooter className="mt-3 flex items-center justify-center gap-4">
-            <DialogClose>
-              <Button
-                className="w-2/4"
-                aria-label="Yes"
-              >
+            <DialogClose className="w-2/4">
+              <Button className="w-full" aria-label="Yes">
                 No
               </Button>
             </DialogClose>
-            <Button
-              className="w-2/4"
-              aria-label="Yes"
-              onClick={handleClick}
-            >
+            <Button className="w-2/4" aria-label="Yes" onClick={handleClick}>
               {isLoading ? <LoadingSpinner /> : 'Yes'}
             </Button>
           </DialogFooter>

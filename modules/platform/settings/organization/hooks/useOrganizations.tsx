@@ -3,10 +3,10 @@ import { isEmpty } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useEffect, useMemo } from 'react';
 import { UserOrganizationsProps } from '../types';
-import { useQueryMutaion } from './useQueryMutation';
+import { useQueryMutation } from './useQueryMutation';
 
 export const useOrganizations = () => {
-  const { query } = useQueryMutaion({});
+  const { query } = useQueryMutation();
 
   const userOrgData = query.organization.data;
   const usersOrgData = query.organizations.data;
@@ -14,19 +14,8 @@ export const useOrganizations = () => {
   const organizationList = useOrganizationStore(
     (state) => state.organizationList
   );
-  const setOrganizationList = useOrganizationStore(
-    (state) => state.setOrganizationList
-  );
-  const setCurrentOrgId = useOrganizationStore(
-    (state) => state.setCurrentOrgId
-  );
-  const setCurrentOrganization = useOrganizationStore(
-    (state) => state.setCurrentOrganization
-  );
-  const setUserOrgId = useOrganizationStore((state) => state.setUserOrgId);
   const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
 
-  // filter userOrganizations data to remove user's personal organization if among the organization list
   const filteredOrganizations = useMemo(() => {
     if (!isEmpty(usersOrgData) && userOrgData?.data?.id) {
       return usersOrgData?.filter(
@@ -37,35 +26,48 @@ export const useOrganizations = () => {
     }
   }, [usersOrgData, userOrgData?.data?.id]);
 
-  // user's current selected organization from userOrganizations query
   const currentOrganization = useMemo(
-    () => usersOrgData?.find((org) => org.organization.id === currentOrgId),
+    () =>
+      usersOrgData?.find(
+        (org) => org.organization.id === currentOrgId
+      ),
     [usersOrgData, currentOrgId]
   );
 
-  useEffect(() => {
-    const userOrgId = userOrgData?.data?.id; //user's personal organization (if created)
-    const currentId = userOrgId || organizationList?.[0]?.organization?.id;
+  const currentId = userOrgData?.data?.id
+    ? userOrgData?.data?.id
+    : organizationList?.[0]?.organization?.id;
 
-    setCurrentOrgId(currentId);
+  useEffect(() => {
+    if (currentId) {
+      useOrganizationStore.getState().setCurrentOrgId(currentId);
+    }
+  }, [currentId]);
+
+  useEffect(() => {
+    if (userOrgData?.data?.id) {
+      useOrganizationStore.getState().setUserOrgId(userOrgData?.data?.id);
+    }
 
     if (!isEmpty(filteredOrganizations)) {
-      setOrganizationList(filteredOrganizations as UserOrganizationsProps[]);
+      useOrganizationStore
+        .getState()
+        .setOrganizationList(filteredOrganizations as UserOrganizationsProps[]);
     }
 
     if (!isEmpty(currentOrganization)) {
-      setCurrentOrganization(currentOrganization as UserOrganizationsProps);
-    }
-
-    if (!isEmpty(userOrgId)) {
-      setUserOrgId(userOrgId ?? '');
+      useOrganizationStore
+        .getState()
+        .setCurrentOrganization(currentOrganization as UserOrganizationsProps);
     }
   }, [
     userOrgData?.data?.id,
     organizationList?.[0]?.organization?.id,
+    filteredOrganizations,
+    currentOrganization
   ]);
 
   return {
-    userOrgData
+    userOrgData: userOrgData
   };
 };

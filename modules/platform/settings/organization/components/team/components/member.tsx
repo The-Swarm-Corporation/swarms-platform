@@ -9,25 +9,19 @@ import { useOrganizationStore } from '@/shared/stores/organization';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import ModalPrompt from '../../prompt';
 import { ROLES } from '@/shared/constants/organization';
+import { useOrganizationTeam } from '../../../hooks/component-hooks/useOrganizationTeam';
 
 interface TeamMemberProps {
   member: MemberProps;
-  handleRoleChange?: (user_id: string, role: ExcludeOwner) => Promise<void>;
-  handleLeaveOrg?: () => Promise<void>;
-  handleDeleteMember?: (user_id: string) => Promise<void>;
   user: any;
 }
 
-export default function TeamMember({
-  member,
-  user,
-  handleRoleChange,
-  handleLeaveOrg,
-  handleDeleteMember
-}: TeamMemberProps) {
+export default function TeamMember({ member, user }: TeamMemberProps) {
   const currentOrganization = useOrganizationStore(
     (state) => state.currentOrganization
   );
+  const { handleRoleChange, handleLeaveOrg, handleDeleteMember } =
+    useOrganizationTeam();
 
   const memberRef = useRef(null);
   const toast = useToast();

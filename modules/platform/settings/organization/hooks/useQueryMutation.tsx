@@ -1,11 +1,10 @@
+import { useOrganizationStore } from '@/shared/stores/organization';
 import { trpc } from '@/shared/utils/trpc/trpc';
 
-interface UseQueriesprops {
-  currentOrgId?: string;
-  userOrgId?: string;
-}
+export function useQueryMutation() {
+  const userOrgId = useOrganizationStore((state) => state.userOrgId);
+  const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
 
-export function useQueryMutaion({ currentOrgId, userOrgId }: UseQueriesprops) {
   // queries
   const userOrganizationsQuery =
     trpc.organization.getUserOrganizations.useQuery();

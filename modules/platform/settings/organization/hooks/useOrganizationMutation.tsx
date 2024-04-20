@@ -13,22 +13,24 @@ type QueryType = {
 };
 
 interface FormMutationProps<T> {
-  e: FormEvent<HTMLFormElement>;
+  e?: FormEvent<HTMLFormElement>;
   query?: QueryType;
+  data?: T;
   mutationFunction: FormMutationType<T>;
-  successMessage?: string;
+  toastMessage?: string;
 }
 
-export function useFormMutation() {
+export function useOrganizationMutation() {
   const toast = useToast();
+  const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
 
   async function handleFormMutation<T extends FormProps>({
     e,
     query,
     mutationFunction,
-    successMessage
+    toastMessage
   }: FormMutationProps<T>) {
-    e.preventDefault();
+    e?.preventDefault();
 
     let data = Object.fromEntries(new FormData(e?.currentTarget));
 
@@ -47,7 +49,7 @@ export function useFormMutation() {
       const response = await mutationFunction.mutateAsync(data as T);
       console.log(response);
       toast.toast({
-        description: successMessage || 'Request is successful',
+        description: toastMessage || 'Request is successful',
         style: { color: 'green' }
       });
       confetti({
@@ -71,5 +73,36 @@ export function useFormMutation() {
     }
   }
 
-  return { handleFormMutation };
+  async function withOrganizationMutation<T>({
+    data,
+    query,
+    mutationFunction,
+    toastMessage
+  }: FormMutationProps<T>) {
+    if (!currentOrgId) {
+      toast.toast({
+        description: 'Organization not found',
+        style: { color: 'red' }
+      });
+      return;
+    }
+
+    useOrganizationStore.getState().setIsLoading(true);
+
+    try {
+      const response = await mutationFunction.mutateAsync(data as T);
+      if (response) {
+        toast.toast({ description: toastMessage, style: { color: 'green' } });
+        query?.refetch();
+      }
+    } catch (error) {
+      if ((error as any)?.message) {
+        toast.toast({ description: (error as any)?.message });
+      }
+    } finally {
+      useOrganizationStore.getState().setIsLoading(false);
+    }
+  }
+
+  return { handleFormMutation, withOrganizationMutation };
 }

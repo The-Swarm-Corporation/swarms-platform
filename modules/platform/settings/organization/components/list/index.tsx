@@ -23,7 +23,7 @@ import LoadingSpinner from '@/shared/components/loading-spinner';
 import OrganizationListItem from './components/item';
 import { isEmpty } from '@/shared/utils/helpers';
 import { useOrganizationList } from '../../hooks/component-hooks/useOrganizationList';
-import { useQueryMutaion } from '../../hooks/useQueryMutation';
+import { useQueryMutation } from '../../hooks/useQueryMutation';
 
 interface ListProps {
   userOrgData: UserOrganizationProps | null;
@@ -39,7 +39,7 @@ function OrganizationList({ userOrgData }: ListProps) {
     filterOrg
   } = useOrganizationList();
 
-  const { query } = useQueryMutaion({});
+  const { query } = useQueryMutation({});
 
   const userOrgId = useOrganizationStore((state) => state.userOrgId);
   const isLoading = useOrganizationStore((state) => state.isLoading);

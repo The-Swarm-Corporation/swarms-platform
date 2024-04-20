@@ -1,20 +1,16 @@
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import {
-  Role,
-  UserOrganizationProps,
-  UserOrganizationsProps
-} from '../../types';
-import { useQueryMutaion } from '../useQueryMutation';
-import { useFormMutation } from '../useFormMutation';
+import { Role, UserOrganizationProps } from '../../types';
+import { useQueryMutation } from '../useQueryMutation';
+import { useOrganizationMutation } from '../useOrganizationMutation';
 
 export function useOrganizationList() {
-  const { query, mutation } = useQueryMutaion({});
+  const { query, mutation } = useQueryMutation();
   const userQuery = query.organization;
   const createMutation = mutation.create;
   const updateMutation = mutation.update;
 
-  const { handleFormMutation } = useFormMutation();
+  const { handleFormMutation } = useOrganizationMutation();
 
   const organizationList = useOrganizationStore(
     (state) => state.organizationList
@@ -30,7 +26,7 @@ export function useOrganizationList() {
       e: event,
       query: userQuery,
       mutationFunction: createMutation,
-      successMessage: 'Organization has been created'
+      toastMessage: 'Organization has been created'
     });
 
   const updateOrganization = (event: FormEvent<HTMLFormElement>) =>
@@ -38,7 +34,7 @@ export function useOrganizationList() {
       e: event,
       query: userQuery,
       mutationFunction: updateMutation,
-      successMessage: 'Organization has been updated'
+      toastMessage: 'Organization has been updated'
     });
 
   const activeOrgId =
@@ -47,7 +43,7 @@ export function useOrganizationList() {
         organizationList.find((org) => org?.organization?.id === currentOrgId)
           ?.organization?.id,
       [organizationList, currentOrgId]
-    ) ?? '';
+    );
 
   // selects current organization or returns
   function handleFilterOrg(value: string) {
@@ -55,8 +51,8 @@ export function useOrganizationList() {
       setFilterOrg(value);
       setCurrentOrgId(value);
     } else {
-      setFilterOrg(activeOrgId);
-      setCurrentOrgId(activeOrgId);
+      setFilterOrg(activeOrgId ?? "");
+      setCurrentOrgId(activeOrgId ?? "");
     }
   }
 

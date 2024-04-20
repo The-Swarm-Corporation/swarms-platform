@@ -2,11 +2,16 @@
 
 import { User } from '@supabase/supabase-js';
 import OrganizationList from './components/list';
-import PendingInvites from './components/pending-invite';
-import OrganizationTeam from './components/team';
 import { useOrganizations } from './hooks/useOrganizations';
 import { UserOrganizationProps } from './types';
+import dynamic from 'next/dynamic';
 
+const PendingInvites = dynamic(() => import('./components/pending-invite'), {
+  ssr: false
+});
+const OrganizationTeam = dynamic(() => import('./components/team'), {
+  ssr: false
+});
 export default function Organization({ user }: { user: User }) {
   const { userOrgData } = useOrganizations();
 

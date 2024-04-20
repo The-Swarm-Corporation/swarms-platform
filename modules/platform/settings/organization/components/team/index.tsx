@@ -1,6 +1,5 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -10,153 +9,36 @@ import {
 } from '@/shared/components/ui/select';
 import Input from '@/shared/components/ui/Input';
 import TeamMember from './components/member';
-import {
-  ExcludeOwner,
-  MemberProps,
-} from '../../types';
+import { ExcludeOwner, MemberProps } from '../../types';
 import InviteModal from './components/invite-modal';
 import { cn } from '@/shared/utils/cn';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { debounce } from '@/shared/utils/helpers';
+import { debounce, isEmpty } from '@/shared/utils/helpers';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { ROLES } from '@/shared/constants/organization';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useOrganizationStore } from '@/shared/stores/organization';
+import { useOrganizationTeam } from '../../hooks/component-hooks/useOrganizationTeam';
 
 interface OrganizationTeamProps {
   user: any;
 }
 
 export default function OrganizationTeam({ user }: OrganizationTeamProps) {
-  const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
+  const {
+    search,
+    filterRole,
+    isTeamMembers,
+    teamMembersToDisplay,
+    isLoading,
+    setFilterRole,
+    handleSearchChange
+  } = useOrganizationTeam();
+
   const currentOrganization = useOrganizationStore(
     (state) => state.currentOrganization
   );
 
-  const organizationMembersQuery = trpc.organization.members.useQuery({
-    id: currentOrgId
-  });
-  const userOrganizationsQuery =
-    trpc.organization.getUserOrganizations.useQuery();
-
-  const changeRoleMutation = trpc.organization.changeMemberRole.useMutation();
-  const leaveOrgMutation = trpc.organization.leaveOrganization.useMutation();
-  const deleteMemberMutation = trpc.organization.deleteMember.useMutation();
-
-  const toast = useToast();
-  const [filterRole, setFilterRole] = useState<string>(ROLES[0].value);
-  const [search, setSearch] = useState('');
-  const [teamMembers, setTeamMembersInternal] = useState<MemberProps[]>([]);
-  const setTeamMembers = useCallback((members: MemberProps[]) => {
-    setTeamMembersInternal(members);
-  }, []);
-
-  const debouncedSearch = useMemo(() => {
-    const debouncedFn = debounce((value: string) => {
-      setSearch(value);
-    }, 100);
-    return debouncedFn;
-  }, []);
-
-  const isTeamMembers = teamMembers && teamMembers?.length >= 1;
-
-  const teamMembersToDisplay = useMemo(() => {
-    if (!teamMembers) return [];
-    return teamMembers
-      .filter((member) =>
-        filterRole === 'Team roles' ? true : member.role === filterRole
-      )
-      .filter(
-        (member) =>
-          !search || member.name?.toLowerCase().includes(search.toLowerCase())
-      );
-  }, [teamMembers, filterRole, search]);
-
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      debouncedSearch(value);
-    },
-    [debouncedSearch]
-  );
-
-  async function withOrganizationMutation<T>(
-    mutationFunction: any,
-    data: any,
-    toastMessage: string
-  ) {
-    if (!currentOrgId) {
-      toast.toast({
-        description: 'Organization not found',
-        style: { color: 'red' }
-      });
-      return;
-    }
-
-    useOrganizationStore.getState().setIsLoading(true);
-
-    try {
-      const response = await mutationFunction.mutateAsync(data);
-      if (response) {
-        toast.toast({ description: toastMessage });
-        organizationMembersQuery.refetch();
-        userOrganizationsQuery.refetch();
-      }
-    } catch (error) {
-      console.log(error);
-      if ((error as any)?.message) {
-        toast.toast({ description: (error as any)?.message });
-      }
-    } finally {
-      useOrganizationStore.getState().setIsLoading(false);
-    }
-  }
-
-  async function handleRoleChange(user_id: string, role: ExcludeOwner) {
-    if (!user_id || !role) {
-      toast.toast({
-        description: 'Something went wrong; Missing values',
-        style: { color: 'red' }
-      });
-      return;
-    }
-    await withOrganizationMutation(
-      changeRoleMutation,
-      { user_id, role, organization_id: currentOrgId },
-      'Member role updated'
-    );
-  }
-
-  async function handleLeaveOrg() {
-    await withOrganizationMutation(
-      leaveOrgMutation,
-      { organization_id: currentOrgId },
-      "You've successfully left the organization"
-    );
-  }
-
-  async function handleDeleteMember(user_id: string) {
-    if (!user_id) {
-      toast.toast({
-        description: 'Something went wrong; Missing values',
-        style: { color: 'red' }
-      });
-      return;
-    }
-    await withOrganizationMutation(
-      deleteMemberMutation,
-      { user_id, organization_id: currentOrgId },
-      'User has been successfully removed'
-    );
-  }
-
-  useEffect(() => {
-    if (
-      organizationMembersQuery.data &&
-      organizationMembersQuery?.data?.length > 0
-    ) {
-      setTeamMembers(organizationMembersQuery.data);
-    }
-  }, [organizationMembersQuery.data]);
   return (
     <div className="mt-16">
       <div className="flex justify-between">
@@ -218,19 +100,11 @@ export default function OrganizationTeam({ user }: OrganizationTeamProps) {
           !teamMembersToDisplay.length && 'opacity-50 cursor-help'
         )}
       >
-        {organizationMembersQuery.isLoading ? (
+        {isLoading ? (
           <LoadingSpinner />
-        ) : teamMembersToDisplay.length > 0 &&
-          !organizationMembersQuery.isLoading ? (
+        ) : !isEmpty(teamMembersToDisplay) && !isLoading ? (
           teamMembersToDisplay?.map((member) => (
-            <TeamMember
-              key={member?.user_id}
-              member={member}
-              handleRoleChange={handleRoleChange}
-              handleLeaveOrg={handleLeaveOrg}
-              handleDeleteMember={handleDeleteMember}
-              user={user}
-            />
+            <TeamMember key={member?.user_id} member={member} user={user} />
           ))
         ) : (
           <div className="bg-secondary p-6 shadow-lg rounded-md">
