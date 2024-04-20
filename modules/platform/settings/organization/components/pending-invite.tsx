@@ -9,37 +9,34 @@ import { useOrganizationStore } from '@/shared/stores/organization';
 import { PendingInvitesProps } from '../types';
 import ModalPrompt from './prompt';
 import { isEmpty } from '@/shared/utils/helpers';
+import { useQueryMutation } from '../hooks/useQueryMutation';
 
 export default function PendingInvites() {
+  const { query, mutation } = useQueryMutation();
+  
+  const toast = useToast();
+  
   const isLoading = useOrganizationStore((state) => state.isLoading);
   const userOrgId = useOrganizationStore((state) => state.userOrgId);
   const currentOrganization = useOrganizationStore(
     (state) => state.currentOrganization
   );
 
-  const pendingInvitesQuery = trpc.organization.pendingInvites.useQuery({
-    organization_id: userOrgId ?? ''
-  });
-  const cancelledInvitesMutation = trpc.organization.cancelInvite.useMutation();
-
-  const toast = useToast();
-
-  const pendingInvitations = pendingInvitesQuery.data;
-
   const isOwnerOrManager =
     currentOrganization.role === 'owner' ||
     currentOrganization.role === 'manager';
 
+  // cancel pending user invite
   async function handleCancelInvite(email: string) {
     useOrganizationStore.getState().setIsLoading(true);
     try {
-      const response = await cancelledInvitesMutation.mutateAsync({
+      const response = await mutation.cancel.mutateAsync({
         email,
         organization_id: userOrgId ?? ''
       });
       if (response) {
         toast.toast({ description: `Invite has been cancelled for ${email}` });
-        pendingInvitesQuery.refetch();
+        query.invites.refetch();
       }
     } catch (error) {
       if ((error as any)?.message) {
@@ -92,10 +89,10 @@ export default function PendingInvites() {
 
         <div className="flex flex-col items-center justify-center border rounded-md px-4 py-8 text-card-foreground my-8">
           {isOwnerOrManager && userOrgId ? (
-            pendingInvitesQuery.isLoading ? (
+            query.invites.isLoading ? (
               <LoadingSpinner />
-            ) : pendingInvitations && !isEmpty(pendingInvitations) ? (
-              pendingInvitations?.map(renderItem)
+            ) : query.invites.data && !isEmpty(query.invites.data) ? (
+              query.invites.data?.map(renderItem)
             ) : (
               <div className="flex flex-col items-center justify-center gap-1 opacity-80">
                 <h3 className="mb-2 text-xl">Invite Team Members</h3>

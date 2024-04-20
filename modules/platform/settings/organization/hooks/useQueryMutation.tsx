@@ -27,6 +27,7 @@ export function useQueryMutation() {
   const leaveOrganizationMutation =
     trpc.organization.leaveOrganization.useMutation();
   const deleteMemberMutation = trpc.organization.deleteMember.useMutation();
+  const cancelledInvitesMutation = trpc.organization.cancelInvite.useMutation();
 
   const query = {
     organization: userOrganizationQuery,
@@ -41,7 +42,8 @@ export function useQueryMutation() {
     invite: inviteEmailMutation,
     changeRole: changeRoleMutation,
     leave: leaveOrganizationMutation,
-    delete: deleteMemberMutation
+    delete: deleteMemberMutation,
+    cancel: cancelledInvitesMutation,
   };
 
   return { query, mutation };
