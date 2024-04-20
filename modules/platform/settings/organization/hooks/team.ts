@@ -2,10 +2,9 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { debounce } from '@/shared/utils/helpers';
 import { useCallback, useMemo, useState } from 'react';
-import { useQueryMutation } from '../useQueryMutation';
-import { ExcludeOwner } from '../../types';
-import { useOrganizationMutation } from '../useOrganizationMutation';
+import { ExcludeOwner } from '../types';
 import { ROLES } from '@/shared/constants/organization';
+import { useOrganizationMutation, useQueryMutation } from './organizations';
 
 export function useOrganizationTeam() {
   const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
@@ -56,7 +55,6 @@ export function useOrganizationTeam() {
       mutationFunction: mutation.changeRole,
       data: { user_id, role, organization_id: currentOrgId },
       toastMessage: 'Member role updated',
-      query: query.members
     });
   }
 
@@ -65,7 +63,6 @@ export function useOrganizationTeam() {
       mutationFunction: mutation.leave,
       data: { organization_id: currentOrgId },
       toastMessage: "You've successfully left the organization",
-      query: query.members
     });
   }
 
@@ -81,7 +78,6 @@ export function useOrganizationTeam() {
       mutationFunction: mutation.delete,
       data: { user_id, organization_id: currentOrgId },
       toastMessage: 'User has been successfully removed',
-      query: query.members
     });
   }
 

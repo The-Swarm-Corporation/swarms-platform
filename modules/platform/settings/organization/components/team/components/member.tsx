@@ -9,7 +9,7 @@ import { useOrganizationStore } from '@/shared/stores/organization';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import ModalPrompt from '../../prompt';
 import { ROLES } from '@/shared/constants/organization';
-import { useOrganizationTeam } from '../../../hooks/component-hooks/useOrganizationTeam';
+import { useOrganizationTeam } from '../../../hooks/team';
 
 interface TeamMemberProps {
   member: MemberProps;

@@ -2,8 +2,8 @@
 
 import { User } from '@supabase/supabase-js';
 import OrganizationList from './components/list';
-import { useOrganizations } from './hooks/useOrganizations';
-import { UserOrganizationProps } from './types';
+import { useOrganizations } from './hooks/organizations';
+import { UserOrganizationProps, UserOrganizationsProps } from './types';
 import dynamic from 'next/dynamic';
 
 const PendingInvites = dynamic(() => import('./components/pending-invite'), {
@@ -13,7 +13,7 @@ const OrganizationTeam = dynamic(() => import('./components/team'), {
   ssr: false
 });
 export default function Organization({ user }: { user: User }) {
-  const { userOrgData } = useOrganizations();
+  const { userOrgData, filteredUserOrgs } = useOrganizations();
 
   return (
     <article className="w-full">
@@ -21,6 +21,7 @@ export default function Organization({ user }: { user: User }) {
 
       <OrganizationList
         userOrgData={userOrgData?.data as UserOrganizationProps}
+        userOrgsData={filteredUserOrgs as UserOrganizationsProps[]}
       />
       <OrganizationTeam user={user} />
       <PendingInvites />

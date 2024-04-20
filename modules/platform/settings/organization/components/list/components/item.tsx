@@ -1,4 +1,11 @@
-import React, { FormEvent, memo, useRef, useState } from 'react';
+import React, {
+  Dispatch,
+  FormEvent,
+  memo,
+  SetStateAction,
+  useRef,
+  useState
+} from 'react';
 import { Ellipsis } from 'lucide-react';
 import {
   Dialog,
@@ -22,6 +29,8 @@ interface OrganizationListItemProps {
   name: string;
   role: Role;
   isActive?: boolean;
+  openDialog?: boolean;
+  setOpenDialog?: Dispatch<SetStateAction<boolean>>;
   handleCurrentOrgId?: () => void;
   updateOrganization?: (event: FormEvent<HTMLFormElement>) => void;
 }
@@ -30,6 +39,8 @@ function OrganizationListItem({
   name,
   role,
   isActive,
+  openDialog,
+  setOpenDialog,
   updateOrganization,
   handleCurrentOrgId
 }: OrganizationListItemProps) {
@@ -79,8 +90,8 @@ function OrganizationListItem({
               isOn && 'visible'
             )}
           >
-            {role !== 'reader' && (
-              <Dialog>
+            {role === 'owner' && (
+              <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 <DialogTrigger asChild>
                   <div
                     onClick={setOff}
@@ -103,6 +114,8 @@ function OrganizationListItem({
                     </label>
                     <Input
                       id="name"
+                      name="name"
+                      aria-label="Name"
                       value={organizationName}
                       className="my-2 w-full"
                       onChange={(value) => {

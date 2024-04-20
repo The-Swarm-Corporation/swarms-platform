@@ -1,21 +1,23 @@
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Role, UserOrganizationProps } from '../../types';
-import { useQueryMutation } from '../useQueryMutation';
-import { useOrganizationMutation } from '../useOrganizationMutation';
+import { Role, UserOrganizationProps, UserOrganizationsProps } from '../types';
+import { useOrganizationMutation, useQueryMutation } from './organizations';
 
-export function useOrganizationList() {
+export function useOrganizationList({
+  userOrgsData
+}: {
+  userOrgsData: UserOrganizationsProps[];
+}) {
   const { query, mutation } = useQueryMutation();
   const userQuery = query.organization;
   const createMutation = mutation.create;
   const updateMutation = mutation.update;
 
-  const { handleFormMutation } = useOrganizationMutation();
+  const { handleFormMutation, openDialog, setOpenDialog } =
+    useOrganizationMutation();
 
-  const organizationList = useOrganizationStore(
-    (state) => state.organizationList
-  );
   const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
+  const userOrgId = useOrganizationStore((state) => state.userOrgId);
   const setCurrentOrgId = useOrganizationStore(
     (state) => state.setCurrentOrgId
   );
@@ -33,17 +35,17 @@ export function useOrganizationList() {
     handleFormMutation({
       e: event,
       query: userQuery,
+      options: { id: userOrgId ?? '' },
       mutationFunction: updateMutation,
       toastMessage: 'Organization has been updated'
     });
 
-  const activeOrgId =
-    useMemo(
-      () =>
-        organizationList.find((org) => org?.organization?.id === currentOrgId)
-          ?.organization?.id,
-      [organizationList, currentOrgId]
-    );
+  const activeOrgId = useMemo(
+    () =>
+      userOrgsData?.find((org) => org?.organization?.id === currentOrgId)
+        ?.organization?.id,
+    [userOrgsData, currentOrgId]
+  );
 
   // selects current organization or returns
   function handleFilterOrg(value: string) {
@@ -51,15 +53,15 @@ export function useOrganizationList() {
       setFilterOrg(value);
       setCurrentOrgId(value);
     } else {
-      setFilterOrg(activeOrgId ?? "");
-      setCurrentOrgId(activeOrgId ?? "");
+      setFilterOrg(activeOrgId ?? '');
+      setCurrentOrgId(activeOrgId ?? '');
     }
   }
 
   const filteredOrg = useMemo(() => {
-    if (!organizationList) return {};
-    return organizationList.find((org) => org?.organization?.id === filterOrg);
-  }, [organizationList, filterOrg]) as {
+    if (!userOrgsData) return {};
+    return userOrgsData.find((org) => org?.organization?.id === filterOrg);
+  }, [userOrgsData, filterOrg]) as {
     organization: UserOrganizationProps;
     role: Role;
   };
@@ -67,17 +69,17 @@ export function useOrganizationList() {
   // returns list of organizations to select from
   // e.g [{ name: 'Select an organization', id: 'select-org' }, { name: 'Swarms', id: 'select-id' }]
   const listOfOrgs = useMemo(() => {
-    return organizationList.reduce(
+    return userOrgsData?.reduce(
       (acc, curr) => {
         acc.push({
-          name: curr?.organization?.name,
-          id: curr?.organization?.id
+          name: curr?.organization?.name ?? '',
+          id: curr?.organization?.id ?? ''
         });
         return acc;
       },
       [{ name: 'Select an organization', id: 'select-org' }]
     );
-  }, [organizationList]);
+  }, [userOrgsData]);
 
   useEffect(() => {
     if (activeOrgId) {
@@ -89,8 +91,10 @@ export function useOrganizationList() {
     createOrganization,
     updateOrganization,
     handleFilterOrg,
+    setOpenDialog,
     listOfOrgs,
     filteredOrg,
-    filterOrg
+    filterOrg,
+    openDialog
   };
 }

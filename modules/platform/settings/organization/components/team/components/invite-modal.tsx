@@ -17,15 +17,11 @@ import {
 } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
-import { ExcludeOwner } from '../../../types';
-import { emailRegExp } from './const';
 import { cn } from '@/shared/utils/cn';
-import { trpc } from '@/shared/utils/trpc/trpc';
 import { useOrganizationStore } from '@/shared/stores/organization';
-import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { ROLES } from '@/shared/constants/organization';
-import { useInviteModal } from '../../../hooks/component-hooks/useInviteModal';
+import { useInviteModal } from '../../../hooks/invite';
 
 export default function InviteModal() {
   const {

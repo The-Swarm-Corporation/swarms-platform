@@ -17,27 +17,30 @@ import {
 } from '@/shared/components/ui/select';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
-import { UserOrganizationProps } from '../../types';
+import { UserOrganizationProps, UserOrganizationsProps } from '../../types';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import OrganizationListItem from './components/item';
 import { isEmpty } from '@/shared/utils/helpers';
-import { useOrganizationList } from '../../hooks/component-hooks/useOrganizationList';
-import { useQueryMutation } from '../../hooks/useQueryMutation';
+import { useOrganizationList } from '../../hooks/list';
+import { useQueryMutation } from '../../hooks/organizations';
 
 interface ListProps {
   userOrgData: UserOrganizationProps | null;
+  userOrgsData: UserOrganizationsProps[];
 }
 
-function OrganizationList({ userOrgData }: ListProps) {
+function OrganizationList({ userOrgData, userOrgsData }: ListProps) {
   const {
     createOrganization,
     updateOrganization,
     handleFilterOrg,
+    setOpenDialog,
     listOfOrgs,
     filteredOrg,
-    filterOrg
-  } = useOrganizationList();
+    filterOrg,
+    openDialog
+  } = useOrganizationList({ userOrgsData });
 
   const { query } = useQueryMutation();
 
@@ -54,7 +57,7 @@ function OrganizationList({ userOrgData }: ListProps) {
         <h3 className="text-xl">All Organizations</h3>
 
         <div className="flex items-center justify-center gap-3 mt-2 sm:mt-0">
-          <Dialog>
+          <Dialog open={openDialog} onOpenChange={setOpenDialog}>
             <DialogTrigger asChild>
               <Button
                 className="gap-0.5"
@@ -112,9 +115,9 @@ function OrganizationList({ userOrgData }: ListProps) {
                 role="owner"
                 isActive={currentOrgId === userOrgData.id}
                 updateOrganization={updateOrganization}
-                handleCurrentOrgId={() =>
-                  setCurrentOrgId(userOrgData.id)
-                }
+                handleCurrentOrgId={() => setCurrentOrgId(userOrgData.id)}
+                openDialog={openDialog}
+                setOpenDialog={setOpenDialog}
               />
             </div>
           ) : (

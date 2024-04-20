@@ -2,14 +2,13 @@ import React from 'react';
 import { ShieldX } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import InviteModal from './team/components/invite-modal';
-import { trpc } from '@/shared/utils/trpc/trpc';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { PendingInvitesProps } from '../types';
 import ModalPrompt from './prompt';
 import { isEmpty } from '@/shared/utils/helpers';
-import { useQueryMutation } from '../hooks/useQueryMutation';
+import { useQueryMutation } from '../hooks/organizations';
 
 export default function PendingInvites() {
   const { query, mutation } = useQueryMutation();

@@ -4,16 +4,12 @@ import { UserOrganizationsProps } from '@/modules/platform/settings/organization
 
 interface OrganizationStore {
   currentOrganization: UserOrganizationsProps;
-  organizationList: UserOrganizationsProps[];
   userOrgId: string | null;
   isLoading: boolean;
-  isOpenModal: boolean;
   currentOrgId: string;
-  setIsOpenModal(isOpen: boolean): void;
   setUserOrgId(id: string): void;
   setIsLoading(isLoading: boolean): void;
   setCurrentOrgId(userOrgId: string): void;
-  setOrganizationList(organizationList: UserOrganizationsProps[]): void;
   setCurrentOrganization(currentOrganization: UserOrganizationsProps): void;
 }
 
@@ -23,8 +19,6 @@ export const useOrganizationStore = create<OrganizationStore>(
       isLoading: false,
       userOrgId: null,
       currentOrgId: '',
-      isOpenModal: false,
-      organizationList: [],
       currentOrganization: {
         role: 'reader',
         organization: { id: '', name: '' }
@@ -45,18 +39,6 @@ export const useOrganizationStore = create<OrganizationStore>(
         set((state) => ({
           ...state,
           currentOrgId
-        }));
-      },
-      setIsOpenModal(isOpenModal: boolean) {
-        set((state) => ({
-          ...state,
-          isOpenModal
-        }));
-      },
-      setOrganizationList(organizationList: UserOrganizationsProps[]) {
-        set((state) => ({
-          ...state,
-          organizationList
         }));
       },
       setCurrentOrganization(currentOrganization: UserOrganizationsProps) {

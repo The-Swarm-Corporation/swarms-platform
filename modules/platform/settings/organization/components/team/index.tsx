@@ -9,16 +9,13 @@ import {
 } from '@/shared/components/ui/select';
 import Input from '@/shared/components/ui/Input';
 import TeamMember from './components/member';
-import { ExcludeOwner, MemberProps } from '../../types';
 import InviteModal from './components/invite-modal';
 import { cn } from '@/shared/utils/cn';
-import { trpc } from '@/shared/utils/trpc/trpc';
-import { debounce, isEmpty } from '@/shared/utils/helpers';
+import { isEmpty } from '@/shared/utils/helpers';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { ROLES } from '@/shared/constants/organization';
-import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useOrganizationStore } from '@/shared/stores/organization';
-import { useOrganizationTeam } from '../../hooks/component-hooks/useOrganizationTeam';
+import { useOrganizationTeam } from '../../hooks/team';
 
 interface OrganizationTeamProps {
   user: any;

@@ -1,10 +1,10 @@
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useOrganizationStore } from '@/shared/stores/organization';
-import { useQueryMutation } from '../useQueryMutation';
-import { ExcludeOwner } from '../../types';
+import { ExcludeOwner } from '../types';
 import { FormEvent, SyntheticEvent, useState } from 'react';
-import { emailRegExp } from '../../components/team/components/const';
+import { emailRegExp } from '../components/team/components/const';
 import { ROLES } from '@/shared/constants/organization';
+import { useQueryMutation } from './organizations';
 
 export function useInviteModal() {
   const { query, mutation } = useQueryMutation();
@@ -38,7 +38,7 @@ export function useInviteModal() {
       return;
     }
 
-    if (!inviteRole || !userOrgId) {
+    if (!inviteRole) {
       toast.toast({
         description: 'Missing required values',
         style: { color: 'red' }
@@ -53,7 +53,7 @@ export function useInviteModal() {
       const response = await mutation.invite.mutateAsync({
         email,
         role: inviteRole as ExcludeOwner,
-        id: userOrgId
+        id: userOrgId ?? ""
       });
       if (response) {
         toast.toast({
