@@ -39,7 +39,7 @@ function OrganizationList({ userOrgData }: ListProps) {
     filterOrg
   } = useOrganizationList();
 
-  const { query } = useQueryMutation({});
+  const { query } = useQueryMutation();
 
   const userOrgId = useOrganizationStore((state) => state.userOrgId);
   const isLoading = useOrganizationStore((state) => state.isLoading);
