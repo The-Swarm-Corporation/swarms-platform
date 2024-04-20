@@ -36,6 +36,7 @@ export const useOrganizations = () => {
     return usersOrgData?.find((org) => org.organization.id === currentOrgId);
   }, [usersOrgData, currentOrgId]);
 
+  //a filtered list of organizations that the user belongs to, excluding their user personal organization
   const filteredUserOrgs = useMemo(() => {
     if (!isEmpty(usersOrgData) && userOrgData?.data?.id) {
       return usersOrgData?.filter(
@@ -85,16 +86,20 @@ export function useOrganizationMutation() {
 
   const [openDialog, setOpenDialog] = useState(false);
 
-  async function handleFormMutation<T extends FormProps>({
+  async function handleFormMutation<T>({
     e,
-    query,
-    options,
     mutationFunction,
-    toastMessage
+    toastMessage,
+    query,
+    options
   }: FormMutationProps<T>) {
     e?.preventDefault();
 
-    let data = Object.fromEntries(new FormData(e?.currentTarget));
+    const formData = new FormData(e?.currentTarget);
+    const data = {
+      ...Object.fromEntries(formData),
+      ...options
+    };
 
     for (const [key, value] of Object.entries(data)) {
       if (!value || value.toString().trim().length < 3) {
@@ -109,10 +114,7 @@ export function useOrganizationMutation() {
     useOrganizationStore.getState().setIsLoading(true);
 
     try {
-      const response = await mutationFunction.mutateAsync({
-        ...data,
-        ...options
-      } as T);
+      const response = await mutationFunction.mutateAsync(data as T);
       console.log(response);
       toast.toast({
         description: toastMessage || 'Request is successful',
@@ -125,7 +127,7 @@ export function useOrganizationMutation() {
         origin: { y: 0.6 }
       });
 
-      query?.refetch();
+      if (query) query.refetch();
 
       e?.currentTarget?.reset();
     } catch (error: any) {

@@ -344,24 +344,22 @@ const organizationRouter = router({
       // make new invite
 
       const host_url = getURL();
-      // const mail = mailer();
+      const mail = mailer();
 
       const secret_code = uuidv4();
       const accept_code_api = 'organization/accept-invite';
       const html = `You have been invited to join ${org?.name} Organization. Click here to accept: ${host_url}api/${accept_code_api}?code=${secret_code}`;
 
-      console.log({ html });
-
       try {
-        // const sendEmail = await mail.sendMail({
-        //   from: `kye@apac.ai`,
-        //   to: email,
-        //   subject: 'Invitation to join organization',
-        //   html
-        // });
-        // if (!sendEmail) {
-        //   throw new Error('Failed to send email');
-        // }
+        const sendEmail = await mail.sendMail({
+          from: `kye@apac.ai`,
+          to: email,
+          subject: 'Invitation to join organization',
+          html
+        });
+        if (!sendEmail) {
+          throw new Error('Failed to send email');
+        }
 
         const res = await ctx.supabase
           .from('swarms_cloud_organization_member_invites')
