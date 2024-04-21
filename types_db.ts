@@ -24,9 +24,68 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "customers_id_fkey"
+            foreignKeyName: "public_customers_id_fkey"
             columns: ["id"]
             isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          created: string | null
+          created_at: string
+          id: string
+          is_paid: boolean | null
+          metadata: Json | null
+          period_at: string | null
+          period_end: string | null
+          reason: string | null
+          status: string | null
+          status_transitions: Json | null
+          stripe_customer_id: string | null
+          total: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created?: string | null
+          created_at?: string
+          id: string
+          is_paid?: boolean | null
+          metadata?: Json | null
+          period_at?: string | null
+          period_end?: string | null
+          reason?: string | null
+          status?: string | null
+          status_transitions?: Json | null
+          stripe_customer_id?: string | null
+          total?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created?: string | null
+          created_at?: string
+          id?: string
+          is_paid?: boolean | null
+          metadata?: Json | null
+          period_at?: string | null
+          period_end?: string | null
+          reason?: string | null
+          status?: string | null
+          status_transitions?: Json | null
+          stripe_customer_id?: string | null
+          total?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -171,6 +230,234 @@ export type Database = {
           },
           {
             foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_api_activities: {
+        Row: {
+          api_key_id: string | null
+          created_at: string
+          echo: boolean | null
+          id: string
+          input_cost: number | null
+          input_tokens: number | null
+          max_tokens: number | null
+          messages: Json | null
+          model_id: string | null
+          organization_id: string | null
+          output_cost: number | null
+          output_tokens: number | null
+          repetition_penalty: number | null
+          stream: boolean | null
+          temperature: number | null
+          top_p: number | null
+          total_cost: number | null
+          user_id: string
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string
+          echo?: boolean | null
+          id?: string
+          input_cost?: number | null
+          input_tokens?: number | null
+          max_tokens?: number | null
+          messages?: Json | null
+          model_id?: string | null
+          organization_id?: string | null
+          output_cost?: number | null
+          output_tokens?: number | null
+          repetition_penalty?: number | null
+          stream?: boolean | null
+          temperature?: number | null
+          top_p?: number | null
+          total_cost?: number | null
+          user_id: string
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string
+          echo?: boolean | null
+          id?: string
+          input_cost?: number | null
+          input_tokens?: number | null
+          max_tokens?: number | null
+          messages?: Json | null
+          model_id?: string | null
+          organization_id?: string | null
+          output_cost?: number | null
+          output_tokens?: number | null
+          repetition_penalty?: number | null
+          stream?: boolean | null
+          temperature?: number | null
+          top_p?: number | null
+          total_cost?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_api_activities_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_api_keys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_swarms_cloud_api_activities_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_swarms_cloud_api_activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_swarms_cloud_api_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          key: string
+          limit_credit_dollar: number | null
+          name: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          key: string
+          limit_credit_dollar?: number | null
+          name?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          key?: string
+          limit_credit_dollar?: number | null
+          name?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_api_keys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_models: {
+        Row: {
+          api_endpoint: string | null
+          context_length: number | null
+          created_at: string
+          creator: string | null
+          default_config: Json | null
+          description: string | null
+          docs: Json | null
+          enabled: boolean | null
+          id: string
+          model_parameter: string | null
+          model_type: Database["public"]["Enums"]["model_type"] | null
+          name: string | null
+          per_1k_input_price: number | null
+          per_1k_output_price: number | null
+          provider: string | null
+          support_functions: boolean | null
+          unique_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          context_length?: number | null
+          created_at?: string
+          creator?: string | null
+          default_config?: Json | null
+          description?: string | null
+          docs?: Json | null
+          enabled?: boolean | null
+          id?: string
+          model_parameter?: string | null
+          model_type?: Database["public"]["Enums"]["model_type"] | null
+          name?: string | null
+          per_1k_input_price?: number | null
+          per_1k_output_price?: number | null
+          provider?: string | null
+          support_functions?: boolean | null
+          unique_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          context_length?: number | null
+          created_at?: string
+          creator?: string | null
+          default_config?: Json | null
+          description?: string | null
+          docs?: Json | null
+          enabled?: boolean | null
+          id?: string
+          model_parameter?: string | null
+          model_type?: Database["public"]["Enums"]["model_type"] | null
+          name?: string | null
+          per_1k_input_price?: number | null
+          per_1k_output_price?: number | null
+          provider?: string | null
+          support_functions?: boolean | null
+          unique_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      swarms_cloud_monthly_usage: {
+        Row: {
+          api_requests_count: number | null
+          created_at: string
+          id: string
+          month: string | null
+          usage: number | null
+          user_id: string | null
+        }
+        Insert: {
+          api_requests_count?: number | null
+          created_at?: string
+          id?: string
+          month?: string | null
+          usage?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          api_requests_count?: number | null
+          created_at?: string
+          id?: string
+          month?: string | null
+          usage?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_monthly_usage_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -336,27 +623,109 @@ export type Database = {
           },
         ]
       }
-      users: {
+      swarms_cloud_users_credits: {
         Row: {
-          avatar_url: string | null
-          billing_address: Json | null
-          full_name: string | null
+          created_at: string
+          credit: number | null
           id: string
-          payment_method: Json | null
+          user_id: string | null
         }
         Insert: {
-          avatar_url?: string | null
-          billing_address?: Json | null
-          full_name?: string | null
-          id: string
-          payment_method?: Json | null
+          created_at?: string
+          credit?: number | null
+          id?: string
+          user_id?: string | null
         }
         Update: {
+          created_at?: string
+          credit?: number | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_users_credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_users_tiers: {
+        Row: {
+          created_at: string
+          id: string
+          tier: Database["public"]["Enums"]["user_tier"] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tier?: Database["public"]["Enums"]["user_tier"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tier?: Database["public"]["Enums"]["user_tier"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_users_tiers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          about_company: string | null
+          avatar_url: string | null
+          basic_onboarding_completed: boolean | null
+          billing_address: Json | null
+          company_name: string | null
+          country_code: string | null
+          full_name: string | null
+          id: string
+          job_title: string | null
+          payment_method: Json | null
+          referral: string | null
+          signup_reason: string | null
+        }
+        Insert: {
+          about_company?: string | null
           avatar_url?: string | null
+          basic_onboarding_completed?: boolean | null
           billing_address?: Json | null
+          company_name?: string | null
+          country_code?: string | null
+          full_name?: string | null
+          id: string
+          job_title?: string | null
+          payment_method?: Json | null
+          referral?: string | null
+          signup_reason?: string | null
+        }
+        Update: {
+          about_company?: string | null
+          avatar_url?: string | null
+          basic_onboarding_completed?: boolean | null
+          billing_address?: Json | null
+          company_name?: string | null
+          country_code?: string | null
           full_name?: string | null
           id?: string
+          job_title?: string | null
           payment_method?: Json | null
+          referral?: string | null
+          signup_reason?: string | null
         }
         Relationships: [
           {
@@ -373,9 +742,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_id_by_email: {
+        Args: {
+          email: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
     }
     Enums: {
+      model_type: "text" | "vision"
       organization_member_invite_status:
         | "waiting"
         | "joined"
@@ -393,6 +770,7 @@ export type Database = {
         | "past_due"
         | "unpaid"
         | "paused"
+      user_tier: "tier1" | "tier2" | "tier3" | "tier4"
     }
     CompositeTypes: {
       [_ in never]: never
