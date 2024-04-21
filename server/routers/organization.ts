@@ -164,7 +164,7 @@ const organizationRouter = router({
 
       // check access: user should be owner or member
       const userRole = await getUserOrganizationRole(id, user.id);
-
+      
       if (!userRole) {
         throw new Error('Access denied');
       }
@@ -282,7 +282,6 @@ const organizationRouter = router({
         throw new Error('User need to signup first');
       }
 
-      console.log('invitedUser', invitedUser);
 
       // check duplicate member
       const { data: member } = await ctx.supabase
@@ -292,12 +291,6 @@ const organizationRouter = router({
         .eq('user_id', invitedUser.id)
         .filter('is_deleted', 'not.is', 'true')
         .limit(1);
-
-      console.log('member', {
-        id,
-        invitedUser,
-        member
-      });
 
       if (member?.length) {
         throw new Error('User already member of this organization');
@@ -375,7 +368,6 @@ const organizationRouter = router({
 
         return true;
       } catch (error) {
-        console.log(error);
         throw new Error('Failed to send email');
       }
     }),
@@ -487,6 +479,13 @@ const organizationRouter = router({
 
       if (!userRole || userRole == 'reader') {
         throw new Error('Access denied');
+      }
+      // managers cant delete other managers
+      if (userRole == 'manager') {
+        const memberRole = await getUserOrganizationRole(organization_id, user_id);
+        if (memberRole == 'manager') {
+          throw new Error('Access denied');
+        }
       }
 
       const member = await ctx.supabase
