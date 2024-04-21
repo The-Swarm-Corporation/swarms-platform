@@ -17,12 +17,18 @@ import { ROLES } from '@/shared/constants/organization';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { useOrganizationTeam } from '../../hooks/team';
 import { User } from '@supabase/supabase-js';
+import { UserOrganizationsProps } from '../../types';
+import { memo } from 'react';
 
 interface OrganizationTeamProps {
   user: User | null;
+  currentOrganization: UserOrganizationsProps | null;
 }
 
-export default function OrganizationTeam({ user }: OrganizationTeamProps) {
+function OrganizationTeam({
+  user,
+  currentOrganization
+}: OrganizationTeamProps) {
   const {
     search,
     filterRole,
@@ -32,10 +38,6 @@ export default function OrganizationTeam({ user }: OrganizationTeamProps) {
     setFilterRole,
     handleSearchChange
   } = useOrganizationTeam();
-
-  const currentOrganization = useOrganizationStore(
-    (state) => state.currentOrganization
-  );
 
   return (
     <div className="mt-16">
@@ -102,7 +104,14 @@ export default function OrganizationTeam({ user }: OrganizationTeamProps) {
           <LoadingSpinner />
         ) : !isEmpty(teamMembersToDisplay) && !isLoading ? (
           teamMembersToDisplay?.map((member) => (
-            <TeamMember key={member?.user_id} member={member} user={user} />
+            <TeamMember
+              key={member?.user_id}
+              member={member}
+              user={user}
+              currentOrganization={
+                currentOrganization as UserOrganizationsProps
+              }
+            />
           ))
         ) : (
           <div className="bg-secondary p-6 shadow-lg rounded-md">
@@ -113,3 +122,5 @@ export default function OrganizationTeam({ user }: OrganizationTeamProps) {
     </div>
   );
 }
+
+export default memo(OrganizationTeam);

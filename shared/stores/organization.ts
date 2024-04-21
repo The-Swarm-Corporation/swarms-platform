@@ -1,16 +1,13 @@
 import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { UserOrganizationsProps } from '@/modules/platform/settings/organization/types';
 
 interface OrganizationStore {
-  currentOrganization: UserOrganizationsProps;
   userOrgId: string | null;
   isLoading: boolean;
   currentOrgId: string;
   setUserOrgId(id: string): void;
   setIsLoading(isLoading: boolean): void;
   setCurrentOrgId(userOrgId: string): void;
-  setCurrentOrganization(currentOrganization: UserOrganizationsProps): void;
 }
 
 export const useOrganizationStore = create<OrganizationStore>(
@@ -19,10 +16,6 @@ export const useOrganizationStore = create<OrganizationStore>(
       isLoading: false,
       userOrgId: null,
       currentOrgId: '',
-      currentOrganization: {
-        role: 'reader',
-        organization: { id: '', name: '' }
-      },
       setUserOrgId(userOrgId: string) {
         set((state) => ({
           ...state,
@@ -41,12 +34,6 @@ export const useOrganizationStore = create<OrganizationStore>(
           currentOrgId
         }));
       },
-      setCurrentOrganization(currentOrganization: UserOrganizationsProps) {
-        set((state) => ({
-          ...state,
-          currentOrganization
-        }));
-      }
     }),
     {
       name: 'user-org-id',

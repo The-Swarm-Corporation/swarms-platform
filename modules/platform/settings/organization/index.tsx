@@ -13,7 +13,7 @@ const OrganizationTeam = dynamic(() => import('./components/team'), {
   ssr: false
 });
 export default function Organization({ user }: { user: User | null }) {
-  const { userOrgData, filteredUserOrgs } = useOrganizations();
+  const { currentOrganization, userOrgData, usersOrgData } = useOrganizations();
 
   return (
     <article className="w-full">
@@ -21,10 +21,10 @@ export default function Organization({ user }: { user: User | null }) {
 
       <OrganizationList
         userOrgData={userOrgData?.data as UserOrganizationProps}
-        userOrgsData={filteredUserOrgs as UserOrganizationsProps[]}
+        userOrgsData={usersOrgData as UserOrganizationsProps[]}
       />
-      <OrganizationTeam user={user} />
-      <PendingInvites />
+      <OrganizationTeam user={user} currentOrganization={currentOrganization as UserOrganizationsProps} />
+      <PendingInvites currentOrganization={currentOrganization as UserOrganizationsProps} />
     </article>
   );
 }

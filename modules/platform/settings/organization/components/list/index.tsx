@@ -113,7 +113,6 @@ function OrganizationList({ userOrgData, userOrgsData }: ListProps) {
               <OrganizationListItem
                 {...userOrgData}
                 role="owner"
-                isActive={currentOrgId === userOrgData.id}
                 updateOrganization={updateOrganization}
                 handleCurrentOrgId={() => setCurrentOrgId(userOrgData.id)}
                 openDialog={openDialog}
@@ -146,7 +145,7 @@ function OrganizationList({ userOrgData, userOrgsData }: ListProps) {
           </Select>
         </div>
 
-        <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground mb-8 gap-2">
+        <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 text-card-foreground mb-8 gap-2">
           {query.organizations.isLoading ? (
             <LoadingSpinner />
           ) : !isEmpty(filteredOrg) && !query.organizations.isLoading ? (

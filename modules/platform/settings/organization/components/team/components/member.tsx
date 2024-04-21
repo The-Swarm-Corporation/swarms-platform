@@ -1,39 +1,50 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import useToggle from '@/shared/hooks/toggle';
 import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 import { cn } from '@/shared/utils/cn';
-import { ExcludeOwner, MemberProps } from '../../../types';
+import {
+  ExcludeOwner,
+  MemberProps,
+  UserOrganizationsProps
+} from '../../../types';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import ModalPrompt from '../../prompt';
 import { ROLES } from '@/shared/constants/organization';
 import { useOrganizationTeam } from '../../../hooks/team';
+import { User } from '@supabase/supabase-js';
+import { useOrganizationMutation } from '../../../hooks/organizations';
+import LoadingSpinner from '@/shared/components/loading-spinner';
 
 interface TeamMemberProps {
   member: MemberProps;
-  user: any;
+  user: User | null;
+  currentOrganization: UserOrganizationsProps;
 }
 
-export default function TeamMember({ member, user }: TeamMemberProps) {
-  const currentOrganization = useOrganizationStore(
-    (state) => state.currentOrganization
-  );
-  const { openDialog, handleRoleChange, handleLeaveOrg, handleDeleteMember, setOpenDialog } =
+function TeamMember({ member, user, currentOrganization }: TeamMemberProps) {
+  const { handleRoleChange, handleLeaveOrg, handleDeleteMember } =
     useOrganizationTeam();
+  const { openDialog, openRoleDialog, setOpenRoleDialog, setOpenDialog } =
+    useOrganizationMutation();
 
-  const memberRef = useRef(null);
   const toast = useToast();
+  const memberRef = useRef(null);
   const { isOn, setOff, setOn } = useToggle();
-  const [memberRole, setMemberRole] = useState<ExcludeOwner>('reader');
   const isLoading = useOrganizationStore((state) => state.isLoading);
 
   useOnClickOutside(memberRef, setOff);
 
   const ownerRole = member.role === 'owner';
   const isCurrentUser = member.user_id === user?.id;
-  const isOrgOwner = currentOrganization.role === 'owner';
+  const isOrgOwner = currentOrganization?.role === 'owner';
+  const isReader = currentOrganization?.role === 'reader';
+  const isManager = currentOrganization?.role === 'manager';
+
+  const [memberRole, setMemberRole] = useState('');
+  const [isMemberRoleLoading, setIsMemberRoleLoading] = useState(false);
 
   const allMemberRoles = useMemo(() => {
     const excludedRoles = ['Team roles', 'owner'];
@@ -42,27 +53,26 @@ export default function TeamMember({ member, user }: TeamMemberProps) {
     );
   }, [member.role]);
 
-  async function handleUserRole(role: ExcludeOwner) {
-    if (role === memberRole)
+  function handleMemberRole(role: ExcludeOwner) {
+    setMemberRole(role);
+  }
+
+  async function handleUserRole() {
+    if (!memberRole || memberRole === member?.role)
       return toast.toast({
         description: 'Role already exists',
         style: { color: 'red' }
       });
-    await handleRoleChange?.(member.user_id, role as ExcludeOwner);
-    setMemberRole(role);
-    setOff();
+    setIsMemberRoleLoading(true);
+    await handleRoleChange?.(member.user_id, memberRole as ExcludeOwner);
+    setIsMemberRoleLoading(false);
+    setOpenRoleDialog(false);
   }
 
   function handleModal() {
     if (ownerRole) return;
     setOn();
   }
-
-  useEffect(() => {
-    if (member?.role) {
-      setMemberRole(member.role as ExcludeOwner);
-    }
-  }, []);
 
   return (
     <div className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between border rounded-md px-2 py-4 sm:p-4 text-card-foreground hover:opacity-80 w-full max-sm:gap-2">
@@ -80,8 +90,14 @@ export default function TeamMember({ member, user }: TeamMemberProps) {
           )}
           onClick={handleModal}
         >
-          <span>{member.role}</span>
-          {!ownerRole && isOrgOwner && <ChevronDown size={20} />}
+          {isMemberRoleLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <span>{member.role}</span>
+              {!ownerRole && isOrgOwner && <ChevronDown size={20} />}
+            </>
+          )}
         </div>
         {isOrgOwner && (
           <ul
@@ -92,11 +108,16 @@ export default function TeamMember({ member, user }: TeamMemberProps) {
             )}
           >
             {allMemberRoles?.map((role) => (
-              <li className="hover:text-secondary hover:bg-foreground capitalize w-full py-2 text-center">
+              <li
+                onClick={() => handleMemberRole(role as ExcludeOwner)}
+                className="hover:text-secondary hover:bg-foreground capitalize w-full py-2 text-center"
+              >
                 <ModalPrompt
                   content={`Do you wish to change the role for ${member.name || ''}?`}
                   isLoading={isLoading}
-                  handleClick={() => handleUserRole(role as ExcludeOwner)}
+                  openDialog={openRoleDialog}
+                  setOpenDialog={setOpenRoleDialog}
+                  handleClick={() => handleUserRole()}
                 >
                   <Button
                     variant="ghost"
@@ -112,8 +133,7 @@ export default function TeamMember({ member, user }: TeamMemberProps) {
         )}
       </div>
       <div className="w-full sm:max-w-[86px] flex justify-center mt-2 md:mt-0">
-        {(isCurrentUser && currentOrganization.role === 'reader') ||
-        (isCurrentUser && currentOrganization.role === 'manager') ? (
+        {(isCurrentUser && isReader) || (isCurrentUser && isManager) ? (
           <ModalPrompt
             content={`Can you confirm you're leaving?`}
             isLoading={isLoading}
@@ -124,10 +144,8 @@ export default function TeamMember({ member, user }: TeamMemberProps) {
             <Button className={cn('h-7 sm:h-10 sm:w-full')}>Leave</Button>
           </ModalPrompt>
         ) : !isCurrentUser &&
-          ((currentOrganization.role === 'manager' &&
-            member.role !== 'manager') ||
-            currentOrganization.role === 'owner') &&
-          member.role !== 'owner' ? (
+          ((isManager && member.role !== 'manager') || isOrgOwner) &&
+          !ownerRole ? (
           <ModalPrompt
             content={`Would you like to remove ${member.name || ''} from this organization?`}
             isLoading={isLoading}
@@ -142,3 +160,5 @@ export default function TeamMember({ member, user }: TeamMemberProps) {
     </div>
   );
 }
+
+export default memo(TeamMember);
