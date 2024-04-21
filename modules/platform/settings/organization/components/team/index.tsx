@@ -16,9 +16,10 @@ import LoadingSpinner from '@/shared/components/loading-spinner';
 import { ROLES } from '@/shared/constants/organization';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { useOrganizationTeam } from '../../hooks/team';
+import { User } from '@supabase/supabase-js';
 
 interface OrganizationTeamProps {
-  user: any;
+  user: User | null;
 }
 
 export default function OrganizationTeam({ user }: OrganizationTeamProps) {

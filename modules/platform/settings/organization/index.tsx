@@ -12,7 +12,7 @@ const PendingInvites = dynamic(() => import('./components/pending-invite'), {
 const OrganizationTeam = dynamic(() => import('./components/team'), {
   ssr: false
 });
-export default function Organization({ user }: { user: User }) {
+export default function Organization({ user }: { user: User | null }) {
   const { userOrgData, filteredUserOrgs } = useOrganizations();
 
   return (
