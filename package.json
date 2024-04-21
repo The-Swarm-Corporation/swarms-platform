@@ -29,7 +29,7 @@
     "@radix-ui/react-slider": "^1.1.2",
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-toast": "^1.1.5",
-    "@rive-app/react-canvas": "^4.8.4",
+    "@rive-app/react-canvas": "^4.8.9",
     "@stripe/react-stripe-js": "^2.6.0",
     "@stripe/stripe-js": "2.4.0",
     "@supabase/auth-helpers-nextjs": "^0.9.0",
