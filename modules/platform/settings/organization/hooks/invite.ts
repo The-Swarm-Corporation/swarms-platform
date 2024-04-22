@@ -1,3 +1,4 @@
+import { UserOrganizationsProps } from './../types';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { ExcludeOwner } from '../types';
@@ -6,12 +7,13 @@ import { emailRegExp } from '../components/team/components/const';
 import { ROLES } from '@/shared/constants/organization';
 import { useQueryMutation } from './organizations';
 
-export function useInviteModal() {
+export function useInviteModal({
+  currentOrganization
+}: {
+  currentOrganization: UserOrganizationsProps;
+}) {
   const { query, mutation } = useQueryMutation();
   const userOrgId = useOrganizationStore((state) => state.userOrgId);
-  const currentOrganization = useOrganizationStore(
-    (state) => state.currentOrganization
-  );
 
   const toast = useToast();
   const [email, setEmail] = useState('');
@@ -54,7 +56,7 @@ export function useInviteModal() {
       const response = await mutation.invite.mutateAsync({
         email,
         role: inviteRole as ExcludeOwner,
-        id: userOrgId ?? ""
+        id: userOrgId ?? ''
       });
       if (response) {
         toast.toast({

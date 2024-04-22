@@ -22,8 +22,13 @@ import { useOrganizationStore } from '@/shared/stores/organization';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { ROLES } from '@/shared/constants/organization';
 import { useInviteModal } from '../../../hooks/invite';
+import { UserOrganizationsProps } from '../../../types';
 
-export default function InviteModal() {
+export default function InviteModal({
+  currentOrganization
+}: {
+  currentOrganization: UserOrganizationsProps;
+}) {
   const {
     email,
     isValidEmail,
@@ -34,7 +39,7 @@ export default function InviteModal() {
     inviteUser,
     handleEmailChange,
     handleOpenModal
-  } = useInviteModal();
+  } = useInviteModal({ currentOrganization });
 
   const isLoading = useOrganizationStore((state) => state.isLoading);
   const inviteRoles = ROLES.slice(2);

@@ -14,7 +14,6 @@ import { cn } from '@/shared/utils/cn';
 import { isEmpty } from '@/shared/utils/helpers';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { ROLES } from '@/shared/constants/organization';
-import { useOrganizationStore } from '@/shared/stores/organization';
 import { useOrganizationTeam } from '../../hooks/team';
 import { User } from '@supabase/supabase-js';
 import { UserOrganizationsProps } from '../../types';
@@ -61,7 +60,9 @@ function OrganizationTeam({
           </span>
         </div>
 
-        <InviteModal />
+        <InviteModal
+          currentOrganization={currentOrganization as UserOrganizationsProps}
+        />
       </div>
 
       <div className="flex items-center gap-3 mt-8 mb-4">
