@@ -1,9 +1,6 @@
 import { useOrganizationStore } from '@/shared/stores/organization';
-import { isEmpty } from '@/shared/utils/helpers';
 import { useEffect, useMemo } from 'react';
-import { UserOrganizationsProps } from '../types';
 import { FormEvent, useState } from 'react';
-import { FormProps } from '../types';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import confetti from 'canvas-confetti';
 import { trpc } from '@/shared/utils/trpc/trpc';
@@ -12,13 +9,8 @@ type FormMutationType<T> = {
   mutateAsync: (data: T) => Promise<null | boolean>;
 };
 
-type QueryType = {
-  refetch: () => void;
-};
-
 interface FormMutationProps<T> {
   e?: FormEvent<HTMLFormElement>;
-  query?: QueryType;
   options?: Record<string, any>;
   data?: T;
   mutationFunction: FormMutationType<T>;
@@ -36,35 +28,14 @@ export const useOrganizations = () => {
     return usersOrgData?.find((org) => org.organization.id === currentOrgId);
   }, [usersOrgData, currentOrgId]);
 
-  //a filtered list of organizations that the user belongs to, excluding their user personal organization
-  const filteredUserOrgs = useMemo(() => {
-    if (!isEmpty(usersOrgData) && userOrgData?.data?.id) {
-      return usersOrgData?.filter(
-        (org) => org.organization.id !== userOrgData.data.id
-      );
-    } else {
-      return usersOrgData;
-    }
-  }, [usersOrgData, userOrgData?.data?.id]);
+  const currentId =
+    userOrgData?.data?.id || usersOrgData?.[0]?.organization?.id;
 
   useEffect(() => {
     if (userOrgData?.data?.id) {
       useOrganizationStore.getState().setUserOrgId(userOrgData.data.id);
     }
-  }, [userOrgData?.data?.id]);
 
-  useEffect(() => {
-    if (currentOrganization) {
-      useOrganizationStore
-        .getState()
-        .setCurrentOrganization(currentOrganization as UserOrganizationsProps);
-    }
-  }, [currentOrganization]);
-
-  const currentId =
-    userOrgData?.data?.id || filteredUserOrgs?.[0]?.organization?.id;
-
-  useEffect(() => {
     if (currentId) {
       useOrganizationStore.getState().setCurrentOrgId(currentId);
     }
@@ -72,7 +43,8 @@ export const useOrganizations = () => {
 
   return {
     userOrgData,
-    filteredUserOrgs
+    usersOrgData,
+    currentOrganization
   };
 };
 
@@ -85,12 +57,12 @@ export function useOrganizationMutation() {
   const { query } = useQueryMutation();
 
   const [openDialog, setOpenDialog] = useState(false);
+  const [openRoleDialog, setOpenRoleDialog] = useState(false);
 
   async function handleFormMutation<T>({
     e,
     mutationFunction,
     toastMessage,
-    query,
     options
   }: FormMutationProps<T>) {
     e?.preventDefault();
@@ -127,7 +99,8 @@ export function useOrganizationMutation() {
         origin: { y: 0.6 }
       });
 
-      if (query) query.refetch();
+      query.organization.refetch();
+      query.organizations.refetch();
 
       e?.currentTarget?.reset();
     } catch (error: any) {
@@ -160,10 +133,10 @@ export function useOrganizationMutation() {
     try {
       const response = await mutationFunction.mutateAsync(data as T);
       if (response) {
+        setOpenDialog(false);
         toast.toast({ description: toastMessage, style: { color: 'green' } });
         query.members.refetch();
         query.organizations.refetch();
-        setOpenDialog(false);
       }
     } catch (error) {
       if ((error as any)?.message) {
@@ -178,6 +151,8 @@ export function useOrganizationMutation() {
     handleFormMutation,
     withOrganizationMutation,
     openDialog,
+    openRoleDialog,
+    setOpenRoleDialog,
     setOpenDialog
   };
 }

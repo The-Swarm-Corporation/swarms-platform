@@ -1,30 +1,31 @@
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { ShieldX } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import InviteModal from './team/components/invite-modal';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useOrganizationStore } from '@/shared/stores/organization';
-import { PendingInvitesProps } from '../types';
+import { PendingInvitesProps, UserOrganizationsProps } from '../types';
 import ModalPrompt from './prompt';
 import { isEmpty } from '@/shared/utils/helpers';
 import { useQueryMutation } from '../hooks/organizations';
 
-export default function PendingInvites() {
+function PendingInvites({
+  currentOrganization
+}: {
+  currentOrganization: UserOrganizationsProps;
+}) {
   const { query, mutation } = useQueryMutation();
-  
+
   const toast = useToast();
-  
+
   const isLoading = useOrganizationStore((state) => state.isLoading);
   const userOrgId = useOrganizationStore((state) => state.userOrgId);
   const [openDialog, setOpenDialog] = useState(false);
-  const currentOrganization = useOrganizationStore(
-    (state) => state.currentOrganization
-  );
 
   const isOwnerOrManager =
-    currentOrganization.role === 'owner' ||
-    currentOrganization.role === 'manager';
+    currentOrganization?.role === 'owner' ||
+    currentOrganization?.role === 'manager';
 
   // cancel pending user invite
   async function handleCancelInvite(email: string) {
@@ -55,7 +56,7 @@ export default function PendingInvites() {
         className="flex justify-between border rounded-md px-4 py-8 text-card-foreground hover:opacity-80 w-full cursor-pointer mb-4"
       >
         <div className="flex items-center gap-2">
-          <span className="w-10 h-10 flex justify-center items-center bg-secondary text-white rounded-full uppercase">
+          <span className="w-10 h-10 flex justify-center items-center bg-foreground dark:bg-secondary text-white rounded-full uppercase">
             {email?.charAt(0)}
           </span>
           <p>{email}</p>
@@ -113,3 +114,5 @@ export default function PendingInvites() {
 
   return null;
 }
+
+export default memo(PendingInvites);

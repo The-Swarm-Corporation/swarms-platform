@@ -25,7 +25,7 @@ export default function ModalPrompt({
   content,
   isLoading,
   openDialog,
-  setOpenDialog,
+  setOpenDialog
 }: ModalPromptProps) {
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
@@ -36,10 +36,11 @@ export default function ModalPrompt({
         </DialogHeader>
         <div className="mt-2">
           <DialogFooter className="mt-3 flex items-center justify-center gap-4">
-            <DialogClose className="w-2/4">
-              <Button className="w-full" aria-label="Yes">
-                No
-              </Button>
+            <DialogClose
+              className="w-2/4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              aria-label="No"
+            >
+              No
             </DialogClose>
             <Button className="w-2/4" aria-label="Yes" onClick={handleClick}>
               {isLoading ? <LoadingSpinner /> : 'Yes'}

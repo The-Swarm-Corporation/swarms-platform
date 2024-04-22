@@ -26,7 +26,6 @@ export function useOrganizationList({
   const createOrganization = (event: FormEvent<HTMLFormElement>) =>
     handleFormMutation({
       e: event,
-      query: userQuery,
       mutationFunction: createMutation,
       toastMessage: 'Organization has been created'
     });
@@ -34,7 +33,6 @@ export function useOrganizationList({
   const updateOrganization = (event: FormEvent<HTMLFormElement>) =>
     handleFormMutation({
       e: event,
-      query: userQuery,
       options: { id: userOrgId ?? '' },
       mutationFunction: updateMutation,
       toastMessage: 'Organization has been updated'

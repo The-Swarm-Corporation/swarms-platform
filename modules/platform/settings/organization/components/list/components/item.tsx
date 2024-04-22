@@ -1,4 +1,11 @@
-import React, { Dispatch, FormEvent, memo, SetStateAction, useRef, useState } from 'react';
+import React, {
+  Dispatch,
+  FormEvent,
+  memo,
+  SetStateAction,
+  useRef,
+  useState
+} from 'react';
 import { Ellipsis } from 'lucide-react';
 import {
   Dialog,
@@ -23,7 +30,7 @@ interface OrganizationListItemProps {
   role: Role;
   isActive?: boolean;
   openDialog?: boolean;
-  setOpenDialog?: Dispatch<SetStateAction<boolean>>,
+  setOpenDialog?: Dispatch<SetStateAction<boolean>>;
   handleCurrentOrgId?: () => void;
   updateOrganization?: (event: FormEvent<HTMLFormElement>) => void;
 }
@@ -51,8 +58,10 @@ function OrganizationListItem({
     <div
       onClick={handleCurrentOrgId}
       className={cn(
-        'flex justify-between border rounded-md p-2 sm:p-4 text-card-foreground hover:opacity-80 w-full transition cursor-pointer',
-        isActive && 'bg-primary shadow text-white'
+        'flex justify-between border rounded-md p-2 sm:p-4 text-card-foreground hover:opacity-90 w-full transition cursor-pointer',
+        !isActive
+          ? 'shadow text-secondary bg-foreground/90'
+          : 'text-white bg-primary'
       )}
     >
       <div className="flex items-center gap-2">
@@ -83,7 +92,7 @@ function OrganizationListItem({
               isOn && 'visible'
             )}
           >
-            {role === "owner" && (
+            {role === 'owner' && (
               <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 <DialogTrigger asChild>
                   <div
