@@ -2,6 +2,10 @@ import type { Tables } from '@/types_db';
 
 type Price = Tables<'prices'>;
 
+interface ObjectOrArray {
+  constructor: typeof Object | typeof Array;
+}
+
 export const getURL = (path: string = '') => {
   // Check if NEXT_PUBLIC_SITE_URL is set and non-empty. Set this to your site URL in production env.
   let url =
@@ -184,4 +188,25 @@ export const makeUrl = (url: string, data: any) => {
   return url.replace(/\[(.*?)\]|\{(.*?)\}/g, (match, p1, p2) => {
     return data[p1 || p2];
   });
+};
+
+// shorten string to num and attached endLabel to shortened string
+export function getTruncatedString(str: string, num: number, endLabel = "...") {
+  if (!str) return null;
+
+  const words = str.split("").splice(0, num);
+  if (str.split("").length > num) return `${words.join("")}${endLabel}`;
+  return str;
+}
+
+export const isEmpty = (obj: ObjectOrArray | any) => [Object, Array].includes((obj || {}).constructor) && !Object.entries(obj || {}).length;
+
+export const debounce = (callback: (...args: any[]) => any, wait: number) => {
+  let timeoutId: number | undefined;
+  return (...args: any[]) => {
+    window.clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => {
+      callback(...args);
+    }, wait);
+  };
 };

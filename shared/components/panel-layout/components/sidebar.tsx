@@ -9,7 +9,9 @@ import {
   SquareChevronRight,
   User,
   X,
-  ChevronsLeft
+  ChevronsLeft,
+  Building2,
+  Settings
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -59,19 +61,19 @@ const panelMenu: {
     link: PLATFORM.USAGE
   },
   {
-    icon: <User size={24} />,
-    title: 'Account',
-    link: PLATFORM.ACCOUNT
-    /*     items: [
+    icon: <Settings size={24} />,
+    title: 'Settings',
+    link: PLATFORM.ACCOUNT,
+    items: [
       {
-        title: 'Profile',
-        link: PLATFORM.ACCOUNT_PROFILE
+        title: 'Account',
+        link: PLATFORM.ACCOUNT
       },
       {
-        title: 'billing',
-        link: PLATFORM.ACCOUNT_BILLING
+        title: 'Organization',
+        link: PLATFORM.ORGANIZATION
       }
-    ] */
+    ]
   }
 ];
 
@@ -79,14 +81,20 @@ const collapsedMenu = 'collapsedMenu';
 const PanelLayoutSidebar = () => {
   const path = usePathname();
   const router = useRouter();
-  const { isOn, toggle } = useToggle("off", collapsedMenu);
+  const { isOn, toggle } = useToggle('off', collapsedMenu);
 
   return (
     <>
       {/* desktop */}
       <div
         className={cn(
-          'flex flex-col relative flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 h-screen border-r border-gray-900 max-lg:hidden',
+          'max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 max-lg:hidden',
+          isOn && 'max-w-0 -translate-x-full'
+        )}
+      />
+      <div
+        className={cn(
+          'flex flex-col fixed flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 min-h-screen border-r border-gray-900 max-lg:hidden',
           isOn && 'max-w-0 -translate-x-full'
         )}
       >
@@ -114,45 +122,52 @@ const PanelLayoutSidebar = () => {
 
             {/* menu */}
             <div className="mt-8">
-              {panelMenu.map((item, index) => (
-                <div className="flex flex-col gap-2" key={index}>
-                  <Link
-                    href={item.link}
-                    className={cn(
-                      'group flex items-center justify-start p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md outline-none',
-                      item.link === path && 'bg-primary text-white'
-                    )}
-                  >
-                    {item.icon && (
-                      <span
-                        className={cn(
-                          'mr-2 text-black dark:text-white group-hover:text-white',
-                          item.link === path && 'text-white'
-                        )}
-                      >
-                        {item.icon}
-                      </span>
-                    )}
-                    <span>{item.title}</span>
-                  </Link>
-                  {/* sub items */}
-                  {item.link === path && item.items?.length && (
-                    <div className="flex flex-col gap-2">
-                      {item.items?.map((subItem) => (
-                        <Link
-                          href={subItem.link}
+              {panelMenu.map((item, index) => {
+                const isSubMenuActive = item.items?.some(
+                  (subItem) => subItem.link === path
+                );
+                return (
+                  <div className="flex flex-col gap-2" key={index}>
+                    <Link
+                      href={item.link}
+                      className={cn(
+                        'group flex items-center justify-start p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md outline-none',
+                        (isSubMenuActive || item.link === path) &&
+                          'bg-primary text-white'
+                      )}
+                    >
+                      {item.icon && (
+                        <span
                           className={cn(
-                            'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
-                            subItem.link === path && 'bg-primary text-white'
+                            'mr-2 text-black dark:text-white group-hover:text-white',
+                            item.link === path && 'text-white'
                           )}
                         >
-                          <span>{subItem.title}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                          {item.icon}
+                        </span>
+                      )}
+                      <span>{item.title}</span>
+                    </Link>
+                    {/* sub items */}
+                    {isSubMenuActive && item.items?.length && (
+                      <div className="flex flex-col gap-2">
+                        {item.items?.map((subItem) => (
+                          <Link
+                            href={subItem.link}
+                            className={cn(
+                              'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
+                              subItem.link === path &&
+                                'border border-gray-400 text-white'
+                            )}
+                          >
+                            <span>{subItem.title}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
           <div className="p-2">

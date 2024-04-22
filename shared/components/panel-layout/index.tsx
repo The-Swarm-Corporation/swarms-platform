@@ -5,7 +5,7 @@ import BasicOnboardingModal from '../basic-onboarding-modal';
 const PanelLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-      <div className="flex flex-row w-screen h-screen max-md:flex-col">
+      <div className="flex flex-row w-screen min-h-screen max-md:flex-col">
         {/* sidebar */}
         <PanelLayoutSidebar />
 
