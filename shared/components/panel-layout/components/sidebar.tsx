@@ -63,15 +63,15 @@ const panelMenu: {
   {
     icon: <Settings size={24} />,
     title: 'Settings',
-    link: PLATFORM.ORGANIZATION,
+    link: PLATFORM.ACCOUNT,
     items: [
-      {
-        title: 'Organization',
-        link: PLATFORM.ORGANIZATION
-      },
       {
         title: 'Account',
         link: PLATFORM.ACCOUNT
+      },
+      {
+        title: 'Organization',
+        link: PLATFORM.ORGANIZATION
       }
     ]
   }
@@ -122,47 +122,52 @@ const PanelLayoutSidebar = () => {
 
             {/* menu */}
             <div className="mt-8">
-              {panelMenu.map((item, index) => (
-                <div className="flex flex-col gap-2" key={index}>
-                  <Link
-                    href={item.link}
-                    className={cn(
-                      'group flex items-center justify-start p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md outline-none',
-                      item.link === path &&
-                        !item?.items &&
-                        'bg-primary text-white'
-                    )}
-                  >
-                    {item.icon && (
-                      <span
-                        className={cn(
-                          'mr-2 text-black dark:text-white group-hover:text-white',
-                          item.link === path && 'text-white'
-                        )}
-                      >
-                        {item.icon}
-                      </span>
-                    )}
-                    <span>{item.title}</span>
-                  </Link>
-                  {/* sub items */}
-                  {item.link === path && item.items?.length && (
-                    <div className="flex flex-col gap-2">
-                      {item.items?.map((subItem) => (
-                        <Link
-                          href={subItem.link}
+              {panelMenu.map((item, index) => {
+                const isSubMenuActive = item.items?.some(
+                  (subItem) => subItem.link === path
+                );
+                return (
+                  <div className="flex flex-col gap-2" key={index}>
+                    <Link
+                      href={item.link}
+                      className={cn(
+                        'group flex items-center justify-start p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md outline-none',
+                        (isSubMenuActive || item.link === path) &&
+                          'bg-primary text-white'
+                      )}
+                    >
+                      {item.icon && (
+                        <span
                           className={cn(
-                            'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
-                            subItem.link === path && 'bg-primary text-white'
+                            'mr-2 text-black dark:text-white group-hover:text-white',
+                            item.link === path && 'text-white'
                           )}
                         >
-                          <span>{subItem.title}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                          {item.icon}
+                        </span>
+                      )}
+                      <span>{item.title}</span>
+                    </Link>
+                    {/* sub items */}
+                    {isSubMenuActive && item.items?.length && (
+                      <div className="flex flex-col gap-2">
+                        {item.items?.map((subItem) => (
+                          <Link
+                            href={subItem.link}
+                            className={cn(
+                              'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
+                              subItem.link === path &&
+                                'border border-gray-400 text-white'
+                            )}
+                          >
+                            <span>{subItem.title}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
           <div className="p-2">
