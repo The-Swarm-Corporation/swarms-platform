@@ -157,7 +157,7 @@ const PanelLayoutSidebar = () => {
                             className={cn(
                               'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
                               subItem.link === path &&
-                                'border border-gray-400 text-white'
+                                'border border-gray-400 dark:text-white'
                             )}
                           >
                             <span>{subItem.title}</span>
@@ -230,7 +230,7 @@ const PanelLayoutSidebar = () => {
                             href={subItem.link}
                             className={cn(
                               'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
-                              subItem.link === path && 'bg-primary text-white'
+                              subItem.link === path && 'bg-primary dark:text-white'
                             )}
                           >
                             <span>{subItem.title}</span>

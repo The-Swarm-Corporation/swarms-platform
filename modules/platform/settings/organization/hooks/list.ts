@@ -51,7 +51,7 @@ export function useOrganizationList({
       setFilterOrg(value);
       setCurrentOrgId(value);
     } else {
-      setFilterOrg(activeOrgId ?? '');
+      setFilterOrg(activeOrgId || 'select-org');
       setCurrentOrgId(activeOrgId ?? '');
     }
   }
@@ -82,6 +82,8 @@ export function useOrganizationList({
   useEffect(() => {
     if (activeOrgId) {
       setFilterOrg(activeOrgId);
+    } else {
+      setFilterOrg('select-org');
     }
   }, [activeOrgId]);
 

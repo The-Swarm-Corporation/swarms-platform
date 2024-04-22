@@ -5,11 +5,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { ExcludeOwner } from '../types';
 import { ROLES } from '@/shared/constants/organization';
 import { useOrganizationMutation, useQueryMutation } from './organizations';
+import { trpc } from '@/shared/utils/trpc/trpc';
 
 export function useOrganizationTeam() {
   const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
   const { query, mutation } = useQueryMutation();
   const { withOrganizationMutation } = useOrganizationMutation();
+  const utils = trpc.useUtils();
 
   const toast = useToast();
   const [filterRole, setFilterRole] = useState<string>(ROLES[0].value);
@@ -54,7 +56,7 @@ export function useOrganizationTeam() {
     await withOrganizationMutation({
       mutationFunction: mutation.changeRole,
       data: { user_id, role, organization_id: currentOrgId },
-      toastMessage: 'Member role updated',
+      toastMessage: 'Member role updated'
     });
   }
 
@@ -62,8 +64,12 @@ export function useOrganizationTeam() {
     await withOrganizationMutation({
       mutationFunction: mutation.leave,
       data: { organization_id: currentOrgId },
-      toastMessage: "You've successfully left the organization",
+      toastMessage: "You've successfully left the organization"
     });
+    utils.organization.members.reset();
+    useOrganizationStore
+      .getState()
+      .setCurrentOrgId(query.organizations.data?.[0].organization.id ?? '');
   }
 
   async function handleDeleteMember(user_id: string) {
@@ -77,7 +83,7 @@ export function useOrganizationTeam() {
     await withOrganizationMutation({
       mutationFunction: mutation.delete,
       data: { user_id, organization_id: currentOrgId },
-      toastMessage: 'User has been successfully removed',
+      toastMessage: 'User has been successfully removed'
     });
   }
 
