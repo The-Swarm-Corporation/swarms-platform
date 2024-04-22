@@ -33,13 +33,16 @@ export const useOrganizationStore = create<OrganizationStore>(
           ...state,
           currentOrgId
         }));
-      },
+      }
     }),
     {
-      name: 'user-org-id',
+      name: 'current-org-id',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) =>
-        ({ userOrgId: state.userOrgId }) as OrganizationStore
+        ({
+          currentOrgId: state.currentOrgId,
+          userOrgId: state.userOrgId
+        }) as OrganizationStore
     }
   ) as StateCreator<OrganizationStore, [], []>
 );
