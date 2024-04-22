@@ -99,13 +99,13 @@ function PendingInvites({
             ) : (
               <div className="flex flex-col items-center justify-center gap-1 opacity-80">
                 <h3 className="mb-2 text-xl">Invite Team Members</h3>
-                <InviteModal />
+                <InviteModal currentOrganization={currentOrganization} />
               </div>
             )
           ) : (
             <div className="flex flex-col items-center justify-center gap-1 opacity-80">
               <h3 className="mb-2 text-xl">Invite Team Members</h3>
-              <InviteModal />
+              <InviteModal currentOrganization={currentOrganization} />
             </div>
           )}
         </div>
