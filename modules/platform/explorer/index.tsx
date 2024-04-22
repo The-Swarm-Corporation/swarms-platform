@@ -72,7 +72,7 @@ const Explorer = () => {
           </div>
         </div>
         <div className="flex flex-col h-1/2 gap-2 py-8">
-          <h1 className="text-3xl font-bold pb-2">Swarms & Services</h1>
+          <h1 className="text-3xl font-bold pb-2">Swarms</h1>
           <div className="flex flex-wrap gap-4">
             <div
               className="w-full h-[180px] sm:w-full md:w-1/3 lg:w-1/3 cursor-pointer"
@@ -82,7 +82,7 @@ const Explorer = () => {
                 title="Synthify"
                 description="Synthify is a platform that allows you to create dataset for llms,vlms ."
                 icon={<ScanEye />}
-                btnLabel="try"
+                btnLabel="Get Started"
                 className="w-full h-full"
               />
             </div>
