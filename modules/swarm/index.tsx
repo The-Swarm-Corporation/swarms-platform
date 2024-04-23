@@ -1,11 +1,16 @@
+'use client';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
-import { trpcApi } from '@/shared/utils/trpc/trpc';
-import { redirect } from 'next/navigation';
+import { trpc } from '@/shared/utils/trpc/trpc';
 
-const Swarm = async ({ name }: { name: string }) => {
-  const swarm = await trpcApi.explorer.getSwarmByName.query(name);
+// TODO: make this 
+const Swarm = ({ name }: { name: string }) => {
+  const swarm_query = trpc.explorer.getSwarmByName.useQuery(name);
+  if (swarm_query.error) {
+    // redirect('/404');
+  }
+  const swarm = swarm_query.data;
   if (!swarm) {
-    redirect('/404');
+    return null;
   }
   const tags = swarm.tags?.split(',') || [];
   const usecases = (swarm.use_cases ?? []) as {

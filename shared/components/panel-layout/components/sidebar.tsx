@@ -6,12 +6,8 @@ import {
   LayoutDashboard,
   LockKeyhole,
   Menu,
-  SquareChevronRight,
-  User,
-  X,
-  ChevronsLeft,
-  Building2,
-  Settings
+  SquareChevronRight, X,
+  ChevronsLeft, Settings
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';

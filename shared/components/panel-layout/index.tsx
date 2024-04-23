@@ -1,7 +1,6 @@
 'use client';
 import PanelLayoutSidebar from './components/sidebar';
 import BasicOnboardingModal from '../basic-onboarding-modal';
-import Navbar from '@/shared/components/ui/Navbar';
 
 const PanelLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -10,7 +9,7 @@ const PanelLayout = ({ children }: { children: React.ReactNode }) => {
         {/* sidebar */}
         <PanelLayoutSidebar />
         {/* content */}
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="flex container lg:max-w-7xl lg:px-12 h-full overflow-scroll no-scrollbar mx-auto py-8 max-lg:z-10 max-lg:pt-16">
           {children}
         </div>
