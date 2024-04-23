@@ -75,17 +75,18 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
       return;
     }
     // at least 1 use case
-    // check first filled
-    if (
-      (useCases.length === 1 && useCases[0].title === '') ||
-      useCases[0].description === ''
-    ) {
-      toast.toast({
-        title: 'fill at least one use case',
-        variant: 'destructive'
-      });
-      return;
+    // usecases should not be empty ,title and description
+    for (const useCase of useCases) {
+      if (useCase.title.trim().length === 0 || useCase.description.trim().length === 0) {
+        toast.toast({
+          title: `Use case ${useCase.title.trim().length === 0 ? 'title' : 'description'} is required`,
+          variant: 'destructive'
+        });
+        return;
+      }
     }
+    
+
     setStep('code');
   };
   const addSwarm = trpc.explorer.addSwarm.useMutation();
@@ -112,6 +113,14 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
         });
         onClose();
         onAddSuccessfuly();
+        // reset form
+        setStep('info');
+        setSwarmName('');
+        setDescription('');
+        setTags('');
+        setUseCases([{ title: '', description: '' }]);
+        setCode('');
+      
       });
   };
 
