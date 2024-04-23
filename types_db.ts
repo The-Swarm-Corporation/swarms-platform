@@ -623,6 +623,56 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_user_swarms: {
+        Row: {
+          code: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string | null
+          pr_id: string | null
+          pr_link: string | null
+          status: Database["public"]["Enums"]["user_swarms_status"] | null
+          tags: string | null
+          use_cases: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          pr_id?: string | null
+          pr_link?: string | null
+          status?: Database["public"]["Enums"]["user_swarms_status"] | null
+          tags?: string | null
+          use_cases?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          pr_id?: string | null
+          pr_link?: string | null
+          status?: Database["public"]["Enums"]["user_swarms_status"] | null
+          tags?: string | null
+          use_cases?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_swarms_cloud_user_swarms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       swarms_cloud_users_credits: {
         Row: {
           created_at: string
@@ -770,6 +820,7 @@ export type Database = {
         | "past_due"
         | "unpaid"
         | "paused"
+      user_swarms_status: "approved" | "pending" | "rejected"
       user_tier: "tier1" | "tier2" | "tier3" | "tier4"
     }
     CompositeTypes: {
