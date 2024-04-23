@@ -30,7 +30,7 @@ const InfoCard = ({ title, description, icon, className, btnLabel }: Props) => {
           height="25"
           viewBox="0 0 95 25"
           xmlns="http://www.w3.org/2000/svg"
-          className="absolute right-0 bottom-0 scale-x-[2] scale-y-[1.8] fill-[#FB0101]"
+          className="absolute right-0 bottom-0 scale-x-[2.5] scale-y-[1.8] fill-[#FB0101]"
         >
           <path
             d="M21 0H95V25H0L21 0Z"
@@ -38,7 +38,7 @@ const InfoCard = ({ title, description, icon, className, btnLabel }: Props) => {
           />
         </svg>
         <div className="absolute  right-0 bottom-0 text-white px-4 py-1">
-          <div className="relative flex items-center justify-center gap-2 w-[95px]">
+          <div className="relative flex items-center justify-center gap-2 w-[110px]">
             <span>{btnLabel || 'Preview'}</span>
             <svg
               width="16"

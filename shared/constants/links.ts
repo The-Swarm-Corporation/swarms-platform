@@ -15,7 +15,8 @@ export const AUTH = {
   CHANGE_PASSWORD: '/signin/update_password'
 };
 export const PUBLIC = {
-  MODEL: '/model/{name}'
+  MODEL: '/model/{name}',
+  SWARM: '/swarm/{name}'
 };
 export const SWARMS_GITHUB = 'https://github.com/kyegomez/swarms';
 export const DISCORD = 'https://discord.gg/gRXy5mpFHz';
