@@ -132,6 +132,30 @@ const Dashboard = () => {
         </div>
         <div className="flex gap-4">
           <div className="w-1/2 flex flex-col gap-2 border rounded-md p-4">
+            <h2 className="text-2xl font-bold">Create an Organization</h2>
+            <span className="text-muted-foreground">
+              Create an organization to invite your team members and manage your projects.
+            </span>
+            <Link href={PLATFORM.ORGANIZATION}>
+              <Button className="mt-4 hover:bg-red-900" variant={'default'}>
+                Create Organization
+              </Button>
+            </Link>
+          </div>
+          <div className="w-1/2 flex flex-col gap-2 border rounded-md p-4">
+            <h2 className="text-2xl font-bold">Add Team Members</h2>
+            <span className="text-muted-foreground">
+              Invite your team members to collaborate on projects.
+            </span>
+            <Link href={PLATFORM.ORGANIZATION}>
+              <Button className="mt-4 hover:bg-red-900" variant={'default'}>
+                Invite Team Members
+              </Button>
+            </Link>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <div className="w-1/2 flex flex-col gap-2 border rounded-md p-4">
             <h2 className="text-2xl font-bold">API Keys</h2>
             <span className="text-muted-foreground">
               Create now an API key to access an API Key.
