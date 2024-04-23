@@ -15,7 +15,8 @@ const explorerRouter = router({
     const models = await ctx.supabase
       .from('swarms_cloud_models')
       .select('*')
-      .eq('enabled', true);
+      .eq('enabled', true)
+      .order('created_at', { ascending: false });
     return models;
   }),
   synthifyMagicLink: userProcedure.mutation(async ({ ctx, input }) => {
