@@ -24,8 +24,6 @@ const publishSwarmToGithub = async ({
   const octokit = new Octokit({ auth: githubAccessToken });
   try {
     const newBranch = `swarm_${ownerName}_${name}_${makeId(5)}`;
-    console.log(newBranch);
-
     // Step 1: Create a new branch
     const createBranchResponse = await octokit.git.createRef({
       owner: repoOwner,
@@ -44,7 +42,7 @@ const publishSwarmToGithub = async ({
     await octokit.repos.createOrUpdateFileContents({
       owner: repoOwner,
       repo,
-      path: `swarms/${name}/${ownerName}_${name}.py`,
+      path: `prebuilt_swarms/${name}/${ownerName}_${name}.py`,
       message: `feat: add ${name} swarm , created by ${ownerName}`,
       content: Buffer.from(code).toString('base64'),
       branch: newBranch
@@ -59,8 +57,6 @@ const publishSwarmToGithub = async ({
       base: baseBranch,
       body: `Add ${name} swarm created by ${ownerName} | ${ownerEmail}`
     });
-    console.log(res);
-
     if (res.status === 201) {
       return res.data;
     }
