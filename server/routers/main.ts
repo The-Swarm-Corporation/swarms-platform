@@ -25,6 +25,8 @@ const mainRouter = router({
     }
     return {
       full_name: user_data.data.full_name,
+      email: user.email,
+      id: user.id
     };
   })
 });

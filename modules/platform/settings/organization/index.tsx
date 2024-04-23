@@ -5,6 +5,7 @@ import OrganizationList from './components/list';
 import { useOrganizations } from './hooks/organizations';
 import { UserOrganizationProps, UserOrganizationsProps } from './types';
 import dynamic from 'next/dynamic';
+import { trpc } from '@/shared/utils/trpc/trpc';
 
 const PendingInvites = dynamic(() => import('./components/pending-invite'), {
   ssr: false
@@ -12,7 +13,9 @@ const PendingInvites = dynamic(() => import('./components/pending-invite'), {
 const OrganizationTeam = dynamic(() => import('./components/team'), {
   ssr: false
 });
-export default function Organization({ user }: { user: User | null }) {
+export default function Organization() {
+  const user_res=trpc.main.getUser.useQuery();
+  const user = user_res.data as unknown as User;
   const { currentOrganization, userOrgData, usersOrgData } = useOrganizations();
 
   return (
