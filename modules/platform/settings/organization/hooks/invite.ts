@@ -20,6 +20,10 @@ export function useInviteModal({
   const [isValidEmail, setIsValidEmail] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
 
+  const isDisabledInvite =
+    !currentOrganization?.organization?.id ||
+    currentOrganization?.role === 'reader';
+
   const [inviteRole, setInviteRole] = useState<ExcludeOwner | string>(
     ROLES[ROLES.length - 1]?.value
   );
@@ -80,7 +84,7 @@ export function useInviteModal({
   }
 
   function handleOpenModal(e: SyntheticEvent) {
-    if (currentOrganization && currentOrganization?.role === 'reader') {
+    if (isDisabledInvite) {
       e.preventDefault();
       toast.toast({
         description: `Required permissions not found`,
@@ -95,6 +99,7 @@ export function useInviteModal({
     isValidEmail,
     inviteRole,
     openDialog,
+    isDisabledInvite,
     setOpenDialog,
     setInviteRole,
     inviteUser,

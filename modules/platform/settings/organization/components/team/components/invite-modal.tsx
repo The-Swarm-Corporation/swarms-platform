@@ -34,6 +34,7 @@ export default function InviteModal({
     isValidEmail,
     inviteRole,
     openDialog,
+    isDisabledInvite,
     setOpenDialog,
     setInviteRole,
     inviteUser,
@@ -51,6 +52,7 @@ export default function InviteModal({
           className="gap-0.5"
           variant="secondary"
           onClick={handleOpenModal}
+          disabled={isDisabledInvite}
         >
           <Plus size={20} /> Invite
         </Button>
