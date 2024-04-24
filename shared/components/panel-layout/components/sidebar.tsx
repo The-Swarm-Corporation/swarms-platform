@@ -51,11 +51,11 @@ const panelMenu: {
     title: 'API keys',
     link: PLATFORM.API_KEYS
   },
-  {
+/*   {
     icon: <CircleGauge size={24} />,
     title: 'Usage',
     link: PLATFORM.USAGE
-  },
+  }, */
   {
     icon: <Settings size={24} />,
     title: 'Settings',
