@@ -11,6 +11,7 @@ import { Renderer, RichTextarea } from 'rich-textarea';
 import { Highlight, themes } from 'prism-react-renderer';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
+import { useTheme } from 'next-themes';
 
 interface Props {
   isOpen: boolean;
@@ -124,16 +125,19 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
       });
   };
 
+  const theme=useTheme();
   const pythonRenderer: Renderer = (value) => {
     return (
       <Highlight
         prism={Prism}
-        theme={themes.okaidia}
+        theme={
+          theme.theme === 'dark' ? themes.oneDark : themes.oneLight
+        }
         code={value}
         language="python"
       >
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
-          <div className={className} style={style}>
+          <div className={className} style={style} >
             {tokens.map((line, i) => (
               <div {...getLineProps({ line, key: i })}>
                 {line.map((token, key) => (
@@ -296,7 +300,7 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
                 <RichTextarea
                   spellCheck="false"
                   autoCorrect="off"
-                  className="h-full bg-transparent  p-2 outline-none text-black overflow-y-auto resize-none !caret-white"
+                  className="dark all-initial h-full bg-transparent  p-2 outline-none text-black overflow-y-auto resize-none !caret-white"
                   style={{
                     width: '100%',
                     height: '100%'
