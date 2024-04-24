@@ -21,12 +21,12 @@ const Playground = () => {
   const messages = playground.messages;
 
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full flex flex-col h-full">
       <h1 className="text-3xl font-extrabold sm:text-4xl">
         Playground
       </h1>
       <div className="w-full h-full flex gap-4 py-4 overflow-hidden px-1 max-md:flex-col-reverse mt-4 sm:mt-0">
-        <div className="max-lg:hidden w-2/6 ">
+        <div className="max-lg:hidden w-2/6 h-full">
           <Textarea
             className="h-full resize-none"
             placeholder="You are a helpful assistant"

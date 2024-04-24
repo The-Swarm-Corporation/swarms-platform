@@ -234,7 +234,7 @@ const MessageItem = ({
                 )
               }
             </div>
-            <div className="w-0 flex justify-end group-hover:w-1/12">
+            <div className="flex justify-end group-hover:w-1/12">
               <CircleMinus
                 onClick={remove}
                 className={cn(
