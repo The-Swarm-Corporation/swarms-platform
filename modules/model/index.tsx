@@ -21,25 +21,7 @@ const Model = async ({ slug }: { slug: string }) => {
     title: string;
     description: string;
   }[];
-  let modelCardData = model.model_card_md ?? '';
-  try {
-    if (model.model_card_md) {
-      let url = model.model_card_md;
-      if (
-        !url.startsWith('http://') &&
-        !url.startsWith('https://') &&
-        !url.startsWith('/')
-      ) {
-        return
-      }
-      if (url.startsWith('/')) {
-        url = `${getURL()}${url}`;
-      }
-      modelCardData = await fetch(url).then((res) => res.text());
-    }
-  } catch (e) {
-    console.error(e);
-  }
+  const modelCardData = model.model_card_md ?? '';
 
   return (
     <>
