@@ -6,7 +6,7 @@ import {
 import {
   getSwarmPullRequestStatus,
   publishSwarmToGithub
-} from '@/shared/utils/swarm-publisher-github';
+} from '@/shared/utils/api/swarm-publisher-github';
 import { Tables } from '@/types_db';
 import { z } from 'zod';
 

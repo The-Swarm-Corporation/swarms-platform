@@ -1,5 +1,5 @@
 import { PLATFORM } from '@/shared/constants/links';
-import { submitInviteCode } from '@/shared/utils/supabase/organization';
+import { submitInviteCode } from '@/shared/utils/api/organization';
 import { Database } from '@/types_db';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';

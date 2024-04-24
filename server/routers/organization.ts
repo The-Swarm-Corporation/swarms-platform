@@ -4,7 +4,7 @@ import mailer from '@/shared/utils/mailer';
 import { User } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { getUserOrganizationRole } from '@/shared/utils/supabase/organization';
+import { getUserOrganizationRole } from '@/shared/utils/api/organization';
 import { Enums, Tables } from '@/types_db';
 import { ORG_MEMBER_INVITE_TIMEOUT } from '@/shared/constants/common';
 

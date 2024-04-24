@@ -1,4 +1,4 @@
-import { SwarmsApiGuard } from '@/shared/utils/supabase/swarms-guard';
+import { SwarmsApiGuard } from '@/shared/utils/api/swarms-guard';
 
 async function POST(req: Request) {
   /* 

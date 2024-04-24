@@ -20,7 +20,7 @@ const bodySchema = z.object({
   messages: z.any()
 });
 
-import { SwarmsApiGuard } from '@/shared/utils/supabase/swarms-guard';
+import { SwarmsApiGuard } from '@/shared/utils/api/swarms-guard';
 
 async function POST(req: Request) {
   const headers = req.headers;

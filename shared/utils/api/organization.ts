@@ -1,5 +1,5 @@
 import { ORG_MEMBER_INVITE_TIMEOUT } from '@/shared/constants/common';
-import { supabaseAdmin } from './admin';
+import { supabaseAdmin } from '../supabase/admin';
 
 type UserAccessType = 'owner' | 'reader' | 'manager';
 export const getUserOrganizationRole = async (

@@ -1,5 +1,5 @@
 import { Tables } from '@/types_db';
-import { supabaseAdmin } from './admin';
+import { supabaseAdmin } from '../supabase/admin';
 
 type Options = {
   apiKey: string | null;
