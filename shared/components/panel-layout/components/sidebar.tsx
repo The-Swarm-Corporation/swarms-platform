@@ -6,8 +6,10 @@ import {
   LayoutDashboard,
   LockKeyhole,
   Menu,
-  SquareChevronRight, X,
-  ChevronsLeft, Settings
+  SquareChevronRight,
+  X,
+  ChevronsLeft,
+  Settings
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -110,14 +112,9 @@ const PanelLayoutSidebar = () => {
             isOn && 'invisible'
           )}
         >
-          <div className="h-full">
-            <div>
-              {/* logo */}
-              <Logo />
-            </div>
-
+          <div className="h-3/4">
             {/* menu */}
-            <div className="mt-8">
+            <div className="mt-12">
               {panelMenu.map((item, index) => {
                 const isSubMenuActive = item.items?.some(
                   (subItem) => subItem.link === path
@@ -165,12 +162,12 @@ const PanelLayoutSidebar = () => {
                 );
               })}
             </div>
-          </div>
-          <div className="p-2">
-            <form onSubmit={(e) => handleRequest(e, SignOut, router)}>
-              <input type="hidden" name="pathName" value={usePathname()} />
-              <button type="submit">Sign out</button>
-            </form>
+            <div className="p-2">
+              <form onSubmit={(e) => handleRequest(e, SignOut, router)}>
+                <input type="hidden" name="pathName" value={usePathname()} />
+                <button type="submit">Sign out</button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -226,7 +223,8 @@ const PanelLayoutSidebar = () => {
                             href={subItem.link}
                             className={cn(
                               'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
-                              subItem.link === path && 'bg-primary dark:text-white'
+                              subItem.link === path &&
+                                'bg-primary dark:text-white'
                             )}
                           >
                             <span>{subItem.title}</span>

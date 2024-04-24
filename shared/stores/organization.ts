@@ -43,6 +43,6 @@ export const useOrganizationStore = create<OrganizationStore>(
           currentOrgId: state.currentOrgId,
           userOrgId: state.userOrgId
         }) as OrganizationStore
-    }
+    },
   ) as StateCreator<OrganizationStore, [], []>
 );
