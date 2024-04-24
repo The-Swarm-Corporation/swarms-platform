@@ -84,15 +84,15 @@ const Explorer = () => {
           </div>
         </div>
         <div className="flex flex-col h-full">
-          <div className="flex flex-col h-1/2 gap-2 py-8">
+          <div className="flex flex-col min-h-1/2 gap-2 py-8">
             <h1 className="text-3xl font-bold pb-2">Models</h1>
-            <div className="flex flex-wrap gap-4">
+            <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
               {models.isLoading && <LoadingSpinner size={24} />}
               {!models.isLoading &&
                 models.data?.data?.map((model) => (
                   <Link
                     key={model.id}
-                    className="w-full h-[180px] sm:w-full md:w-1/3 lg:w-1/3"
+                    className="w-full h-[200px] sm:w-full"
                     target="_blank"
                     href={makeUrl(PUBLIC.MODEL, { name: model.unique_name })}
                   >
@@ -112,9 +112,9 @@ const Explorer = () => {
                 ))}
             </div>
           </div>
-          <div className="flex flex-col h-1/2 gap-2 py-8">
+          <div className="flex flex-col min-h-1/2 gap-2 py-8">
             <h1 className="text-3xl font-bold pb-2">Swarms</h1>
-            <div className="flex flex-wrap gap-4">
+            <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
               {/* pending */}
               {isLoading && (
                 <div>
@@ -125,7 +125,7 @@ const Explorer = () => {
                 pendingSwarms.data?.data?.map((swarm) => (
                   <Link
                     key={swarm.id}
-                    className="w-full h-[180px] sm:w-full md:w-1/3 lg:w-1/3"
+                    className="w-full h-[200px] sm:w-full"
                     target="_blank"
                     href={swarm.pr_link || '#'}
                   >
@@ -142,7 +142,7 @@ const Explorer = () => {
                 allSwarms.data?.data?.map((swarm) => (
                   <Link
                     key={swarm.id}
-                    className="w-full h-[180px] sm:w-full md:w-1/3 lg:w-1/3"
+                    className="w-full h-[200px] sm:w-full"
                     target="_blank"
                     href={makeUrl(PUBLIC.SWARM, { name: swarm.name })}
                   >
@@ -156,8 +156,8 @@ const Explorer = () => {
                   </Link>
                 ))}
               <div
-                className="w-full h-[180px] sm:w-full md:w-1/3 lg:w-1/3 cursor-pointer"
-                onClick={trySynthify}
+                    className="w-full h-[200px] sm:w-full"
+                    onClick={trySynthify}
               >
                 <InfoCard
                   title="Synthify"
