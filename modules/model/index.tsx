@@ -21,10 +21,17 @@ const Model = async ({ slug }: { slug: string }) => {
     title: string;
     description: string;
   }[];
-  let modelCardData = '';
+  let modelCardData = model.model_card_md ?? '';
   try {
     if (model.model_card_md) {
       let url = model.model_card_md;
+      if (
+        !url.startsWith('http://') &&
+        !url.startsWith('https://') &&
+        !url.startsWith('/')
+      ) {
+        return
+      }
       if (url.startsWith('/')) {
         url = `${getURL()}${url}`;
       }
@@ -40,9 +47,7 @@ const Model = async ({ slug }: { slug: string }) => {
         <div className="flex flex-col py-16">
           {/* header */}
           <h2 className="">Model</h2>
-          <h1 className="text-6xl">
-            {model.name}
-          </h1>
+          <h1 className="text-6xl">{model.name}</h1>
           <div className="text-base mt-4 text-gray-400">
             {model.description}
           </div>
