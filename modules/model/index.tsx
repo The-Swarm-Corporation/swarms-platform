@@ -40,10 +40,11 @@ const Model = async ({ slug }: { slug: string }) => {
         <div className="flex flex-col py-16">
           {/* header */}
           <h2 className="">Model</h2>
-          <h1 className="text-6xl">Cogvlm-17b</h1>
+          <h1 className="text-6xl">
+            {model.name}
+          </h1>
           <div className="text-base mt-4 text-gray-400">
-            Groundbreaking multimodal model designed to understand and reason
-            about visual elements in images.
+            {model.description}
           </div>
           <div className="flex gap-2 mt-4 select-none flex-wrap">
             {tags.map((tag) => (
