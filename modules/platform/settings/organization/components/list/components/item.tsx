@@ -28,7 +28,6 @@ import LoadingSpinner from '@/shared/components/loading-spinner';
 interface OrganizationListItemProps {
   name: string;
   role: Role;
-  isActive?: boolean;
   openDialog?: boolean;
   setOpenDialog?: Dispatch<SetStateAction<boolean>>;
   handleCurrentOrgId?: () => void;
@@ -38,7 +37,6 @@ interface OrganizationListItemProps {
 function OrganizationListItem({
   name,
   role,
-  isActive,
   openDialog,
   setOpenDialog,
   updateOrganization,
@@ -57,12 +55,7 @@ function OrganizationListItem({
   return (
     <div
       onClick={handleCurrentOrgId}
-      className={cn(
-        'flex justify-between border rounded-md p-2 sm:p-4 text-card-foreground hover:opacity-90 w-full transition cursor-pointer',
-        !isActive
-          ? 'shadow text-secondary bg-foreground/90'
-          : 'text-white bg-primary'
-      )}
+      className="flex justify-between border rounded-md p-2 sm:p-4 text-card-foreground hover:opacity-90 w-full transition cursor-pointer shadow bg-white text-black dark:bg-black dark:text-white"
     >
       <div className="flex items-center gap-2">
         <span className="h-7 w-7 sm:w-10 sm:h-10 text-sm sm:text-base flex justify-center items-center bg-secondary text-foreground rounded-full uppercase">

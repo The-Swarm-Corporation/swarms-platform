@@ -150,7 +150,6 @@ function OrganizationList({ userOrgData, userOrgsData }: ListProps) {
             <LoadingSpinner />
           ) : !isEmpty(filteredOrg) && !query.organizations.isLoading ? (
             <OrganizationListItem
-              isActive={currentOrgId === filteredOrg?.organization?.id}
               role={filteredOrg?.role}
               name={filteredOrg?.organization?.name}
               handleCurrentOrgId={() =>
