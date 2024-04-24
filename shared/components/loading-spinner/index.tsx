@@ -4,9 +4,7 @@ const LoadingSpinner = ({size}:{
   size?: number
 }) => {
   return (
-    <div className="loading-spinner animate-spin">
-        <LoaderCircle size={size} />
-    </div>
+        <LoaderCircle className='animate-spin' size={size} />
   );
 };
 

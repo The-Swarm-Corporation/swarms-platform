@@ -1,3 +1,4 @@
+'use client';
 import { cn } from '@/shared/utils/cn';
 import { useEffect, useRef, useState } from 'react';
 import CodeBox from '../code-box';

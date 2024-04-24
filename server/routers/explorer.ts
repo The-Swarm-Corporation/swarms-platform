@@ -14,11 +14,22 @@ const explorerRouter = router({
   getModels: publicProcedure.query(async ({ ctx }) => {
     const models = await ctx.supabase
       .from('swarms_cloud_models')
-      .select('*')
+      .select('id,name,unique_name,model_type,description,tags,slug')
       .eq('enabled', true)
       .order('created_at', { ascending: false });
     return models;
   }),
+  getModelBySlug: publicProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      const model = await ctx.supabase
+        .from('swarms_cloud_models')
+        .select('id,name,unique_name,model_type,description,tags,use_cases,model_card_md,slug')
+        .eq('slug', input)
+        .eq('enabled', true)
+        .single();
+      return model.data;
+    }),
   synthifyMagicLink: userProcedure.mutation(async ({ ctx, input }) => {
     const user = ctx.session.data.session?.user;
     const secret_key = process.env.SYNTHIFY_SECRET_KEY;

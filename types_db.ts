@@ -378,15 +378,19 @@ export type Database = {
           docs: Json | null
           enabled: boolean | null
           id: string
+          model_card_md: string | null
           model_parameter: string | null
           model_type: Database["public"]["Enums"]["model_type"] | null
           name: string | null
           per_1k_input_price: number | null
           per_1k_output_price: number | null
           provider: string | null
+          slug: string | null
           support_functions: boolean | null
+          tags: string | null
           unique_name: string
           updated_at: string | null
+          use_cases: Json | null
         }
         Insert: {
           api_endpoint?: string | null
@@ -398,15 +402,19 @@ export type Database = {
           docs?: Json | null
           enabled?: boolean | null
           id?: string
+          model_card_md?: string | null
           model_parameter?: string | null
           model_type?: Database["public"]["Enums"]["model_type"] | null
           name?: string | null
           per_1k_input_price?: number | null
           per_1k_output_price?: number | null
           provider?: string | null
+          slug?: string | null
           support_functions?: boolean | null
+          tags?: string | null
           unique_name: string
           updated_at?: string | null
+          use_cases?: Json | null
         }
         Update: {
           api_endpoint?: string | null
@@ -418,15 +426,19 @@ export type Database = {
           docs?: Json | null
           enabled?: boolean | null
           id?: string
+          model_card_md?: string | null
           model_parameter?: string | null
           model_type?: Database["public"]["Enums"]["model_type"] | null
           name?: string | null
           per_1k_input_price?: number | null
           per_1k_output_price?: number | null
           provider?: string | null
+          slug?: string | null
           support_functions?: boolean | null
+          tags?: string | null
           unique_name?: string
           updated_at?: string | null
+          use_cases?: Json | null
         }
         Relationships: []
       }
@@ -742,6 +754,7 @@ export type Database = {
           billing_address: Json | null
           company_name: string | null
           country_code: string | null
+          email: string | null
           full_name: string | null
           id: string
           job_title: string | null
@@ -756,6 +769,7 @@ export type Database = {
           billing_address?: Json | null
           company_name?: string | null
           country_code?: string | null
+          email?: string | null
           full_name?: string | null
           id: string
           job_title?: string | null
@@ -770,6 +784,7 @@ export type Database = {
           billing_address?: Json | null
           company_name?: string | null
           country_code?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
           job_title?: string | null

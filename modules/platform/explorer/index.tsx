@@ -94,7 +94,7 @@ const Explorer = () => {
                     key={model.id}
                     className="w-full h-[200px] sm:w-full"
                     target="_blank"
-                    href={makeUrl(PUBLIC.MODEL, { name: model.unique_name })}
+                    href={makeUrl(PUBLIC.MODEL, { slug: model.slug })}
                   >
                     <InfoCard
                       title={model.name || ''}

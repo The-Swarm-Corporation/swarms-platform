@@ -1,4 +1,3 @@
-'use client';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import {
   Tabs,
@@ -7,42 +6,34 @@ import {
   TabsTrigger
 } from '@/shared/components/ui/tabs';
 import VlmPlayground from '@/shared/components/vlm-playground';
-import { useQuery } from '@tanstack/react-query';
-import MarkdownPreview from '@uiw/react-markdown-preview';
+import { getURL } from '@/shared/utils/helpers';
+import { trpcApi } from '@/shared/utils/trpc/trpc';
+import { redirect } from 'next/navigation';
+import MarkdownPreview from './components/markdown-preview';
 
-// create components soon
-const CogvlmModel = () => {
-  const tags: string[] = [
-    'vision',
-    'function calling',
-    'visual question answering'
-  ];
-
-  const modelCard = useQuery({
-    queryKey: ['cogvlm-model-card'],
-    queryFn: async () => {
-      const response = await fetch('/models/cogvlm.md');
-      return response.text();
+const Model = async ({ slug }: { slug: string }) => {
+  const model = await trpcApi.explorer.getModelBySlug.query(slug);
+  if (!model) {
+    redirect('/404');
+  }
+  const tags = model.tags?.split(',') || [];
+  const usecases = (model.use_cases ?? []) as {
+    title: string;
+    description: string;
+  }[];
+  let modelCardData = '';
+  try {
+    if (model.model_card_md) {
+      let url = model.model_card_md;
+      if (url.startsWith('/')) {
+        url = `${getURL()}${url}`;
+      }
+      modelCardData = await fetch(url).then((res) => res.text());
     }
-  });
+  } catch (e) {
+    console.error(e);
+  }
 
-  const usecases = [
-    {
-      title: 'Image Captioning',
-      description:
-        'Generate a descriptive caption for an image, providing context and understanding of the visual content.'
-    },
-    {
-      title: 'Visual Question Answering',
-      description:
-        'Answer questions about an image, demonstrating the model’s ability to understand visual elements.'
-    },
-    {
-      title: 'Visual Reasoning',
-      description:
-        'Perform complex reasoning tasks based on visual input, showcasing the model’s cognitive capabilities.'
-    }
-  ];
   return (
     <>
       <div className="max-w-6xl px-6 mx-auto">
@@ -66,10 +57,7 @@ const CogvlmModel = () => {
           <h2 className="text-4xl">Usecases</h2>
           <div className="flex gap-2 flex-col md:flex-row">
             {usecases.map((usecase) => (
-              <Card3D
-                containerClassName="flex-1 "
-                className="inter-var w-full"
-              >
+              <Card3D containerClassName="flex-1 " className="inter-var w-full">
                 <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto h-[180px] rounded-xl p-6 border flex flex-col ">
                   <CardItem
                     translateZ="50"
@@ -100,17 +88,12 @@ const CogvlmModel = () => {
             </TabsList>
             <div className="p-4 rounded-xl overflow-hidden !bg-gray-500/10">
               <TabsContent className="m-0" value={'playground'}>
-                <VlmPlayground model="cogvlm-chat-17b" />
+                {model.model_type == 'vision' && (
+                  <VlmPlayground model={model.unique_name} />
+                )}
               </TabsContent>
               <TabsContent className="m-0" value={'card'}>
-                <MarkdownPreview
-                  className="!bg-transparent"
-                  source={
-                    modelCard.isLoading
-                      ? '## Loading model card...'
-                      : modelCard.data
-                  }
-                />
+                <MarkdownPreview content={modelCardData} />
               </TabsContent>
             </div>
           </Tabs>
@@ -120,4 +103,4 @@ const CogvlmModel = () => {
   );
 };
 
-export default CogvlmModel;
+export default Model;
