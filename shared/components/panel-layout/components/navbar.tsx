@@ -14,35 +14,40 @@ import { useRef } from 'react';
 export default function PlatformNavBar({ user }: { user: User | null }) {
   const dropdownRef = useRef(null);
   const path = usePathname();
-  const { isOn, setOn, setOff } = useToggle();
+  const { isOn, toggle, setOff } = useToggle();
 
   useOnClickOutside(dropdownRef, setOff);
   console.log({ user });
   return (
-    <header className="sticky top-0 bg-black z-40 transition-all duration-150 px-4 py-2 h-20">
+    <header className="sticky top-0 backdrop-blur-md bg-background/70 border-b-secondary shadow border-b z-40 transition-all duration-150 px-4 py-2 h-20">
       <nav className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center w-[40px] h-[40px] min-w-[40px] max-md:hidden mr-5">
             <Logo />
           </div>
-          {NAV_LINKS.internal.map((item) => (
-            <Link
-              href={item.link}
-              className={cn(
-                'flex items-center justify-start p-2 py-3 my-1 hover:text-primary outline-none',
-                item.link === path && 'text-primary'
-              )}
-            >
-              <span>{item.title}</span>
-            </Link>
-          ))}
+          <ul className="p-0 hidden items-center md:flex">
+            {NAV_LINKS.internal?.map((item) => (
+              <li key={item.title}>
+                <Link
+                  href={item.link}
+                  className={cn(
+                    'flex items-center justify-start text-white p-2 py-3 my-1 hover:text-primary outline-none',
+                    item.link === path && 'text-primary'
+                  )}
+                >
+                  <span>{item.title}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
         <div className="flex items-center space-x-4">
-          {NAV_LINKS.external.map((item) => (
+          {NAV_LINKS.external?.map((item) => (
             <Link
               href={item.link}
+              key={item.title}
               className={cn(
-                'flex items-center justify-start p-2 py-3 my-1 hover:text-primary outline-none',
+                'flex items-center justify-start text-white p-2 py-3 my-1 hover:text-primary outline-none',
                 item.link === path && 'text-primary'
               )}
             >
@@ -52,7 +57,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
           <div
             ref={dropdownRef}
             className="relative ml-5 cursor-pointer"
-            onClick={setOn}
+            onClick={toggle}
           >
             {user?.user_metadata?.avatar_url ? (
               <Image
@@ -69,10 +74,16 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                 </div>
               )
             )}
-            <ul className={cn("absolute right-0 mt-4 w-52 group-hover:block z-10 p-0 translate-x-full transition duration-150 invisible bg-secondary bg-opacity-75 rounded-md shadow-lg before:content-[''] before:absolute before:translate-x-1/4 before:block before:border-[10px] before:border-solid before:border-white before:border-t-[transparent] before:border-r-[transparent] before:border-b-secondary before:border-l-[transparent] before:right-3.5 before:-top-5", isOn && "translate-x-0 visible")}>
-              {NAV_LINKS.account.map((item) => {
+            <ul
+              className={cn(
+                "absolute right-0 mt-4 w-52 group-hover:block z-10 p-0 translate-x-full transition duration-150 invisible bg-secondary bg-opacity-75 rounded-md shadow-lg before:content-[''] before:absolute before:translate-x-1/4 before:block before:border-[10px] before:border-solid before:border-white before:border-t-[transparent] before:border-r-[transparent] before:border-b-secondary before:border-l-[transparent] before:right-3 before:-top-5",
+                isOn && 'translate-x-0 visible'
+              )}
+            >
+              {NAV_LINKS.account?.map((item) => {
                 return !item.link ? (
                   <li
+                    key={item.title}
                     className={cn(
                       'group flex items-center justify-start p-3.5 text-sm hover:bg-destructive hover:text-white outline-none',
                       item.link === path && 'bg-primary text-white'
@@ -91,7 +102,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                     <span>{item.title}</span>
                   </li>
                 ) : (
-                  <li>
+                  <li key={item.title}>
                     <Link
                       href={item.link}
                       className={cn(

@@ -7,77 +7,45 @@ import {
   Settings,
   User,
   Building2,
-  LogOut
+  LogOut,
+  CandlestickChart,
+  BookOpenText
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/constants/links';
 import Discord from '@/shared/components/icons/Discord';
 
-type MenuProps = {
+export type MenuProps = {
   icon?: React.ReactNode;
   title: string;
   link: string;
+  isMobileEnabled?: boolean;
   items?: { title: string; link: string }[];
 };
 
-type NavMenuPropsKeys = 'account' | 'internal' | 'external';
+export type NavMenuPropsKeys =
+  | 'account'
+  | 'internal'
+  | 'external'
+  | 'base'
+  | 'platform';
 
-type NavMenuProps = {
-  [K in NavMenuPropsKeys]: MenuProps[];
+export type NavMenuProps = {
+  [K in NavMenuPropsKeys]?: MenuProps[];
 };
-
-export const SIDE_BAR_MENU: MenuProps[] = [
-  {
-    icon: <LayoutDashboard size={24} />,
-    title: 'Dashboard',
-    link: PLATFORM.DASHBOARD
-  },
-  {
-    icon: <SquareChevronRight size={24} />,
-    title: 'Playground',
-    link: PLATFORM.PLAYGROUND
-  },
-  {
-    icon: <Blocks size={24} />,
-    title: 'Explorer',
-    link: PLATFORM.EXPLORER
-  },
-  {
-    icon: <LockKeyhole size={24} />,
-    title: 'API keys',
-    link: PLATFORM.API_KEYS
-  },
-  {
-    icon: <CircleGauge size={24} />,
-    title: 'Usage',
-    link: PLATFORM.USAGE
-  },
-  {
-    icon: <Settings size={24} />,
-    title: 'Settings',
-    link: PLATFORM.ACCOUNT,
-    items: [
-      {
-        title: 'Account',
-        link: PLATFORM.ACCOUNT
-      },
-      {
-        title: 'Organization',
-        link: PLATFORM.ORGANIZATION
-      }
-    ]
-  }
-];
 
 export const NAV_LINKS: NavMenuProps = {
   internal: [
     {
+      icon: <CandlestickChart />,
       title: 'Pricing',
-      link: NAVIGATION.PRICING
+      link: NAVIGATION.PRICING,
+      isMobileEnabled: true,
     },
     {
-      title: 'Get Demo',
-      link: NAVIGATION.GET_DEMO
-    }
+      icon: <BookOpenText />,
+      title: 'Get demo',
+      link: NAVIGATION.GET_DEMO,
+    },
   ],
   external: [
     {
@@ -110,6 +78,52 @@ export const NAV_LINKS: NavMenuProps = {
       icon: <LogOut size={20} />,
       title: 'Sign out',
       link: ''
+    }
+  ]
+};
+
+export const SIDE_BAR_MENU: NavMenuProps = {
+  base: NAV_LINKS.internal,
+  platform: [
+    {
+      icon: <LayoutDashboard size={24} />,
+      title: 'Dashboard',
+      link: PLATFORM.DASHBOARD
+    },
+    {
+      icon: <SquareChevronRight size={24} />,
+      title: 'Playground',
+      link: PLATFORM.PLAYGROUND
+    },
+    {
+      icon: <Blocks size={24} />,
+      title: 'Explorer',
+      link: PLATFORM.EXPLORER
+    },
+    {
+      icon: <LockKeyhole size={24} />,
+      title: 'API keys',
+      link: PLATFORM.API_KEYS
+    },
+    {
+      icon: <CircleGauge size={24} />,
+      title: 'Usage',
+      link: PLATFORM.USAGE
+    },
+    {
+      icon: <Settings size={24} />,
+      title: 'Settings',
+      link: PLATFORM.ACCOUNT,
+      items: [
+        {
+          title: 'Account',
+          link: PLATFORM.ACCOUNT
+        },
+        {
+          title: 'Organization',
+          link: PLATFORM.ORGANIZATION
+        }
+      ]
     }
   ]
 };

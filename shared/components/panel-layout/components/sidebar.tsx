@@ -1,24 +1,20 @@
 'use client';
 import { cn } from '@/shared/utils/cn';
 import {
-  Blocks,
-  CircleGauge,
-  LayoutDashboard,
-  LockKeyhole,
   Menu,
-  SquareChevronRight,
   X,
   ChevronsLeft,
-  Settings
+  AlignLeft,
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useState } from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
 import useToggle from '@/shared/hooks/toggle';
 import Logo from '../../icons/Logo';
-import { PLATFORM } from '@/shared/constants/links';
 import {
   Drawer,
   DrawerClose,
@@ -26,60 +22,25 @@ import {
   DrawerTrigger
 } from '../../ui/drawer';
 import { Button } from '../../ui/Button';
-
-const panelMenu: {
-  icon?: React.ReactNode;
-  title: string;
-  link: string;
-  items?: { title: string; link: string }[];
-}[] = [
-  {
-    icon: <LayoutDashboard size={24} />,
-    title: 'Dashboard',
-    link: PLATFORM.DASHBOARD
-  },
-  {
-    icon: <SquareChevronRight size={24} />,
-    title: 'Playground',
-    link: PLATFORM.PLAYGROUND
-  },
-  {
-    icon: <Blocks size={24} />,
-    title: 'Explorer',
-    link: PLATFORM.EXPLORER
-  },
-  {
-    icon: <LockKeyhole size={24} />,
-    title: 'API keys',
-    link: PLATFORM.API_KEYS
-  },
-  {
-    icon: <CircleGauge size={24} />,
-    title: 'Usage',
-    link: PLATFORM.USAGE
-  },
-  {
-    icon: <Settings size={24} />,
-    title: 'Settings',
-    link: PLATFORM.ACCOUNT,
-    items: [
-      {
-        title: 'Account',
-        link: PLATFORM.ACCOUNT
-      },
-      {
-        title: 'Organization',
-        link: PLATFORM.ORGANIZATION
-      }
-    ]
-  }
-];
+import {
+  MenuProps,
+  NavMenuProps,
+  NavMenuPropsKeys,
+  SIDE_BAR_MENU
+} from './const';
+import { Collapsible, CollapsibleTrigger } from '../../ui/collapsible';
+import { CollapsibleContent } from '@radix-ui/react-collapsible';
 
 const collapsedMenu = 'collapsedMenu';
 const PanelLayoutSidebar = () => {
   const path = usePathname();
   const router = useRouter();
   const { isOn, toggle } = useToggle('off', collapsedMenu);
+  const [openMenu, setOpenMenu] = useState(Object.keys(SIDE_BAR_MENU)[1]);
+
+  const handleMenuClick = (menu: NavMenuPropsKeys | string) => {
+    setOpenMenu((prevMenu) => (prevMenu === menu ? '' : menu));
+  };
 
   return (
     <>
@@ -115,7 +76,7 @@ const PanelLayoutSidebar = () => {
           <div className="h-3/4">
             {/* menu */}
             <div className="mt-12">
-              {panelMenu.map((item, index) => {
+              {SIDE_BAR_MENU.platform?.map((item, index) => {
                 const isSubMenuActive = item.items?.some(
                   (subItem) => subItem.link === path
                 );
@@ -176,9 +137,9 @@ const PanelLayoutSidebar = () => {
       <div className="lg:hidden">
         <Drawer direction="left">
           <DrawerTrigger asChild>
-            <div className="flex w-full h-auto py-2 backdrop-blur-md bg-background/70 top-0 absolute z-[20] ">
-              <Button className="text-foreground" variant="link">
-                <Menu />
+            <div className="flex items-center w-fit h-20 bg-transparent top-0 absolute z-50 ">
+              <Button className="text-foreground gap-5" variant="link">
+                <AlignLeft className="mb-1.5" />
               </Button>
             </div>
           </DrawerTrigger>
@@ -193,48 +154,68 @@ const PanelLayoutSidebar = () => {
               <DrawerClose className="absolute top-4 right-4">
                 <X />
               </DrawerClose>
-              <div className="flex flex-col gap-1">
-                {panelMenu.map((item, index) => (
-                  <div className="flex flex-col gap-2" key={index}>
-                    <Link
-                      href={item.link}
-                      className={cn(
-                        'group flex items-center justify-start p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md outline-none',
-                        item.link === path && 'bg-primary text-white'
-                      )}
+              {Object.keys(SIDE_BAR_MENU).map(
+                (menu: NavMenuPropsKeys | string) => {
+                  return (
+                    <Collapsible
+                      key={menu}
+                      className="flex-col"
+                      open={openMenu === menu}
+                      onOpenChange={() => handleMenuClick(menu)}
                     >
-                      {item.icon && (
-                        <span
-                          className={cn(
-                            'mr-2 text-black dark:text-white group-hover:text-white',
-                            item.link === path && 'text-white'
-                          )}
-                        >
-                          {item.icon}
+                      <CollapsibleTrigger className="justify-between p-2 py-3 my-1 hover:bg-destructive rounded-md hover:text-white outline-none">
+                        <span className="capitalize text-base font-semibold">
+                          {menu}
                         </span>
-                      )}
-                      <span>{item.title}</span>
-                    </Link>
-                    {/* sub items */}
-                    {item.link === path && item.items?.length && (
-                      <div className="flex flex-col gap-2">
-                        {item.items?.map((subItem) => (
-                          <Link
-                            href={subItem.link}
-                            className={cn(
-                              'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
-                              subItem.link === path &&
-                                'bg-primary dark:text-white'
-                            )}
-                          >
-                            <span>{subItem.title}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                        {openMenu === menu ? <ChevronDown /> : <ChevronRight />}
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="flex flex-col gap-1">
+                        {(SIDE_BAR_MENU as any)?.[menu]?.map(
+                          (item: MenuProps, index: number) => (
+                            <div className="flex flex-col gap-2" key={index}>
+                              <Link
+                                href={item.link}
+                                className={cn(
+                                  'group flex items-center justify-start p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md outline-none',
+                                  item.link === path && 'bg-primary text-white'
+                                )}
+                              >
+                                {item.icon && (
+                                  <span
+                                    className={cn(
+                                      'mr-2 text-black dark:text-white group-hover:text-white',
+                                      item.link === path && 'text-white'
+                                    )}
+                                  >
+                                    {item.icon}
+                                  </span>
+                                )}
+                                <span>{item.title}</span>
+                              </Link>
+                              {item.link === path && item.items?.length && (
+                                <div className="flex flex-col gap-2">
+                                  {item.items?.map((subItem) => (
+                                    <Link
+                                      href={subItem.link}
+                                      className={cn(
+                                        'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
+                                        subItem.link === path &&
+                                          'bg-primary dark:text-white'
+                                      )}
+                                    >
+                                      <span>{subItem.title}</span>
+                                    </Link>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                }
+              )}
             </div>
           </DrawerContent>
         </Drawer>
