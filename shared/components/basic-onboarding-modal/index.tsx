@@ -1,3 +1,5 @@
+"use client";
+
 import useOnboardingHelper from '@/shared/hooks/onboarding-helper';
 import Modal from '../modal';
 import { useEffect, useState } from 'react';
