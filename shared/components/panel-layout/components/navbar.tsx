@@ -19,7 +19,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
   useOnClickOutside(dropdownRef, setOff);
   console.log({ user });
   return (
-    <header className="sticky top-0 backdrop-blur-md bg-background/70 border-b-secondary shadow border-b z-40 transition-all duration-150 px-4 py-2 h-20">
+    <header className="sticky top-0 backdrop-blur-md bg-background/70 shadow z-40 transition-all duration-150 px-4 py-2 h-16 md:h-20">
       <nav className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center w-[40px] h-[40px] min-w-[40px] max-md:hidden mr-5">

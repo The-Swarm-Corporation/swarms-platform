@@ -14,7 +14,7 @@ import {
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/constants/links';
 import Discord from '@/shared/components/icons/Discord';
 
-export type MenuProps = {
+type MenuProps = {
   icon?: React.ReactNode;
   title: string;
   link: string;
@@ -29,7 +29,7 @@ export type NavMenuPropsKeys =
   | 'base'
   | 'platform';
 
-export type NavMenuProps = {
+type NavMenuProps = {
   [K in NavMenuPropsKeys]?: MenuProps[];
 };
 

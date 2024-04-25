@@ -1,5 +1,5 @@
 import { createClient } from '@/shared/utils/supabase/server';
-import PanelLayoutSidebar from './components/sidebar';
+import PanelLayoutSidebar from './components/sidebar/sidebar';
 import BasicOnboardingModal from '../basic-onboarding-modal';
 import PlatformNavBar from './components/navbar';
 
