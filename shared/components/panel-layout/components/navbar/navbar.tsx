@@ -71,7 +71,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
             <ul
               ref={dropdownRef}
               className={cn(
-                "absolute right-0 mt-4 w-72 group-hover:block z-10 p-0 translate-x-full transition duration-150 invisible backdrop-blur-md bg-background/70 text-white border border-secondary bg-opacity-75 rounded-md shadow-lg before:content-[''] before:absolute before:translate-x-1/4 before:block before:border-[10px] before:border-solid before:border-white before:border-t-[transparent] before:border-r-[transparent] before:border-b-secondary before:border-l-[transparent] before:right-3 before:-top-5",
+                "absolute right-0 mt-4 w-72 group-hover:block z-10 p-0 transition duration-150 invisible bg-black/85 text-white border border-secondary bg-opacity-75 rounded-md shadow-lg before:content-[''] before:absolute before:translate-x-1/4 before:block before:border-[10px] before:border-solid before:border-white before:border-t-[transparent] before:border-r-[transparent] before:border-b-secondary before:border-l-[transparent] before:right-3 before:-top-5",
                 isOn && 'translate-x-0 visible'
               )}
             >
