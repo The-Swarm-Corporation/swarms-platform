@@ -68,11 +68,11 @@ export const NAV_LINKS: NavMenuProps = {
       title: 'Community',
       link: DISCORD
     },
-    {
-      icon: <CircleGauge size={20} />,
-      title: 'Billing & Usage',
-      link: PLATFORM.USAGE
-    },
+    // {
+    //   icon: <CircleGauge size={20} />,
+    //   title: 'Billing & Usage',
+    //   link: PLATFORM.USAGE
+    // },
     {
       icon: <LogOut size={20} />,
       title: 'Sign out',
@@ -104,11 +104,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       title: 'API keys',
       link: PLATFORM.API_KEYS
     },
-    {
-      icon: <CircleGauge size={24} />,
-      title: 'Usage',
-      link: PLATFORM.USAGE
-    },
+    // {
+    //   icon: <CircleGauge size={24} />,
+    //   title: 'Usage',
+    //   link: PLATFORM.USAGE
+    // },
     {
       icon: <Settings size={24} />,
       title: 'Settings',

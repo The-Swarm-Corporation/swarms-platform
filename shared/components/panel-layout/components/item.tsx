@@ -7,7 +7,7 @@ interface NavItemProps extends PropsWithChildren {
   link?: string;
   path?: string;
   icon?: React.ReactNode;
-  as?: 'span' | 'a' | "form" | React.ElementType;
+  as?: 'span' | 'a' | 'form' | React.ElementType;
   className?: string;
   isIcon?: boolean;
   onSubmit?: (e: React.FormEvent<HTMLFormElement>) => Promise<boolean | void>;
@@ -54,7 +54,7 @@ const NavItem = React.forwardRef(function <
             {icon}
           </span>
         )}
-        {children ? children : <span>{title}</span>}
+        <span>{title}</span>
       </Link>
     );
   }
@@ -80,7 +80,7 @@ const NavItem = React.forwardRef(function <
           {icon}
         </span>
       )}
-      <span>{title}</span>
+      {children ? children : <span>{title}</span>}
     </Component>
   );
 });

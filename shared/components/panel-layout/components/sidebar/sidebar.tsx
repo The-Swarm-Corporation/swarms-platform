@@ -86,10 +86,10 @@ const PanelLayoutSidebar = () => {
                 );
               })}
             </div>
-            <div className="p-2">
-              <form onSubmit={(e) => handleRequest(e, SignOut, router)}>
+            <div className="p-2 py-3 hover:bg-destructive hover:text-white rounded-md">
+              <form onSubmit={(e) => handleRequest(e, SignOut, router)} className='w-full'>
                 <input type="hidden" name="pathName" value={usePathname()} />
-                <button type="submit" className="flex items-center">
+                <button type="submit" className="flex items-center w-full">
                   <LogOut size={20} className="mr-2" /> Sign out
                 </button>
               </form>
