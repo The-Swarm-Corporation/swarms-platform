@@ -11,6 +11,7 @@ import { Slider } from '../ui/slider';
 import Input from '../ui/Input';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { Button } from '../ui/Button';
+import LoadingSpinner from '../loading-spinner';
 
 interface Props {
   model: string;
@@ -44,15 +45,19 @@ const VlmPlayground = ({ model }: Props) => {
   const [temperature, setTemperature] = useState<number>(0.8);
   const [input, setInput] = useState<string>('Describe what is in the image');
 
-  const publicPlaygroundvLM =
+  const publicPlaygroundVlm =
     trpc.publicPlayground.vlmMessageCompletion.useMutation();
-  const submit = () => {
-    publicPlaygroundvLM.mutateAsync({
+  const [responseMsg, setResponseMsg] = useState<number>(0);
+  const submit = async () => {
+    const startTime = new Date().getTime();
+    await publicPlaygroundVlm.mutateAsync({
       model,
       content: input,
       image_url: selectedImageData,
       temperature
     });
+    const endTime = new Date().getTime();
+    setResponseMsg(endTime - startTime);
   };
   return (
     <div className="flex flex-col gap-4">
@@ -178,7 +183,16 @@ const VlmPlayground = ({ model }: Props) => {
           </div> */}
           <div className="mt-2">
             <pre className="text-sm text-pretty">
-              {publicPlaygroundvLM.data}
+              {publicPlaygroundVlm.isPending && <LoadingSpinner />}
+              {!publicPlaygroundVlm.isPending && (
+                <>
+                  {publicPlaygroundVlm.data}
+                  <br />
+                  <br />
+                  {/* time */}
+                  {responseMsg > 0 && <>[{(responseMsg / 1000).toFixed(2)}s]</>}
+                </>
+              )}
             </pre>
           </div>
         </div>
@@ -187,9 +201,9 @@ const VlmPlayground = ({ model }: Props) => {
         <Button
           onClick={submit}
           className="w-[200px]"
-          disabled={publicPlaygroundvLM.isPending}
+          disabled={publicPlaygroundVlm.isPending}
         >
-          {publicPlaygroundvLM.isPending ? 'loading...' : 'Run'}
+          {publicPlaygroundVlm.isPending ? 'loading...' : 'Run'}
         </Button>
       </div>
     </div>

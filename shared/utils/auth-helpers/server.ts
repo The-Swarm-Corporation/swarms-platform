@@ -12,6 +12,7 @@ import { getAuthTypes } from '@/shared/utils/auth-helpers/settings';
 import { PLATFORM } from '@/shared/constants/links';
 import { User } from '@supabase/supabase-js';
 import { createOrRetrieveStripeCustomer } from '../supabase/admin';
+import { syncUserEmail } from '../api/user';
 
 function isValidEmail(email: string) {
   var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -23,6 +24,9 @@ export async function afterSignin(user: User) {
     email: user?.email || '',
     uuid: user.id
   });
+  if (user.email) {
+    await syncUserEmail(user.id, user.email);
+  }
   return PLATFORM.DASHBOARD;
 }
 export async function checkUserSession() {
