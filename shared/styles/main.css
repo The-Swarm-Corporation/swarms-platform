@@ -67,4 +67,32 @@
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
+
+  .collapsible-content {
+    overflow: hidden;
+  }
+  .collapsible-content[data-state='open'] {
+    animation: slideDown 300ms ease-out;
+  }
+  .collapsible-content[data-state='closed'] {
+    animation: slideUp 300ms ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      max-height: 0;
+    }
+    to {
+      max-height: var(--radix-collapsible-content-height);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      max-height: var(--radix-collapsible-content-height);
+    }
+    to {
+      max-height: 0;
+    }
+  }
 }

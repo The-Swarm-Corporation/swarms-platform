@@ -1,11 +1,5 @@
 import { cn } from '@/shared/utils/cn';
-import {
-  X,
-  AlignLeft,
-  ChevronRight,
-  ChevronDown
-} from 'lucide-react';
-import Link from 'next/link';
+import { X, AlignLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
 import Logo from '@/shared/components/icons/Logo';
@@ -17,7 +11,12 @@ import {
 } from '@/shared/components/ui/drawer';
 import { Button } from '@/shared/components/ui/Button';
 import { NavMenuPropsKeys, SIDE_BAR_MENU } from '../../const';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/components/ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from '@/shared/components/ui/collapsible';
+import NavItem from '../../item';
 
 const SidebarMobile = () => {
   const path = usePathname();
@@ -53,7 +52,7 @@ const SidebarMobile = () => {
               return (
                 <Collapsible
                   key={menu}
-                  className="flex-col transition-all duration-300 ease-in-out"
+                  className="flex-col"
                   open={openMenu === menu}
                   onOpenChange={() => handleMenuClick(menu)}
                 >
@@ -63,41 +62,28 @@ const SidebarMobile = () => {
                     </span>
                     {openMenu === menu ? <ChevronDown /> : <ChevronRight />}
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="flex flex-col gap-1">
+                  <CollapsibleContent className="flex flex-col">
                     {SIDE_BAR_MENU?.[menu]?.map((item, index) => (
                       <div className="flex flex-col gap-2" key={index}>
-                        <Link
-                          href={item.link}
+                        <NavItem
+                          {...item}
+                          isIcon
                           className={cn(
-                            'group flex items-center justify-start p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md outline-none',
+                            'p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md',
                             item.link === path && 'bg-primary text-white'
                           )}
-                        >
-                          {item.icon && (
-                            <span
-                              className={cn(
-                                'mr-2 text-black dark:text-white group-hover:text-white',
-                                item.link === path && 'text-white'
-                              )}
-                            >
-                              {item.icon}
-                            </span>
-                          )}
-                          <span>{item.title}</span>
-                        </Link>
+                        />
                         {item.link === path && item.items?.length && (
                           <div className="flex flex-col gap-2">
                             {item.items?.map((subItem) => (
-                              <Link
-                                href={subItem.link}
+                              <NavItem
+                                {...subItem}
                                 className={cn(
-                                  'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
+                                  'pl-10  py-1  hover:bg-primary hover:text-white rounded-md',
                                   subItem.link === path &&
-                                    'bg-primary dark:text-white'
+                                    'border border-gray-400 dark:text-white'
                                 )}
-                              >
-                                <span>{subItem.title}</span>
-                              </Link>
+                              />
                             ))}
                           </div>
                         )}

@@ -39,7 +39,6 @@ export const NAV_LINKS: NavMenuProps = {
       icon: <CandlestickChart />,
       title: 'Pricing',
       link: NAVIGATION.PRICING,
-      isMobileEnabled: true,
     },
     {
       icon: <BookOpenText />,

@@ -1,8 +1,7 @@
 'use client';
 
 import { cn } from '@/shared/utils/cn';
-import { Menu, ChevronsLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Menu, ChevronsLeft, LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
@@ -11,6 +10,7 @@ import useToggle from '@/shared/hooks/toggle';
 import { Button } from '@/shared/components/ui/Button';
 import { SIDE_BAR_MENU } from '../const';
 import SidebarMobile from './components/sidebar-mobile';
+import NavItem from '../item';
 
 const collapsedMenu = 'collapsedMenu';
 const PanelLayoutSidebar = () => {
@@ -36,7 +36,7 @@ const PanelLayoutSidebar = () => {
         <Button
           onClick={toggle}
           className={cn(
-            'rounded-full absolute -right-4 top-9 max-w-8 h-8 w-full cursor-pointer flex p-0 transition-all duration-300 shadow-md',
+            'rounded-full absolute -right-4 top-0 max-w-8 h-8 w-full cursor-pointer flex p-0 transition-all duration-300 shadow-md',
             isOn &&
               'rounded-l-[12px] rounded-r-sm top-28 -right-10 max-w-[none] w-12 h-[30px]'
           )}
@@ -49,49 +49,36 @@ const PanelLayoutSidebar = () => {
             isOn && 'invisible'
           )}
         >
-          <div className="h-3/4">
+          <div className="flex flex-col h-[88%] w-[90%]">
             {/* menu */}
-            <div className="mt-12">
+            <div className="flex-grow mt-3">
               {SIDE_BAR_MENU.platform?.map((item, index) => {
                 const isSubMenuActive = item.items?.some(
                   (subItem) => subItem.link === path
                 );
                 return (
                   <div className="flex flex-col gap-2" key={index}>
-                    <Link
-                      href={item.link}
+                    <NavItem
+                      {...item}
+                      isIcon
                       className={cn(
-                        'group flex items-center justify-start p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md outline-none',
+                        'p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md',
                         (isSubMenuActive || item.link === path) &&
                           'bg-primary text-white'
                       )}
-                    >
-                      {item.icon && (
-                        <span
-                          className={cn(
-                            'mr-2 text-black dark:text-white group-hover:text-white',
-                            item.link === path && 'text-white'
-                          )}
-                        >
-                          {item.icon}
-                        </span>
-                      )}
-                      <span>{item.title}</span>
-                    </Link>
+                    />
                     {/* sub items */}
                     {isSubMenuActive && item.items?.length && (
                       <div className="flex flex-col gap-2">
                         {item.items?.map((subItem) => (
-                          <Link
-                            href={subItem.link}
+                          <NavItem
+                            {...subItem}
                             className={cn(
-                              'pl-10  py-1 group flex items-center justify-start hover:bg-primary hover:text-white rounded-md outline-none',
+                              'pl-10  py-1  hover:bg-primary hover:text-white rounded-md',
                               subItem.link === path &&
                                 'border border-gray-400 dark:text-white'
                             )}
-                          >
-                            <span>{subItem.title}</span>
-                          </Link>
+                          />
                         ))}
                       </div>
                     )}
@@ -102,7 +89,9 @@ const PanelLayoutSidebar = () => {
             <div className="p-2">
               <form onSubmit={(e) => handleRequest(e, SignOut, router)}>
                 <input type="hidden" name="pathName" value={usePathname()} />
-                <button type="submit">Sign out</button>
+                <button type="submit" className="flex items-center">
+                  <LogOut size={20} className="mr-2" /> Sign out
+                </button>
               </form>
             </div>
           </div>
