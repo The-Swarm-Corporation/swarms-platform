@@ -22,14 +22,18 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
 
   useOnClickOutside(dropdownRef, setOff);
   return (
-    <header className="fixed w-full top-0 backdrop-blur-sm bg-black shadow-md z-40 transition-all duration-150 px-4 py-2 h-16 md:h-20">
-      <nav className="flex items-center justify-between">
+    <header className="fixed max-sm:flex max-sm:items-center w-full top-0 backdrop-blur-sm bg-black shadow-md z-40 transition-all duration-150 px-4 py-2 h-16 md:h-20">
+      <nav className="flex items-center justify-between max-sm:w-full">
         <div className="flex items-center space-x-4">
           <div className="flex items-center w-[40px] h-[40px] min-w-[40px] max-lg:hidden mr-5">
             <Logo />
           </div>
-          <ul className="p-0 hidden items-center lg:flex">
-            {NAV_LINKS.internal?.map((item) => (
+
+          {/* TODO: add search bar */}
+        </div>
+        <div className="flex items-center space-x-4">
+          <ul className="p-0 hidden items-center sm:flex">
+            {NAV_LINKS.external?.map((item) => (
               <li key={item.title}>
                 <NavItem
                   {...item}
@@ -41,18 +45,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
               </li>
             ))}
           </ul>
-        </div>
-        <div className="flex items-center space-x-4">
-          {NAV_LINKS.external?.map((item) => (
-            <NavItem
-              {...item}
-              className={cn(
-                'text-white p-2 py-3 my-1 hover:text-primary',
-                item.link === path && 'text-primary'
-              )}
-            />
-          ))}
-          <div className="relative ml-5 cursor-pointer" onClick={setOn}>
+          <div className="relative ml-5 cursor-pointer max-sm:mt-1" onClick={setOn}>
             {user?.user_metadata?.avatar_url ? (
               <Image
                 src={user?.user_metadata?.avatar_url}

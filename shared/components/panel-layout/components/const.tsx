@@ -9,7 +9,8 @@ import {
   Building2,
   LogOut,
   CandlestickChart,
-  BookOpenText
+  BookOpenText,
+  FileText
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/constants/links';
 import Discord from '@/shared/components/icons/Discord';
@@ -24,7 +25,6 @@ type MenuProps = {
 
 export type NavMenuPropsKeys =
   | 'account'
-  | 'internal'
   | 'external'
   | 'base'
   | 'platform';
@@ -33,25 +33,26 @@ type NavMenuProps = {
   [K in NavMenuPropsKeys]?: MenuProps[];
 };
 
+const SHARED_LINKS: MenuProps[] = [
+  {
+    icon: <CandlestickChart />,
+    title: 'Pricing',
+    link: NAVIGATION.PRICING
+  },
+  {
+    icon: <BookOpenText />,
+    title: 'Get demo',
+    link: NAVIGATION.GET_DEMO
+  },
+  {
+    title: 'Docs',
+    link: NAVIGATION.PRICING,
+    icon: <FileText />,
+  }
+];
+
 export const NAV_LINKS: NavMenuProps = {
-  internal: [
-    {
-      icon: <CandlestickChart />,
-      title: 'Pricing',
-      link: NAVIGATION.PRICING,
-    },
-    {
-      icon: <BookOpenText />,
-      title: 'Get demo',
-      link: NAVIGATION.GET_DEMO,
-    },
-  ],
-  external: [
-    {
-      title: 'Docs',
-      link: NAVIGATION.PRICING
-    }
-  ],
+  external: SHARED_LINKS,
   account: [
     {
       icon: <User size={20} />,
@@ -82,7 +83,7 @@ export const NAV_LINKS: NavMenuProps = {
 };
 
 export const SIDE_BAR_MENU: NavMenuProps = {
-  base: NAV_LINKS.internal,
+  base: SHARED_LINKS,
   platform: [
     {
       icon: <LayoutDashboard size={24} />,
@@ -90,14 +91,14 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       link: PLATFORM.DASHBOARD
     },
     {
-      icon: <SquareChevronRight size={24} />,
-      title: 'Playground',
-      link: PLATFORM.PLAYGROUND
-    },
-    {
       icon: <Blocks size={24} />,
       title: 'Explorer',
       link: PLATFORM.EXPLORER
+    },
+    {
+      icon: <SquareChevronRight size={24} />,
+      title: 'Playground',
+      link: PLATFORM.PLAYGROUND
     },
     {
       icon: <LockKeyhole size={24} />,
