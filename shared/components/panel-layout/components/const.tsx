@@ -9,7 +9,8 @@ import {
   Building2,
   LogOut,
   CandlestickChart,
-  BookOpenText
+  BookOpenText,
+  FileText
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/constants/links';
 import Discord from '@/shared/components/icons/Discord';
@@ -45,7 +46,8 @@ const SHARED_LINKS: MenuProps[] = [
   },
   {
     title: 'Docs',
-    link: NAVIGATION.PRICING
+    link: NAVIGATION.PRICING,
+    icon: <FileText />,
   }
 ];
 
