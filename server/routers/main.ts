@@ -1,8 +1,12 @@
 import {
+  publicProcedure,
   router,
   userProcedure
 } from '@/app/api/trpc/trpc-router';
+import { PLATFORM, PUBLIC } from '@/shared/constants/links';
+import { makeUrl } from '@/shared/utils/helpers';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 const mainRouter = router({
   getUser: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user;
@@ -28,7 +32,49 @@ const mainRouter = router({
       email: user.email,
       id: user.id
     };
-  })
+  }),
+  globalSearch: publicProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const items: Record<string, { title: string; link: string }[]> = {
+        Swarms: [
+          {
+            title: 'Synthify',
+            link: PLATFORM.EXPLORER
+          }
+        ]
+      };
+      // swarms
+      const swarms = await ctx.supabase
+        .from('swarms_cloud_user_swarms')
+        .select('*')
+        .ilike('name', `%${input}%`);
+
+      if (swarms.data) {
+        items['Swarms'] = [
+          ...items.Swarms,
+          ...swarms.data.map((swarm) => ({
+            title: swarm.name || '',
+            link: makeUrl(PUBLIC.SWARM, { name: swarm.name })
+          }))
+        ];
+      }
+
+      // models
+      const models = await ctx.supabase
+        .from('swarms_cloud_models')
+        .select('*')
+        .ilike('name', `%${input}%`);
+
+      if (models.data) {
+        items['Models'] = models.data.map((model) => ({
+          title: model.name || '',
+          link: makeUrl(PUBLIC.MODEL, { slug: model.slug })
+        }));
+      }
+
+      return items;
+    })
 });
 
 export default mainRouter;
