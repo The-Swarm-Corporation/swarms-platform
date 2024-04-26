@@ -1,9 +1,7 @@
-import { type NextRequest } from 'next/server';
-import { updateSession } from '@/shared/utils/supabase/middleware';
+import { stackMiddlewares } from '@/shared/utils/stack-middlewares/stack';
+import { middlewares } from '@/shared/utils/stack-middlewares/middlewares';
 
-export async function middleware(request: NextRequest) {
-  return await updateSession(request);
-}
+export default stackMiddlewares(middlewares);
 
 export const config = {
   matcher: [
