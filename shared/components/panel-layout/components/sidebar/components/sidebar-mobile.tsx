@@ -30,7 +30,7 @@ const SidebarMobile = () => {
     <div className="lg:hidden">
       <Drawer direction="left">
         <DrawerTrigger asChild>
-          <div className="flex items-center w-fit h-20 bg-transparent top-0 absolute z-50 ">
+          <div className="flex items-center w-fit h-20 bg-transparent top-0 fixed z-50 ">
             <Button className="text-foreground gap-5" variant="link">
               <AlignLeft className="mb-1.5" />
             </Button>
