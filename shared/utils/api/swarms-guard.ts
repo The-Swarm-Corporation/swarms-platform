@@ -1,5 +1,6 @@
 import { Tables } from '@/types_db';
 import { supabaseAdmin } from '../supabase/admin';
+import { getUserOrganizationRole } from './organization';
 
 type Options = {
   apiKey: string | null;
@@ -22,7 +23,8 @@ type UsageOptions = {
 };
 export class SwarmsApiGuard {
   apiKey: string | null;
-  organizationId: string | null;
+  organizationPublicId: string | null;
+  organizationId: string | null = null;
   modelId: string | null;
   modelRecordId: string | null = null;
   apiKeyRecordId: string | null = null;
@@ -30,7 +32,7 @@ export class SwarmsApiGuard {
 
   constructor({ apiKey, organizationId, modelId }: Options) {
     this.apiKey = apiKey;
-    this.organizationId = organizationId;
+    this.organizationPublicId = organizationId;
     this.modelId = modelId;
   }
   async isAuthenticated(): Promise<{
@@ -59,7 +61,23 @@ export class SwarmsApiGuard {
       return { status: 400, message: 'model is missing' };
     }
 
-    // check organization validation if provided : SOON
+    // check organization validation if provided
+    if (this.organizationPublicId) {
+      const org = await supabaseAdmin
+        .from('swarms_cloud_organizations')
+        .select('*')
+        .eq('public_id', this.organizationPublicId)
+        .maybeSingle();
+      if (!org.data?.id) {
+        return { status: 404, message: 'Organization not found' };
+      }
+      const orgId = org.data?.id;
+      this.organizationId = orgId;
+      const userRoleInOrg = await getUserOrganizationRole(orgId, this.userId);
+      if (!userRoleInOrg) {
+        return { status: 401, message: 'User is not part of the organization' };
+      }
+    }
 
     // check billing limits: SOON
 
