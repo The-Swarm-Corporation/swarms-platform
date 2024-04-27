@@ -36,14 +36,7 @@ const mainRouter = router({
   globalSearch: publicProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      const items: Record<string, { title: string; link: string }[]> = {
-        Swarms: [
-          {
-            title: 'Synthify',
-            link: PLATFORM.EXPLORER
-          }
-        ]
-      };
+      const items: Record<string, { title: string; link: string }[]> = {};
       // swarms
       const swarms = await ctx.supabase
         .from('swarms_cloud_user_swarms')
@@ -51,13 +44,10 @@ const mainRouter = router({
         .ilike('name', `%${input}%`);
 
       if (swarms.data) {
-        items['Swarms'] = [
-          ...items.Swarms,
-          ...swarms.data.map((swarm) => ({
-            title: swarm.name || '',
-            link: makeUrl(PUBLIC.SWARM, { name: swarm.name })
-          }))
-        ];
+        items['Swarms'] = swarms.data.map((swarm) => ({
+          title: swarm.name || '',
+          link: makeUrl(PUBLIC.SWARM, { name: swarm.name })
+        }));
       }
 
       // models
@@ -71,6 +61,14 @@ const mainRouter = router({
           title: model.name || '',
           link: makeUrl(PUBLIC.MODEL, { slug: model.slug })
         }));
+      }
+      // check synthify swarm , equal to like in sql
+      const synthifySwarm = {
+        title: 'Synthify',
+        link: PLATFORM.EXPLORER
+      };
+      if (synthifySwarm.title.toLowerCase().includes(input.toLowerCase())) {
+        items['Swarms'] = [...(items['Swarms'] || []), synthifySwarm];
       }
 
       return items;
