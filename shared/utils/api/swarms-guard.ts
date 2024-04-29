@@ -26,7 +26,7 @@ export class SwarmsApiGuard {
   organizationPublicId: string | null;
   organizationId: string | null = null;
   modelId: string | null;
-  modelRecordId: string | null = null;
+  modelRecord: Tables<'swarms_cloud_models'> | null = null;
   apiKeyRecordId: string | null = null;
   userId: string | null = null;
 
@@ -96,7 +96,7 @@ export class SwarmsApiGuard {
     if (!modelInfo?.data?.id) {
       return { status: 404, message: 'Model not found' };
     }
-    this.modelRecordId = modelInfo.data.id;
+    this.modelRecord = modelInfo.data;
 
     return { status: 200, message: 'Success' };
   }
@@ -104,7 +104,7 @@ export class SwarmsApiGuard {
     status: number;
     message: string;
   }> {
-    if (!this.modelRecordId) {
+    if (!this.modelRecord) {
       return { status: 400, message: 'Model is missing' };
     }
     if (!this.userId) {
@@ -121,7 +121,7 @@ export class SwarmsApiGuard {
           api_key_id: this.apiKeyRecordId,
           organization_id: this.organizationId,
           user_id: this.userId,
-          model_id: this.modelRecordId,
+          model_id: this.modelRecord.id,
           repetition_penalty: 1,
           temperature: usage.temperature,
           top_p: usage.top_p,

@@ -384,6 +384,8 @@ export type Database = {
           name: string | null
           per_1k_input_price: number | null
           per_1k_output_price: number | null
+          price_million_input: number | null
+          price_million_output: number | null
           provider: string | null
           slug: string | null
           support_functions: boolean | null
@@ -408,6 +410,8 @@ export type Database = {
           name?: string | null
           per_1k_input_price?: number | null
           per_1k_output_price?: number | null
+          price_million_input?: number | null
+          price_million_output?: number | null
           provider?: string | null
           slug?: string | null
           support_functions?: boolean | null
@@ -432,6 +436,8 @@ export type Database = {
           name?: string | null
           per_1k_input_price?: number | null
           per_1k_output_price?: number | null
+          price_million_input?: number | null
+          price_million_output?: number | null
           provider?: string | null
           slug?: string | null
           support_functions?: boolean | null
