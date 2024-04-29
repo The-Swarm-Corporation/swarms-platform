@@ -69,6 +69,10 @@
     animation: slideUp 300ms ease-out;
   }
 
+  .transition-custom {
+    transition: transform .25s cubic-bezier(.7,.98,.86,.98), box-shadow .25s cubic-bezier(.7,.98,.86,.98);
+  }
+
   @keyframes slideDown {
     from {
       max-height: 0;

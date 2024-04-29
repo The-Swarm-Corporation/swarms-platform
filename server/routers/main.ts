@@ -38,6 +38,7 @@ const mainRouter = router({
     .mutation(async ({ ctx, input }) => {
       const items: Record<string, { title: string; link: string }[]> = {};
       // swarms
+      //TODO: Setup should be for *Accepted Swarms* only
       const swarms = await ctx.supabase
         .from('swarms_cloud_user_swarms')
         .select('*')
