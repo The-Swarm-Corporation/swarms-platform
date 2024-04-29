@@ -103,7 +103,7 @@ const Explorer = () => {
             </Button>
           </div>
         </div>
-        <div className="mt-8 ">
+        <div className="mt-8 pb-4 sticky top-20 bg-white dark:bg-black z-10">
           <ul className="p-0 mb-2 flex items-center gap-3">
             {options.map((option) => {
               return (
