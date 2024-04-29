@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import Input from '@/shared/components/ui/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
@@ -7,8 +7,10 @@ import useToggle from '@/shared/hooks/toggle';
 import { cn } from '@/shared/utils/cn';
 import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
+import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 
 export default function NavbarSearch() {
+  const searchRef = useRef(null);
   const toast = useToast();
   const [search, setSearch] = useState('');
   const [data, setData] = useState<
@@ -16,6 +18,8 @@ export default function NavbarSearch() {
   >({});
   const globalMutation = trpc.main.globalSearch.useMutation();
   const { isOn, setOn, setOff } = useToggle();
+
+  useOnClickOutside(searchRef, setOff);
 
   useEffect(() => {
     globalMutation
@@ -50,7 +54,7 @@ export default function NavbarSearch() {
   }, [data]);
 
   return (
-    <div className="w-full relative ml-10 mt-2 sm:mt-0 lg:ml-0">
+    <div ref={searchRef} className="w-full relative ml-10 mt-2 sm:mt-0 lg:ml-0">
       <label hidden htmlFor="search">
         Search
       </label>
@@ -60,7 +64,6 @@ export default function NavbarSearch() {
           id="search"
           aria-label="Search"
           onFocus={setOn}
-          onBlur={setOff}
           onChange={handleSearchChange}
           value={search}
           className="w-full disabled:cursor-not-allowed disabled:opacity-50 text-white max-sm:text-xs pr-11"
@@ -97,12 +100,12 @@ export default function NavbarSearch() {
                     {data[key].map((item) => (
                       <li
                         key={item.title}
-                        className="transition-custom p-2 py-3 mb-2 text-sm cursor-pointer overflow-hidden shadow-4xl rounded-md hover:shadow-5xl hover:bg-red-500 hover:text-white flex items-center hover:scale-[1.02]"
+                        className="transition-custom mb-2 text-sm cursor-pointer overflow-hidden shadow-4xl rounded-md hover:shadow-5xl hover:bg-red-500 hover:text-white flex items-center hover:scale-[1.02]"
                       >
                         {item.link ? (
-                          <Link href={item.link}>{item.title}</Link>
+                          <Link href={item.link} className='p-2 py-3 w-full'>{item.title}</Link>
                         ) : (
-                          <span>{item.title}</span>
+                          <span className='p-2 py-3 w-full'>{item.title}</span>
                         )}
                       </li>
                     ))}
