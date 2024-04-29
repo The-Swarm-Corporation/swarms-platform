@@ -41,7 +41,7 @@ const Explorer = () => {
     handleSearchChange,
     handleOptionChange,
     handleRemoveOption
-  } = useModels()
+  } = useModels();
 
   const toast = useToast();
   const trySynthify = async () => {
@@ -152,8 +152,9 @@ const Explorer = () => {
           <div className="flex flex-col min-h-1/2 gap-2 py-8">
             <h1 className="text-3xl font-bold pb-2">Models</h1>
             <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
-              {models.isLoading && <LoadingSpinner size={24} />}
-              {!models.isLoading &&
+              {models.isLoading ? (
+                <LoadingSpinner size={24} />
+              ) : filteredModels.length > 0 ? (
                 filteredModels?.map((model) => (
                   <Link
                     key={model.id}
@@ -174,7 +175,10 @@ const Explorer = () => {
                       className="w-full h-full"
                     />
                   </Link>
-                ))}
+                ))
+              ) : (
+                <div className='border p-4 rounded-md text-center'>No models found</div>
+              )}
             </div>
           </div>
           <div className="flex flex-col min-h-1/2 gap-2 py-8">
