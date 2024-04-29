@@ -63,11 +63,11 @@ export default function NavbarSearch() {
           onBlur={setOff}
           onChange={handleSearchChange}
           value={search}
-          className="w-full disabled:cursor-not-allowed disabled:opacity-50 max-sm:text-xs pr-11"
+          className="w-full disabled:cursor-not-allowed disabled:opacity-50 text-white max-sm:text-xs pr-11"
         />
         <div
           className={cn(
-            'absolute z-50 top-2/4 -translate-y-2/4 right-3 invisible',
+            'absolute z-50 top-2/4 -translate-y-2/4 right-3 invisible text-white',
             globalMutation.isPending && 'visible'
           )}
         >
@@ -78,7 +78,8 @@ export default function NavbarSearch() {
       <div
         className={cn(
           'absolute z-40 w-full h-[calc(100vh - 100px)] invisible',
-          isOn && 'visible'
+          isOn && 'visible',
+          globalMutation.isPending && 'invisible'
         )}
       >
         <ul className="py-2 px-3 mt-1 h-full w-full bg-secondary text-foreground border dark:bg-black dark:text-white rounded-md shadow-lg">
