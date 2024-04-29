@@ -56,11 +56,13 @@ async function POST(req: Request) {
       ((res_json.usage?.completion_tokens ?? 0) / 1000000) *
       price_million_output;
 
+    const choices =
+      res_json.choices as unknown as OpenAI.Chat.Completions.ChatCompletion.Choice[];
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       ...data.messages,
       {
         role: 'assistant',
-        content: res_json.choices[0].text
+        content: choices[0]?.message?.content
       }
     ];
     // log the result
