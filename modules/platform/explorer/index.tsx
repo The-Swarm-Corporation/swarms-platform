@@ -38,6 +38,7 @@ const Explorer = () => {
     search,
     options,
     filterOption,
+    isDataLoading,
     handleSearchChange,
     handleOptionChange,
     handleRemoveOption
@@ -89,19 +90,12 @@ const Explorer = () => {
         onClose={() => setAddSwarmModalOpen(false)}
       />
       <div className="w-full flex flex-col h-full">
-        <div className="flex justify-between items-center">
-          <div className="flex flex-col">
-            <h1 className="text-3xl font-extrabold sm:text-4xl">Explorer</h1>
-            <span className="mt-4 text-muted-foreground">
-              Find which one that suits your task such as accounting, finance,
-              marketing, etc.
-            </span>
-          </div>
-          <div>
-            <Button onClick={() => setAddSwarmModalOpen(true)}>
-              Add Swarm
-            </Button>
-          </div>
+        <div className="flex flex-col">
+          <h1 className="text-3xl font-extrabold sm:text-4xl">Explorer</h1>
+          <span className="mt-4 text-muted-foreground">
+            Find which one that suits your task such as accounting, finance,
+            marketing, etc.
+          </span>
         </div>
         <div className="mt-8 pb-4 sticky top-20 bg-white dark:bg-black z-10">
           <ul className="p-0 mb-2 flex items-center gap-3">
@@ -126,6 +120,7 @@ const Explorer = () => {
               placeholder="Search..."
               onChange={handleSearchChange}
               value={search}
+              disabled={isDataLoading}
               className="disabled:cursor-not-allowed disabled:opacity-50"
             />
 
@@ -133,6 +128,7 @@ const Explorer = () => {
               onValueChange={(value) => {
                 handleOptionChange(value);
               }}
+              disabled={isDataLoading}
               value={filterOption}
             >
               <SelectTrigger className="w-1/2 xl:w-1/4 cursor-pointer">
@@ -177,12 +173,19 @@ const Explorer = () => {
                   </Link>
                 ))
               ) : (
-                <div className='border p-4 rounded-md text-center'>No models found</div>
+                <div className="border p-4 rounded-md text-center">
+                  No models found
+                </div>
               )}
             </div>
           </div>
           <div className="flex flex-col min-h-1/2 gap-2 py-8">
-            <h1 className="text-3xl font-bold pb-2">Swarms</h1>
+            <div className="flex justify-between items-center">
+              <h1 className="text-3xl font-bold pb-2">Swarms</h1>
+              <Button onClick={() => setAddSwarmModalOpen(true)}>
+                Add Swarm
+              </Button>
+            </div>
             <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
               {/* pending */}
               {isLoading && (
