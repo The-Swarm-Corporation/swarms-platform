@@ -7,6 +7,8 @@ export default function useModels() {
   const models = trpc.explorer.getModels.useQuery();
   const allSwarms = trpc.explorer.getAllApprovedSwarms.useQuery();
 
+  const isDataLoading = models.isLoading && allSwarms.isLoading;
+
   const [options, setOptions] = useState(defaultOptions);
   const [search, setSearch] = useState('');
   const [filterOption, setFilterOption] = useState<string>(
@@ -47,6 +49,7 @@ export default function useModels() {
 
   const handleOptionChange = useCallback(
     (value: string) => {
+      if (isDataLoading) return;
       setFilterOption(value);
       if (value === 'swarms' || value === 'models') {
         setOptions([value]);
@@ -62,6 +65,7 @@ export default function useModels() {
   const handleRemoveOption = useCallback(
     (optionToRemove: string) => {
       let updatedOptions = [];
+      if (isDataLoading) return;
       if (options.length === 1) {
         updatedOptions = optionToRemove === 'swarms' ? ['models'] : ['swarms'];
       } else {
@@ -82,6 +86,7 @@ export default function useModels() {
     search,
     options,
     filterOption,
+    isDataLoading,
     handleSearchChange,
     handleOptionChange,
     handleRemoveOption
