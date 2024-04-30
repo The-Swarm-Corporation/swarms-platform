@@ -105,6 +105,9 @@ export default function Navlinks({ user }: NavlinksProps) {
             Sign In
           </Link>
         )}
+        <Link href="/signin/signup" className={s.link}>
+          Sign Up
+        </Link>
         <Link href="https://calendly.com/swarm-corp/30min" className={s.link}>
           Get Demo
         </Link>
