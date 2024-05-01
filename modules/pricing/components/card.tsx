@@ -102,7 +102,7 @@ export default function PricingCard({
               return (
                 <li key={key} className="flex items-center mt-4 font-medium drop-shadow-md gap-2 text-sm">
                   <CheckCircle className="size-4 text-gray-500 icon icon-tabler icon-tabler-circle-check" />
-                  <span>{key}:</span>
+                  <span>{key}</span>
                 </li>
               );
             })}
