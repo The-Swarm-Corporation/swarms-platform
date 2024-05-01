@@ -98,17 +98,12 @@ export default function PricingCard({
             className="order-last gap-4 mt-4 space-y-3 text-gray-700 dark:text-gray-300 list-none"
             role="list"
           >
-            {Object.entries(content).map(([key, value], index) => {
+            {Object.keys(content).map((key) => {
               return (
-                <>
-                  <li className="flex items-center mt-4 font-medium drop-shadow-md gap-2 text-sm">
-                    <CheckCircle className="size-4 text-gray-500 icon icon-tabler icon-tabler-circle-check" />
-                    <span>{key}:</span>
-                  </li>
-                  {/* <li className="flex items-center text-sm mt-1">
-                    <span className="ml-6">{value}</span>
-                  </li> */}
-                </>
+                <li key={key} className="flex items-center mt-4 font-medium drop-shadow-md gap-2 text-sm">
+                  <CheckCircle className="size-4 text-gray-500 icon icon-tabler icon-tabler-circle-check" />
+                  <span>{key}:</span>
+                </li>
               );
             })}
           </ul>
