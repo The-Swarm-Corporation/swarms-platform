@@ -1,12 +1,20 @@
 # Swarms Cloud Platform
 
+![Swarms Banner](swarms_platform.png)
+
+
 
 ## install
 `yarn install`
 
 `yarn run dev`
 
+# Benefits
+👉 Access to SOTA Multi-Modal Models like XCompose, LLava3, Qwen VL, CogVLM
 
+👉 Reliable & Affordable Pricing at Scale
+
+👉 Bleeding-Edge Speed: We're using a multi-cloud strategy!
 
 
 
