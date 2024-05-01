@@ -4,32 +4,18 @@
 
 
 
-## install
+# Install
 `yarn install`
 
 `yarn run dev`
 
-# Benefits
+## Benefits
 👉 Access to SOTA Multi-Modal Models like XCompose, LLava3, Qwen VL, CogVLM
 
 👉 Reliable & Affordable Pricing at Scale
 
 👉 Bleeding-Edge Speed: We're using a multi-cloud strategy!
 
-
-
-## Todos
-
-- **Frontend**
-
-  - Implement usage page
-  - Clean up old codes
-  - improve ui
-  - test all the payment actions 100%
-  - responsive pages
-
-- **Backend**
-  - usage page api's
 
 ## Technologies
 
