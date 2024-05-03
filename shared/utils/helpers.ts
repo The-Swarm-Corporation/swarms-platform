@@ -191,15 +191,17 @@ export const makeUrl = (url: string, data: any) => {
 };
 
 // shorten string to num and attached endLabel to shortened string
-export function getTruncatedString(str: string, num: number, endLabel = "...") {
+export function getTruncatedString(str: string, num: number, endLabel = '...') {
   if (!str) return null;
 
-  const words = str.split("").splice(0, num);
-  if (str.split("").length > num) return `${words.join("")}${endLabel}`;
+  const words = str.split('').splice(0, num);
+  if (str.split('').length > num) return `${words.join('')}${endLabel}`;
   return str;
 }
 
-export const isEmpty = (obj: ObjectOrArray | any) => [Object, Array].includes((obj || {}).constructor) && !Object.entries(obj || {}).length;
+export const isEmpty = (obj: ObjectOrArray | any) =>
+  [Object, Array].includes((obj || {}).constructor) &&
+  !Object.entries(obj || {}).length;
 
 export const debounce = (callback: (...args: any[]) => any, wait: number) => {
   let timeoutId: number | undefined;
@@ -210,3 +212,19 @@ export const debounce = (callback: (...args: any[]) => any, wait: number) => {
     }, wait);
   };
 };
+
+export function formatPrice(
+  price: number | string,
+  currencyCode = 'USD',
+  locale = 'en-US'
+): string {
+  if (!price) return '';
+
+  const hasDecimalPlaces = price.toString().includes('.');
+
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currencyCode,
+    minimumFractionDigits: hasDecimalPlaces ? 2 : 0,
+  }).format(Number(price));
+}

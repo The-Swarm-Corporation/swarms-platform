@@ -14,7 +14,7 @@ const explorerRouter = router({
   getModels: publicProcedure.query(async ({ ctx }) => {
     const models = await ctx.supabase
       .from('swarms_cloud_models')
-      .select('id,name,unique_name,model_type,description,tags,slug')
+      .select('id,name,unique_name,model_type,description,tags,slug,price_million_input,price_million_output')
       .eq('enabled', true)
       .order('created_at', { ascending: false });
     return models;
@@ -24,7 +24,7 @@ const explorerRouter = router({
     .query(async ({ input, ctx }) => {
       const model = await ctx.supabase
         .from('swarms_cloud_models')
-        .select('id,name,unique_name,model_type,description,tags,use_cases,model_card_md,slug')
+        .select('id,name,unique_name,model_type,description,tags,use_cases,model_card_md,slug,price_million_input,price_million_output')
         .eq('slug', input)
         .eq('enabled', true)
         .single();
