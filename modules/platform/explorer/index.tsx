@@ -44,8 +44,6 @@ const Explorer = () => {
     handleRemoveOption
   } = useModels();
 
-  console.log({ filteredModels });
-
   const toast = useToast();
   const trySynthify = async () => {
     if (synthifyMagicLink.isPending) {
