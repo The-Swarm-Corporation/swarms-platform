@@ -41,10 +41,16 @@ const InfoCard = ({
         {(input || output) && (
           <ul className="p-0 my-3 flex items-center gap-2">
             {input && (
-              <li className="pricing-unit">input: {formatPrice(input)}</li>
+              <li className="pricing-unit">
+                <span className="font-semibold">input:</span>{' '}
+                <span>{formatPrice(input)}/1M tokens</span>
+              </li>
             )}
             {output && (
-              <li className="pricing-unit">output: {formatPrice(output)}</li>
+              <li className="pricing-unit">
+                <span className="font-semibold">output:</span>{' '}
+                <span>{formatPrice(output)}/1M tokens</span>
+              </li>
             )}
           </ul>
         )}

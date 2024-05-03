@@ -76,7 +76,7 @@
   }
 
   .pricing-unit {
-    @apply transition-custom text-sm overflow-hidden shadow-4xl py-1 px-3 border dark:border-gray-700 rounded-md hover:shadow-5xl flex items-center hover:scale-[1.02];
+    @apply transition-custom text-xs overflow-hidden shadow-4xl py-2 px-3 border dark:border-gray-700 rounded-md hover:shadow-5xl flex gap-1 hover:scale-[1.02];
   }
 
   @keyframes slideDown {
