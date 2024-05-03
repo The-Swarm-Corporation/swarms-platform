@@ -44,6 +44,8 @@ const Explorer = () => {
     handleRemoveOption
   } = useModels();
 
+  console.log({ filteredModels });
+
   const toast = useToast();
   const trySynthify = async () => {
     if (synthifyMagicLink.isPending) {
@@ -154,13 +156,15 @@ const Explorer = () => {
                 filteredModels?.map((model) => (
                   <Link
                     key={model.id}
-                    className="w-full h-[200px] sm:w-full"
+                    className="w-full h-[220px] sm:w-full"
                     target="_blank"
                     href={makeUrl(PUBLIC.MODEL, { slug: model.slug })}
                   >
                     <InfoCard
                       title={model.name || ''}
                       description={model.description || ''}
+                      input={model.price_million_input ?? null}
+                      output={model.price_million_output ?? null}
                       icon={
                         model.model_type == 'vision' ? (
                           <ScanEye />

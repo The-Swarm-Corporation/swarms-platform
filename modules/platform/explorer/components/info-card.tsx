@@ -1,4 +1,5 @@
 import { cn } from '@/shared/utils/cn';
+import { formatPrice, getTruncatedString } from '@/shared/utils/helpers';
 import { ReactNode } from 'react';
 
 interface Props {
@@ -7,21 +8,46 @@ interface Props {
   icon: ReactNode;
   className?: string;
   btnLabel?: string;
+  input?: number | null;
+  output?: number | null;
 }
-const InfoCard = ({ title, description, icon, className, btnLabel }: Props) => {
+const InfoCard = ({
+  title,
+  description,
+  icon,
+  className,
+  btnLabel,
+  input,
+  output
+}: Props) => {
   return (
     <div
       className={cn(
-        'relative flex gap-4 p-4 border border-primary rounded-lg overflow-hidden group hover:border-red-700',
+        'relative flex gap-4 p-4 px-3 border border-primary rounded-lg overflow-hidden group hover:border-red-700',
         className
       )}
     >
-      <div className="flex items-center justify-center w-12 h-12 bg-primary text-white rounded-full aspect-square">
+      <div className="flex items-center justify-center w-10 h-10 bg-primary text-white rounded-full aspect-square">
         {icon}
       </div>
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl sm:text-3xl font-bold">{title}</h1>
-        <span>{description}</span>
+      <div className="h-4/5 flex flex-col">
+        <div className="flex flex-col gap-2 flex-grow">
+          <h1 className="text-xl sm:text-2xl font-bold">{title}</h1>
+          <span title={description} className="text-sm">
+            {getTruncatedString(description, 100)}
+          </span>
+        </div>
+
+        {(input || output) && (
+          <ul className="p-0 my-3 flex items-center gap-2">
+            {input && (
+              <li className="pricing-unit">input: {formatPrice(input)}</li>
+            )}
+            {output && (
+              <li className="pricing-unit">output: {formatPrice(output)}</li>
+            )}
+          </ul>
+        )}
       </div>
 
       <div>
