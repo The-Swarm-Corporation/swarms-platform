@@ -26,13 +26,13 @@ const apiKeyRouter = router({
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
       // check subscription status
-      const sub = await getSubscriptionStatus(user);
-      if (sub.status !== 'active') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Subscription is required'
-        });
-      }
+      // const sub = await getSubscriptionStatus(user);
+      // if (sub.status !== 'active') {
+      //   throw new TRPCError({
+      //     code: 'BAD_REQUEST',
+      //     message: 'Subscription is required'
+      //   });
+      // }
       const name = input.name.trim();
       if (name == '') {
         throw new TRPCError({
