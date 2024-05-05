@@ -61,12 +61,12 @@ const usePlayground = () => {
   const subscription = useSubscription();
   const toast = useToast();
   const submit = async () => {
-    if (subscription.status !== 'active') {
-      toast.toast({
-        title: 'Subscription required'
-      });
-      return;
-    }
+    // if (subscription.status !== 'active') {
+    //   toast.toast({
+    //     title: 'Subscription required'
+    //   });
+    //   return;
+    // }
     if (playgroundApiKey.isLoading) {
       toast.toast({
         title: 'Api Key not loaded yet'
