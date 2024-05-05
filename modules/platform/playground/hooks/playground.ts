@@ -4,6 +4,10 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { useEffect, useRef, useState } from 'react';
 
+/**
+ * Custom hook for managing playground functionality.
+ * @returns An object containing various state variables and functions related to the playground.
+ */
 const usePlayground = () => {
   const models = trpc.playground.models.useQuery();
   const playgroundApiKey = trpc.playground.getPlaygroundApiKey.useQuery();
@@ -61,12 +65,6 @@ const usePlayground = () => {
   const subscription = useSubscription();
   const toast = useToast();
   const submit = async () => {
-    // if (subscription.status !== 'active') {
-    //   toast.toast({
-    //     title: 'Subscription required'
-    //   });
-    //   return;
-    // }
     if (playgroundApiKey.isLoading) {
       toast.toast({
         title: 'Api Key not loaded yet'
