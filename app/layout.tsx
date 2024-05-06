@@ -4,6 +4,8 @@ import { helvetica } from '@/shared/styles/fonts';
 import { TrpcProvider } from '@/shared/utils/trpc/trpc-provider';
 import { Viewport } from 'next';
 import { Suspense } from 'react';
+import { Analytics } from "@vercel/analytics/react"
+
 
 export const viewport: Viewport = {
   themeColor: [
@@ -31,6 +33,7 @@ export default async function Layout({
         <Suspense>
           <Toaster />
         </Suspense>
+        <Analytics />
       </body>
     </html>
   );
