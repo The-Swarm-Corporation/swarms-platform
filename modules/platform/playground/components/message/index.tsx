@@ -2,15 +2,15 @@
 
 import { useRef, useState } from 'react';
 import {
-    ChatCompletionContentPart,
-    ChatCompletionMessageParam
+  ChatCompletionContentPart,
+  ChatCompletionMessageParam,
 } from 'openai/resources';
 import { cn } from '@/shared/utils/cn';
 import { CircleMinus, ImagePlus, Trash } from 'lucide-react';
 
 const ImageMessageRender = ({
   url,
-  remove
+  remove,
 }: {
   url: string;
   remove: () => void;
@@ -34,7 +34,7 @@ const ImageMessageRender = ({
 const TextMessageRender = ({
   content,
   setIsFocused,
-  updateContentText
+  updateContentText,
 }: {
   content: ChatCompletionContentPart | string;
   setIsFocused: (isFocused: boolean) => void;
@@ -53,7 +53,7 @@ const TextMessageRender = ({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         className={cn(
-          'w-full p-1 bg-transparent focus:bg-background focus:outline-2 outline-purple-500 border border-gray-700/50 focus:border-none rounded-md resize-none overflow-scroll'
+          'w-full p-1 bg-transparent focus:bg-background focus:outline-2 outline-purple-500 border border-gray-700/50 focus:border-none rounded-md resize-none overflow-scroll',
         )}
         value={text}
         onChange={(e) => updateContentText(e.target.value)}
@@ -67,7 +67,7 @@ const MessageItem = ({
   message,
   update,
   remove,
-  supportImage
+  supportImage,
 }: {
   message: ChatCompletionMessageParam;
   update: (message: ChatCompletionMessageParam) => void;
@@ -83,7 +83,7 @@ const MessageItem = ({
   };
   const updateContentText = (
     index: number,
-    text: string | ChatCompletionContentPart
+    text: string | ChatCompletionContentPart,
   ) => {
     const newMessage = { ...message };
 
@@ -107,14 +107,14 @@ const MessageItem = ({
         newMessage.content = [
           {
             type: 'text',
-            text: newMessage.content
-          }
+            text: newMessage.content,
+          },
         ];
       }
       // if an image already exists, remove it
       if (newMessage.content?.some((content) => content.type === 'image_url')) {
         newMessage.content = newMessage.content?.filter(
-          (content) => content.type !== 'image_url'
+          (content) => content.type !== 'image_url',
         );
       }
 
@@ -125,8 +125,8 @@ const MessageItem = ({
           newMessage.content?.push({
             type: 'image_url',
             image_url: {
-              url: _e.target?.result as string
-            }
+              url: _e.target?.result as string,
+            },
           });
           update(newMessage);
         }
@@ -146,7 +146,7 @@ const MessageItem = ({
     // if its array , remove the last image
     if (typeof newMessage.content === 'object') {
       newMessage.content = newMessage.content?.filter(
-        (content) => content.type !== 'image_url'
+        (content) => content.type !== 'image_url',
       );
       update(newMessage);
     }
@@ -165,7 +165,7 @@ const MessageItem = ({
           className={cn(
             'flex flex-col px-4',
             'hover:bg-gray-700/50 rounded-md',
-            isFocused && 'bg-gray-700/50'
+            isFocused && 'bg-gray-700/50',
           )}
         >
           <div className="flex py-4">
@@ -176,7 +176,7 @@ const MessageItem = ({
               <span
                 className={cn(
                   'text-xs xl:text-sm group-hover:bg-gray-700 group-hover:text-white p-1 rounded-lg uppercase',
-                  isFocused && 'bg-gray-700 text-white'
+                  isFocused && 'bg-gray-700 text-white',
                 )}
               >
                 {message.role}
@@ -223,7 +223,7 @@ const MessageItem = ({
                   <div
                     className={cn(
                       'mt-1 p-2 border inline-flex justify-center items-center rounded-md group-hover:border-white/80 group-hover:text-white/80 text-white/60  cursor-pointer transition-all',
-                      isFocused && 'border-white/80 text-white/80'
+                      isFocused && 'border-white/80 text-white/80',
                     )}
                     onClick={() => {
                       imageFileRef.current?.click();
@@ -239,7 +239,7 @@ const MessageItem = ({
                 onClick={remove}
                 className={cn(
                   'text-white/80 group-hover:opacity-100 opacity-0 transition-all cursor-pointer',
-                  isFocused && 'opacity-100'
+                  isFocused && 'opacity-100',
                 )}
                 size={20}
               />

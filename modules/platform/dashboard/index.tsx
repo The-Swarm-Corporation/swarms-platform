@@ -5,7 +5,7 @@ import { DISCORD, PLATFORM, SWARM_CALENDLY } from '@/shared/constants/links';
 import {
   VLM_SAMPLE_GO,
   VLM_SAMPLE_JS,
-  VLM_SAMPLE_PY
+  VLM_SAMPLE_PY,
 } from '@/shared/data/vlm-sample';
 import useSubscription from '@/shared/hooks/subscription';
 import { commaSeparated, formatSepndTime } from '@/shared/utils/helpers';
@@ -16,14 +16,12 @@ const Dashboard = () => {
   const subscription = useSubscription();
 
   const timeSaved = formatSepndTime(
-    9998777
+    9998777,
     // seconds
   ).split(' ');
   return (
     <div className="w-full flex flex-col">
-      <h1 className="text-3xl font-extrabold sm:text-4xl">
-        Home
-      </h1>
+      <h1 className="text-3xl font-extrabold sm:text-4xl">Home</h1>
       <div className="mt-4 flex gap-4 max-md:flex-col">
         <div className="w-1/3 flex flex-col gap-4 border p-4 rounded-md max-md:w-full">
           <span className="text-primary text-4xl font-bold">
@@ -53,21 +51,21 @@ const Dashboard = () => {
             <div className="relative">
               <CodeBox
                 classes={{
-                  content: 'h-[50vh] overflow-y-auto'
+                  content: 'h-[50vh] overflow-y-auto',
                 }}
                 sampleCodes={{
                   python: {
                     sourceCode: VLM_SAMPLE_PY,
-                    title: 'main.py'
+                    title: 'main.py',
                   },
                   javascript: {
                     sourceCode: VLM_SAMPLE_JS,
-                    title: 'main.js'
+                    title: 'main.js',
                   },
                   go: {
                     sourceCode: VLM_SAMPLE_GO,
-                    title: 'main.go'
-                  }
+                    title: 'main.go',
+                  },
                 }}
               />
             </div>
@@ -82,15 +80,11 @@ const Dashboard = () => {
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span>
-                Access to the best Multi-Modal Models
-              </span>
+              <span>Access to the best Multi-Modal Models</span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span>
-                Access to the swarms for special workflows
-              </span>
+              <span>Access to the swarms for special workflows</span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
@@ -98,27 +92,19 @@ const Dashboard = () => {
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span>
-                99% Uptime with 24/7 Support
-              </span>
+              <span>99% Uptime with 24/7 Support</span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span>
-                The Explorer: Explore Multi-Modal Models and Swarms
-              </span>
+              <span>The Explorer: Explore Multi-Modal Models and Swarms</span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span>
-                Early Access to new models, swarms, and features!
-              </span>
+              <span>Early Access to new models, swarms, and features!</span>
             </div>
             <div className="flex  items-center gap-2">
               <Check size={24} />
-              <span>
-                Coupons and Discounts for usage-based pricing!
-              </span>
+              <span>Coupons and Discounts for usage-based pricing!</span>
             </div>
           </div>
           <Button
@@ -134,7 +120,8 @@ const Dashboard = () => {
           <div className="sm:w-1/2 flex flex-col gap-2 border rounded-md p-4">
             <h2 className="text-2xl font-bold">Create an Organization</h2>
             <span className="text-muted-foreground">
-              Create an organization to invite your team members and manage your projects.
+              Create an organization to invite your team members and manage your
+              projects.
             </span>
             <Link href={PLATFORM.ORGANIZATION}>
               <Button className="mt-4 hover:bg-red-900" variant={'default'}>
@@ -182,11 +169,14 @@ const Dashboard = () => {
           <div className="w-full flex flex-col gap-2">
             <h2 className="text-2xl font-bold">Community</h2>
             <span className="text-muted-foreground">
-              Join the Swarms community for real-time support, assistance, and conversations with friends!
+              Join the Swarms community for real-time support, assistance, and
+              conversations with friends!
             </span>
             <div className="flex gap-4 mt-4">
               <Link href={DISCORD}>
-                <Button className= "hover:bg-red-900" variant={'default'}>Join Community!</Button>
+                <Button className="hover:bg-red-900" variant={'default'}>
+                  Join Community!
+                </Button>
               </Link>
             </div>
           </div>
@@ -195,11 +185,14 @@ const Dashboard = () => {
           <div className="w-full flex flex-col gap-2">
             <h2 className="text-2xl font-bold">Get Demo</h2>
             <span className="text-muted-foreground">
-              Get a demo of the Swarms platform and learn how it can help you automate your operations.
+              Get a demo of the Swarms platform and learn how it can help you
+              automate your operations.
             </span>
             <div className="flex gap-4 mt-4">
               <Link href={SWARM_CALENDLY}>
-                <Button className='hover:bg-red-900' variant={'default'}>Get Demo!</Button>
+                <Button className="hover:bg-red-900" variant={'default'}>
+                  Get Demo!
+                </Button>
               </Link>
             </div>
           </div>

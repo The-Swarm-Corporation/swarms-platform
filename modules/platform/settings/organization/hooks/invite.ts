@@ -8,7 +8,7 @@ import { ROLES } from '@/shared/constants/organization';
 import { useQueryMutation } from './organizations';
 
 export function useInviteModal({
-  currentOrganization
+  currentOrganization,
 }: {
   currentOrganization: UserOrganizationsProps;
 }) {
@@ -25,7 +25,7 @@ export function useInviteModal({
     currentOrganization?.role === 'reader';
 
   const [inviteRole, setInviteRole] = useState<ExcludeOwner | string>(
-    ROLES[ROLES.length - 1]?.value
+    ROLES[ROLES.length - 1]?.value,
   );
 
   function handleEmailChange(value: string) {
@@ -40,7 +40,7 @@ export function useInviteModal({
     if (_email.length < 3 && !isValidEmail) {
       toast.toast({
         description: 'Enter a valid email address',
-        style: { color: 'red' }
+        style: { color: 'red' },
       });
       return;
     }
@@ -48,7 +48,7 @@ export function useInviteModal({
     if (!inviteRole) {
       toast.toast({
         description: 'Missing required values',
-        style: { color: 'red' }
+        style: { color: 'red' },
       });
 
       return;
@@ -60,12 +60,12 @@ export function useInviteModal({
       const response = await mutation.invite.mutateAsync({
         email,
         role: inviteRole as ExcludeOwner,
-        id: userOrgId ?? ''
+        id: userOrgId ?? '',
       });
       if (response) {
         toast.toast({
           description: `${email} has been invited to join your organization.`,
-          style: { color: 'green' }
+          style: { color: 'green' },
         });
         setOpenDialog(false);
         query.invites.refetch();
@@ -75,7 +75,7 @@ export function useInviteModal({
       if ((error as any)?.message) {
         toast.toast({
           description: (error as any)?.message,
-          style: { color: 'red' }
+          style: { color: 'red' },
         });
       }
     } finally {
@@ -88,7 +88,7 @@ export function useInviteModal({
       e.preventDefault();
       toast.toast({
         description: `Required permissions not found`,
-        style: { color: 'red' }
+        style: { color: 'red' },
       });
       return;
     }
@@ -104,6 +104,6 @@ export function useInviteModal({
     setInviteRole,
     inviteUser,
     handleEmailChange,
-    handleOpenModal
+    handleOpenModal,
   };
 }

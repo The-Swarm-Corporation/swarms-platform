@@ -162,9 +162,9 @@ const content = [
     sampleCodes: {
       python: {
         sourceCode: codeStep1,
-        title: 'python.py'
-      }
-    }
+        title: 'python.py',
+      },
+    },
   },
   {
     title: 'Sequential Workflow',
@@ -173,9 +173,9 @@ const content = [
     sampleCodes: {
       python: {
         sourceCode: codeStep2,
-        title: 'python.py'
-      }
-    }
+        title: 'python.py',
+      },
+    },
   },
   {
     title: 'Swarm Network',
@@ -184,9 +184,9 @@ const content = [
     sampleCodes: {
       python: {
         sourceCode: codeStep3,
-        title: 'python.py'
-      }
-    }
+        title: 'python.py',
+      },
+    },
   },
   // {
   //   title: 'HuggingFace LLM',

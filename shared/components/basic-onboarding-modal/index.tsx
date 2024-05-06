@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import useOnboardingHelper from '@/shared/hooks/onboarding-helper';
 import Modal from '../modal';
@@ -10,7 +10,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '../ui/select';
 import { useToast } from '../ui/Toasts/use-toast';
 import Link from 'next/link';
@@ -30,7 +30,7 @@ const BasicOnboardingModal = () => {
 
   const toast = useToast();
   const [step, setStep] = useState<'basic' | 'company' | 'referral' | 'done'>(
-    'basic'
+    'basic',
   );
 
   useEffect(() => {
@@ -48,7 +48,7 @@ const BasicOnboardingModal = () => {
       // check if not empty
       if (fullName.trim() === '') {
         toast.toast({
-          title: 'Full name is required'
+          title: 'Full name is required',
         });
         return;
       }
@@ -57,7 +57,7 @@ const BasicOnboardingModal = () => {
       // check if not empty
       if (companyName.trim() === '' || jobTitle.trim() === '') {
         toast.toast({
-          title: 'Company name and job title is required'
+          title: 'Company name and job title is required',
         });
         return;
       }
@@ -65,7 +65,7 @@ const BasicOnboardingModal = () => {
     } else if (step === 'referral') {
       if (!howDidYouFindUs || whyDidYouSignUp.trim() === '') {
         toast.toast({
-          title: 'referral and why did you sign up is required'
+          title: 'referral and why did you sign up is required',
         });
         return;
       }
@@ -77,7 +77,7 @@ const BasicOnboardingModal = () => {
           job_title: jobTitle,
           referral: howDidYouFindUs,
           signup_reason: whyDidYouSignUp,
-          basic_onboarding_completed: true
+          basic_onboarding_completed: true,
         })
         .then(() => {
           setStep('done');
@@ -101,7 +101,7 @@ const BasicOnboardingModal = () => {
     'Finance',
     'HR',
     'Legal',
-    'Other'
+    'Other',
   ];
 
   const howDidYouFindUsOptions = [
@@ -114,7 +114,7 @@ const BasicOnboardingModal = () => {
     'LinkedIn',
     'Instagram',
     'Friend',
-    'Other'
+    'Other',
   ];
 
   const back = () => {
@@ -148,7 +148,7 @@ const BasicOnboardingModal = () => {
                 {
                   basic: 'Welcome to Swarms!',
                   company: 'Tell us about your company',
-                  referral: 'How did you find us?'
+                  referral: 'How did you find us?',
                 }[step]
               }
             </h1>
@@ -310,10 +310,16 @@ const BasicOnboardingModal = () => {
               <Link href={SWARM_CALENDLY} target="_blank">
                 <Button>Book a call</Button>
               </Link>
-              <Link href="https://swarms.world/platform/explorer" target="_blank">
+              <Link
+                href="https://swarms.world/platform/explorer"
+                target="_blank"
+              >
                 <Button>Explore Models & Swarms</Button>
               </Link>
-              <Link href="https://swarms.world/platform/api-keys" target="_blank">
+              <Link
+                href="https://swarms.world/platform/api-keys"
+                target="_blank"
+              >
                 <Button>Create API Key</Button>
               </Link>
             </div>
@@ -329,7 +335,7 @@ const BasicOnboardingModal = () => {
                   {
                     basic: 'Next',
                     company: 'Next',
-                    referral: 'Submit'
+                    referral: 'Submit',
                   }[step]
                 }
               </Button>

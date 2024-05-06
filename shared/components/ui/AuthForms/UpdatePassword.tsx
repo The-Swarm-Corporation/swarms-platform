@@ -1,6 +1,6 @@
 'use client';
 
-import {Button} from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/Button';
 import { updatePassword } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
 import { useRouter } from 'next/navigation';
@@ -11,7 +11,7 @@ interface UpdatePasswordProps {
 }
 
 export default function UpdatePassword({
-  redirectMethod
+  redirectMethod,
 }: UpdatePasswordProps) {
   const router = redirectMethod === 'client' ? useRouter() : null;
   const [isSubmitting, setIsSubmitting] = useState(false);

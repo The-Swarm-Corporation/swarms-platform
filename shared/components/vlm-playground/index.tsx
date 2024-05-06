@@ -5,7 +5,7 @@ import CodeBox from '../code-box';
 import {
   VLM_SAMPLE_GO,
   VLM_SAMPLE_JS,
-  VLM_SAMPLE_PY
+  VLM_SAMPLE_PY,
 } from '@/shared/data/vlm-sample';
 import { Slider } from '../ui/slider';
 import Input from '../ui/Input';
@@ -28,7 +28,7 @@ const VlmPlayground = ({ model }: Props) => {
   const [selectedImageData, setSelectedImageData] = useState<string>('');
   useEffect(() => {
     setSelectedImageData(
-      'https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/674c9c37-b716-4dae-af4a-b34e252c9cb6/width=450/00050-2430021382.jpeg'
+      'https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/674c9c37-b716-4dae-af4a-b34e252c9cb6/width=450/00050-2430021382.jpeg',
     );
   }, []);
 
@@ -54,7 +54,7 @@ const VlmPlayground = ({ model }: Props) => {
       model,
       content: input,
       image_url: selectedImageData,
-      temperature
+      temperature,
     });
     const endTime = new Date().getTime();
     setResponseMsg(endTime - startTime);
@@ -81,7 +81,7 @@ const VlmPlayground = ({ model }: Props) => {
                   `px-3 py-1 text-xs rounded-xl text-muted-foreground border border-transparent`,
                   selectedSampleMode === mode
                     ? 'border bg-gray-700 text-white'
-                    : ''
+                    : '',
                 )}
               >
                 {mode}
@@ -94,23 +94,23 @@ const VlmPlayground = ({ model }: Props) => {
                 hideList
                 classes={{
                   content: 'overflow-auto h-content h-[400px]',
-                  root: 'h-full'
+                  root: 'h-full',
                 }}
                 value={selectedSampleMode}
                 initLanguage={selectedSampleMode}
                 sampleCodes={{
                   python: {
                     sourceCode: VLM_SAMPLE_PY,
-                    title: 'main.py'
+                    title: 'main.py',
                   },
                   javascript: {
                     sourceCode: VLM_SAMPLE_JS,
-                    title: 'index.js'
+                    title: 'index.js',
                   },
                   go: {
                     sourceCode: VLM_SAMPLE_GO,
-                    title: 'main.go'
-                  }
+                    title: 'main.go',
+                  },
                 }}
               />
             </div>

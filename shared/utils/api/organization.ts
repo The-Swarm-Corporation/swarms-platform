@@ -4,7 +4,7 @@ import { supabaseAdmin } from '../supabase/admin';
 type UserAccessType = 'owner' | 'reader' | 'manager';
 export const getUserOrganizationRole = async (
   organizationId: string,
-  userId: string
+  userId: string,
 ): Promise<UserAccessType | null> => {
   const org = await supabaseAdmin
     .from('swarms_cloud_organizations')
@@ -83,7 +83,7 @@ export const submitInviteCode = async (code: string, userId: string) => {
           invite_by_user_id: inviteData.invite_by_user_id,
           role: inviteData.role,
           organization_id: inviteData.organization_id,
-          user_id: userId
+          user_id: userId,
         });
       if (join_res.error) {
         throw new Error('Failed to join organization');

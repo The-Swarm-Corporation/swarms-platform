@@ -13,7 +13,7 @@ export default function ThemeCard({
   themeLabel,
   disabled,
   isSelected,
-  handleTheme
+  handleTheme,
 }: ThemeCardProps) {
   const isDark = themeLabel !== 'light';
 
@@ -26,7 +26,7 @@ export default function ThemeCard({
     <div
       className={cn(
         'w-full relative cursor-pointer',
-        disabled ? 'opacity-30 cursor-not-allowed' : ''
+        disabled ? 'opacity-30 cursor-not-allowed' : '',
       )}
       onClick={handleClick}
     >
@@ -34,7 +34,7 @@ export default function ThemeCard({
       <div
         className={cn(
           'flex flex-col items-center p-2 mx-auto gap-3 rounded-tl-sm rounded-tr-sm text-center border',
-          isDark ? 'bg-black' : 'bg-white'
+          isDark ? 'bg-black' : 'bg-white',
         )}
       >
         <Logo width={30} height={30} />
@@ -45,7 +45,7 @@ export default function ThemeCard({
           <span
             className={cn(
               'p-2 pb-0 text-[10px]',
-              isDark ? 'text-white' : 'text-black'
+              isDark ? 'text-white' : 'text-black',
             )}
           >
             pip3 install -U swarms
@@ -59,7 +59,7 @@ export default function ThemeCard({
             'w-4 h-4 flex relative items-center justify-center border border-gray-400 rounded-sm',
             isSelected
               ? "bg-primary before:content-['✔'] before:absolute before:inline-block before:text-xs before:text-white"
-              : ''
+              : '',
           )}
         />
         <span className="first-letter:capitalize">

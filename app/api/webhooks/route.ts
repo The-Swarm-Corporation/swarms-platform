@@ -7,7 +7,7 @@ import {
   deleteProductRecord,
   deletePriceRecord,
   increaseUserCredit,
-  upsertInvoiceRecord
+  upsertInvoiceRecord,
 } from '@/shared/utils/supabase/admin';
 import { addPaymentMethodIfNotExists } from '@/shared/utils/stripe/server';
 
@@ -24,7 +24,7 @@ const relevantEvents = new Set([
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
-  'payment_intent.succeeded'
+  'payment_intent.succeeded',
 ]);
 
 export async function POST(req: Request) {
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
         case 'invoice.created':
         case 'invoice.updated':
           const ok = await upsertInvoiceRecord(
-            event.data.object as Stripe.Invoice
+            event.data.object as Stripe.Invoice,
           );
           if (ok) new Response(JSON.stringify({ received: true }));
           break;
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
           await manageSubscriptionStatusChange(
             subscription.id,
             subscription.customer as string,
-            event.type === 'customer.subscription.created'
+            event.type === 'customer.subscription.created',
           );
           break;
         case 'checkout.session.completed':
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
             await manageSubscriptionStatusChange(
               subscriptionId as string,
               checkoutSession.customer as string,
-              true
+              true,
             );
           } else if (
             checkoutSession.mode === 'payment' &&
@@ -96,10 +96,7 @@ export async function POST(req: Request) {
             const userId = checkoutSession.client_reference_id;
             if (userId && amount) {
               try {
-                const ok = await increaseUserCredit(
-                  userId,
-                  amount
-                );
+                const ok = await increaseUserCredit(userId, amount);
                 if (ok) {
                   // return success to stripe
                   return new Response(JSON.stringify({ received: true }));
@@ -110,13 +107,13 @@ export async function POST(req: Request) {
           if (checkoutSession.status === 'complete') {
             // Access payment method through payment intent
             const paymentIntent = await stripe.paymentIntents.retrieve(
-              checkoutSession.payment_intent as string
+              checkoutSession.payment_intent as string,
             );
             const paymentMethodId = paymentIntent.payment_method;
             if (paymentMethodId) {
               await addPaymentMethodIfNotExists(
                 checkoutSession.customer as string,
-                paymentMethodId as string
+                paymentMethodId as string,
               );
             }
           }
@@ -129,13 +126,13 @@ export async function POST(req: Request) {
       return new Response(
         'Webhook handler failed. View your Next.js function logs.',
         {
-          status: 400
-        }
+          status: 400,
+        },
       );
     }
   } else {
     return new Response(`Unsupported event type: ${event.type}`, {
-      status: 400
+      status: 400,
     });
   }
   return new Response(JSON.stringify({ received: true }));

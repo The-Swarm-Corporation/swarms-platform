@@ -7,9 +7,9 @@ const mailer = () => {
     secure: true, // Use `true` for port 465, `false` for all other ports
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
+      pass: process.env.SMTP_PASS,
     },
-    service: 'aws'
+    service: 'aws',
   };
   return nodemailer.createTransport(config);
 };

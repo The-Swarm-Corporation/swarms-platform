@@ -19,8 +19,8 @@ const playgroundRouter = router({
           unique_name: model.unique_name,
           model_type: model.model_type,
           support_functions: model.support_functions,
-          api_endpoint: model.api_endpoint
-        }) as SwarmApiModel
+          api_endpoint: model.api_endpoint,
+        }) as SwarmApiModel,
     );
   }),
   getPlaygroundApiKey: userProcedure.query(async ({ ctx }) => {
@@ -43,7 +43,7 @@ const playgroundRouter = router({
       return key;
     }
     return currentPlaygroundApiKey.data?.key;
-  })
+  }),
 });
 
 export default playgroundRouter;

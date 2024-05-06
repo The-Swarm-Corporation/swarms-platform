@@ -5,7 +5,7 @@ import { RateLimiterMemory } from 'rate-limiter-flexible';
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
-  isDev: process.env.NODE_ENV === 'development'
+  isDev: process.env.NODE_ENV === 'development',
 });
 
 export const router = t.router;
@@ -16,7 +16,7 @@ export const publicProcedure = t.procedure;
 // rate limiter
 const opts = {
   points: 10,
-  duration: 1 // Per second
+  duration: 1, // Per second
 };
 
 const rateLimiter = new RateLimiterMemory(opts);
@@ -36,7 +36,7 @@ export const userProcedure = publicProcedure
     } catch (e) {
       throw new TRPCError({
         code: 'TOO_MANY_REQUESTS',
-        message: 'Too many requests'
+        message: 'Too many requests',
       });
     }
     return opts.next();
@@ -46,7 +46,7 @@ export const userProcedure = publicProcedure
     if (!user) {
       throw new TRPCError({
         code: 'FORBIDDEN',
-        message: "You don't have access to this resource"
+        message: "You don't have access to this resource",
       });
     }
 

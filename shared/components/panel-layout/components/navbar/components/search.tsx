@@ -1,5 +1,11 @@
 import Link from 'next/link';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import Input from '@/shared/components/ui/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
@@ -30,7 +36,7 @@ export default function NavbarSearch() {
       .catch((err: any) => {
         console.log(err);
         toast.toast({
-          description: 'Something went wrong'
+          description: 'Something went wrong',
         });
       });
   }, [search]);
@@ -46,7 +52,7 @@ export default function NavbarSearch() {
     (value: string) => {
       debouncedSearch(value);
     },
-    [debouncedSearch]
+    [debouncedSearch],
   );
 
   const allData = useMemo(() => {
@@ -71,7 +77,7 @@ export default function NavbarSearch() {
         <div
           className={cn(
             'absolute z-50 top-2/4 -translate-y-2/4 right-3 invisible text-white',
-            globalMutation.isPending && 'visible'
+            globalMutation.isPending && 'visible',
           )}
         >
           <LoadingSpinner />
@@ -82,7 +88,7 @@ export default function NavbarSearch() {
         className={cn(
           'absolute z-40 w-full h-[calc(100vh - 100px)] invisible',
           isOn && 'visible',
-          globalMutation.isPending && 'invisible'
+          globalMutation.isPending && 'invisible',
         )}
       >
         <ul className="py-2 px-3 mt-1 h-full w-full bg-secondary text-foreground border dark:bg-black dark:text-white rounded-md shadow-lg">
@@ -103,14 +109,16 @@ export default function NavbarSearch() {
                         className="transition-custom mb-2 text-sm cursor-pointer overflow-hidden shadow-4xl rounded-md hover:shadow-5xl hover:bg-red-500 hover:text-white flex items-center hover:scale-[1.02]"
                       >
                         {item.link ? (
-                          <Link href={item.link} className='p-2 py-3 w-full'>{item.title}</Link>
+                          <Link href={item.link} className="p-2 py-3 w-full">
+                            {item.title}
+                          </Link>
                         ) : (
-                          <span className='p-2 py-3 w-full'>{item.title}</span>
+                          <span className="p-2 py-3 w-full">{item.title}</span>
                         )}
                       </li>
                     ))}
                   </>
-                )
+                ),
             )
           ) : (
             <p className="text-center py-4">No search result found</p>

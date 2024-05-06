@@ -12,18 +12,18 @@ const items = [
   {
     title: 'Cheap',
     description:
-      'Our affordable pricing ensures accessibility for all customers without compromising on quality. We prioritize cost-effectiveness to cater to budget-conscious clients while maintaining high standards of service and performance.'
+      'Our affordable pricing ensures accessibility for all customers without compromising on quality. We prioritize cost-effectiveness to cater to budget-conscious clients while maintaining high standards of service and performance.',
   },
   {
     title: 'Fast',
     description:
-      'With our expedited service, you can expect rapid delivery and efficient turnaround times. We understand the importance of timely solutions and strive to meet deadlines promptly, enabling you to achieve your goals without unnecessary delays.'
+      'With our expedited service, you can expect rapid delivery and efficient turnaround times. We understand the importance of timely solutions and strive to meet deadlines promptly, enabling you to achieve your goals without unnecessary delays.',
   },
   {
     title: 'Reliable',
     description:
-      'Our commitment to reliability means you can trust us to consistently deliver exceptional results. We prioritize consistency and dependability in our services, ensuring that you can rely on us to meet your needs consistently and effectively.'
-  }
+      'Our commitment to reliability means you can trust us to consistently deliver exceptional results. We prioritize consistency and dependability in our services, ensuring that you can rely on us to meet your needs consistently and effectively.',
+  },
 ];
 
 const FeaturesSection = () => {
@@ -32,14 +32,14 @@ const FeaturesSection = () => {
       <motion.div
         initial={{
           opacity: 0,
-          y: 20
+          y: 20,
         }}
         animate={{
           opacity: 1,
-          y: 0
+          y: 0,
         }}
         transition={{
-          duration: 1
+          duration: 1,
         }}
         className="div"
       >

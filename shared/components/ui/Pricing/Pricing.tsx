@@ -1,6 +1,6 @@
 'use client';
 
-import {Button} from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/Button';
 import LogoCloud from '@/shared/components/ui/LogoCloud';
 import type { Tables } from '@/types_db';
 import { getStripe } from '@/shared/utils/stripe/client';
@@ -36,9 +36,9 @@ export default function Pricing({ user, products, subscription }: Props) {
   const intervals = Array.from(
     new Set(
       products.flatMap((product) =>
-        product?.prices?.map((price) => price?.interval)
-      )
-    )
+        product?.prices?.map((price) => price?.interval),
+      ),
+    ),
   );
   const router = useRouter();
   const [billingInterval, setBillingInterval] =
@@ -56,7 +56,7 @@ export default function Pricing({ user, products, subscription }: Props) {
 
     const { errorRedirect, sessionId } = await checkoutWithStripe(
       price,
-      currentPath
+      currentPath,
     );
 
     if (errorRedirect) {
@@ -70,8 +70,8 @@ export default function Pricing({ user, products, subscription }: Props) {
         getErrorRedirect(
           currentPath,
           'An unknown error occurred.',
-          'Please try again later or contact a system administrator.'
-        )
+          'Please try again later or contact a system administrator.',
+        ),
       );
     }
 
@@ -93,9 +93,8 @@ export default function Pricing({ user, products, subscription }: Props) {
               rel="noopener noreferrer"
               target="_blank"
             >
-             Swarms
+              Swarms
             </a>
-            
           </p>
         </div>
         <LogoCloud />
@@ -144,13 +143,13 @@ export default function Pricing({ user, products, subscription }: Props) {
           <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 flex flex-wrap justify-center gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0">
             {products.map((product) => {
               const price = product?.prices?.find(
-                (price) => price.interval === billingInterval
+                (price) => price.interval === billingInterval,
               );
               if (!price) return null;
               const priceString = new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: price.currency!,
-                minimumFractionDigits: 0
+                minimumFractionDigits: 0,
               }).format((price?.unit_amount || 0) / 100);
               return (
                 <div
@@ -160,11 +159,11 @@ export default function Pricing({ user, products, subscription }: Props) {
                     {
                       'border border-pink-500': subscription
                         ? product.name === subscription?.prices?.products?.name
-                        : product.name === 'Freelancer'
+                        : product.name === 'Freelancer',
                     },
                     'flex-1', // This makes the flex item grow to fill the space
                     'basis-1/3', // Assuming you want each card to take up roughly a third of the container's width
-                    'max-w-xs' // Sets a maximum width to the cards to prevent them from getting too large
+                    'max-w-xs', // Sets a maximum width to the cards to prevent them from getting too large
                   )}
                 >
                   <div className="p-6">

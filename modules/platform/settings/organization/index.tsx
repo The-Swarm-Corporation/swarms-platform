@@ -8,13 +8,13 @@ import dynamic from 'next/dynamic';
 import { trpc } from '@/shared/utils/trpc/trpc';
 
 const PendingInvites = dynamic(() => import('./components/pending-invite'), {
-  ssr: false
+  ssr: false,
 });
 const OrganizationTeam = dynamic(() => import('./components/team'), {
-  ssr: false
+  ssr: false,
 });
 export default function Organization() {
-  const user_res=trpc.main.getUser.useQuery();
+  const user_res = trpc.main.getUser.useQuery();
   const user = user_res.data as unknown as User;
   const { currentOrganization, userOrgData, usersOrgData } = useOrganizations();
 
@@ -26,8 +26,13 @@ export default function Organization() {
         userOrgData={userOrgData?.data as UserOrganizationProps}
         userOrgsData={usersOrgData as UserOrganizationsProps[]}
       />
-      <OrganizationTeam user={user} currentOrganization={currentOrganization as UserOrganizationsProps} />
-      <PendingInvites currentOrganization={currentOrganization as UserOrganizationsProps} />
+      <OrganizationTeam
+        user={user}
+        currentOrganization={currentOrganization as UserOrganizationsProps}
+      />
+      <PendingInvites
+        currentOrganization={currentOrganization as UserOrganizationsProps}
+      />
     </article>
   );
 }

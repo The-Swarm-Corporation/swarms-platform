@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
         getErrorRedirect(
           `${requestUrl.origin}/signin`,
           error.name,
-          "Sorry, we weren't able to log you in. Please try again."
-        )
+          "Sorry, we weren't able to log you in. Please try again.",
+        ),
       );
     }
     const url = await afterSignin(data.user);

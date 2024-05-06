@@ -12,8 +12,8 @@ const publicPlaygroundRouter = router({
         image_url: z.string(),
         temperature: z.number().optional(),
         top_p: z.number().optional(),
-        max_tokens: z.number().optional()
-      })
+        max_tokens: z.number().optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const user = ctx?.session?.data?.session?.user;
@@ -26,8 +26,8 @@ const publicPlaygroundRouter = router({
         .eq('model_type', 'vision')
         .single();
 
-        console.log('model',input.model, model);
-        
+      console.log('model', input.model, model);
+
       if (false) {
         // if its login, we use with their playground api key
         // todo: complete this
@@ -40,39 +40,39 @@ const publicPlaygroundRouter = router({
         const openAi = new OpenAI({
           apiKey:
             'sk-22a52e4fc117dcbc1e938bc464853dd8309987aab967f28db48996360e019a22',
-          baseURL: model?.data?.api_endpoint || 'https://api.swarms.world/v1/'
+          baseURL: model?.data?.api_endpoint || 'https://api.swarms.world/v1/',
         });
-       try{
-        const res = await openAi.chat.completions.create({
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: input.content
-                },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: input.image_url
-                  }
-                }
-              ]
-            }
-          ],
-          model: input.model
-        });
-        if (res) {
-          console.log(JSON.stringify(res, null, 2));
-          
-          return res.choices[0].message.content;
+        try {
+          const res = await openAi.chat.completions.create({
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: input.content,
+                  },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: input.image_url,
+                    },
+                  },
+                ],
+              },
+            ],
+            model: input.model,
+          });
+          if (res) {
+            console.log(JSON.stringify(res, null, 2));
+
+            return res.choices[0].message.content;
+          }
+        } catch (e) {
+          console.error(e);
         }
-       } catch(e){
-          console.error(e)
-       }
       }
-    })
+    }),
 });
 
 export default publicPlaygroundRouter;

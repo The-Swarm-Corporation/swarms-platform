@@ -4,9 +4,9 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com'
-      }
-    ]
+        hostname: 'lh3.googleusercontent.com',
+      },
+    ],
   },
   rewrites() {
     return {
@@ -16,18 +16,18 @@ const nextConfig = {
           has: [
             {
               type: 'host',
-              value: 'api.swarms.world'
-            }
+              value: 'api.swarms.world',
+            },
           ],
-          destination: '/api/guard/api'
+          destination: '/api/guard/api',
         },
         {
           source: '/api/v1/:path*',
-          destination: '/api/guard/api'
-        }
-      ]
+          destination: '/api/guard/api',
+        },
+      ],
     };
-  }
+  },
 };
 
 module.exports = nextConfig;

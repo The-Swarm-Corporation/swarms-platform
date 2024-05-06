@@ -18,13 +18,13 @@ const InfoCard = ({
   className,
   btnLabel,
   input,
-  output
+  output,
 }: Props) => {
   return (
     <div
       className={cn(
         'relative flex gap-4 p-4 px-3 border border-primary rounded-lg overflow-hidden group hover:border-red-700',
-        className
+        className,
       )}
     >
       <div className="flex items-center justify-center w-10 h-10 bg-primary text-white rounded-full aspect-square">

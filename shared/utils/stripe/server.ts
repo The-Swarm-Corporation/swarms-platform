@@ -5,12 +5,12 @@ import { stripe } from '@/shared/utils/stripe/config';
 import { createClient } from '@/shared/utils/supabase/server';
 import {
   retrieveUserStripeCustomerId,
-  supabaseAdmin
+  supabaseAdmin,
 } from '@/shared/utils/supabase/admin';
 import {
   getURL,
   getErrorRedirect,
-  calculateTrialEndUnixTimestamp
+  calculateTrialEndUnixTimestamp,
 } from '@/shared/utils/helpers';
 import { PLATFORM } from '@/shared/constants/links';
 import { ProductPrice } from '@/shared/models/db-types';
@@ -35,13 +35,13 @@ export async function getSubscriptionStatus(user: User) {
     new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: subscription?.prices?.currency!,
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format((subscription?.prices?.unit_amount || 0) / 100);
   return {
     status: subscription?.status,
     subscriptionPrice,
     isCanceled: subscription?.cancel_at_period_end,
-    renewAt: subscription?.current_period_end
+    renewAt: subscription?.current_period_end,
   };
 }
 export async function getUserStripeCustomerId(user: User) {
@@ -55,14 +55,14 @@ export async function getUserStripeCustomerId(user: User) {
 }
 export async function checkoutWithStripe(
   price: ProductPrice,
-  redirectPath: string = PLATFORM.ACCOUNT
+  redirectPath: string = PLATFORM.ACCOUNT,
 ): Promise<CheckoutResponse> {
   try {
     // Get the user from Supabase auth
     const supabase = createClient();
     const {
       error,
-      data: { user }
+      data: { user },
     } = await supabase.auth.getUser();
 
     if (error || !user) {
@@ -78,34 +78,34 @@ export async function checkoutWithStripe(
       billing_address_collection: 'required',
       customer,
       customer_update: {
-        address: 'auto'
+        address: 'auto',
       },
       line_items: [
         {
           price: price.id,
-          quantity: 1
-        }
+          quantity: 1,
+        },
       ],
       cancel_url: getURL(),
-      success_url: getURL(redirectPath)
+      success_url: getURL(redirectPath),
     };
 
     console.log(
       'Trial end:',
-      calculateTrialEndUnixTimestamp(price.trial_period_days)
+      calculateTrialEndUnixTimestamp(price.trial_period_days),
     );
     if (price.type === 'recurring') {
       params = {
         ...params,
         mode: 'subscription',
         subscription_data: {
-          trial_end: calculateTrialEndUnixTimestamp(price.trial_period_days)
-        }
+          trial_end: calculateTrialEndUnixTimestamp(price.trial_period_days),
+        },
       };
     } else if (price.type === 'one_time') {
       params = {
         ...params,
-        mode: 'payment'
+        mode: 'payment',
       };
     }
 
@@ -130,16 +130,16 @@ export async function checkoutWithStripe(
         errorRedirect: getErrorRedirect(
           redirectPath,
           error.message,
-          'Please try again later or contact a system administrator.'
-        )
+          'Please try again later or contact a system administrator.',
+        ),
       };
     } else {
       return {
         errorRedirect: getErrorRedirect(
           redirectPath,
           'An unknown error occurred.',
-          'Please try again later or contact a system administrator.'
-        )
+          'Please try again later or contact a system administrator.',
+        ),
       };
     }
   }
@@ -157,9 +157,9 @@ export async function createStripePortal(user: User, currentPath: string) {
     }
 
     try {
-      const { url,...rest } = await stripe.billingPortal.sessions.create({
+      const { url, ...rest } = await stripe.billingPortal.sessions.create({
         customer,
-        return_url: getURL(PLATFORM.ACCOUNT)
+        return_url: getURL(PLATFORM.ACCOUNT),
       });
       if (!url) {
         throw new Error('Could not create billing portal');
@@ -175,13 +175,13 @@ export async function createStripePortal(user: User, currentPath: string) {
       return getErrorRedirect(
         currentPath,
         error.message,
-        'Please try again later or contact a system administrator.'
+        'Please try again later or contact a system administrator.',
       );
     } else {
       return getErrorRedirect(
         currentPath,
         'An unknown error occurred.',
-        'Please try again later or contact a system administrator.'
+        'Please try again later or contact a system administrator.',
       );
     }
   }
@@ -189,23 +189,23 @@ export async function createStripePortal(user: User, currentPath: string) {
 
 export async function addPaymentMethodIfNotExists(
   stripeCustomerId: string,
-  paymentMethodId: string
+  paymentMethodId: string,
 ) {
   // make sure its not duplicate, check with fingerprint
   // save to stripe
   const paymentMethods = await stripe.paymentMethods.list({
     customer: stripeCustomerId,
-    type: 'card'
+    type: 'card',
   });
   const paymentMethod = (await stripe.paymentMethods.retrieve(
-    paymentMethodId
+    paymentMethodId,
   )) as Stripe.PaymentMethod;
 
   if (!paymentMethod) {
     return;
   }
   const existingPaymentMethod = paymentMethods.data.find(
-    (method) => method.card?.fingerprint === paymentMethod.card?.fingerprint
+    (method) => method.card?.fingerprint === paymentMethod.card?.fingerprint,
   );
   if (existingPaymentMethod) {
     throw new Error('Payment method already exists');
@@ -213,7 +213,7 @@ export async function addPaymentMethodIfNotExists(
   // attach
   const attachedPaymentMethod = await stripe.paymentMethods.attach(
     paymentMethod.id,
-    { customer: stripeCustomerId }
+    { customer: stripeCustomerId },
   );
   return attachedPaymentMethod;
 }

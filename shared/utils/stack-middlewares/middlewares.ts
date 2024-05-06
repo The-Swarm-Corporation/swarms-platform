@@ -13,19 +13,19 @@ const withAuthentication: MiddlewareFactory = (next) => {
 
     const supabase = createClient();
     const {
-      data: { user }
+      data: { user },
     } = await supabase.auth.getUser();
 
     if (user && req.nextUrl.pathname === '/') {
       if (!redirected) {
         redirected = true;
         return NextResponse.redirect(
-          new URL('/platform/explorer', req.nextUrl)
+          new URL('/platform/explorer', req.nextUrl),
         );
       }
 
       return NextResponse.redirect(
-        new URL(previousUrl || '/platform/explorer', req.nextUrl)
+        new URL(previousUrl || '/platform/explorer', req.nextUrl),
       );
     }
 

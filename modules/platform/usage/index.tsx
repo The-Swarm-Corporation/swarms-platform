@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis
+  YAxis,
 } from 'recharts';
 
 const Usage = () => {
@@ -17,16 +17,16 @@ const Usage = () => {
     // month name + day
     month: new Date(2021, 0, i + 1).toLocaleDateString('en', {
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     }),
     cost: Math.round(Math.random() * 100),
-    count: Math.round(Math.random() * 100)
+    count: Math.round(Math.random() * 100),
   }));
 
   const CustomTooltip = ({
     active,
     payload,
-    label
+    label,
   }: {
     active: boolean;
     payload: any[];
@@ -70,13 +70,13 @@ const Usage = () => {
             <Tooltip
               cursor={{
                 opacity: 0.1,
-                fill: 'white'
+                fill: 'white',
               }}
               content={<CustomTooltip active={true} payload={[]} label={''} />}
               contentStyle={{
                 backgroundColor: 'rgba(255, 255, 255, 0.8)',
                 border: '1px solid #e5e7eb',
-                color: '#374151'
+                color: '#374151',
               }}
             />
           </BarChart>

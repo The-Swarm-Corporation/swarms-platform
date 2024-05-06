@@ -5,7 +5,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/shared/components/ui/select';
 import Input from '@/shared/components/ui/Input';
 import TeamMember from './components/member';
@@ -26,7 +26,7 @@ interface OrganizationTeamProps {
 
 function OrganizationTeam({
   user,
-  currentOrganization
+  currentOrganization,
 }: OrganizationTeamProps) {
   const {
     search,
@@ -35,7 +35,7 @@ function OrganizationTeam({
     teamMembersToDisplay,
     isLoading,
     setFilterRole,
-    handleSearchChange
+    handleSearchChange,
   } = useOrganizationTeam();
 
   return (
@@ -98,7 +98,7 @@ function OrganizationTeam({
       <div
         className={cn(
           'flex flex-col items-center justify-center border rounded-md px-2 py-4 sm:px-4 sm:py-8 text-card-foreground my-8 gap-3',
-          !teamMembersToDisplay.length && 'opacity-50 cursor-help'
+          !teamMembersToDisplay.length && 'opacity-50 cursor-help',
         )}
       >
         {isLoading ? (

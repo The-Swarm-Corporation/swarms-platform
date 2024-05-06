@@ -1,6 +1,6 @@
 'use client';
 
-import {Button} from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/Button';
 import Link from 'next/link';
 import { requestPasswordUpdate } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
@@ -17,7 +17,7 @@ interface ForgotPasswordProps {
 export default function ForgotPassword({
   allowEmail,
   redirectMethod,
-  disableButton
+  disableButton,
 }: ForgotPasswordProps) {
   const router = redirectMethod === 'client' ? useRouter() : null;
   const [isSubmitting, setIsSubmitting] = useState(false);

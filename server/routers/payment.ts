@@ -8,7 +8,7 @@ import {
   checkoutWithStripe,
   createStripePortal,
   getSubscriptionStatus,
-  getUserStripeCustomerId
+  getUserStripeCustomerId,
 } from '@/shared/utils/stripe/server';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
@@ -23,7 +23,7 @@ const paymentRouter = router({
     if (!customer) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while creating stripe customer'
+        message: 'Error while creating stripe customer',
       });
     }
 
@@ -38,7 +38,7 @@ const paymentRouter = router({
     if (!stripe_product_id) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Stripe product id not found'
+        message: 'Stripe product id not found',
       });
     }
 
@@ -52,25 +52,25 @@ const paymentRouter = router({
     if (res.error) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while getting stripe price'
+        message: 'Error while getting stripe price',
       });
     }
     const productRow = res.data;
     if (!productRow) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Stripe price not found'
+        message: 'Stripe price not found',
       });
     }
 
     const { errorRedirect, sessionId } = await checkoutWithStripe(
       productRow,
-      PLATFORM.ACCOUNT
+      PLATFORM.ACCOUNT,
     );
     if (errorRedirect) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: errorRedirect
+        message: errorRedirect,
       });
     } else {
       return sessionId as string;
@@ -80,7 +80,7 @@ const paymentRouter = router({
     const user = ctx.session.data.session?.user as User;
     const url = await createStripePortal(
       user,
-      `${getURL()}${PLATFORM.ACCOUNT}`
+      `${getURL()}${PLATFORM.ACCOUNT}`,
     );
     return url;
   }),
@@ -95,21 +95,21 @@ const paymentRouter = router({
     if (!stripeCustomerId) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while creating stripe customer'
+        message: 'Error while creating stripe customer',
       });
     }
     // get the cards
     const cards = await stripe.paymentMethods.list({
       customer: stripeCustomerId,
-      type: 'card'
+      type: 'card',
     });
     return cards.data;
   }),
   attachPaymentMethod: userProcedure
     .input(
       z.object({
-        payment_method_id: z.string()
-      })
+        payment_method_id: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
@@ -117,33 +117,33 @@ const paymentRouter = router({
       if (!stripeCustomerId) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while creating stripe customer'
+          message: 'Error while creating stripe customer',
         });
       }
       try {
         const paymentMethod = await addPaymentMethodIfNotExists(
           stripeCustomerId,
-          input.payment_method_id
+          input.payment_method_id,
         );
         if (!paymentMethod) {
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error while attaching payment method'
+            message: 'Error while attaching payment method',
           });
         }
         return paymentMethod;
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error as string
+          message: error as string,
         });
       }
     }),
   detachPaymentMethod: userProcedure
     .input(
       z.object({
-        payment_method_id: z.string()
-      })
+        payment_method_id: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
@@ -151,16 +151,16 @@ const paymentRouter = router({
       if (!stripeCustomerId) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while creating stripe customer'
+          message: 'Error while creating stripe customer',
         });
       }
       const paymentMethod = await stripe.paymentMethods.detach(
-        input.payment_method_id
+        input.payment_method_id,
       );
       if (!paymentMethod) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while detaching payment method'
+          message: 'Error while detaching payment method',
         });
       }
       return paymentMethod;
@@ -168,8 +168,8 @@ const paymentRouter = router({
   setDefaultPaymentMethod: userProcedure
     .input(
       z.object({
-        payment_method_id: z.string()
-      })
+        payment_method_id: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
@@ -177,18 +177,18 @@ const paymentRouter = router({
       if (!stripeCustomerId) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while creating stripe customer'
+          message: 'Error while creating stripe customer',
         });
       }
       const customer = await stripe.customers.update(stripeCustomerId, {
         invoice_settings: {
-          default_payment_method: input.payment_method_id
-        }
+          default_payment_method: input.payment_method_id,
+        },
       });
       if (!customer) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while setting default payment method'
+          message: 'Error while setting default payment method',
         });
       }
       return customer;
@@ -199,20 +199,20 @@ const paymentRouter = router({
     if (!stripeCustomerId) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while creating stripe customer'
+        message: 'Error while creating stripe customer',
       });
     }
     const customer = (await stripe.customers.retrieve(
-      stripeCustomerId
+      stripeCustomerId,
     )) as Stripe.Customer;
     if (!customer) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while getting default payment method'
+        message: 'Error while getting default payment method',
       });
     }
     return customer.invoice_settings.default_payment_method;
-  })
+  }),
 });
 
 export default paymentRouter;

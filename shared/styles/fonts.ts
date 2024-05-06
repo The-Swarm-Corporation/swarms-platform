@@ -5,17 +5,17 @@ export const helvetica = localFont({
     {
       path: 'fonts/helvetica/helvetica.woff',
       weight: '400',
-      style: 'normal'
+      style: 'normal',
     },
     {
       path: 'fonts/helvetica/helvetica-bold.woff',
       weight: '700',
-      style: 'bold'
+      style: 'bold',
     },
     {
       path: 'fonts/helvetica/helvetica-light.woff',
       weight: '300',
-      style: 'light'
-    }
-  ]
+      style: 'light',
+    },
+  ],
 });

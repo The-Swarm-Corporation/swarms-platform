@@ -5,7 +5,7 @@ import {
   CardElement,
   useStripe,
   useElements,
-  Elements
+  Elements,
 } from '@stripe/react-stripe-js';
 import useCardManager from './hooks/hook';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
@@ -35,7 +35,7 @@ const CardManagerInside = () => {
       return;
     }
     const result = await stripe.createPaymentMethod({
-      element
+      element,
     });
 
     if (result.error) {
@@ -43,12 +43,12 @@ const CardManagerInside = () => {
     } else {
       manager.attach
         .mutateAsync({
-          payment_method_id: result.paymentMethod.id
+          payment_method_id: result.paymentMethod.id,
         })
         .then((res) => {
           manager.methods.refetch();
           toast.toast({
-            title: 'Card Added'
+            title: 'Card Added',
           });
           setIsAddCardModalOpen(false);
         });
@@ -59,12 +59,12 @@ const CardManagerInside = () => {
     if (manager.detach.isPending) return;
     manager.detach
       .mutateAsync({
-        payment_method_id: id
+        payment_method_id: id,
       })
       .then(() => {
         manager.methods.refetch();
         toast.toast({
-          title: 'Card Removed'
+          title: 'Card Removed',
         });
       });
   };
@@ -77,12 +77,12 @@ const CardManagerInside = () => {
     if (manager.getDefaultMethod.data === id) return;
     manager.setAsDefault
       .mutateAsync({
-        payment_method_id: id
+        payment_method_id: id,
       })
       .then(() => {
         manager.getDefaultMethod.refetch();
         toast.toast({
-          title: 'Default Card Updated'
+          title: 'Default Card Updated',
         });
       });
   };
@@ -104,13 +104,13 @@ const CardManagerInside = () => {
                   fontSize: '16px',
                   color: '#424770',
                   '::placeholder': {
-                    color: '#aab7c4'
-                  }
+                    color: '#aab7c4',
+                  },
                 },
                 invalid: {
-                  color: '#9e2146'
-                }
-              }
+                  color: '#9e2146',
+                },
+              },
             }}
           />
           <Button
@@ -126,13 +126,9 @@ const CardManagerInside = () => {
         <h1 className="text-base font-bold">Manage Cards</h1>
         <div className="flex flex-col items-center justify-center p-1 gap-2">
           {manager.methods.isLoading && <LoadingSpinner />}
-          {
-            !manager.methods.data?.length && !manager.methods.isLoading && (
-              <div className="text-muted-foreground">
-                No cards added yet
-              </div>
-            )
-          }
+          {!manager.methods.data?.length && !manager.methods.isLoading && (
+            <div className="text-muted-foreground">No cards added yet</div>
+          )}
           {manager.methods.data?.map(({ card, id }) => {
             return (
               <div
@@ -143,7 +139,7 @@ const CardManagerInside = () => {
                     ? 'border border-red-500'
                     : 'border cursor-pointer',
                   currentSettingDefaultPaymentMethod === id &&
-                    'opacity-50 cursor-not-allowed'
+                    'opacity-50 cursor-not-allowed',
                 )}
                 onClick={() => setPaymentMethodAsDefault(id)}
               >
@@ -157,7 +153,7 @@ const CardManagerInside = () => {
                     className={cn(
                       'cursor-pointer text-gray-500 hover:text-white rounded-md ',
                       currentDetachingPaymentMethod === id &&
-                        'opacity-50 cursor-not-allowed'
+                        'opacity-50 cursor-not-allowed',
                     )}
                     size={16}
                   />

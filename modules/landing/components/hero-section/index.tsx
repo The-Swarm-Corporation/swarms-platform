@@ -11,9 +11,7 @@ const HeroSection = () => {
     <div className="mx-auto container w-full flex flex-col  md:flex-row md:h-screen justify-center items-center gap-8 md:gap-0">
       <div className="md:flex-1 flex flex-col items-center text-center md:text-left md:items-start md:px-4 gap-6 ">
         <h1 className="text-6xl md:text-7xl font-bold text-primary">Swarms</h1>
-        <h2 className="text-4xl md:text-5xl font-bold">
-          Orchestrate Agents
-        </h2>
+        <h2 className="text-4xl md:text-5xl font-bold">Orchestrate Agents</h2>
         <span className="text-2xl font-medium">
           The Multi-Agent Collaboration Platform
         </span>
@@ -30,7 +28,7 @@ const HeroSection = () => {
                 'hover:bg-primary/90',
                 'text-white',
                 'px-10 py-6',
-                'rounded-md'
+                'rounded-md',
               )}
             >
               Swarms Cloud
@@ -41,7 +39,7 @@ const HeroSection = () => {
               className={cn(
                 'text-base flex gap-2 font-normal',
                 'px-10 py-6',
-                'rounded-md'
+                'rounded-md',
               )}
               variant="foreground"
             >
@@ -52,10 +50,7 @@ const HeroSection = () => {
         </div>
       </div>
       <div className="flex w-full h-[300px] md:h-full flex-col items-start md:flex-1 md:px-4 gap-6 text-left">
-        <Rive
-            src={'/animation-hero.riv'}
-            stateMachines="Branchs"
-        />
+        <Rive src={'/animation-hero.riv'} stateMachines="Branchs" />
       </div>
     </div>
   );

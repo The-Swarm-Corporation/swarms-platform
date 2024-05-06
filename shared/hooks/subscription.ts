@@ -1,6 +1,12 @@
 import { trpc } from '../utils/trpc/trpc';
 import { getStripe } from '../utils/stripe/client';
 
+/**
+ * Custom hook for managing subscription-related functionality.
+ * This hook provides methods and data for handling subscription status, creating subscription portals, and managing user credits.
+ *
+ * @returns An object containing methods and data related to subscription management.
+ */
 const useSubscription = () => {
   const chargeAccountPortal =
     trpc.payment.createStripePaymentSession.useMutation();
@@ -38,14 +44,12 @@ const useSubscription = () => {
     isLoading: getSubscription.isLoading,
     isSubscribed: getSubscription.data?.status === 'active' ?? false,
     isCanceled: getSubscription.data?.isCanceled,
-    //
     createSubscriptionPortalLoading: makeSubsctiptionSession.isPending,
     createSubscriptionPortal,
     openCustomerPortalLoading: makeCustomerPortal.isPending,
     openCustomerPortal,
-
     openChargeAccountPortalLoading: chargeAccountPortal.isPending,
-    openChargeAccountPortal
+    openChargeAccountPortal,
   };
 };
 

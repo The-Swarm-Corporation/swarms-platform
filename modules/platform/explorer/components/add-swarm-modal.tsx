@@ -19,7 +19,7 @@ interface Props {
   onAddSuccessfuly: () => void;
 }
 
-const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
+const AddSwarmModal = ({ isOpen, onClose, onAddSuccessfuly }: Props) => {
   const [step, setStep] = useState<'info' | 'code'>('info');
   const [swarmName, setSwarmName] = useState('');
   const [description, setDescription] = useState('');
@@ -32,8 +32,8 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
   >([
     {
       title: '',
-      description: ''
-    }
+      description: '',
+    },
   ]);
 
   const [code, setCode] = useState('');
@@ -55,14 +55,14 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
     if (validateSwarmName.isPending) {
       toast.toast({
         title: 'validating swarm name',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
     if (swarmName.length === 0) {
       toast.toast({
         title: 'Swarm Name is required',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -71,22 +71,24 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
       toast.toast({
         title: 'Invalid Swarm Name',
         description: validateSwarmName.data.error,
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
     // at least 1 use case
     // usecases should not be empty ,title and description
     for (const useCase of useCases) {
-      if (useCase.title.trim().length === 0 || useCase.description.trim().length === 0) {
+      if (
+        useCase.title.trim().length === 0 ||
+        useCase.description.trim().length === 0
+      ) {
         toast.toast({
           title: `Use case ${useCase.title.trim().length === 0 ? 'title' : 'description'} is required`,
-          variant: 'destructive'
+          variant: 'destructive',
         });
         return;
       }
     }
-    
 
     setStep('code');
   };
@@ -96,7 +98,7 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
     if (code.trim().length === 0) {
       toast.toast({
         title: 'Code is required',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -106,11 +108,11 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
         description,
         useCases,
         tags,
-        code
+        code,
       })
       .then(() => {
         toast.toast({
-          title: 'Swarm added successfully 🎉'
+          title: 'Swarm added successfully 🎉',
         });
         onClose();
         onAddSuccessfuly();
@@ -121,23 +123,20 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
         setTags('');
         setUseCases([{ title: '', description: '' }]);
         setCode('');
-      
       });
   };
 
-  const theme=useTheme();
+  const theme = useTheme();
   const pythonRenderer: Renderer = (value) => {
     return (
       <Highlight
         prism={Prism}
-        theme={
-          theme.theme === 'dark' ? themes.oneDark : themes.oneLight
-        }
+        theme={theme.theme === 'dark' ? themes.oneDark : themes.oneLight}
         code={value}
         language="python"
       >
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
-          <div className={className} style={style} >
+          <div className={className} style={style}>
             {tokens.map((line, i) => (
               <div {...getLineProps({ line, key: i })}>
                 {line.map((token, key) => (
@@ -303,7 +302,7 @@ const AddSwarmModal = ({ isOpen, onClose,onAddSuccessfuly }: Props) => {
                   className="dark all-initial h-full bg-transparent  p-2 outline-none text-black overflow-y-auto resize-none !caret-white"
                   style={{
                     width: '100%',
-                    height: '100%'
+                    height: '100%',
                   }}
                   value={code}
                   onChange={(e) => {

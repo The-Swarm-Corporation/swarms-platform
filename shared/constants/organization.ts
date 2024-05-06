@@ -4,5 +4,5 @@ export const ROLES: OptionRoles[] = [
   { label: 'List Team roles', value: 'Team roles' },
   { label: 'Owner', value: 'owner' },
   { label: 'Manager', value: 'manager' },
-  { label: 'Reader', value: 'reader' }
+  { label: 'Reader', value: 'reader' },
 ];

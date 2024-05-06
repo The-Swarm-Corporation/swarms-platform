@@ -11,7 +11,7 @@ import { isEmpty } from '@/shared/utils/helpers';
 import { useQueryMutation } from '../hooks/organizations';
 
 function PendingInvites({
-  currentOrganization
+  currentOrganization,
 }: {
   currentOrganization: UserOrganizationsProps;
 }) {
@@ -33,7 +33,7 @@ function PendingInvites({
     try {
       const response = await mutation.cancel.mutateAsync({
         email,
-        organization_id: userOrgId ?? ''
+        organization_id: userOrgId ?? '',
       });
       if (response) {
         toast.toast({ description: `Invite has been cancelled for ${email}` });

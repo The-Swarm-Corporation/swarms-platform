@@ -21,7 +21,8 @@
     "supabase:generate-migration": "npx supabase db diff | npx supabase migration new",
     "supabase:generate-seed": "npx supabase db dump --data-only -f supabase/seed.sql",
     "supabase:push": "npx supabase push",
-    "supabase:pull": "npx supabase pull"
+    "supabase:pull": "npx supabase pull",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@octokit/rest": "^20.1.0",

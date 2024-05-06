@@ -18,7 +18,7 @@ const Collapsible = React.forwardRef<HTMLDivElement, CollapsibleProps>(
     >
       {children}
     </CollapsiblePrimitive.Root>
-  )
+  ),
 );
 
 Collapsible.displayName = 'Collapsible';

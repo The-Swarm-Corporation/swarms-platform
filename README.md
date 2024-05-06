@@ -2,20 +2,19 @@
 
 ![Swarms Banner](swarms_platform.png)
 
-
-
 # Install
+
 `yarn install`
 
 `yarn run dev`
 
 ## Benefits
+
 👉 Access to SOTA Multi-Modal Models like XCompose, LLava3, Qwen VL, CogVLM
 
 👉 Reliable & Affordable Pricing at Scale
 
 👉 Bleeding-Edge Speed: We're using a multi-cloud strategy!
-
 
 ## Technologies
 
@@ -28,8 +27,8 @@
 - React
 - Tailwindcss
 
-
 ## 🫶 Contributions:
+
 For detailed instructions on how to setup project and contribute, please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 The easiest way to contribute is to pick any issue with the `good first issue` tag 💪. Read the Contributing guidelines [here](/CONTRIBUTING.md). Bug Report? [File here](https://github.com/kyegomez/swarms-platform/issues)

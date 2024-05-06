@@ -1,11 +1,11 @@
 import {
   publicProcedure,
   router,
-  userProcedure
+  userProcedure,
 } from '@/app/api/trpc/trpc-router';
 import {
   getSwarmPullRequestStatus,
-  publishSwarmToGithub
+  publishSwarmToGithub,
 } from '@/shared/utils/api/swarm-publisher-github';
 import { Tables } from '@/types_db';
 import { z } from 'zod';
@@ -14,7 +14,9 @@ const explorerRouter = router({
   getModels: publicProcedure.query(async ({ ctx }) => {
     const models = await ctx.supabase
       .from('swarms_cloud_models')
-      .select('id,name,unique_name,model_type,description,tags,slug,price_million_input,price_million_output')
+      .select(
+        'id,name,unique_name,model_type,description,tags,slug,price_million_input,price_million_output',
+      )
       .eq('enabled', true)
       .order('created_at', { ascending: false });
     return models;
@@ -24,7 +26,9 @@ const explorerRouter = router({
     .query(async ({ input, ctx }) => {
       const model = await ctx.supabase
         .from('swarms_cloud_models')
-        .select('id,name,unique_name,model_type,description,tags,use_cases,model_card_md,slug,price_million_input,price_million_output')
+        .select(
+          'id,name,unique_name,model_type,description,tags,use_cases,model_card_md,slug,price_million_input,price_million_output',
+        )
         .eq('slug', input)
         .eq('enabled', true)
         .single();
@@ -41,7 +45,7 @@ const explorerRouter = router({
     let payload = {
       secret_key,
       email: user?.email,
-      external_user_id: user?.id
+      external_user_id: user?.id,
     };
 
     let body = JSON.stringify(payload);
@@ -49,10 +53,10 @@ const explorerRouter = router({
     const path = `${SYNTHIFY_BACKEND_URL}/trpc/user.externalAuth`;
     const res = await fetch(path, {
       headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
       },
       body: body,
-      method: 'POST'
+      method: 'POST',
     }).then((res) => res.json());
     const data = res?.result?.data;
     if (res?.error?.message) {
@@ -76,14 +80,14 @@ const explorerRouter = router({
       if (!/^[a-zA-Z0-9_ ]+$/.test(name)) {
         return {
           error: 'Invalid name, only a-z, 0-9, _ are allowed',
-          valid: false
+          valid: false,
         };
       }
       // at least 5 characters
       if (name.length < 5) {
         return {
           error: 'Name should be at least 5 characters',
-          valid: false
+          valid: false,
         };
       }
 
@@ -96,7 +100,7 @@ const explorerRouter = router({
       const exists = (swarm.data ?? [])?.length > 0;
       return {
         valid: !exists,
-        error: exists ? 'Name already exists' : ''
+        error: exists ? 'Name already exists' : '',
       };
     }),
   addSwarm: userProcedure
@@ -106,8 +110,8 @@ const explorerRouter = router({
         description: z.string().optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
-        code: z.string()
-      })
+        code: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       let name = input.name;
@@ -148,7 +152,7 @@ const explorerRouter = router({
           name,
           code: input.code,
           ownerName,
-          ownerEmail
+          ownerEmail,
         });
 
         const swarm = await ctx.supabase
@@ -163,8 +167,8 @@ const explorerRouter = router({
               pr_id: res?.number || '',
               pr_link: res?._links.issue.href || '',
               description: input.description,
-              status: 'pending'
-            } as Tables<'swarms_cloud_user_swarms'>
+              status: 'pending',
+            } as Tables<'swarms_cloud_user_swarms'>,
           ]);
         if (swarm.error) {
           throw swarm.error;
@@ -233,7 +237,7 @@ const explorerRouter = router({
         .eq('name', input)
         .eq('status', 'approved');
       return swarm.data?.[0];
-    })
+    }),
 });
 
 export default explorerRouter;

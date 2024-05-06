@@ -1,9 +1,9 @@
-"use client";
-import { cn } from "@/shared/utils/cn";
-import hslToHex from "@/shared/utils/hsl-to-hex";
-import React, { useEffect, useRef, useState } from "react";
-import { createNoise3D } from "simplex-noise";
- 
+'use client';
+import { cn } from '@/shared/utils/cn';
+import hslToHex from '@/shared/utils/hsl-to-hex';
+import React, { useEffect, useRef, useState } from 'react';
+import { createNoise3D } from 'simplex-noise';
+
 export interface IWavyBackgroundProps {
   children?: any;
   className?: string;
@@ -12,7 +12,7 @@ export interface IWavyBackgroundProps {
   waveWidth?: number;
   backgroundFill?: string;
   blur?: number;
-  speed?: "slow" | "fast";
+  speed?: 'slow' | 'fast';
   waveOpacity?: number;
   [key: string]: any;
 }
@@ -25,10 +25,10 @@ const WavyBackground = ({
   waveWidth,
   backgroundFill,
   blur = 10,
-  speed = "fast",
+  speed = 'fast',
   waveOpacity = 0.5,
   ...props
-}:IWavyBackgroundProps) => {
+}: IWavyBackgroundProps) => {
   const noise = createNoise3D();
   let w: number,
     h: number,
@@ -38,24 +38,24 @@ const WavyBackground = ({
     ctx: any,
     canvasContainer: HTMLDivElement,
     canvas: any;
-    
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const getSpeed = () => {
     switch (speed) {
-      case "slow":
+      case 'slow':
         return 0.001;
-      case "fast":
+      case 'fast':
         return 0.002;
       default:
         return 0.001;
     }
   };
-  let waveColors:any;
+  let waveColors: any;
   const init = () => {
     canvas = canvasRef.current;
     canvasContainer = containerRef.current as HTMLDivElement;
-    ctx = canvas.getContext("2d");
+    ctx = canvas.getContext('2d');
     w = ctx.canvas.width = canvasContainer.offsetWidth;
     h = ctx.canvas.height = canvasContainer.offsetHeight;
     ctx.filter = `blur(${blur}px)`;
@@ -65,19 +65,19 @@ const WavyBackground = ({
       h = ctx.canvas.height = canvasContainer.offsetHeight;
       ctx.filter = `blur(${blur}px)`;
     };
-    const primaryColor = window.getComputedStyle(document.documentElement).getPropertyValue('--primary');
+    const primaryColor = window
+      .getComputedStyle(document.documentElement)
+      .getPropertyValue('--primary');
     const primaryColorHex = hslToHex(primaryColor);
-    
-    waveColors= colors ?? [
+
+    waveColors = colors ?? [
       primaryColorHex,
-      "#8126dc",
+      '#8126dc',
       primaryColorHex,
-      "#8126dc",
-   
+      '#8126dc',
     ];
     render();
   };
-  
 
   const drawWave = (n: number) => {
     nt += getSpeed();
@@ -93,39 +93,39 @@ const WavyBackground = ({
       ctx.closePath();
     }
   };
- 
+
   let animationId: number;
   const render = () => {
-    ctx.fillStyle = backgroundFill || "black";
+    ctx.fillStyle = backgroundFill || 'black';
     ctx.globalAlpha = waveOpacity || 0.5;
     ctx.fillRect(0, 0, w, h);
     drawWave(5);
     animationId = requestAnimationFrame(render);
   };
- 
+
   useEffect(() => {
     init();
     return () => {
       cancelAnimationFrame(animationId);
     };
   }, []);
- 
+
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
     // I'm sorry but i have got to support it on safari.
     setIsSafari(
-      typeof window !== "undefined" &&
-        navigator.userAgent.includes("Safari") &&
-        !navigator.userAgent.includes("Chrome")
+      typeof window !== 'undefined' &&
+        navigator.userAgent.includes('Safari') &&
+        !navigator.userAgent.includes('Chrome'),
     );
   }, []);
- 
+
   return (
     <div
       ref={containerRef}
       className={cn(
-        "h-[calc(100vh-80px)] flex flex-col items-center justify-center bg-background",
-        containerClassName
+        'h-[calc(100vh-80px)] flex flex-col items-center justify-center bg-background',
+        containerClassName,
       )}
     >
       <canvas
@@ -136,7 +136,7 @@ const WavyBackground = ({
           ...(isSafari ? { filter: `blur(${blur}px)` } : {}),
         }}
       />
-      <div className={cn("relative z-10", className)} {...props}>
+      <div className={cn('relative z-10', className)} {...props}>
         {children}
       </div>
     </div>

@@ -4,7 +4,7 @@ import {
   createTRPCProxyClient,
   getFetch,
   httpBatchLink,
-  loggerLink
+  loggerLink,
 } from '@trpc/client';
 import { getURL } from '../helpers';
 import SuperJSON from 'superjson';
@@ -13,7 +13,7 @@ const url = `${getURL()}/api/trpc/`;
 export const trpcConfig: any = {
   links: [
     loggerLink({
-      enabled: () => true
+      enabled: () => true,
     }),
     httpBatchLink({
       transformer: SuperJSON,
@@ -22,14 +22,14 @@ export const trpcConfig: any = {
         const fetch = getFetch();
         return fetch(input, {
           ...init,
-          credentials: 'include'
+          credentials: 'include',
         });
       },
       headers() {
         return {};
-      }
-    })
-  ]
+      },
+    }),
+  ],
 };
 export const trpc = createTRPCReact<AppRouter>();
 export const trpcApi = createTRPCProxyClient<AppRouter>(trpcConfig);

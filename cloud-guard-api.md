@@ -1,4 +1,3 @@
-
 # API Documentation for Auth and Log Usage
 
 This documentation outlines how to interact with the authentication and log usage services using Python's `requests` library.
@@ -6,6 +5,7 @@ This documentation outlines how to interact with the authentication and log usag
 ## Requirements
 
 Before you start, ensure Python and the `requests` library are installed:
+
 ```
 pip install requests
 ```
@@ -13,18 +13,22 @@ pip install requests
 ## Authentication API
 
 ### Endpoint Description
+
 This endpoint authenticates users or services.
 
 #### HTTP Method: POST
+
 #### URL: `/api/guard/auth`
 
 ### Headers
+
 - **Content-Type**: `application/json` - Indicates the media type of the resource.
 - **Authorization**: `sk-xxx` - API key for access control.
 - **SecretKey**: `xxx` - A client-specific secret key for additional security.
-- **Swarms-Organization**: *(Optional)* - Header provided by the user for organization-specific configuration.
+- **Swarms-Organization**: _(Optional)_ - Header provided by the user for organization-specific configuration.
 
 ### Request Payload
+
 ```json
 {
   "model": "cogvlm-chat-17b",
@@ -47,6 +51,7 @@ This endpoint authenticates users or services.
   - **content**: Text content of the message.
 
 ### Python Example
+
 ```python
 import requests
 
@@ -71,17 +76,21 @@ def authenticate():
 ## Log Usage API
 
 ### Endpoint Description
+
 This endpoint logs usage statistics of the API.
 
 #### HTTP Method: POST
+
 #### URL: `/api/guard/log-usage`
 
 ### Headers
+
 - **Content-Type**: `application/json`
 - **Authorization**: `sk-xxx`
 - **SecretKey**: `xxx`
 
 ### Request Payload
+
 ```json
 {
   "model": "cogvlm-chat-17b",
@@ -116,6 +125,7 @@ This endpoint logs usage statistics of the API.
 - **max_tokens**: Maximum tokens allowed in the output.
 
 ### Python Example
+
 ```python
 import requests
 

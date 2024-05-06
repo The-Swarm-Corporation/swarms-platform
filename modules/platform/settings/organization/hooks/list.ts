@@ -4,7 +4,7 @@ import { Role, UserOrganizationProps, UserOrganizationsProps } from '../types';
 import { useOrganizationMutation, useQueryMutation } from './organizations';
 
 export function useOrganizationList({
-  userOrgsData
+  userOrgsData,
 }: {
   userOrgsData: UserOrganizationsProps[];
 }) {
@@ -19,7 +19,7 @@ export function useOrganizationList({
   const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
   const userOrgId = useOrganizationStore((state) => state.userOrgId);
   const setCurrentOrgId = useOrganizationStore(
-    (state) => state.setCurrentOrgId
+    (state) => state.setCurrentOrgId,
   );
   const [filterOrg, setFilterOrg] = useState('select-org');
 
@@ -27,7 +27,7 @@ export function useOrganizationList({
     handleFormMutation({
       e: event,
       mutationFunction: createMutation,
-      toastMessage: 'Organization has been created'
+      toastMessage: 'Organization has been created',
     });
 
   const updateOrganization = (event: FormEvent<HTMLFormElement>) =>
@@ -35,14 +35,14 @@ export function useOrganizationList({
       e: event,
       options: { id: userOrgId ?? '' },
       mutationFunction: updateMutation,
-      toastMessage: 'Organization has been updated'
+      toastMessage: 'Organization has been updated',
     });
 
   const activeOrgId = useMemo(
     () =>
       userOrgsData?.find((org) => org?.organization?.id === currentOrgId)
         ?.organization?.id,
-    [userOrgsData, currentOrgId]
+    [userOrgsData, currentOrgId],
   );
 
   // selects current organization or returns
@@ -71,11 +71,11 @@ export function useOrganizationList({
       (acc, curr) => {
         acc.push({
           name: curr?.organization?.name ?? '',
-          id: curr?.organization?.id ?? ''
+          id: curr?.organization?.id ?? '',
         });
         return acc;
       },
-      [{ name: 'Select an organization', id: 'select-org' }]
+      [{ name: 'Select an organization', id: 'select-org' }],
     );
   }, [userOrgsData]);
 
@@ -95,6 +95,6 @@ export function useOrganizationList({
     listOfOrgs,
     filteredOrg,
     filterOrg,
-    openDialog
+    openDialog,
   };
 }

@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
         getErrorRedirect(
           `${requestUrl.origin}/signin/forgot_password`,
           error.name,
-          "Sorry, we weren't able to log you in. Please try again."
-        )
+          "Sorry, we weren't able to log you in. Please try again.",
+        ),
       );
     }
   }
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     getStatusRedirect(
       `${requestUrl.origin}/signin/update_password`,
       'You are now signed in.',
-      'Please enter a new password for your account.'
-    )
+      'Please enter a new password for your account.',
+    ),
   );
 }

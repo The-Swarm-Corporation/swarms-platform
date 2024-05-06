@@ -26,7 +26,7 @@ export default function PricingPage() {
                   'hover:bg-primary/90',
                   'text-white',
                   'px-10 py-6',
-                  'rounded-full'
+                  'rounded-full',
                 )}
               >
                 Get Started
@@ -40,7 +40,7 @@ export default function PricingPage() {
                   'hover:bg-white/90',
                   'text-background',
                   'px-10 py-6',
-                  'rounded-full'
+                  'rounded-full',
                 )}
               >
                 <Github size={18} />

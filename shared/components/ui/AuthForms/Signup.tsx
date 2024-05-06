@@ -1,6 +1,6 @@
 'use client';
 
-import {Button} from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/Button';
 import React from 'react';
 import Link from 'next/link';
 import { signUp } from '@/shared/utils/auth-helpers/server';

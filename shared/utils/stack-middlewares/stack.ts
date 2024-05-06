@@ -8,7 +8,7 @@ import { MiddlewareFactory } from './types';
  */
 export function stackMiddlewares(
   functions: MiddlewareFactory[] = [],
-  index = 0
+  index = 0,
 ): NextMiddleware {
   const current = functions[index];
   if (current) {

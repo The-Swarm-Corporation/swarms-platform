@@ -4,7 +4,7 @@ import React, {
   memo,
   SetStateAction,
   useRef,
-  useState
+  useState,
 } from 'react';
 import { Ellipsis } from 'lucide-react';
 import {
@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
@@ -40,7 +40,7 @@ function OrganizationListItem({
   openDialog,
   setOpenDialog,
   updateOrganization,
-  handleCurrentOrgId
+  handleCurrentOrgId,
 }: OrganizationListItemProps) {
   const isLoading = useOrganizationStore((state) => state.isLoading);
 
@@ -70,7 +70,7 @@ function OrganizationListItem({
             aria-label="Options"
             className={cn(
               'gap-2 py-0 h-8 px-2 sm:px-4 sm:h-9',
-              isOn && 'bg-accent text-foreground'
+              isOn && 'bg-accent text-foreground',
             )}
             variant="ghost"
             onClick={setOn}
@@ -82,7 +82,7 @@ function OrganizationListItem({
             ref={popupRef}
             className={cn(
               'absolute list-none border dark:border-white/[0.2] bg-secondary max-w-28 w-full flex flex-col items-center rounded-md bottom-8 left-0 transition-all invisible',
-              isOn && 'visible'
+              isOn && 'visible',
             )}
           >
             {role === 'owner' && (

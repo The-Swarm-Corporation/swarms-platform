@@ -9,7 +9,7 @@ import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.share
 export async function handleRequest(
   e: React.FormEvent<HTMLFormElement>,
   requestFunc: (formData: FormData) => Promise<string | null | undefined>,
-  router: AppRouterInstance | null = null
+  router: AppRouterInstance | null = null,
 ): Promise<boolean | void> {
   // Prevent default form submission refresh
   e.preventDefault();
@@ -41,7 +41,7 @@ export async function signInWithOAuth(e: React.FormEvent<HTMLFormElement>) {
   await supabase.auth.signInWithOAuth({
     provider: provider,
     options: {
-      redirectTo: redirectURL
-    }
+      redirectTo: redirectURL,
+    },
   });
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import {Button} from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/Button';
 import { signInWithOAuth } from '@/shared/utils/auth-helpers/client';
 import { type Provider } from '@supabase/supabase-js';
 import { Github } from 'lucide-react';
@@ -18,13 +18,13 @@ export default function OauthSignIn() {
     {
       name: 'google',
       displayName: 'Google',
-      icon: <Google />
+      icon: <Google />,
     },
     {
       name: 'github',
       displayName: 'GitHub',
-      icon: <Github className="h-5 w-5" />
-    }
+      icon: <Github className="h-5 w-5" />,
+    },
     /* Add desired OAuth providers here */
   ];
   const [isSubmitting, setIsSubmitting] = useState(false);

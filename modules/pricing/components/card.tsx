@@ -20,7 +20,7 @@ export default function PricingCard({
   link,
   subtitle,
   content,
-  isAnnually
+  isAnnually,
 }: PricingCardProps) {
   const pricing =
     typeof price === 'string'
@@ -49,7 +49,7 @@ export default function PricingCard({
         <div
           className={cn(
             'p-8 shadow-2xl rounded-3xl bg-black ring-1 ring-white/10 border',
-            isPremium && 'bg-primary'
+            isPremium && 'bg-primary',
           )}
         >
           <div className="flex items-center gap-3 text-white">
@@ -82,7 +82,7 @@ export default function PricingCard({
                 'focus:outline-none focus-visible:outline-black text-base focus-visible:ring-black',
                 isPremium
                   ? 'text-black bg-white hover:bg-white/20 hover:border-white hover:text-white'
-                  : 'text-white bg-white/10 dark:bg-white/5 hover:bg-white/10 hover:border-white/10'
+                  : 'text-white bg-white/10 dark:bg-white/5 hover:bg-white/10 hover:border-white/10',
               )}
               href="/platform/account"
             >
@@ -100,7 +100,10 @@ export default function PricingCard({
           >
             {Object.keys(content).map((key) => {
               return (
-                <li key={key} className="flex items-center mt-4 font-medium drop-shadow-md gap-2 text-sm">
+                <li
+                  key={key}
+                  className="flex items-center mt-4 font-medium drop-shadow-md gap-2 text-sm"
+                >
                   <CheckCircle className="size-4 text-gray-500 icon icon-tabler icon-tabler-circle-check" />
                   <span>{key}</span>
                 </li>

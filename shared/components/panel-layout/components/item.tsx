@@ -16,7 +16,9 @@ interface NavItemProps extends PropsWithChildren {
 const NavItem = React.forwardRef(function <
   T extends
     | keyof JSX.IntrinsicElements
-    | React.ComponentType<HTMLAnchorElement | HTMLSpanElement | HTMLFormElement>
+    | React.ComponentType<
+        HTMLAnchorElement | HTMLSpanElement | HTMLFormElement
+      >,
 >(
   {
     title,
@@ -30,7 +32,7 @@ const NavItem = React.forwardRef(function <
     onSubmit,
     ...props
   }: NavItemProps,
-  ref: ForwardedRef<T>
+  ref: ForwardedRef<T>,
 ) {
   if (link) {
     return (
@@ -38,7 +40,7 @@ const NavItem = React.forwardRef(function <
         href={link}
         className={cn(
           'group flex items-center justify-start outline-none',
-          className
+          className,
         )}
         ref={ref as RefObject<HTMLAnchorElement>}
         {...props}
@@ -48,7 +50,7 @@ const NavItem = React.forwardRef(function <
             className={cn(
               'mr-3 text-black dark:text-white group-hover:text-white hidden',
               link === path && 'text-white',
-              isIcon && 'block'
+              isIcon && 'block',
             )}
           >
             {icon}
@@ -63,7 +65,7 @@ const NavItem = React.forwardRef(function <
     <Component
       className={cn(
         'group flex items-center justify-start outline-none',
-        className
+        className,
       )}
       onSubmit={onSubmit}
       ref={ref as RefObject<HTMLFormElement | HTMLSpanElement>}
@@ -74,7 +76,7 @@ const NavItem = React.forwardRef(function <
           className={cn(
             'mr-3 text-black dark:text-white group-hover:text-white hidden',
             link === path && 'text-white',
-            isIcon && 'block'
+            isIcon && 'block',
           )}
         >
           {icon}

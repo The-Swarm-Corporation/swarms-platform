@@ -1,3 +1,3 @@
-import Playground from "@/modules/platform/playground"
+import Playground from '@/modules/platform/playground';
 
 export default Playground;

@@ -22,7 +22,7 @@ const Pricing = () => {
             Pricing
           </span>
         </div>
-        <div className='mt-8'>
+        <div className="mt-8">
           <div className="flex items-center justify-center mt-6 p-1 bg-secondary rounded-md">
             <Button
               onClick={() => handleTabChange('annually')}
@@ -30,7 +30,7 @@ const Pricing = () => {
                 'px-6 py-0 h-8 w-28 lg:w-32 text-sm font-medium capitalize focus:outline-none focus-visible:outline-black bg-transparent text-black dark:text-white',
                 'hover:bg-transparent, hover:text-primary rounded-md shadow-md',
                 activeTab === 'annually' &&
-                  'bg-primary text-white hover:text-white hover:bg-primary'
+                  'bg-primary text-white hover:text-white hover:bg-primary',
               )}
             >
               Annually{' '}
@@ -44,7 +44,7 @@ const Pricing = () => {
                 'px-6 py-0 h-8 w-28 lg:w-32 text-sm font-medium capitalize focus:outline-none focus-visible:outline-black bg-transparent text-black dark:text-white',
                 'hover:bg-transparent, hover:text-primary rounded-md shadow-md',
                 activeTab === 'monthly' &&
-                  'bg-primary text-white hover:text-white hover:bg-primary'
+                  'bg-primary text-white hover:text-white hover:bg-primary',
               )}
             >
               Monthly

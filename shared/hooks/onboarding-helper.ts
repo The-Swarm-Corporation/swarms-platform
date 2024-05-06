@@ -5,7 +5,7 @@ const useOnboardingHelper = () => {
   const updateOnboarding = trpc.panel.updateOnboarding.useMutation();
   return {
     getOnboarding,
-    updateOnboarding
+    updateOnboarding,
   };
 };
 

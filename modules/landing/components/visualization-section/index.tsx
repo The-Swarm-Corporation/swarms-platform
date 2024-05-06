@@ -1,18 +1,17 @@
-"use client";
-import { cn } from "@/shared/utils/cn";
-import hslToHex from "@/shared/utils/hsl-to-hex";
-import { motion, MotionValue, useScroll, useTransform } from "framer-motion";
-import { useTheme } from "next-themes";
-import Image from "next/image";
-import Link from "next/link";
-import React, { useEffect, useState } from "react";
-import { StrokeColor, THEMES } from "@/shared/constants/theme";
+'use client';
+import { cn } from '@/shared/utils/cn';
+import hslToHex from '@/shared/utils/hsl-to-hex';
+import { motion, MotionValue, useScroll, useTransform } from 'framer-motion';
+import { useTheme } from 'next-themes';
+import Image from 'next/image';
+import Link from 'next/link';
+import React, { useEffect, useState } from 'react';
+import { StrokeColor, THEMES } from '@/shared/constants/theme';
 
 const transition = {
   duration: 0,
-  ease: "linear",
+  ease: 'linear',
 };
-
 
 export const GoogleGeminiEffect = ({
   className,
@@ -22,13 +21,12 @@ export const GoogleGeminiEffect = ({
   className?: string;
 }) => {
   const { theme, resolvedTheme } = useTheme();
-  const [primaryColor, setPrimaryColor] = useState("");
+  const [primaryColor, setPrimaryColor] = useState('');
   const ref = React.useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start start", "end start"],
+    offset: ['start start', 'end start'],
   });
-
 
   const pathLengthFirst = useTransform(scrollYProgress, [0, 0.8], [0.2, 1.2]);
   const pathLengthSecond = useTransform(scrollYProgress, [0, 0.8], [0.15, 1.2]);
@@ -41,49 +39,55 @@ export const GoogleGeminiEffect = ({
     pathLengthThird,
     pathLengthFourth,
     pathLengthFifth,
-  ]
+  ];
   const textVariant = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
   };
-  const [textContent, setTextContent] = useState({ title: "", description: "" });
+  const [textContent, setTextContent] = useState({
+    title: '',
+    description: '',
+  });
 
   const strokeColor =
-  theme === THEMES.LIGHT || resolvedTheme === THEMES.LIGHT
-    ? StrokeColor.DARK
-    : StrokeColor.LIGHT;
+    theme === THEMES.LIGHT || resolvedTheme === THEMES.LIGHT
+      ? StrokeColor.DARK
+      : StrokeColor.LIGHT;
 
   useEffect(() => {
     const updateTextContent = () => {
       const scrollProgress = scrollYProgress.get();
       if (scrollProgress < 0.1) {
-        setTextContent({ title: "How Swarms Works", description: '' });
+        setTextContent({ title: 'How Swarms Works', description: '' });
       } else if (scrollProgress < 0.2) {
         setTextContent({
-          title: "Data Aggregation",
-          description: 'Gather diverse data from GPT, Gemini, Langchain, and Claude to address context loss and ensure comprehensive coverage.'
+          title: 'Data Aggregation',
+          description:
+            'Gather diverse data from GPT, Gemini, Langchain, and Claude to address context loss and ensure comprehensive coverage.',
         });
       } else if (scrollProgress < 0.4) {
         setTextContent({
-          title: "AI Integration",
-          description: 'Combine GPT, Gemini, Langchain, and Claude to overcome single-task focus and provide multifaceted solutions.'
+          title: 'AI Integration',
+          description:
+            'Combine GPT, Gemini, Langchain, and Claude to overcome single-task focus and provide multifaceted solutions.',
         });
       } else if (scrollProgress < 0.6) {
         setTextContent({
-          title: "Collaborative Setup",
-          description: 'Establish a framework for AI collaboration, enabling interaction and cooperation to tackle problems collectively.'
+          title: 'Collaborative Setup',
+          description:
+            'Establish a framework for AI collaboration, enabling interaction and cooperation to tackle problems collectively.',
         });
-      }
-      else if (scrollProgress < 0.8) {
+      } else if (scrollProgress < 0.8) {
         setTextContent({
-          title: "Output Alignment",
-          description: 'Standardize outputs to ensure consistency and compatibility, eliminating the issue of mismatched results.'
+          title: 'Output Alignment',
+          description:
+            'Standardize outputs to ensure consistency and compatibility, eliminating the issue of mismatched results.',
         });
-      }
-      else {
+      } else {
         setTextContent({
-          title: "Solution Deployment",
-          description: 'Deliver integrated solutions that mitigate context loss, single-task focus, lack of collaboration, and mismatched outputs.'
+          title: 'Solution Deployment',
+          description:
+            'Deliver integrated solutions that mitigate context loss, single-task focus, lack of collaboration, and mismatched outputs.',
         });
       }
     };
@@ -93,15 +97,17 @@ export const GoogleGeminiEffect = ({
     };
   }, [scrollYProgress]);
   useEffect(() => {
-    const primaryColorHsl = window.getComputedStyle(document.documentElement).getPropertyValue('--primary');
+    const primaryColorHsl = window
+      .getComputedStyle(document.documentElement)
+      .getPropertyValue('--primary');
     setPrimaryColor(hslToHex(primaryColorHsl));
-  }, [])
+  }, []);
   return (
     <div
       className="h-[400vh] bg-background w-full rounded-md relative pt-40 overflow-clip"
       ref={ref}
     >
-      <div className={cn("sticky top-64 sm:top-32", className)}>
+      <div className={cn('sticky top-64 sm:top-32', className)}>
         <motion.div
           className="text-lg md:text-7xl font-normal pb-4 text-center bg-clip-text text-transparent bg-gradient-to-b from-neutral-100 to-neutral-300"
           variants={textVariant}
@@ -116,15 +122,10 @@ export const GoogleGeminiEffect = ({
           </p>
         </motion.div>
 
-
         <div className="w-full h-[890px] -top-56 md:-top-20  flex items-center justify-center z-10 absolute ">
           <Link href={'/'} className="w-16 h-16 sm:w-40 sm:h-40 relative">
             {/* <div className="bg-[url(/swarms-logo.svg)] bg-no-repeat object-contain"></div> */}
-            <Image
-              src="/swarms-logo.svg"
-              alt="Swarms logo"
-              fill
-            />
+            <Image src="/swarms-logo.svg" alt="Swarms logo" fill />
           </Link>
         </div>
         <svg

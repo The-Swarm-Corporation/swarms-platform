@@ -133,8 +133,8 @@ export class SwarmsApiGuard {
           input_tokens: usage.input_tokens,
           output_tokens: usage.output_tokens,
           max_tokens: usage.max_tokens,
-          messages: usage.messages
-        } as Tables<'swarms_cloud_api_activities'>
+          messages: usage.messages,
+        } as Tables<'swarms_cloud_api_activities'>,
       ]);
 
     if (activity.error) {
@@ -142,13 +142,13 @@ export class SwarmsApiGuard {
 
       return {
         status: 500,
-        message: 'Internal Server Error'
+        message: 'Internal Server Error',
       };
     }
 
     return {
       status: 200,
-      message: 'Success'
+      message: 'Success',
     };
   }
 }

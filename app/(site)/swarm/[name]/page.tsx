@@ -1,9 +1,9 @@
 import SwarmModule from '@/modules/swarm';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 const Swarm = ({
-  params
+  params,
 }: {
   params: {
     name: string;

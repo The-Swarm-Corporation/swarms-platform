@@ -19,21 +19,21 @@ export const useOrganizationStore = create<OrganizationStore>(
       setUserOrgId(userOrgId: string) {
         set((state) => ({
           ...state,
-          userOrgId
+          userOrgId,
         }));
       },
       setIsLoading(isLoading: boolean) {
         set((state) => ({
           ...state,
-          isLoading
+          isLoading,
         }));
       },
       setCurrentOrgId(currentOrgId: string) {
         set((state) => ({
           ...state,
-          currentOrgId
+          currentOrgId,
         }));
-      }
+      },
     }),
     {
       name: 'current-org-id',
@@ -41,8 +41,8 @@ export const useOrganizationStore = create<OrganizationStore>(
       partialize: (state) =>
         ({
           currentOrgId: state.currentOrgId,
-          userOrgId: state.userOrgId
-        }) as OrganizationStore
+          userOrgId: state.userOrgId,
+        }) as OrganizationStore,
     },
-  ) as StateCreator<OrganizationStore, [], []>
+  ) as StateCreator<OrganizationStore, [], []>,
 );

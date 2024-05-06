@@ -10,8 +10,7 @@ export default function Footer() {
         <div className="col-span-1 lg:col-span-2">
           <span className="mr-2 flex border-zinc-700 gap-2 items-center ">
             <Logo />
-          <span>TGSC</span>
-
+            <span>TGSC</span>
           </span>
         </div>
         <div className="col-span-1 lg:col-span-2">
@@ -119,7 +118,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="flex flex-col items-center justify-between py-12 space-y-4 text-white md:flex-row bg-zinc-900">
-        <div className='w-full text-center'>
+        <div className="w-full text-center">
           <span>
             &copy; {new Date().getFullYear()} TGSC, Inc. All rights reserved.
           </span>

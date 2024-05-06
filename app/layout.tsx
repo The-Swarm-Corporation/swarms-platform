@@ -4,18 +4,17 @@ import { helvetica } from '@/shared/styles/fonts';
 import { TrpcProvider } from '@/shared/utils/trpc/trpc-provider';
 import { Viewport } from 'next';
 import { Suspense } from 'react';
-import { Analytics } from "@vercel/analytics/react"
-
+import { Analytics } from '@vercel/analytics/react';
 
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' }
-  ]
+    { media: '(prefers-color-scheme: dark)', color: 'black' },
+  ],
 };
 
 export default async function Layout({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {

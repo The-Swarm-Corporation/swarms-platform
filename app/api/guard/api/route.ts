@@ -26,7 +26,7 @@ async function POST(req: Request) {
 
   if (isAuthenticated.status !== 200) {
     return new Response(isAuthenticated.message, {
-      status: isAuthenticated.status
+      status: isAuthenticated.status,
     });
   }
   // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS
@@ -37,15 +37,15 @@ async function POST(req: Request) {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
     const res_json = (await res.json()) as OpenAI.Completion;
 
     if (res.status != 200) {
       return new Response('Internal Error', {
-        status: res.status
+        status: res.status,
       });
     }
     const price_million_input = guard.modelRecord?.price_million_input || 0;
@@ -62,8 +62,8 @@ async function POST(req: Request) {
       ...data.messages,
       {
         role: 'assistant',
-        content: choices[0]?.message?.content
-      }
+        content: choices[0]?.message?.content,
+      },
     ];
     // log the result
     const logResult = await guard.logUsage({
@@ -77,18 +77,18 @@ async function POST(req: Request) {
       temperature: data.temperature ?? 0,
       top_p: data.top_p ?? 0,
       total_cost: input_price + output_price,
-      stream: data.stream ?? false
+      stream: data.stream ?? false,
     });
     if (logResult.status !== 200) {
       return new Response(logResult.message, {
-        status: logResult.status
+        status: logResult.status,
       });
     }
     return NextResponse.json(res_json);
   } catch (error) {
     console.log('error', error);
     return new Response('Internal Server Error', {
-      status: 500
+      status: 500,
     });
   }
 }

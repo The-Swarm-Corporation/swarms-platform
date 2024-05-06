@@ -6,7 +6,7 @@ import {
   getAuthTypes,
   getViewTypes,
   getDefaultSignInView,
-  getRedirectMethod
+  getRedirectMethod,
 } from '@/shared/utils/auth-helpers/settings';
 import Card from '@/shared/components/ui/Card';
 import PasswordSignIn from '@/shared/components/ui/AuthForms/PasswordSignIn';
@@ -19,7 +19,7 @@ import SignUp from '@/shared/components/ui/AuthForms/Signup';
 
 export default async function SignIn({
   params,
-  searchParams
+  searchParams,
 }: {
   params: { id: string };
   searchParams: { disable_button: boolean };
@@ -45,7 +45,7 @@ export default async function SignIn({
   const supabase = createClient();
 
   const {
-    data: { user }
+    data: { user },
   } = await supabase.auth.getUser();
 
   if (user && viewProp !== 'update_password') {

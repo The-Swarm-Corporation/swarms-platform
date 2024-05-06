@@ -77,18 +77,18 @@ Never made an open source contribution before? Are you wondering how to contribu
     git pull origin main
     ```
 
-8. Push your working branch up to your fork:
+8.  Push your working branch up to your fork:
 
-   ```sh
-   git push -u origin <branch-name>
-   ```
+    ```sh
+    git push -u origin <branch-name>
+    ```
 
-9. [Open a Pull Request](https://github.com/kyegomez/swarms-platform/pulls)
-   with a clear title and description.
-   
-   > **IMPORTANT**: By submitting a patch, you agree to allow the project owner or maintainer to license your work under the same license as that used by the project.
+9.  [Open a Pull Request](https://github.com/kyegomez/swarms-platform/pulls)
+    with a clear title and description.
 
-8. Wait for the pull request to be reviewed by us and make appropriate changes if the maintainer recommends you to and submit it.
+    > **IMPORTANT**: By submitting a patch, you agree to allow the project owner or maintainer to license your work under the same license as that used by the project.
+
+10. Wait for the pull request to be reviewed by us and make appropriate changes if the maintainer recommends you to and submit it.
 
 ## Setting up Supabase
 
@@ -155,7 +155,7 @@ To get started:
 
 To configure your GitHub client ID and client secrets, we recommend following the steps outlined in either the [Supabase Docs](https://supabase.com/docs/guides/auth/social-login/auth-github) or [Github Docs](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app).
 
-**Note** that when setting the "Authorization callback URL" parameter to "https://<reference_id>.supabase.co/auth/v1/callback", the "_https://<reference_id>.supabase.co_" part of the URL is taken from the API column in the project settings of the Supabase dashboard.
+**Note** that when setting the "Authorization callback URL" parameter to "https://<reference*id>.supabase.co/auth/v1/callback", the "\_https://<reference_id>.supabase.co*" part of the URL is taken from the API column in the project settings of the Supabase dashboard.
 
 The GitHub client ID and secret are also important, as they are used as values if GitHub is set up as a provider within the Supabase Authentication column
 

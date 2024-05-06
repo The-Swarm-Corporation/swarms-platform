@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import {
   getURL,
   getErrorRedirect,
-  getStatusRedirect
+  getStatusRedirect,
 } from '@/shared/utils/helpers';
 import { getAuthTypes } from '@/shared/utils/auth-helpers/settings';
 import { PLATFORM } from '@/shared/constants/links';
@@ -22,7 +22,7 @@ function isValidEmail(email: string) {
 export async function afterSignin(user: User) {
   const stripeCustomerId = await createOrRetrieveStripeCustomer({
     email: user?.email || '',
-    uuid: user.id
+    uuid: user.id,
   });
   if (user.email) {
     await syncUserEmail(user.id, user.email);
@@ -32,7 +32,7 @@ export async function afterSignin(user: User) {
 export async function checkUserSession() {
   const supabase = createClient();
   const {
-    data: { user }
+    data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
@@ -54,7 +54,7 @@ export async function SignOut(formData: FormData) {
     return getErrorRedirect(
       pathName,
       'Hmm... Something went wrong.',
-      'You could not be signed out.'
+      'You could not be signed out.',
     );
   }
 
@@ -72,14 +72,14 @@ export async function signInWithEmail(formData: FormData) {
     redirectPath = getErrorRedirect(
       '/signin/email_signin',
       'Invalid email address.',
-      'Please try again.'
+      'Please try again.',
     );
   }
 
   const supabase = createClient();
   let options = {
     emailRedirectTo: callbackURL,
-    shouldCreateUser: true
+    shouldCreateUser: true,
   };
 
   // If allowPassword is false, do not create a new user
@@ -87,14 +87,14 @@ export async function signInWithEmail(formData: FormData) {
   if (allowPassword) options.shouldCreateUser = false;
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
-    options: options
+    options: options,
   });
 
   if (error) {
     redirectPath = getErrorRedirect(
       '/signin/email_signin',
       'You could not be signed in.',
-      error.message
+      error.message,
     );
   } else if (data) {
     cookieStore.set('preferredSignInView', 'email_signin', { path: '/' });
@@ -102,13 +102,13 @@ export async function signInWithEmail(formData: FormData) {
       '/signin/email_signin',
       'Success!',
       'Please check your email for a magic link. You may now close this tab.',
-      true
+      true,
     );
   } else {
     redirectPath = getErrorRedirect(
       '/signin/email_signin',
       'Hmm... Something went wrong.',
-      'You could not be signed in.'
+      'You could not be signed in.',
     );
   }
 
@@ -126,34 +126,34 @@ export async function requestPasswordUpdate(formData: FormData) {
     redirectPath = getErrorRedirect(
       '/signin/forgot_password',
       'Invalid email address.',
-      'Please try again.'
+      'Please try again.',
     );
   }
 
   const supabase = createClient();
 
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: callbackURL
+    redirectTo: callbackURL,
   });
 
   if (error) {
     redirectPath = getErrorRedirect(
       '/signin/forgot_password',
       error.message,
-      'Please try again.'
+      'Please try again.',
     );
   } else if (data) {
     redirectPath = getStatusRedirect(
       '/signin/forgot_password',
       'Success!',
       'Please check your email for a password reset link. You may now close this tab.',
-      true
+      true,
     );
   } else {
     redirectPath = getErrorRedirect(
       '/signin/forgot_password',
       'Hmm... Something went wrong.',
-      'Password reset email could not be sent.'
+      'Password reset email could not be sent.',
     );
   }
 
@@ -169,14 +169,14 @@ export async function signInWithPassword(formData: FormData) {
   const supabase = createClient();
   const { error, data } = await supabase.auth.signInWithPassword({
     email,
-    password
+    password,
   });
 
   if (error) {
     redirectPath = getErrorRedirect(
       '/signin/password_signin',
       'Sign in failed.',
-      error.message
+      error.message,
     );
   } else if (data.user) {
     cookieStore.set('preferredSignInView', 'password_signin', { path: '/' });
@@ -185,7 +185,7 @@ export async function signInWithPassword(formData: FormData) {
     redirectPath = getErrorRedirect(
       '/signin/password_signin',
       'Hmm... Something went wrong.',
-      'You could not be signed in.'
+      'You could not be signed in.',
     );
   }
 
@@ -203,7 +203,7 @@ export async function signUp(formData: FormData) {
     redirectPath = getErrorRedirect(
       '/signin/signup',
       'Invalid email address.',
-      'Please try again.'
+      'Please try again.',
     );
   }
 
@@ -212,15 +212,15 @@ export async function signUp(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: callbackURL
-    }
+      emailRedirectTo: callbackURL,
+    },
   });
 
   if (error) {
     redirectPath = getErrorRedirect(
       '/signin/signup',
       'Sign up failed.',
-      error.message
+      error.message,
     );
   } else if (data.session) {
     redirectPath = getStatusRedirect('/', 'Success!', 'You are now signed in.');
@@ -232,19 +232,19 @@ export async function signUp(formData: FormData) {
     redirectPath = getErrorRedirect(
       '/signin/signup',
       'Sign up failed.',
-      'There is already an account associated with this email address. Try resetting your password.'
+      'There is already an account associated with this email address. Try resetting your password.',
     );
   } else if (data.user) {
     redirectPath = getStatusRedirect(
       '/',
       'Success!',
-      'Please check your email for a confirmation link. You may now close this tab.'
+      'Please check your email for a confirmation link. You may now close this tab.',
     );
   } else {
     redirectPath = getErrorRedirect(
       '/signin/signup',
       'Hmm... Something went wrong.',
-      'You could not be signed up.'
+      'You could not be signed up.',
     );
   }
 
@@ -261,32 +261,32 @@ export async function updatePassword(formData: FormData) {
     redirectPath = getErrorRedirect(
       '/signin/update_password',
       'Your password could not be updated.',
-      'Passwords do not match.'
+      'Passwords do not match.',
     );
   }
 
   const supabase = createClient();
   const { error, data } = await supabase.auth.updateUser({
-    password
+    password,
   });
 
   if (error) {
     redirectPath = getErrorRedirect(
       '/signin/update_password',
       'Your password could not be updated.',
-      error.message
+      error.message,
     );
   } else if (data.user) {
     redirectPath = getStatusRedirect(
       '/',
       'Success!',
-      'Your password has been updated.'
+      'Your password has been updated.',
     );
   } else {
     redirectPath = getErrorRedirect(
       '/signin/update_password',
       'Hmm... Something went wrong.',
-      'Your password could not be updated.'
+      'Your password could not be updated.',
     );
   }
 
@@ -302,7 +302,7 @@ export async function updateEmail(formData: FormData) {
     return getErrorRedirect(
       PLATFORM.ACCOUNT,
       'Your email could not be updated.',
-      'Invalid email address.'
+      'Invalid email address.',
     );
   }
 
@@ -312,28 +312,28 @@ export async function updateEmail(formData: FormData) {
     getStatusRedirect(
       PLATFORM.ACCOUNT,
       'Success!',
-      `Your email has been updated.`
-    )
+      `Your email has been updated.`,
+    ),
   );
 
   const { error } = await supabase.auth.updateUser(
     { email: newEmail },
     {
-      emailRedirectTo: callbackUrl
-    }
+      emailRedirectTo: callbackUrl,
+    },
   );
 
   if (error) {
     return getErrorRedirect(
       PLATFORM.ACCOUNT,
       'Your email could not be updated.',
-      error.message
+      error.message,
     );
   } else {
     return getStatusRedirect(
       PLATFORM.ACCOUNT,
       'Confirmation emails sent.',
-      `You will need to confirm the update by clicking the links sent to both the old and new email addresses.`
+      `You will need to confirm the update by clicking the links sent to both the old and new email addresses.`,
     );
   }
 }
@@ -344,26 +344,26 @@ export async function updateName(formData: FormData) {
 
   const supabase = createClient();
   const { error, data } = await supabase.auth.updateUser({
-    data: { full_name: fullName }
+    data: { full_name: fullName },
   });
 
   if (error) {
     return getErrorRedirect(
       PLATFORM.ACCOUNT,
       'Your name could not be updated.',
-      error.message
+      error.message,
     );
   } else if (data.user) {
     return getStatusRedirect(
       PLATFORM.ACCOUNT,
       'Success!',
-      'Your name has been updated.'
+      'Your name has been updated.',
     );
   } else {
     return getErrorRedirect(
       PLATFORM.ACCOUNT,
       'Hmm... Something went wrong.',
-      'Your name could not be updated.'
+      'Your name could not be updated.',
     );
   }
 }

@@ -9,7 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from '@/shared/components/ui/dialog';
 import {
   Table,
@@ -17,7 +17,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/shared/components/ui/table';
 import { SwarmApiKey } from '@/shared/models/db-types';
 import { formatDate } from '@/shared/utils/helpers';
@@ -27,7 +27,7 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  useReactTable
+  useReactTable,
 } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
@@ -45,16 +45,16 @@ const ApiKeys = () => {
     return [
       {
         accessorKey: 'name',
-        header: 'Name'
+        header: 'Name',
       },
       {
         accessorKey: 'key',
-        header: 'Key'
+        header: 'Key',
       },
       {
         accessorKey: 'created_at',
         header: 'Created date',
-        cell: (cell) => formatDate(cell.getValue<string>())
+        cell: (cell) => formatDate(cell.getValue<string>()),
       },
       {
         accessorKey: 'id',
@@ -71,7 +71,7 @@ const ApiKeys = () => {
                   .then(() => {
                     apiKeys.refetch();
                     toast.toast({
-                      title: 'API key deleted'
+                      title: 'API key deleted',
                     });
                   });
               }}
@@ -79,15 +79,15 @@ const ApiKeys = () => {
               Delete
             </Button>
           );
-        }
-      }
+        },
+      },
     ];
   }, []);
 
   const table = useReactTable({
     data: apiKeys?.data ?? [],
     columns: columns as any,
-    getCoreRowModel: getCoreRowModel()
+    getCoreRowModel: getCoreRowModel(),
   });
 
   const generate = () => {
@@ -99,12 +99,12 @@ const ApiKeys = () => {
       setGeneratedKey(data?.key ?? '');
       apiKeys.refetch();
       toast.toast({
-        title: 'API key created'
+        title: 'API key created',
       });
       confetti({
         particleCount: 150,
         spread: 90,
-        origin: { y: 0.6 }
+        origin: { y: 0.6 },
       });
     });
   };
@@ -132,7 +132,7 @@ const ApiKeys = () => {
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
                     );
@@ -162,7 +162,7 @@ const ApiKeys = () => {
                         <TableCell key={cell.id}>
                           {flexRender(
                             cell.column.columnDef.cell,
-                            cell.getContext()
+                            cell.getContext(),
                           )}
                         </TableCell>
                       ))}

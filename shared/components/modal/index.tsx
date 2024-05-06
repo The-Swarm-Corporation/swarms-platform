@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from '../ui/dialog';
 
 interface Props {
@@ -24,7 +24,7 @@ const Modal = ({
   children,
   footer,
   className,
-  showHeader = true
+  showHeader = true,
 }: Props) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

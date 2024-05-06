@@ -6,14 +6,14 @@ import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 const createContext = async function (opts: FetchCreateContextFnOptions) {
   const cookieStore = cookies();
   const supabase = createRouteHandlerClient<Database>({
-    cookies: () => cookieStore
+    cookies: () => cookieStore,
   });
   const session = await supabase.auth.getSession();
 
   return {
     session,
     supabase: supabaseAdmin,
-    ...opts
+    ...opts,
   };
 };
 export default createContext;

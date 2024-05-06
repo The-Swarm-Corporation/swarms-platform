@@ -13,6 +13,6 @@ export const syncUserEmail = async (id: string, email: string) => {
       await supabaseAdmin.from('users').update({ email }).eq('id', id);
     }
   } catch (error) {
-    console.error('syncUserEmail',id, error);
+    console.error('syncUserEmail', id, error);
   }
 };

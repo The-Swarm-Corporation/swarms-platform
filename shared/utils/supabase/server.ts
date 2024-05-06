@@ -36,8 +36,8 @@ export const createClient = () => {
             // If the remove method is called from a Server Component, an error may occur
             // This can be ignored if there is middleware refreshing user sessions
           }
-        }
-      }
-    }
+        },
+      },
+    },
   );
 };

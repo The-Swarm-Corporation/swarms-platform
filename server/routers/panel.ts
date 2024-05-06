@@ -7,7 +7,7 @@ import { createPaymentSession } from '@/shared/utils/stripe/client';
 import { getUserCredit } from '@/shared/utils/supabase/admin';
 import {
   getSubscriptionStatus,
-  getUserStripeCustomerId
+  getUserStripeCustomerId,
 } from '@/shared/utils/stripe/server';
 const panelRouter = router({
   getUserCredit: userProcedure.query(async ({ ctx }) => {
@@ -26,13 +26,13 @@ const panelRouter = router({
     if (userOnboarding.error) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while fetching user onboarding status'
+        message: 'Error while fetching user onboarding status',
       });
     }
     return {
       basic_onboarding_completed:
         userOnboarding.data.basic_onboarding_completed,
-      full_name: userOnboarding.data.full_name
+      full_name: userOnboarding.data.full_name,
     };
   }),
   updateOnboarding: userProcedure
@@ -45,8 +45,8 @@ const panelRouter = router({
         basic_onboarding_completed: z.boolean(),
         referral: z.string().optional(),
         signup_reason: z.string().optional(),
-        about_company: z.string().optional()
-      })
+        about_company: z.string().optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
@@ -57,11 +57,11 @@ const panelRouter = router({
       if (updatedOnboarding.error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while updating user onboarding status'
+          message: 'Error while updating user onboarding status',
         });
       }
       return true;
-    })
+    }),
 });
 
 export default panelRouter;

@@ -10,7 +10,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/shared/components/ui/select';
 import { Button } from '@/shared/components/ui/Button';
 import { Slider } from '@/shared/components/ui/slider';
@@ -22,9 +22,7 @@ const Playground = () => {
 
   return (
     <div className="w-full flex flex-col h-full">
-      <h1 className="text-3xl font-extrabold sm:text-4xl">
-        Playground
-      </h1>
+      <h1 className="text-3xl font-extrabold sm:text-4xl">Playground</h1>
       <div className="w-full h-full flex gap-4 py-4 overflow-hidden px-1 max-md:flex-col-reverse mt-4 sm:mt-0">
         <div className="max-lg:hidden w-2/6 h-full">
           <Textarea
@@ -36,7 +34,7 @@ const Playground = () => {
           <div
             className={cn(
               'h-full overflow-auto pb-16',
-              playground.isSending && 'opacity-80 pointer-events-none'
+              playground.isSending && 'opacity-80 pointer-events-none',
             )}
           >
             {/* messages */}
@@ -84,7 +82,7 @@ const Playground = () => {
               onClick={playground.submit}
               className={cn(
                 'flex gap-2 w-auto p-2 bg-primary rounded-md text-white transition-all',
-                playground.isSending && 'bg-gray-600/90 hover:bg-gray-600'
+                playground.isSending && 'bg-gray-600/90 hover:bg-gray-600',
               )}
             >
               <span>{playground.isSending ? 'cancel' : 'Submit'}</span>

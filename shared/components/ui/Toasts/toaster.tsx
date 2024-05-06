@@ -6,7 +6,7 @@ import {
   ToastDescription,
   ToastProvider,
   ToastTitle,
-  ToastViewport
+  ToastViewport,
 } from '@/shared/components/ui/Toasts/toast';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -29,7 +29,7 @@ export function Toaster() {
           ? error ?? 'Hmm... Something went wrong.'
           : status ?? 'Alright!',
         description: error ? error_description : status_description,
-        variant: error ? 'destructive' : undefined
+        variant: error ? 'destructive' : undefined,
       });
       // Clear any 'error', 'status', 'status_description', and 'error_description' search params
       // so that the toast doesn't show up again on refresh, but leave any other search params
@@ -39,7 +39,7 @@ export function Toaster() {
         'error',
         'status',
         'status_description',
-        'error_description'
+        'error_description',
       ];
       paramsToRemove.forEach((param) => newSearchParams.delete(param));
       const redirectPath = `${pathname}?${newSearchParams.toString()}`;

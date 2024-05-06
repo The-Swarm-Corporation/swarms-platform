@@ -12,7 +12,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/shared/components/ui/select';
 
 export interface ICodeBoxItems {
@@ -39,10 +39,10 @@ const CodeBox = ({
   initLanguage,
   classes,
   value,
-  hideList
+  hideList,
 }: ICodeBoxProps) => {
   const [selectedLanguage, setSelectedLanguage] = useState(
-    initLanguage || Object.keys(sampleCodes)[0]
+    initLanguage || Object.keys(sampleCodes)[0],
   );
   useEffect(() => {
     if (value) {
@@ -51,7 +51,12 @@ const CodeBox = ({
   }, [value]);
 
   return (
-    <div className={cn('rounded-xl bg-primary border-primary border-2', classes?.root)}>
+    <div
+      className={cn(
+        'rounded-xl bg-primary border-primary border-2',
+        classes?.root,
+      )}
+    >
       <div
         className={cn('p-2 flex justify-center items-center', classes?.title)}
       >
@@ -84,10 +89,7 @@ const CodeBox = ({
             )}
       </div>
       <ReactPrismjs
-        className={cn(
-          '!m-0 !bg-[rgb(0 0 0)] rounded-b-xl',
-          classes?.content
-        )}
+        className={cn('!m-0 !bg-[rgb(0 0 0)] rounded-b-xl', classes?.content)}
         prefixCls="prism"
         language={selectedLanguage}
         source={sampleCodes[selectedLanguage].sourceCode}

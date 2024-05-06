@@ -5,7 +5,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/shared/components/ui/select';
 import {
   Dialog,
@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
@@ -25,7 +25,7 @@ import { useInviteModal } from '../../../hooks/invite';
 import { UserOrganizationsProps } from '../../../types';
 
 export default function InviteModal({
-  currentOrganization
+  currentOrganization,
 }: {
   currentOrganization: UserOrganizationsProps;
 }) {
@@ -39,7 +39,7 @@ export default function InviteModal({
     setInviteRole,
     inviteUser,
     handleEmailChange,
-    handleOpenModal
+    handleOpenModal,
   } = useInviteModal({ currentOrganization });
 
   const isLoading = useOrganizationStore((state) => state.isLoading);
@@ -77,7 +77,7 @@ export default function InviteModal({
                 value={email}
                 className={cn(
                   'my-2 w-full',
-                  !isValidEmail && ' border-red-600'
+                  !isValidEmail && ' border-red-600',
                 )}
                 placeholder="swarms@example.com"
                 onChange={handleEmailChange}
@@ -106,7 +106,7 @@ export default function InviteModal({
           <small
             className={cn(
               'text-red-500 text-sm invisible',
-              !isValidEmail && 'visible'
+              !isValidEmail && 'visible',
             )}
           >
             Please enter a valid email address

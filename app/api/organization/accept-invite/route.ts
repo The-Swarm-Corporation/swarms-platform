@@ -16,7 +16,7 @@ async function GET(req: Request) {
 
   const cookieStore = cookies();
   const supabase = createRouteHandlerClient<Database>({
-    cookies: () => cookieStore
+    cookies: () => cookieStore,
   });
   const session = await supabase.auth.getSession();
 

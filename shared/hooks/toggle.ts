@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 
 export default function useToggle(init?: 'on' | 'off', storageKey?: string) {
   const [toggleState, setToggle] = useState(
-    init || (storageKey ? localStorage.getItem(storageKey) || 'off' : 'off')
+    init || (storageKey ? localStorage.getItem(storageKey) || 'off' : 'off'),
   );
 
   useEffect(() => {
@@ -40,6 +40,6 @@ export default function useToggle(init?: 'on' | 'off', storageKey?: string) {
     isOff: toggleState === 'off',
     setOn,
     setOff,
-    toggle
+    toggle,
   };
 }

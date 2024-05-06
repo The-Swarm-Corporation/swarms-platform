@@ -12,7 +12,7 @@ export default function useModels() {
   const [options, setOptions] = useState(defaultOptions);
   const [search, setSearch] = useState('');
   const [filterOption, setFilterOption] = useState<string>(
-    explorerOptions[explorerOptions.length - 1].value
+    explorerOptions[explorerOptions.length - 1].value,
   );
 
   const debouncedSearch = useMemo(() => {
@@ -26,7 +26,7 @@ export default function useModels() {
     (value: string) => {
       debouncedSearch(value);
     },
-    [debouncedSearch]
+    [debouncedSearch],
   );
 
   const filteredModels = useMemo(() => {
@@ -34,7 +34,7 @@ export default function useModels() {
     return !search || filterOption === 'swarms'
       ? models.data.data
       : models.data.data.filter((model) =>
-          model?.name?.toLowerCase().includes(search.toLowerCase())
+          model?.name?.toLowerCase().includes(search.toLowerCase()),
         );
   }, [models.data, filterOption, search]);
 
@@ -43,7 +43,7 @@ export default function useModels() {
     return !search || filterOption === 'models'
       ? allSwarms.data.data
       : allSwarms.data.data.filter((swarm) =>
-          swarm?.name?.toLowerCase().includes(search.toLowerCase())
+          swarm?.name?.toLowerCase().includes(search.toLowerCase()),
         );
   }, [allSwarms.data, filterOption, search]);
 
@@ -59,7 +59,7 @@ export default function useModels() {
         setOptions(updatedOptions);
       }
     },
-    [options]
+    [options],
   );
 
   const handleRemoveOption = useCallback(
@@ -74,10 +74,10 @@ export default function useModels() {
 
       setOptions(updatedOptions);
       setFilterOption(
-        updatedOptions.length === 1 ? updatedOptions[0] : 'swarms-and-models'
+        updatedOptions.length === 1 ? updatedOptions[0] : 'swarms-and-models',
       );
     },
-    [options]
+    [options],
   );
 
   return {
@@ -89,6 +89,6 @@ export default function useModels() {
     isDataLoading,
     handleSearchChange,
     handleOptionChange,
-    handleRemoveOption
+    handleRemoveOption,
   };
 }

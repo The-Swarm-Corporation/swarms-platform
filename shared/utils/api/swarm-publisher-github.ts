@@ -16,7 +16,7 @@ const publishSwarmToGithub = async ({
   name,
   code,
   ownerName,
-  ownerEmail
+  ownerEmail,
 }: Options) => {
   if (!githubAccessToken) {
     throw new Error('GitHub access token is missing');
@@ -33,9 +33,9 @@ const publishSwarmToGithub = async ({
         await octokit.repos.getBranch({
           owner: repoOwner,
           repo,
-          branch: baseBranch
+          branch: baseBranch,
         })
-      ).data.commit.sha
+      ).data.commit.sha,
     });
 
     // Step 2: Create a new directory with name
@@ -45,7 +45,7 @@ const publishSwarmToGithub = async ({
       path: `prebuilt_swarms/${name}/${ownerName}_${name}.py`,
       message: `feat: add ${name} swarm , created by ${ownerName}`,
       content: Buffer.from(code).toString('base64'),
-      branch: newBranch
+      branch: newBranch,
     });
 
     // Step 4: Create a pull request
@@ -55,7 +55,7 @@ const publishSwarmToGithub = async ({
       title: `Add ${name} swarm by ${ownerName}`,
       head: newBranch,
       base: baseBranch,
-      body: `Add ${name} swarm created by ${ownerName} | ${ownerEmail}`
+      body: `Add ${name} swarm created by ${ownerName} | ${ownerEmail}`,
     });
     if (res.status === 201) {
       return res.data;
@@ -72,7 +72,7 @@ const getSwarmPullRequestStatus = async (pull_number: string) => {
     const status = await octokit.pulls.get({
       owner: repoOwner,
       repo,
-      pull_number: Number(pull_number)
+      pull_number: Number(pull_number),
     });
     if (status.status === 200) {
       return status.data;

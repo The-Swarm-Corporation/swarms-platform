@@ -3,7 +3,7 @@ import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger
+  TabsTrigger,
 } from '@/shared/components/ui/tabs';
 import VlmPlayground from '@/shared/components/vlm-playground';
 import { getURL } from '@/shared/utils/helpers';

@@ -7,18 +7,18 @@ import { Metadata, Viewport } from 'next';
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' }
-  ]
+    { media: '(prefers-color-scheme: dark)', color: 'black' },
+  ],
 };
 
 const meta = {
   title: {
     template: '%s | Swarms Platform',
-    default: 'Swarms Platform'
+    default: 'Swarms Platform',
   },
   description: '',
   url: getURL(),
-  favicon: '/favicon.svg'
+  favicon: '/favicon.svg',
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,10 +27,10 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: { icon: meta.favicon },
     metadataBase: new URL(meta.url),
   };
-};
+}
 
 export default async function Panel({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {

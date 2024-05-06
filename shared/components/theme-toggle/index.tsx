@@ -9,22 +9,22 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/shared/components/ui/select';
 import { SINGLE, themeOptions, themes, THEMES } from '@/shared/constants/theme';
 
 const ThemeCard = dynamic(() => import('./components/theme-card'), {
-  ssr: false
+  ssr: false,
 });
 
 export default function ThemeToggle() {
   const { setTheme, theme, resolvedTheme } = useTheme();
   const [themeOption, setThemeOption] = useState(
-    theme === THEMES.SYSTEM ? THEMES.SYSTEM : SINGLE
+    theme === THEMES.SYSTEM ? THEMES.SYSTEM : SINGLE,
   );
 
   const placeholder = themeOptions.find(
-    (option) => option.value === themeOption
+    (option) => option.value === themeOption,
   )?.label;
 
   function handleThemeOptionChange(value: string) {

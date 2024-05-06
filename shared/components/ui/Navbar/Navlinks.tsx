@@ -50,9 +50,9 @@ export default function Navlinks({ user }: NavlinksProps) {
         <div className="md:hidden">
           <Drawer direction="left">
             <DrawerTrigger asChild>
-                <Button className="text-white p-0" variant="link">
-                  <Menu />
-                </Button>
+              <Button className="text-white p-0" variant="link">
+                <Menu />
+              </Button>
             </DrawerTrigger>
 
             <DrawerContent className="flex flex-col h-full w-[300px] mt-24 fixed bottom-0 rounded-none">

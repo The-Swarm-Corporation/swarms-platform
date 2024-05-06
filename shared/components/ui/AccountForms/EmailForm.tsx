@@ -1,6 +1,6 @@
 'use client';
 
-import {Button} from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/Button';
 import Card from '@/shared/components/ui/Card';
 import { updateEmail } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function EmailForm({
-  userEmail
+  userEmail,
 }: {
   userEmail: string | undefined;
 }) {

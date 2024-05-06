@@ -6,7 +6,7 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { getURL } from '../helpers';
 
 export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
-  children
+  children,
 }) => {
   const toaster = useToast();
   const [queryClient] = useState(
@@ -18,18 +18,15 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
             onError(error, variables, context) {
               toaster.toast({
                 title: error.message,
-                variant: 'destructive'
+                variant: 'destructive',
               });
-            }
-          }
-        }
-      })
+            },
+          },
+        },
+      }),
   );
 
-
-  const [trpcClient] = useState(() =>
-    trpc.createClient(trpcConfig)
-  );
+  const [trpcClient] = useState(() => trpc.createClient(trpcConfig));
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>

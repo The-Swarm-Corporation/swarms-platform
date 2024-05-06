@@ -23,14 +23,14 @@ const usePlayground = () => {
       content: [
         {
           type: 'text',
-          text: 'Hello'
-        }
-      ]
-    }
+          text: 'Hello',
+        },
+      ],
+    },
   ]);
 
   const [selectedModelId, setSelectedModelId] = useState<string>(
-    models.data?.[0].id || ''
+    models.data?.[0].id || '',
   );
   const addMessage = () => {
     const newMessages = [...messages];
@@ -39,9 +39,9 @@ const usePlayground = () => {
       content: [
         {
           type: 'text',
-          text: ''
-        }
-      ]
+          text: '',
+        },
+      ],
     });
     setMessages(newMessages);
   };
@@ -58,7 +58,7 @@ const usePlayground = () => {
   const [isSending, setIsSending] = useState(false);
 
   const selectedModel = models.data?.find(
-    (model) => model.id === selectedModelId
+    (model) => model.id === selectedModelId,
   );
   const fetchControllerRef = useRef(new AbortController());
 
@@ -67,7 +67,7 @@ const usePlayground = () => {
   const submit = async () => {
     if (playgroundApiKey.isLoading) {
       toast.toast({
-        title: 'Api Key not loaded yet'
+        title: 'Api Key not loaded yet',
       });
       return;
     }
@@ -82,12 +82,12 @@ const usePlayground = () => {
       const url = `${model_api_endpoint ?? 'https://api.swarms.world/v1'}/chat/completions`;
 
       const messagesToSend = messages.map((message) => ({
-        ...message
+        ...message,
       }));
       if (systemMessage.trim() != '') {
         messagesToSend.push({
           role: 'system',
-          content: systemMessage
+          content: systemMessage,
         });
       }
       const data = {
@@ -95,7 +95,7 @@ const usePlayground = () => {
         messages: messagesToSend,
         temperature,
         top_p: topP,
-        max_tokens: maxTokens
+        max_tokens: maxTokens,
         // for next version
         /*         functions: [
           {
@@ -137,8 +137,8 @@ const usePlayground = () => {
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${playgroundApiKey.data}`
-        }
+          Authorization: `Bearer ${playgroundApiKey.data}`,
+        },
       })
         .then((response) => response.json())
         .then((data) => {
@@ -156,7 +156,7 @@ const usePlayground = () => {
           toast.toast({
             title: 'Error',
             description: error.message,
-            variant: 'destructive'
+            variant: 'destructive',
           });
         })
         .finally(() => {
@@ -184,7 +184,7 @@ const usePlayground = () => {
     selectedModelId,
     setSelectedModelId,
     isSending,
-    playgroundApiKey
+    playgroundApiKey,
   };
 };
 

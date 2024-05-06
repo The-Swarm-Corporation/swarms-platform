@@ -6,14 +6,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from '@/shared/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/shared/components/ui/select';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
@@ -39,7 +39,7 @@ function OrganizationList({ userOrgData, userOrgsData }: ListProps) {
     listOfOrgs,
     filteredOrg,
     filterOrg,
-    openDialog
+    openDialog,
   } = useOrganizationList({ userOrgsData });
 
   const { query } = useQueryMutation();
@@ -48,7 +48,7 @@ function OrganizationList({ userOrgData, userOrgsData }: ListProps) {
   const isLoading = useOrganizationStore((state) => state.isLoading);
   const currentOrgId = useOrganizationStore((state) => state.currentOrgId);
   const setCurrentOrgId = useOrganizationStore(
-    (state) => state.setCurrentOrgId
+    (state) => state.setCurrentOrgId,
   );
 
   return (

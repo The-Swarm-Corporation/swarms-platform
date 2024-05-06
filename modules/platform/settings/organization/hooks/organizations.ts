@@ -44,7 +44,7 @@ export const useOrganizations = () => {
   return {
     userOrgData,
     usersOrgData,
-    currentOrganization
+    currentOrganization,
   };
 };
 
@@ -63,21 +63,21 @@ export function useOrganizationMutation() {
     e,
     mutationFunction,
     toastMessage,
-    options
+    options,
   }: FormMutationProps<T>) {
     e?.preventDefault();
 
     const formData = new FormData(e?.currentTarget);
     const data = {
       ...Object.fromEntries(formData),
-      ...options
+      ...options,
     };
 
     for (const [key, value] of Object.entries(data)) {
       if (!value || value.toString().trim().length < 3) {
         toast.toast({
           description: `${key} must be at least 3 characters long`,
-          style: { color: 'red' }
+          style: { color: 'red' },
         });
         return;
       }
@@ -90,13 +90,13 @@ export function useOrganizationMutation() {
       console.log(response);
       toast.toast({
         description: toastMessage || 'Request is successful',
-        style: { color: 'green' }
+        style: { color: 'green' },
       });
       setOpenDialog(false);
       confetti({
         particleCount: 150,
         spread: 90,
-        origin: { y: 0.6 }
+        origin: { y: 0.6 },
       });
 
       query.organization.refetch();
@@ -107,7 +107,7 @@ export function useOrganizationMutation() {
       if (error?.message) {
         toast.toast({
           description: error?.message,
-          style: { color: 'red' }
+          style: { color: 'red' },
         });
       }
     } finally {
@@ -118,12 +118,12 @@ export function useOrganizationMutation() {
   async function withOrganizationMutation<T>({
     data,
     mutationFunction,
-    toastMessage
+    toastMessage,
   }: FormMutationProps<T>) {
     if (!currentOrgId) {
       toast.toast({
         description: 'Organization not found',
-        style: { color: 'red' }
+        style: { color: 'red' },
       });
       return;
     }
@@ -153,7 +153,7 @@ export function useOrganizationMutation() {
     openDialog,
     openRoleDialog,
     setOpenRoleDialog,
-    setOpenDialog
+    setOpenDialog,
   };
 }
 
@@ -168,10 +168,10 @@ export function useQueryMutation() {
   const userOrganizationQuery =
     trpc.organization.getUserPersonalOrganization.useQuery();
   const organizationMembersQuery = trpc.organization.members.useQuery({
-    id: currentOrgId ?? ''
+    id: currentOrgId ?? '',
   });
   const pendingInvitesQuery = trpc.organization.pendingInvites.useQuery({
-    organization_id: userOrgId ?? ''
+    organization_id: userOrgId ?? '',
   });
 
   // mutations
@@ -190,7 +190,7 @@ export function useQueryMutation() {
     organization: userOrganizationQuery,
     organizations: userOrganizationsQuery,
     members: organizationMembersQuery,
-    invites: pendingInvitesQuery
+    invites: pendingInvitesQuery,
   };
 
   const mutation = {
@@ -200,7 +200,7 @@ export function useQueryMutation() {
     changeRole: changeRoleMutation,
     leave: leaveOrganizationMutation,
     delete: deleteMemberMutation,
-    cancel: cancelledInvitesMutation
+    cancel: cancelledInvitesMutation,
   };
 
   return { query, mutation };

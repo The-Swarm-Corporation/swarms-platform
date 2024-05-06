@@ -1,6 +1,6 @@
-"use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { MotionValue, motion, useScroll, useTransform } from "framer-motion";
+'use client';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { MotionValue, motion, useScroll, useTransform } from 'framer-motion';
 
 import {
   IconBrightnessDown,
@@ -17,14 +17,14 @@ import {
   IconVolume,
   IconVolume2,
   IconVolume3,
-} from "@tabler/icons-react";
-import { IconSearch } from "@tabler/icons-react";
-import { IconWorld } from "@tabler/icons-react";
-import { IconCommand } from "@tabler/icons-react";
-import { IconCaretLeftFilled } from "@tabler/icons-react";
-import { IconCaretDownFilled } from "@tabler/icons-react";
-import Image, { StaticImageData } from "next/image";
-import { cn } from "@/shared/utils/cn";
+} from '@tabler/icons-react';
+import { IconSearch } from '@tabler/icons-react';
+import { IconWorld } from '@tabler/icons-react';
+import { IconCommand } from '@tabler/icons-react';
+import { IconCaretLeftFilled } from '@tabler/icons-react';
+import { IconCaretDownFilled } from '@tabler/icons-react';
+import Image, { StaticImageData } from 'next/image';
+import { cn } from '@/shared/utils/cn';
 
 const MacbookScroll = ({
   src,
@@ -39,7 +39,7 @@ const MacbookScroll = ({
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start start", "end start"],
+    offset: ['start start', 'end start'],
   });
 
   const [isMobile, setIsMobile] = useState(false);
@@ -53,12 +53,12 @@ const MacbookScroll = ({
   const scaleX = useTransform(
     scrollYProgress,
     [0, 0.3],
-    [1.2, isMobile ? 1 : 1.5]
+    [1.2, isMobile ? 1 : 1.5],
   );
   const scaleY = useTransform(
     scrollYProgress,
     [0, 0.3],
-    [0.6, isMobile ? 1 : 1.5]
+    [0.6, isMobile ? 1 : 1.5],
   );
   const translate = useTransform(scrollYProgress, [0, 1], [0, 1500]);
   const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
@@ -75,42 +75,42 @@ const MacbookScroll = ({
       >
         {title}
       </motion.h2>
-    <div
-      ref={ref}
-      className="h-[110vh] sm:min-h-[140vh] md:min-h-[235vh]  2xl:min-h-[180vh]  flex flex-col items-center pt-5 md:pt-60 justify-start flex-shrink-0 [perspective:800px] transform  scale-[0.50] sm:scale-75 md:scale-110"
-    >
-      {/* Lid */}
-      <Lid
-        src={src}
-        scaleX={scaleX}
-        scaleY={scaleY}
-        rotate={rotate}
-        translate={translate}
-      />
-      {/* Base area */}
-      <div className="h-[22rem] w-[42rem] bg-gray-200 dark:bg-[#272729] rounded-2xl overflow-hidden relative -z-10">
-        {/* above keyboard bar */}
-        <div className="h-10 w-full relative">
-          <div className="absolute inset-x-0 mx-auto w-[80%] h-4 bg-[#050505]" />
+      <div
+        ref={ref}
+        className="h-[110vh] sm:min-h-[140vh] md:min-h-[235vh]  2xl:min-h-[180vh]  flex flex-col items-center pt-5 md:pt-60 justify-start flex-shrink-0 [perspective:800px] transform  scale-[0.50] sm:scale-75 md:scale-110"
+      >
+        {/* Lid */}
+        <Lid
+          src={src}
+          scaleX={scaleX}
+          scaleY={scaleY}
+          rotate={rotate}
+          translate={translate}
+        />
+        {/* Base area */}
+        <div className="h-[22rem] w-[42rem] bg-gray-200 dark:bg-[#272729] rounded-2xl overflow-hidden relative -z-10">
+          {/* above keyboard bar */}
+          <div className="h-10 w-full relative">
+            <div className="absolute inset-x-0 mx-auto w-[80%] h-4 bg-[#050505]" />
+          </div>
+          <div className="flex relative">
+            <div className="mx-auto w-[10%] overflow-hidden  h-full">
+              <SpeakerGrid />
+            </div>
+            <div className="mx-auto w-[80%] h-full">
+              <Keypad />
+            </div>
+            <div className="mx-auto w-[10%] overflow-hidden  h-full">
+              <SpeakerGrid />
+            </div>
+          </div>
+          <Trackpad />
+          <div className="h-2 w-20 mx-auto inset-x-0 absolute bottom-0 bg-gradient-to-t from-[#272729] to-[#050505] rounded-tr-3xl rounded-tl-3xl" />
+          {showGradient && (
+            <div className="h-40 w-full absolute bottom-0 inset-x-0 bg-gradient-to-t dark:from-black from-white via-white dark:via-black to-transparent z-50"></div>
+          )}
         </div>
-        <div className="flex relative">
-          <div className="mx-auto w-[10%] overflow-hidden  h-full">
-            <SpeakerGrid />
-          </div>
-          <div className="mx-auto w-[80%] h-full">
-            <Keypad />
-          </div>
-          <div className="mx-auto w-[10%] overflow-hidden  h-full">
-            <SpeakerGrid />
-          </div>
-        </div>
-        <Trackpad />
-        <div className="h-2 w-20 mx-auto inset-x-0 absolute bottom-0 bg-gradient-to-t from-[#272729] to-[#050505] rounded-tr-3xl rounded-tl-3xl" />
-        {showGradient && (
-          <div className="h-40 w-full absolute bottom-0 inset-x-0 bg-gradient-to-t dark:from-black from-white via-white dark:via-black to-transparent z-50"></div>
-        )}
       </div>
-    </div>
     </>
   );
 };
@@ -132,15 +132,15 @@ export const Lid = ({
     <div className="relative [perspective:800px]">
       <div
         style={{
-          transform: "perspective(800px) rotateX(-25deg) translateZ(0px)",
-          transformOrigin: "bottom",
-          transformStyle: "preserve-3d",
+          transform: 'perspective(800px) rotateX(-25deg) translateZ(0px)',
+          transformOrigin: 'bottom',
+          transformStyle: 'preserve-3d',
         }}
         className="h-[12rem] w-[42rem] bg-[#010101] rounded-2xl p-2 relative"
       >
         <div
           style={{
-            boxShadow: "0px 2px 0px 2px var(--neutral-900) inset",
+            boxShadow: '0px 2px 0px 2px var(--neutral-900) inset',
           }}
           className="absolute inset-0 bg-[#010101] rounded-lg flex items-center justify-center"
         >
@@ -155,8 +155,8 @@ export const Lid = ({
           scaleY: scaleY,
           rotateX: rotate,
           translateY: translate,
-          transformStyle: "preserve-3d",
-          transformOrigin: "top",
+          transformStyle: 'preserve-3d',
+          transformOrigin: 'top',
         }}
         className="h-96 w-[42rem] absolute inset-0 bg-[#010101] rounded-2xl p-2"
       >
@@ -177,7 +177,7 @@ export const Trackpad = () => {
     <div
       className="w-[40%] mx-auto h-32  rounded-xl my-1"
       style={{
-        boxShadow: "0px 0px 1px 1px #00000020 inset",
+        boxShadow: '0px 0px 1px 1px #00000020 inset',
       }}
     ></div>
   );
@@ -454,7 +454,7 @@ export const Keypad = () => {
         <KBtn>
           <span className="block">{`>`}</span>
           <span className="block">{`.`}</span>
-        </KBtn>{" "}
+        </KBtn>{' '}
         <KBtn>
           <span className="block">{`?`}</span>
           <span className="block">{`/`}</span>
@@ -558,25 +558,25 @@ export const KBtn = ({
   return (
     <div
       className={cn(
-        "p-[0.5px] rounded-[4px]",
-        backlit && "bg-white/[0.2] shadow-xl shadow-white"
+        'p-[0.5px] rounded-[4px]',
+        backlit && 'bg-white/[0.2] shadow-xl shadow-white',
       )}
     >
       <div
         className={cn(
-          "h-7 w-[2.1rem] bg-[#0A090D] rounded-[3.5px] flex items-center justify-center",
-          className
+          'h-7 w-[2.1rem] bg-[#0A090D] rounded-[3.5px] flex items-center justify-center',
+          className,
         )}
         style={{
           boxShadow:
-            "0px -0.5px 2px 0 #0D0D0F inset, -0.5px 0px 2px 0 #0D0D0F inset",
+            '0px -0.5px 2px 0 #0D0D0F inset, -0.5px 0px 2px 0 #0D0D0F inset',
         }}
       >
         <div
           className={cn(
-            "text-neutral-200 text-[6px] w-full flex justify-center items-center flex-col",
+            'text-neutral-200 text-[6px] w-full flex justify-center items-center flex-col',
             childrenClassName,
-            backlit && "text-white"
+            backlit && 'text-white',
           )}
         >
           {children}
@@ -600,8 +600,8 @@ export const SpeakerGrid = () => {
       className="flex px-[0.5px] gap-[2px] mt-2 h-40"
       style={{
         backgroundImage:
-          "radial-gradient(circle, #08080A 0.5px, transparent 0.5px)",
-        backgroundSize: "3px 3px",
+          'radial-gradient(circle, #08080A 0.5px, transparent 0.5px)',
+        backgroundSize: '3px 3px',
       }}
     ></div>
   );
@@ -661,6 +661,5 @@ const AceternityLogo = () => {
     </svg>
   );
 };
-
 
 export default MacbookScroll;

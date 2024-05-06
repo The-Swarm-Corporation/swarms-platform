@@ -1,7 +1,7 @@
 import ModelModule from '@/modules/model';
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 const Model = ({
-  params
+  params,
 }: {
   params: {
     slug: string;

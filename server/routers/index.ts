@@ -16,6 +16,6 @@ export const appRouter = router({
   playground: playgroundRouter,
   publicPlayground: publicPlaygroundRouter,
   explorer: explorerRouter,
-  organization: organizationRouter
+  organization: organizationRouter,
 });
 export type AppRouter = typeof appRouter;

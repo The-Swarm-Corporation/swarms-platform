@@ -7,7 +7,7 @@ import { cn } from '@/shared/utils/cn';
 import {
   ExcludeOwner,
   MemberProps,
-  UserOrganizationsProps
+  UserOrganizationsProps,
 } from '../../../types';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
@@ -49,7 +49,7 @@ function TeamMember({ member, user, currentOrganization }: TeamMemberProps) {
   const allMemberRoles = useMemo(() => {
     const excludedRoles = ['Team roles', 'owner'];
     return ROLES.filter((role) => !excludedRoles.includes(role.value)).map(
-      (role) => role.value
+      (role) => role.value,
     );
   }, [member.role]);
 
@@ -61,7 +61,7 @@ function TeamMember({ member, user, currentOrganization }: TeamMemberProps) {
     if (!memberRole || memberRole === member?.role)
       return toast.toast({
         description: 'Role already exists',
-        style: { color: 'red' }
+        style: { color: 'red' },
       });
     setIsMemberRoleLoading(true);
     await handleRoleChange?.(member.user_id, memberRole as ExcludeOwner);
@@ -86,7 +86,7 @@ function TeamMember({ member, user, currentOrganization }: TeamMemberProps) {
         <div
           className={cn(
             'border w-28 p-2 cursor-pointer text-center rounded-md capitalize flex justify-between items-center',
-            !(!ownerRole && isOrgOwner) && 'justify-center cursor-not-allowed'
+            !(!ownerRole && isOrgOwner) && 'justify-center cursor-not-allowed',
           )}
           onClick={handleModal}
         >
@@ -104,7 +104,7 @@ function TeamMember({ member, user, currentOrganization }: TeamMemberProps) {
             ref={memberRef}
             className={cn(
               'absolute list-none border bg-secondary w-32 flex flex-col items-center rounded-md bottom-8 left-14 transition-all invisible',
-              isOn && 'visible'
+              isOn && 'visible',
             )}
           >
             {allMemberRoles?.map((role) => (

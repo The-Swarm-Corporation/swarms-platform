@@ -31,7 +31,7 @@ export default function CustomerPortalForm({ subscription }: Props) {
     new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: subscription?.prices?.currency!,
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format((subscription?.prices?.unit_amount || 0) / 100);
 
   const handleStripePortalRequest = async () => {

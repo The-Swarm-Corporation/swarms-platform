@@ -40,13 +40,16 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                   {...item}
                   className={cn(
                     'text-white p-2 py-3 my-1 hover:text-primary',
-                    item.link === path && 'text-primary'
+                    item.link === path && 'text-primary',
                   )}
                 />
               </li>
             ))}
           </ul>
-          <div className="relative ml-5 cursor-pointer max-sm:mt-1" onClick={setOn}>
+          <div
+            className="relative ml-5 cursor-pointer max-sm:mt-1"
+            onClick={setOn}
+          >
             {user?.user_metadata?.avatar_url ? (
               <Image
                 src={user?.user_metadata?.avatar_url}
@@ -66,12 +69,12 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
               ref={dropdownRef}
               className={cn(
                 "absolute right-0 mt-4 w-72 group-hover:block z-10 p-0 transition duration-150 invisible bg-black/85 text-white border border-secondary bg-opacity-75 rounded-md shadow-lg before:content-[''] before:absolute before:translate-x-1/4 before:block before:border-[10px] before:border-solid before:border-white before:border-t-[transparent] before:border-r-[transparent] before:border-b-secondary before:border-l-[transparent] before:right-3 before:-top-5",
-                isOn && 'translate-x-0 visible'
+                isOn && 'translate-x-0 visible',
               )}
             >
               <li
                 className={cn(
-                  'p-4 text-sm rounded-t-md border-b-slate-800 border-b flex justify-between items-center'
+                  'p-4 text-sm rounded-t-md border-b-slate-800 border-b flex justify-between items-center',
                 )}
               >
                 <NavItem title={user?.user_metadata?.email} />
@@ -90,7 +93,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                     className={cn(
                       'p-4 text-sm hover:bg-destructive hover:text-white ',
                       item.link === path && 'bg-primary text-white',
-                      isLast && 'rounded-b-md border-t-slate-800 border-t'
+                      isLast && 'rounded-b-md border-t-slate-800 border-t',
                     )}
                   >
                     {!item.link ? (

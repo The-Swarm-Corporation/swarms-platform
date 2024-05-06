@@ -18,7 +18,7 @@ const apiKeyRouter = router({
 
     return apiKeys.data?.map((row) => ({
       ...row,
-      key: `${row?.key?.slice(0, 5)}.....${row?.key?.slice(-5)}`
+      key: `${row?.key?.slice(0, 5)}.....${row?.key?.slice(-5)}`,
     }));
   }),
   addApiKey: userProcedure
@@ -37,7 +37,7 @@ const apiKeyRouter = router({
       if (name == '') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Name is required'
+          message: 'Name is required',
         });
       }
 
@@ -45,7 +45,7 @@ const apiKeyRouter = router({
         // error
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'cannot create api key with name "playground"'
+          message: 'cannot create api key with name "playground"',
         });
       }
       try {
@@ -56,13 +56,13 @@ const apiKeyRouter = router({
         if (!newApiKey.error) {
           return {
             key,
-            name
+            name,
           };
         }
       } catch (e) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while adding new api key'
+          message: 'Error while adding new api key',
         });
       }
     }),
@@ -80,14 +80,14 @@ const apiKeyRouter = router({
       if (apiKey.error) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Invalid api key'
+          message: 'Invalid api key',
         });
       }
 
       if (apiKey.data.name == 'playground') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Cannot delete playground api key'
+          message: 'Cannot delete playground api key',
         });
       }
       const updatedApiKey = await ctx.supabase
@@ -100,9 +100,9 @@ const apiKeyRouter = router({
       }
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while deleting api key'
+        message: 'Error while deleting api key',
       });
-    })
+    }),
 });
 
 export default apiKeyRouter;

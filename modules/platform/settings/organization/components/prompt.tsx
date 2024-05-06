@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
-  DialogTrigger
+  DialogTrigger,
 } from '@/shared/components/ui/dialog';
 import { Dispatch, PropsWithChildren, SetStateAction } from 'react';
 import { Button } from '@/shared/components/ui/Button';
@@ -25,7 +25,7 @@ export default function ModalPrompt({
   content,
   isLoading,
   openDialog,
-  setOpenDialog
+  setOpenDialog,
 }: ModalPromptProps) {
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>

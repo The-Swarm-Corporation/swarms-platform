@@ -12,7 +12,7 @@ const useCardManager = () => {
     attach,
     detach,
     setAsDefault,
-    getDefaultMethod
+    getDefaultMethod,
   };
 };
 

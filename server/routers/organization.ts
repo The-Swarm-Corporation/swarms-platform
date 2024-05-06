@@ -40,7 +40,7 @@ const organizationRouter = router({
     if (personalOrg.data?.length) {
       allOrgs.push({
         role: 'owner',
-        organization: personalOrg.data[0]
+        organization: personalOrg.data[0],
       });
     }
 
@@ -64,7 +64,7 @@ const organizationRouter = router({
         if (org.data?.length && member.role) {
           allOrgs.push({
             role: member.role,
-            organization: org.data[0]
+            organization: org.data[0],
           });
         }
       }
@@ -75,8 +75,8 @@ const organizationRouter = router({
   getOrganizationInfo: userProcedure
     .input(
       z.object({
-        id: z.string()
-      })
+        id: z.string(),
+      }),
     )
     .query(async ({ ctx, input: { id } }) => {
       const user = ctx.session.data.session?.user as User;
@@ -97,8 +97,8 @@ const organizationRouter = router({
   createOrganization: userProcedure
     .input(
       z.object({
-        name: z.string().min(3)
-      })
+        name: z.string().min(3),
+      }),
     )
     .mutation(async ({ ctx, input: { name } }) => {
       const user = ctx.session.data.session?.user as User;
@@ -128,8 +128,8 @@ const organizationRouter = router({
     .input(
       z.object({
         id: z.string(),
-        name: z.string().min(3)
-      })
+        name: z.string().min(3),
+      }),
     )
     .mutation(async ({ ctx, input: { id, name } }) => {
       const user = ctx.session.data.session?.user as User;
@@ -156,15 +156,15 @@ const organizationRouter = router({
   members: userProcedure
     .input(
       z.object({
-        id: z.string()
-      })
+        id: z.string(),
+      }),
     )
     .query(async ({ ctx, input: { id } }) => {
       const user = ctx.session.data.session?.user as User;
 
       // check access: user should be owner or member
       const userRole = await getUserOrganizationRole(id, user.id);
-      
+
       if (!userRole) {
         throw new Error('Access denied');
       }
@@ -197,7 +197,7 @@ const organizationRouter = router({
         members.push({
           user_id: orgOwner.id,
           name: orgOwner.full_name || '',
-          role: 'owner'
+          role: 'owner',
         });
       }
       // members
@@ -224,7 +224,7 @@ const organizationRouter = router({
           members.push({
             user_id: member.user_id,
             name: member_user.full_name || '',
-            role: member.role
+            role: member.role,
           });
         }
       }
@@ -237,8 +237,8 @@ const organizationRouter = router({
       z.object({
         id: z.string(),
         email: z.string().email(),
-        role: z.enum(['manager', 'reader'])
-      })
+        role: z.enum(['manager', 'reader']),
+      }),
     )
     .mutation(async ({ ctx, input: { id, email, role } }) => {
       // check access: user should be owner or member with manager role
@@ -269,8 +269,8 @@ const organizationRouter = router({
         // @ts-ignore
         'get_user_id_by_email',
         {
-          email
-        }
+          email,
+        },
       );
       // @ts-ignore
       const invitedUser = (data as { id: string }[])?.[0];
@@ -281,7 +281,6 @@ const organizationRouter = router({
         // Todo: fix soon
         throw new Error('User need to signup first');
       }
-
 
       // check duplicate member
       const { data: member } = await ctx.supabase
@@ -348,7 +347,7 @@ const organizationRouter = router({
           from: `kye@apac.ai`,
           to: email,
           subject: 'Invitation to join organization',
-          html
+          html,
         });
         if (!sendEmail) {
           throw new Error('Failed to send email');
@@ -363,7 +362,7 @@ const organizationRouter = router({
             user_id: invitedUser.id,
             invite_by_user_id: user.id,
             status: 'waiting',
-            role: role as Enums<'organization_member_role'>
+            role: role as Enums<'organization_member_role'>,
           });
 
         return true;
@@ -394,8 +393,8 @@ const organizationRouter = router({
     .input(
       z.object({
         organization_id: z.string(),
-        email: z.string().email()
-      })
+        email: z.string().email(),
+      }),
     )
     .mutation(async ({ ctx, input: { organization_id, email } }) => {
       const user = ctx.session.data.session?.user as User;
@@ -431,8 +430,8 @@ const organizationRouter = router({
   leaveOrganization: userProcedure
     .input(
       z.object({
-        organization_id: z.string()
-      })
+        organization_id: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input: { organization_id } }) => {
       const user = ctx.session.data.session?.user as User;
@@ -469,8 +468,8 @@ const organizationRouter = router({
     .input(
       z.object({
         organization_id: z.string(),
-        user_id: z.string()
-      })
+        user_id: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input: { organization_id, user_id } }) => {
       const user = ctx.session.data.session?.user as User;
@@ -482,7 +481,10 @@ const organizationRouter = router({
       }
       // managers cant delete other managers
       if (userRole == 'manager') {
-        const memberRole = await getUserOrganizationRole(organization_id, user_id);
+        const memberRole = await getUserOrganizationRole(
+          organization_id,
+          user_id,
+        );
         if (memberRole == 'manager') {
           throw new Error('Access denied');
         }
@@ -511,8 +513,8 @@ const organizationRouter = router({
       z.object({
         organization_id: z.string(),
         user_id: z.string(),
-        role: z.enum(['manager', 'reader'])
-      })
+        role: z.enum(['manager', 'reader']),
+      }),
     )
     .mutation(async ({ ctx, input: { organization_id, user_id, role } }) => {
       const user = ctx.session.data.session?.user as User;
@@ -540,7 +542,7 @@ const organizationRouter = router({
         .eq('id', member.data[0].id);
 
       return true;
-    })
+    }),
 });
 
 export { organizationRouter };

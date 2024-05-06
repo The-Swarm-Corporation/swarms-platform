@@ -7,14 +7,14 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerTrigger
+  DrawerTrigger,
 } from '@/shared/components/ui/drawer';
 import { Button } from '@/shared/components/ui/Button';
 import { NavMenuPropsKeys, SIDE_BAR_MENU } from '../../const';
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger
+  CollapsibleTrigger,
 } from '@/shared/components/ui/collapsible';
 import NavItem from '../../item';
 
@@ -70,7 +70,7 @@ const SidebarMobile = () => {
                           isIcon
                           className={cn(
                             'p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md',
-                            item.link === path && 'bg-primary text-white'
+                            item.link === path && 'bg-primary text-white',
                           )}
                         />
                         {item.link === path && item.items?.length && (
@@ -81,7 +81,7 @@ const SidebarMobile = () => {
                                 className={cn(
                                   'pl-10  py-1  hover:bg-primary hover:text-white rounded-md',
                                   subItem.link === path &&
-                                    'border border-gray-400 dark:text-white'
+                                    'border border-gray-400 dark:text-white',
                                 )}
                               />
                             ))}

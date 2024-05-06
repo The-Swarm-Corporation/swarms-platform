@@ -15,7 +15,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/shared/components/ui/select';
 import AddSwarmModal from './components/add-swarm-modal';
 import Input from '@/shared/components/ui/Input';
@@ -41,7 +41,7 @@ const Explorer = () => {
     isDataLoading,
     handleSearchChange,
     handleOptionChange,
-    handleRemoveOption
+    handleRemoveOption,
   } = useModels();
 
   const toast = useToast();
@@ -51,7 +51,7 @@ const Explorer = () => {
     }
     const t = toast.toast({
       title: 'wait a moment...',
-      duration: 10000
+      duration: 10000,
     });
     synthifyMagicLink
       .mutateAsync()
@@ -63,7 +63,7 @@ const Explorer = () => {
           id: t.id,
           title: 'Something went wrong',
           variant: 'destructive',
-          duration: 3000
+          duration: 3000,
         });
       })
       .finally(() => {});

@@ -3,10 +3,10 @@ import s from './Navbar.module.css';
 import Navlinks from './Navlinks';
 
 export default async function Navbar() {
-  const supabase = createClient(); 
+  const supabase = createClient();
 
   const {
-    data: { user }
+    data: { user },
   } = await supabase.auth.getUser();
 
   return (

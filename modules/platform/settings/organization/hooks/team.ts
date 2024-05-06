@@ -30,11 +30,11 @@ export function useOrganizationTeam() {
     if (!query.members.data) return [];
     return query.members.data
       .filter((member) =>
-        filterRole === 'Team roles' ? true : member.role === filterRole
+        filterRole === 'Team roles' ? true : member.role === filterRole,
       )
       .filter(
         (member) =>
-          !search || member.name?.toLowerCase().includes(search.toLowerCase())
+          !search || member.name?.toLowerCase().includes(search.toLowerCase()),
       );
   }, [query.members.data, filterRole, search]);
 
@@ -42,21 +42,21 @@ export function useOrganizationTeam() {
     (value: string) => {
       debouncedSearch(value);
     },
-    [debouncedSearch]
+    [debouncedSearch],
   );
 
   async function handleRoleChange(user_id: string, role: ExcludeOwner) {
     if (!user_id || !role) {
       toast.toast({
         description: 'Something went wrong; Missing values',
-        style: { color: 'red' }
+        style: { color: 'red' },
       });
       return;
     }
     await withOrganizationMutation({
       mutationFunction: mutation.changeRole,
       data: { user_id, role, organization_id: currentOrgId },
-      toastMessage: 'Member role updated'
+      toastMessage: 'Member role updated',
     });
   }
 
@@ -64,7 +64,7 @@ export function useOrganizationTeam() {
     await withOrganizationMutation({
       mutationFunction: mutation.leave,
       data: { organization_id: currentOrgId },
-      toastMessage: "You've successfully left the organization"
+      toastMessage: "You've successfully left the organization",
     });
     utils.organization.members.reset();
     useOrganizationStore
@@ -76,14 +76,14 @@ export function useOrganizationTeam() {
     if (!user_id) {
       toast.toast({
         description: 'Something went wrong; Missing values',
-        style: { color: 'red' }
+        style: { color: 'red' },
       });
       return;
     }
     await withOrganizationMutation({
       mutationFunction: mutation.delete,
       data: { user_id, organization_id: currentOrgId },
-      toastMessage: 'User has been successfully removed'
+      toastMessage: 'User has been successfully removed',
     });
   }
 
@@ -97,6 +97,6 @@ export function useOrganizationTeam() {
     handleSearchChange,
     handleRoleChange,
     handleLeaveOrg,
-    handleDeleteMember
+    handleDeleteMember,
   };
 }

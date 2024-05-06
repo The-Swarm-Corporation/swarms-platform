@@ -26,15 +26,13 @@ async function POST(req: Request) {
   const isAuthenticated = await guard.isAuthenticated();
   try {
     return new Response(isAuthenticated.message, {
-      status: isAuthenticated.status
+      status: isAuthenticated.status,
     });
   } catch (error) {
     return new Response('Internal Server Error', {
-      status: 500
+      status: 500,
     });
   }
 }
 
-export {
-  POST
-};
+export { POST };

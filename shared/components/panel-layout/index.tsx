@@ -7,7 +7,7 @@ const PanelLayout = async ({ children }: { children: React.ReactNode }) => {
   const supabase = createClient();
 
   const {
-    data: { user }
+    data: { user },
   } = await supabase.auth.getUser();
   return (
     <>
