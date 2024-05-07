@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from '@/shared/components/ui/Button';
 import useSubscription from '@/shared/hooks/subscription';
 
@@ -12,8 +10,8 @@ const Credit = () => {
   return (
     <div className="flex flex-col gap-4 border rounded-md p-4 w-full">
       <div className="flex gap-2">
-        <span>Your Credit:</span>
-        <span className="text-primary">
+        <span className="text-lg font-bold">Credits Available:</span>
+        <span className="text-primary text-lg">
           {subscription.creditLoading
             ? 'Loading...'
             : `$ ${(subscription.credit ?? 0).toFixed(2)}`}

@@ -63,3 +63,12 @@ export async function fetchTotalChargesLastMonth(): Promise<UserTotalCharge[]> {
     throw new Error('Error fetching total charges last month');
   }
 }
+
+// Usage example
+fetchTotalChargesLastMonth()
+    .then((totalCharges) => {
+        console.log('Total charges last month:', totalCharges);
+    })
+    .catch((error) => {
+        console.error('Failed to fetch total charges last month:', error);
+    });
