@@ -3,6 +3,10 @@
 import { Button } from '@/shared/components/ui/Button';
 import useSubscription from '@/shared/hooks/subscription';
 
+/**
+ * Renders the Credit component.
+ * This component displays the user's credit balance and provides a button to charge the account.
+ */
 const Credit = () => {
   const subscription = useSubscription();
   return (
