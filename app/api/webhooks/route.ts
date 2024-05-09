@@ -92,8 +92,9 @@ export async function POST(req: Request) {
             checkoutSession.mode === 'payment' &&
             checkoutSession.status === 'complete'
           ) {
+            console.log({ checkoutSession });
             const amount = checkoutSession?.amount_total ?? 0;
-            const userId = checkoutSession.client_reference_id;
+            const userId = checkoutSession?.client_reference_id;
             if (userId && amount) {
               try {
                 const ok = await increaseUserCredit(userId, amount);
@@ -101,7 +102,9 @@ export async function POST(req: Request) {
                   // return success to stripe
                   return new Response(JSON.stringify({ received: true }));
                 }
-              } catch (error) {}
+              } catch (error) {
+                console.error(error)
+              }
             }
           }
           if (checkoutSession.status === 'complete') {
