@@ -56,6 +56,8 @@ async function POST(req: Request) {
       ((res_json.usage?.completion_tokens ?? 0) / 1000000) *
       price_million_output;
 
+    const totalCost = input_price + output_price;
+
     const choices =
       res_json.choices as unknown as OpenAI.Chat.Completions.ChatCompletion.Choice[];
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -65,6 +67,7 @@ async function POST(req: Request) {
         content: choices[0]?.message?.content,
       },
     ];
+
     // log the result
     const logResult = await guard.logUsage({
       input_cost: input_price,
@@ -76,14 +79,29 @@ async function POST(req: Request) {
       model: modelId,
       temperature: data.temperature ?? 0,
       top_p: data.top_p ?? 0,
-      total_cost: input_price + output_price,
+      total_cost: totalCost,
       stream: data.stream ?? false,
     });
+
+    console.log({ logResult });
+
+    let creditBalance = await guard.calculateRemainingCredit(totalCost);
+
+    console.log(creditBalance);
+
     if (logResult.status !== 200) {
       return new Response(logResult.message, {
         status: logResult.status,
       });
     }
+    
+    //TODO: calculate the remaining credit balance
+    // credit balance(cents) - logResult.total_cost(cents) // can be under 1 cent
+    // 400 - 0.000245
+    // 399.999766
+
+    //TODO: use decimal.js lib to calculate float values
+
     return NextResponse.json(res_json);
   } catch (error) {
     console.log('error', error);

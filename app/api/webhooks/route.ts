@@ -92,7 +92,6 @@ export async function POST(req: Request) {
             checkoutSession.mode === 'payment' &&
             checkoutSession.status === 'complete'
           ) {
-            console.log({ checkoutSession });
             const amount = checkoutSession?.amount_total ?? 0;
             const userId = checkoutSession?.client_reference_id;
             if (userId && amount) {

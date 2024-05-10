@@ -1,5 +1,6 @@
 import { trpc } from '../utils/trpc/trpc';
 import { getStripe } from '../utils/stripe/client';
+import { useMemo } from 'react';
 
 /**
  * Custom hook for managing subscription-related functionality.
@@ -35,8 +36,13 @@ const useSubscription = () => {
       document.location.href = url;
     });
   };
+
+  const credit = useMemo(
+    () => (userCredit.data ? userCredit.data / 100 : 0),
+    [userCredit.data],
+  );
   return {
-    credit: userCredit.data ?? 0,
+    credit,
     creditLoading: userCredit.isLoading,
     data: getSubscription,
     statusLoading: getSubscription.isLoading,

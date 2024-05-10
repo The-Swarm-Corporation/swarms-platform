@@ -1,6 +1,7 @@
 import { Tables } from '@/types_db';
-import { supabaseAdmin } from '../supabase/admin';
+import { getUserCredit, supabaseAdmin } from '../supabase/admin';
 import { getUserOrganizationRole } from './organization';
+import { Decimal } from 'decimal.js';
 
 type Options = {
   apiKey: string | null;
@@ -20,6 +21,7 @@ type UsageOptions = {
   output_tokens: number;
   max_tokens: number;
   messages: any;
+
 };
 export class SwarmsApiGuard {
   apiKey: string | null;
@@ -79,7 +81,7 @@ export class SwarmsApiGuard {
       }
     }
 
-    // check billing limits: SOON
+    // check billing limits: SOON // does user have to have subscription to make use of credits
 
     // check user is not banned: SOON
 
@@ -100,6 +102,42 @@ export class SwarmsApiGuard {
 
     return { status: 200, message: 'Success' };
   }
+
+  async calculateRemainingCredit(totalAPICost: number) {
+    const currentCredit = await getUserCredit(this.userId ?? "");
+    
+    // Convert totalAPICost and currentCredit to Decimal instances
+    const decimalTotalAPICost = new Decimal(totalAPICost);
+    const decimalCurrentCredit = new Decimal(currentCredit);
+  
+    // Subtract totalAPICost from currentCredit
+    const newCredit = decimalCurrentCredit.minus(decimalTotalAPICost);
+
+    console.log({ newCredit });
+  
+    // Perform upsert operation
+    // const response = await supabaseAdmin
+    //   .from('swarms_cloud_users_credits')
+    //   .upsert(
+    //     {
+    //       user_id: this.userId ?? "",
+    //       credit: newCredit.toNumber(), // Convert Decimal back to number
+    //     },
+    //     {
+    //       onConflict: 'user_id',
+    //     },
+    //   );
+  
+    // if (response.error) {
+    //   throw new Error(response.error.message);
+    // } else {
+    //   console.log('Upsert operation successful');
+    //   // Return the remaining credit balance
+    //   return newCredit.toNumber();
+    // }
+  }
+  
+
   async logUsage(usage: UsageOptions): Promise<{
     status: number;
     message: string;
