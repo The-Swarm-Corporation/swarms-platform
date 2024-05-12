@@ -30,12 +30,12 @@ async function POST(req: Request) {
     });
   }
 
-  const remainingCredits = await guard.getRemainingCredit();
-  if (remainingCredits < 0) {
-    return new Response('No remaining credits', {
-      status: 400,
-    });
-  }
+  // const remainingCredits = await guard.getRemainingCredit();
+  // if (remainingCredits < 0) {
+  //   return new Response('No remaining credits', {
+  //     status: 400,
+  //   });
+  // }
 
   // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS
   const endpoint = guard.modelRecord?.api_endpoint;
@@ -91,11 +91,11 @@ async function POST(req: Request) {
       stream: data.stream ?? false,
     });
 
-    console.log({ logResult });
+    // console.log({ logResult });
 
-    let creditBalance = await guard.calculateRemainingCredit(totalCost);
+    // let creditBalance = await guard.calculateRemainingCredit(totalCost);
 
-    console.log(creditBalance);
+    // console.log(creditBalance);
 
     if (logResult.status !== 200) {
       return new Response(logResult.message, {

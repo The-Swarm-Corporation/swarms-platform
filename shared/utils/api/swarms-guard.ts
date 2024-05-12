@@ -102,45 +102,6 @@ export class SwarmsApiGuard {
     return { status: 200, message: 'Success' };
   }
 
-  async getRemainingCredit(): Promise<number> {
-    const { credit, free_credit } = await getUserCredit(this.userId ?? "");
-    return credit + free_credit;
-  }
-
-  async calculateRemainingCredit(totalAPICost: number) {
-    const { credit, free_credit } = await getUserCredit(this.userId ?? "");
-    const currentCredit = credit + free_credit;
-    
-    // Convert totalAPICost and currentCredit to Decimal instances
-    const decimalTotalAPICost = new Decimal(totalAPICost);
-    const decimalCurrentCredit = new Decimal(currentCredit);
-  
-    // Subtract totalAPICost from currentCredit
-    const newCredit = decimalCurrentCredit.minus(decimalTotalAPICost);
-  
-    // Perform upsert operation
-    const response = await supabaseAdmin
-      .from('swarms_cloud_users_credits')
-      .upsert(
-        {
-          user_id: this.userId ?? "",
-          credit: newCredit.toNumber(), // Convert Decimal back to number
-        },
-        {
-          onConflict: 'user_id',
-        },
-      );
-  
-    if (response.error) {
-      throw new Error(response.error.message);
-    } else {
-      console.log('Upsert operation successful');
-      // Return the remaining credit balance
-      return newCredit.toNumber();
-    }
-  }
-  
-
   async logUsage(usage: UsageOptions): Promise<{
     status: number;
     message: string;

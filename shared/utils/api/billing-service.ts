@@ -80,6 +80,8 @@ export class BillingService {
   }
 
   async sendInvoiceToUser(totalAmount: number, user: User, currentPath = '/') {
+    if (totalAmount <= 0) return;
+
     try {
       if (!user) {
         throw new Error('Could not get user session.');
