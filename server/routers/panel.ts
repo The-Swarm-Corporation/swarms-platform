@@ -12,8 +12,8 @@ import {
 const panelRouter = router({
   getUserCredit: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
-    const userCredit = await getUserCredit(user.id);
-    return userCredit;
+    const { credit, free_credit } = await getUserCredit(user.id);
+    return credit + free_credit;
   }),
   // onboarding
   getOnboarding: userProcedure.query(async ({ ctx }) => {

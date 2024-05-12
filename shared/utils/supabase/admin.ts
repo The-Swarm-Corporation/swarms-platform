@@ -370,7 +370,7 @@ const manageSubscriptionStatusChange = async (
 };
 
 const increaseUserCredit = async (uuid: string, amount: number) => {
-  const currentCredit = await getUserCredit(uuid);
+  const { credit: currentCredit } = await getUserCredit(uuid);
   // Increase credit amount
   const newCredit = currentCredit + amount;
 
@@ -394,22 +394,41 @@ const increaseUserCredit = async (uuid: string, amount: number) => {
     return true;
   }
 };
+
 const getUserCredit = async (uuid: string) => {
   try {
     const { data, error } = await supabaseAdmin
       .from('swarms_cloud_users_credits')
-      .select('credit')
+      .select('credit, free_credit')
       .eq('user_id', uuid)
       .single();
     if (error) {
       console.error(error.message);
-      return 0;
+      return { credit: 0, free_credit: 0 };
     }
-    return data?.credit ?? 0;
+    console.log({ data });
+    return { credit: data?.credit ?? 0, free_credit: data?.free_credit ?? 0 };
   } catch (e) {
     console.error(e);
-    return 0;
+    return { credit: 0, free_credit: 0 };
   }
+};
+
+const getStripeCustomerId = async (
+  userId: string,
+): Promise<string | null> => {
+  const { data, error } = await supabaseAdmin
+    .from('customers')
+    .select('stripe_customer_id')
+    .eq('id', userId)
+    .single(); // Using .single() as we expect only one record for each user
+
+  if (error) {
+    console.error('Error fetching Stripe customer ID:', error);
+    throw new Error('Failed to fetch Stripe customer ID');
+  }
+
+  return data ? data.stripe_customer_id : null;
 };
 
 export {
@@ -423,5 +442,6 @@ export {
   manageSubscriptionStatusChange,
   retrieveUserStripeCustomerId,
   upsertInvoiceRecord,
+  getStripeCustomerId,
   retrieveUserIdFromCustomerId,
 };

@@ -92,7 +92,9 @@ export async function POST(req: Request) {
             checkoutSession.mode === 'payment' &&
             checkoutSession.status === 'complete'
           ) {
-            const amount = checkoutSession?.amount_total ?? 0;
+            const amount = checkoutSession?.amount_total
+              ? Number(checkoutSession?.amount_total) / 100
+              : 0;
             const userId = checkoutSession?.client_reference_id;
             if (userId && amount) {
               try {
@@ -102,7 +104,7 @@ export async function POST(req: Request) {
                   return new Response(JSON.stringify({ received: true }));
                 }
               } catch (error) {
-                console.error(error)
+                console.error(error);
               }
             }
           }

@@ -237,6 +237,51 @@ export type Database = {
           },
         ]
       }
+      swarm_cloud_billing_transcations: {
+        Row: {
+          created_at: string
+          id: number
+          invoice_id: string | null
+          stripe_customer_id: string | null
+          total_montly_cost: number | null
+          transaction_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          invoice_id?: string | null
+          stripe_customer_id?: string | null
+          total_montly_cost?: number | null
+          transaction_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          invoice_id?: string | null
+          stripe_customer_id?: string | null
+          total_montly_cost?: number | null
+          transaction_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Swarm Cloud Billing Transcations_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_api_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Swarm Cloud Billing Transcations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       swarms_cloud_api_activities: {
         Row: {
           api_key_id: string | null
@@ -695,18 +740,24 @@ export type Database = {
         Row: {
           created_at: string
           credit: number | null
+          free_credit: number | null
+          free_credit_expire_date: string | null
           id: string
           user_id: string | null
         }
         Insert: {
           created_at?: string
           credit?: number | null
+          free_credit?: number | null
+          free_credit_expire_date?: string | null
           id?: string
           user_id?: string | null
         }
         Update: {
           created_at?: string
           credit?: number | null
+          free_credit?: number | null
+          free_credit_expire_date?: string | null
           id?: string
           user_id?: string | null
         }
@@ -752,6 +803,107 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_users_wallets: {
+        Row: {
+          balance: number | null
+          created_at: string
+          expire_date: string | null
+          id: string
+          is_deleted: boolean | null
+          is_expired: boolean | null
+          name: string | null
+          order: number | null
+          user_id: string | null
+        }
+        Insert: {
+          balance?: number | null
+          created_at?: string
+          expire_date?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          is_expired?: boolean | null
+          name?: string | null
+          order?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          balance?: number | null
+          created_at?: string
+          expire_date?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          is_expired?: boolean | null
+          name?: string | null
+          order?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_users_wallets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_users_wallets_transactions: {
+        Row: {
+          amount: number | null
+          created_at: string
+          description: string | null
+          id: string
+          new_balance: number | null
+          old_balance: number | null
+          type:
+            | Database["public"]["Enums"]["users_wallets_transaction_type"]
+            | null
+          user_id: string | null
+          wallet_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          new_balance?: number | null
+          old_balance?: number | null
+          type?:
+            | Database["public"]["Enums"]["users_wallets_transaction_type"]
+            | null
+          user_id?: string | null
+          wallet_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          new_balance?: number | null
+          old_balance?: number | null
+          type?:
+            | Database["public"]["Enums"]["users_wallets_transaction_type"]
+            | null
+          user_id?: string | null
+          wallet_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_users_wallets_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_users_wallets_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_users_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           about_company: string | null
@@ -760,6 +912,7 @@ export type Database = {
           billing_address: Json | null
           company_name: string | null
           country_code: string | null
+          credit_fraction: number | null
           email: string | null
           full_name: string | null
           id: string
@@ -775,6 +928,7 @@ export type Database = {
           billing_address?: Json | null
           company_name?: string | null
           country_code?: string | null
+          credit_fraction?: number | null
           email?: string | null
           full_name?: string | null
           id: string
@@ -790,6 +944,7 @@ export type Database = {
           billing_address?: Json | null
           company_name?: string | null
           country_code?: string | null
+          credit_fraction?: number | null
           email?: string | null
           full_name?: string | null
           id?: string
@@ -843,6 +998,7 @@ export type Database = {
         | "paused"
       user_swarms_status: "approved" | "pending" | "rejected"
       user_tier: "tier1" | "tier2" | "tier3" | "tier4"
+      users_wallets_transaction_type: "reduct" | "add"
     }
     CompositeTypes: {
       [_ in never]: never

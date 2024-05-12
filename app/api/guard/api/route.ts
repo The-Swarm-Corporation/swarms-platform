@@ -29,6 +29,14 @@ async function POST(req: Request) {
       status: isAuthenticated.status,
     });
   }
+
+  const remainingCredits = await guard.getRemainingCredit();
+  if (remainingCredits < 0) {
+    return new Response('No remaining credits', {
+      status: 400,
+    });
+  }
+
   // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS
   const endpoint = guard.modelRecord?.api_endpoint;
   const url = `${endpoint}/chat/completions`;
@@ -94,13 +102,6 @@ async function POST(req: Request) {
         status: logResult.status,
       });
     }
-    
-    //TODO: calculate the remaining credit balance
-    // credit balance(cents) - logResult.total_cost(cents) // can be under 1 cent
-    // 400 - 0.000245
-    // 399.999766
-
-    //TODO: use decimal.js lib to calculate float values
 
     return NextResponse.json(res_json);
   } catch (error) {

@@ -1,6 +1,5 @@
 import { Button } from '@/shared/components/ui/Button';
 import { getStripe } from '@/shared/utils/stripe/client';
-import { trpc } from '@/shared/utils/trpc/trpc';
 import {
   CardElement,
   useStripe,
