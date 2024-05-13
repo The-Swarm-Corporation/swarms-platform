@@ -1,7 +1,6 @@
 import { Tables } from '@/types_db';
-import { getUserCredit, supabaseAdmin } from '../supabase/admin';
+import { supabaseAdmin } from '../supabase/admin';
 import { getUserOrganizationRole } from './organization';
-import { Decimal } from 'decimal.js';
 
 type Options = {
   apiKey: string | null;
