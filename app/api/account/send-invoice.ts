@@ -29,7 +29,7 @@ export default async function handler(
       .select('*');
 
     if (fetchError) {
-      console.error('Error fetching users:', fetchError.message);
+      console.error('Error fetching users:', fetchError);
       return res.status(500).json({ message: 'Internal server error' });
     }
 
@@ -38,21 +38,21 @@ export default async function handler(
       return res.status(200).json({ message: 'No users found' });
     }
 
-    // Split all users into batches
     const userBatches = chunk(allUsers, BATCH_SIZE);
 
-    // Process each batch of users in parallel
     await Promise.all(
       userBatches.map(async (batch) => {
-        // Generate invoices for each user in the batch
         await Promise.all(
           batch.map(async (user) => {
             const billingService = new BillingService(user.id);
-            const totalMonthlyUsage =
+            const usage =
               await billingService.calculateTotalMonthlyUsageForUser(
                 lastMonthDate,
               );
-            await billingService.sendInvoiceToUser(totalMonthlyUsage, user as unknown as User);
+            await billingService.sendInvoiceToUser(
+              usage.totalMonthlyUsage,
+              user as unknown as User,
+            );
           }),
         );
       }),
@@ -60,7 +60,7 @@ export default async function handler(
 
     res.status(200).json({ message: 'Invoice generation successful' });
   } catch (error) {
-    console.error(error);
+    console.error('Error sending invoices:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

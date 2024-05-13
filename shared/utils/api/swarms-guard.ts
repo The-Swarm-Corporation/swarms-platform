@@ -101,6 +101,10 @@ export class SwarmsApiGuard {
     return { status: 200, message: 'Success' };
   }
 
+  getUserId(): string | null {
+    return this.userId;
+  }
+
   async logUsage(usage: UsageOptions): Promise<{
     status: number;
     message: string;

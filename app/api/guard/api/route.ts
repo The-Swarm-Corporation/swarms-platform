@@ -1,3 +1,4 @@
+import { BillingService } from '@/shared/utils/api/billing-service';
 import { SwarmsApiGuard } from '@/shared/utils/api/swarms-guard';
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
@@ -30,12 +31,19 @@ async function POST(req: Request) {
     });
   }
 
-  // const remainingCredits = await guard.getRemainingCredit();
-  // if (remainingCredits < 0) {
-  //   return new Response('No remaining credits', {
-  //     status: 400,
-  //   });
-  // }
+  const userId = guard.getUserId();
+  if (!userId) {
+    return new Response('User ID not found', { status: 500 });
+  }
+
+  const billingService = new BillingService(userId);
+  const credits = await billingService.getRemainingCredit();
+
+  if (credits.remainingCredit <= 0) {
+    return new Response('No remaining credits', {
+      status: 400,
+    });
+  }
 
   // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS
   const endpoint = guard.modelRecord?.api_endpoint;
@@ -76,6 +84,16 @@ async function POST(req: Request) {
       },
     ];
 
+    // calculate remaining credit
+    const creditBalance =
+      await billingService.calculateRemainingCredit(totalCost);
+
+    if (creditBalance.status !== 200) {
+      return new Response(creditBalance.message, {
+        status: creditBalance.status,
+      });
+    }
+
     // log the result
     const logResult = await guard.logUsage({
       input_cost: input_price,
@@ -91,17 +109,12 @@ async function POST(req: Request) {
       stream: data.stream ?? false,
     });
 
-    // console.log({ logResult });
-
-    // let creditBalance = await guard.calculateRemainingCredit(totalCost);
-
-    // console.log(creditBalance);
-
     if (logResult.status !== 200) {
       return new Response(logResult.message, {
         status: logResult.status,
       });
     }
+    // console.log({ logResult });
 
     return NextResponse.json(res_json);
   } catch (error) {
