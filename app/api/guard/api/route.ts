@@ -38,11 +38,28 @@ async function POST(req: Request) {
 
   const billingService = new BillingService(userId);
   const credits = await billingService.getRemainingCredit();
+  const lastInvoiceStatus =
+    await billingService.checkLastInvoicePaymentStatus();
 
   if (credits.remainingCredit <= 0 && credits.credit_plan === 'default') {
     return new Response('No remaining credits', {
       status: 400,
     });
+  }
+
+  if (lastInvoiceStatus.status !== 200) {
+    return new Response(lastInvoiceStatus.message, {
+      status: lastInvoiceStatus.status,
+    });
+  }
+
+  if (!lastInvoiceStatus.is_paid) {
+    return new Response(
+      `Outstanding invoice - ${lastInvoiceStatus?.invoiceId} not paid in full`,
+      {
+        status: 400,
+      },
+    );
   }
 
   // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS

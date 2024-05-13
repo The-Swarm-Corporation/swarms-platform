@@ -44,8 +44,17 @@ export class BillingService {
     message: string;
     newCredit: number;
   }> {
+    if (totalAPICost <= 0) {
+      return {
+        status: 400,
+        message: 'Invalid total API cost',
+        newCredit: 0,
+      };
+    }
+
     try {
       const { remainingCredit } = await this.getRemainingCredit();
+
       const decimalTotalAPICost = new Decimal(totalAPICost);
       const decimalCurrentCredit = new Decimal(remainingCredit);
       const newCredit = decimalCurrentCredit
@@ -153,41 +162,104 @@ export class BillingService {
     }
   }
 
-  async checkInvoicePaymentStatus(invoiceId: string): Promise<boolean> {
+  async getLatestBillingTransaction(): Promise<{
+    status: number;
+    message: string;
+    invoiceId?: string | null;
+  }> {
     try {
-      const { data, error } = await supabaseAdmin
-        .from('invoices')
-        .select('is_paid, period_end')
+      if (!this.userId) {
+        return { status: 400, message: 'User session not found' };
+      }
+
+      const { data: latestTransaction, error } = await supabaseAdmin
+        .from('billing_transactions')
+        .select('*')
         .eq('user_id', this.userId)
-        .eq('id', invoiceId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
 
       if (error) {
-        console.error('Error fetching invoice:', error);
-        return false;
+        console.error('Error fetching latest billing transaction:', error);
+        return {
+          status: 400,
+          message: 'Error fetching latest billing transaction',
+        };
       }
 
-      if (!data || data.is_paid === null) {
-        return false;
+      if (latestTransaction && latestTransaction.invoice_id)
+        return {
+          status: 200,
+          message: 'Success',
+          invoiceId: latestTransaction.invoice_id,
+        };
+
+      return {
+        status: 400,
+        message: 'No latest billing transaction found',
+        invoiceId: null,
+      };
+    } catch (error) {
+      console.error('Error fetching latest billing transaction:', error);
+      return {
+        status: 400,
+        message: 'Error fetching latest billing transaction',
+      };
+    }
+  }
+
+  async checkLastInvoicePaymentStatus(): Promise<{
+    status: number;
+    message: string;
+    is_paid: boolean;
+    invoiceId?: string | null;
+  }> {
+    try {
+      // Retrieve latest billing transaction
+      const latestTransaction = await this.getLatestBillingTransaction();
+
+      // If no invoiceId is found, return true (since no payment is needed)
+      if (!latestTransaction.invoiceId) {
+        return {
+          status: 200,
+          message: 'Success',
+          invoiceId: null,
+          is_paid: true,
+        };
       }
 
-      if (data.is_paid) {
-        return true;
+      // Retrieve invoice payment status using the invoiceId
+      const { data: invoiceData, error: invoiceError } = await supabaseAdmin
+        .from('invoices')
+        .select('is_paid')
+        .eq('id', latestTransaction.invoiceId)
+        .single();
+
+      if (invoiceError) {
+        console.error('Error fetching invoice:', invoiceError);
+        return {
+          status: 500,
+          message: 'Error fetching invoice',
+          is_paid: false,
+          invoiceId: latestTransaction.invoiceId,
+        };
       }
 
-      if (data.period_end) {
-        const dueDate = new Date(data.period_end);
-        const currentDate = new Date();
-        const daysDifference = Math.ceil(
-          (currentDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24),
-        );
-        return daysDifference <= 2;
-      }
-
-      return false;
+      return {
+        status: 200,
+        message: 'Success',
+        is_paid: !!invoiceData.is_paid,
+        invoiceId: null,
+      };
     } catch (error) {
       console.error('Error checking invoice payment status:', error);
-      return false;
+      return {
+        status: 500,
+        message: 'Internal server error',
+        is_paid: false,
+        invoiceId: null,
+      };
     }
   }
 }
