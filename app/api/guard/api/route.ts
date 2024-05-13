@@ -39,7 +39,7 @@ async function POST(req: Request) {
   const billingService = new BillingService(userId);
   const credits = await billingService.getRemainingCredit();
 
-  if (credits.remainingCredit <= 0) {
+  if (credits.remainingCredit <= 0 && credits.credit_plan === 'default') {
     return new Response('No remaining credits', {
       status: 400,
     });

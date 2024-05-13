@@ -15,17 +15,26 @@ export class BillingService {
     status: number;
     message: string;
     remainingCredit: number;
+    credit_plan: string;
   }> {
     try {
-      const { credit, free_credit } = await getUserCredit(this.userId);
+      const { credit, free_credit, credit_plan } = await getUserCredit(
+        this.userId,
+      );
       const remainingCredit = credit + free_credit;
-      return { status: 200, message: 'Success', remainingCredit };
+      return {
+        status: 200,
+        message: 'Success',
+        remainingCredit,
+        credit_plan: credit_plan ?? 'default',
+      };
     } catch (error) {
       console.error('Error fetching remaining credit:', error);
       return {
         status: 500,
         message: 'Internal server error',
         remainingCredit: 0,
+        credit_plan: 'default',
       };
     }
   }

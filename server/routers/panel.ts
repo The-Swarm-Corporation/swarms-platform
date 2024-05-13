@@ -2,19 +2,53 @@ import { router, userProcedure } from '@/app/api/trpc/trpc-router';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { User } from '@supabase/supabase-js';
-import { generateApiKey } from '@/shared/utils/helpers';
-import { createPaymentSession } from '@/shared/utils/stripe/client';
 import { getUserCredit } from '@/shared/utils/supabase/admin';
-import {
-  getSubscriptionStatus,
-  getUserStripeCustomerId,
-} from '@/shared/utils/stripe/server';
+
+type CreditPlan = 'default' | 'invoice';
+
 const panelRouter = router({
   getUserCredit: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
     const { credit, free_credit } = await getUserCredit(user.id);
     return credit + free_credit;
   }),
+  getUserCreditPlan: userProcedure.query(async ({ ctx }) => {
+    const user = ctx.session.data.session?.user as User;
+    const { data, error } = await ctx.supabase
+      .from('swarms_cloud_users_credits')
+      .select('credit_plan')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error while fetching user credit plan',
+      });
+    }
+
+    return data;
+  }),
+  updateUserCreditPlan: userProcedure
+    .input(z.object({ credit_plan: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const user = ctx.session.data.session?.user as User;
+
+      console.log({ input });
+
+      const credits = await ctx.supabase
+        .from('swarms_cloud_users_credits')
+        .update({ credit_plan: input.credit_plan as CreditPlan })
+        .eq('user_id', user.id);
+
+      if (credits.error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error while updating user credit plan',
+        });
+      }
+      return true;
+    }),
   // onboarding
   getOnboarding: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;

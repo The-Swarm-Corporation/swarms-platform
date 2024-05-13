@@ -399,18 +399,17 @@ const getUserCredit = async (uuid: string) => {
   try {
     const { data, error } = await supabaseAdmin
       .from('swarms_cloud_users_credits')
-      .select('credit, free_credit')
+      .select('credit, free_credit, credit_plan')
       .eq('user_id', uuid)
       .single();
     if (error) {
       console.error(error.message);
-      return { credit: 0, free_credit: 0 };
+      return { credit: 0, free_credit: 0, credit_plan: 'default'};
     }
-    console.log({ data });
-    return { credit: data?.credit ?? 0, free_credit: data?.free_credit ?? 0 };
+    return { credit: data?.credit ?? 0, free_credit: data?.free_credit ?? 0, credit_plan: data?.credit_plan};
   } catch (e) {
     console.error(e);
-    return { credit: 0, free_credit: 0 };
+    return { credit: 0, free_credit: 0, credit_plan: 'default'};
   }
 };
 

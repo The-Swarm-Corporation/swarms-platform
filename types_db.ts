@@ -740,6 +740,7 @@ export type Database = {
         Row: {
           created_at: string
           credit: number | null
+          credit_plan: Database["public"]["Enums"]["credit_plan"] | null
           free_credit: number | null
           free_credit_expire_date: string | null
           id: string
@@ -748,6 +749,7 @@ export type Database = {
         Insert: {
           created_at?: string
           credit?: number | null
+          credit_plan?: Database["public"]["Enums"]["credit_plan"] | null
           free_credit?: number | null
           free_credit_expire_date?: string | null
           id?: string
@@ -756,6 +758,7 @@ export type Database = {
         Update: {
           created_at?: string
           credit?: number | null
+          credit_plan?: Database["public"]["Enums"]["credit_plan"] | null
           free_credit?: number | null
           free_credit_expire_date?: string | null
           id?: string
@@ -978,6 +981,7 @@ export type Database = {
       }
     }
     Enums: {
+      credit_plan: "default" | "invoice"
       model_type: "text" | "vision"
       organization_member_invite_status:
         | "waiting"
