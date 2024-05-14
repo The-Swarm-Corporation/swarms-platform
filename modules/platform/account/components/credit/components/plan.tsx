@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogClose,
   DialogTrigger,
+  DialogDescription,
 } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/Button';
 import { cn } from '@/shared/utils/cn';
@@ -17,14 +18,14 @@ interface PlanSwitchDialogProps {
   plan: Plan;
   currentPlan: Plan;
   isLoading: boolean;
-  openModal: boolean; 
+  openModal: boolean;
   setOpenModal: Dispatch<SetStateAction<boolean>>;
   handleConfirm: (plan: 'default' | 'invoice') => void;
 }
 
 export default function PlanSwitchDialog({
   plan,
-  openModal, 
+  openModal,
   isLoading,
   currentPlan,
   setOpenModal,
@@ -59,6 +60,21 @@ export default function PlanSwitchDialog({
             Can you confirm you're switching to {plan} plan?
           </DialogTitle>
         </DialogHeader>
+        <DialogDescription>
+          {plan === 'default' ? (
+            <span>
+              You will be charged for the API usage from your credit balance. If
+              you do not have enough credit, you can top up your credit balance
+              to access necessary data. <br /> You can still get sent an invoice if you
+              switch between plans and accumulate API usage.
+            </span>
+          ) : (
+            <span>
+              You will be charged for the API usage at the end of the month. An
+              invoice gets send to you at the appropriate time.
+            </span>
+          )}
+        </DialogDescription>
         <div className="mt-2">
           <DialogFooter className="mt-3 flex items-center justify-center gap-4">
             <DialogClose

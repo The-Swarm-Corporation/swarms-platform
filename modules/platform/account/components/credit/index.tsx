@@ -16,7 +16,10 @@ const plans: Plan[] = ['default', 'invoice'];
 const Credit = () => {
   const subscription = useSubscription();
   const toast = useToast();
-  const [openModal, setOpenModal] = useState(false);
+  const [openModals, setOpenModals] = useState<{ [key in Plan]: boolean }>({
+    default: false,
+    invoice: false,
+  });
 
   const creditPlanQuery = trpc.panel.getUserCreditPlan.useQuery();
   const creditPlanMutation = trpc.panel.updateUserCreditPlan.useMutation();
@@ -39,7 +42,7 @@ const Credit = () => {
         description: 'You are already on this plan',
         variant: 'destructive',
       });
-      setOpenModal(false);
+      setOpenModals((prev) => ({ ...prev, [plan]: false }));
       return;
     }
 
@@ -53,7 +56,7 @@ const Credit = () => {
           style: { color: 'green' },
         });
         creditPlanQuery.refetch();
-        setOpenModal(false);
+        setOpenModals((prev) => ({ ...prev, [plan]: false }));
       }
     } catch (error) {
       if ((error as any)?.message) {
@@ -90,9 +93,11 @@ const Credit = () => {
                   key={plan}
                   plan={plan}
                   isLoading={isLoading}
-                  openModal={openModal}
+                  openModal={openModals[plan]}
                   currentPlan={currentPlan as Plan}
-                  setOpenModal={setOpenModal}
+                  setOpenModal={(value) =>
+                    setOpenModals((prev) => ({ ...prev, [plan]: value }))
+                  }
                   handleConfirm={handleCreditPlanChange}
                 />
               ))}
