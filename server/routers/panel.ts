@@ -16,7 +16,7 @@ const panelRouter = router({
     const user = ctx.session.data.session?.user as User;
     const { data, error } = await ctx.supabase
       .from('swarms_cloud_users_credits')
-      .select('credit_plan')
+      .select('credit_plan, credit_count')
       .eq('user_id', user.id)
       .single();
 
@@ -34,7 +34,32 @@ const panelRouter = router({
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
 
-      console.log({ input });
+      const userCredit = await getUserCredit(user.id);
+
+      const invoices = await ctx.supabase
+        .from('invoices')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'paid');
+
+      if (invoices.error) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Error while fetching user invoices',
+        });
+      }
+
+      if (
+        input.credit_plan === 'invoice' &&
+        invoices.data.length < 5 &&
+        userCredit.credit_count < 5
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'You need at least five(5) credit payments before switching to invoice plan',
+        });
+      }
 
       const credits = await ctx.supabase
         .from('swarms_cloud_users_credits')

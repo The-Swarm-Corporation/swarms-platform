@@ -65,8 +65,7 @@ export default function PlanSwitchDialog({
             <span>
               You will be charged for the API usage from your credit balance. If
               you do not have enough credit, you can top up your credit balance
-              to access necessary data. <br /> You can still get sent an invoice if you
-              switch between plans and accumulate API usage.
+              to access necessary data.
             </span>
           ) : (
             <span>

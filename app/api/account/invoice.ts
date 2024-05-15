@@ -1,6 +1,6 @@
 import { BillingService } from '@/shared/utils/api/billing-service';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@/shared/utils/supabase/server';
+import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { chunk } from '@/shared/utils/helpers';
 import { User } from '@supabase/supabase-js';
 
@@ -23,8 +23,7 @@ export default async function handler(
       return res.status(200).json({ message: 'Invoice generation skipped' });
     }
 
-    const supabase = createClient();
-    const { data: allUsers, error: fetchError } = await supabase
+    const { data: allUsers, error: fetchError } = await supabaseAdmin
       .from('users')
       .select('*');
 
@@ -35,7 +34,7 @@ export default async function handler(
 
     if (!allUsers || allUsers.length === 0) {
       console.log('No users found');
-      return res.status(200).json({ message: 'No users found' });
+      return res.status(404).json({ message: 'No users found' });
     }
 
     const userBatches = chunk(allUsers, BATCH_SIZE);
@@ -49,6 +48,15 @@ export default async function handler(
               await billingService.calculateTotalMonthlyUsageForUser(
                 lastMonthDate,
               );
+
+            if (usage.status !== 200) {
+              console.error(
+                'Error calculating total monthly usage:',
+                usage.message,
+              );
+              return new Response('Internal server error', { status: 500 });
+            }
+
             await billingService.sendInvoiceToUser(
               usage.totalMonthlyUsage,
               user as unknown as User,

@@ -240,7 +240,7 @@ export type Database = {
       swarm_cloud_billing_transcations: {
         Row: {
           created_at: string
-          id: number
+          id: string
           invoice_id: string | null
           stripe_customer_id: string | null
           total_montly_cost: number | null
@@ -249,7 +249,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          id?: number
+          id?: string
           invoice_id?: string | null
           stripe_customer_id?: string | null
           total_montly_cost?: number | null
@@ -258,7 +258,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          id?: number
+          id?: string
           invoice_id?: string | null
           stripe_customer_id?: string | null
           total_montly_cost?: number | null
@@ -266,13 +266,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "Swarm Cloud Billing Transcations_transaction_id_fkey"
-            columns: ["transaction_id"]
-            isOneToOne: false
-            referencedRelation: "swarms_cloud_api_activities"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "Swarm Cloud Billing Transcations_user_id_fkey"
             columns: ["user_id"]
@@ -740,6 +733,7 @@ export type Database = {
         Row: {
           created_at: string
           credit: number | null
+          credit_count: number | null
           credit_plan: Database["public"]["Enums"]["credit_plan"] | null
           free_credit: number | null
           free_credit_expire_date: string | null
@@ -749,6 +743,7 @@ export type Database = {
         Insert: {
           created_at?: string
           credit?: number | null
+          credit_count?: number | null
           credit_plan?: Database["public"]["Enums"]["credit_plan"] | null
           free_credit?: number | null
           free_credit_expire_date?: string | null
@@ -758,6 +753,7 @@ export type Database = {
         Update: {
           created_at?: string
           credit?: number | null
+          credit_count?: number | null
           credit_plan?: Database["public"]["Enums"]["credit_plan"] | null
           free_credit?: number | null
           free_credit_expire_date?: string | null

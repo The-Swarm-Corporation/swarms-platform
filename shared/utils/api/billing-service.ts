@@ -1,6 +1,10 @@
 import Decimal from 'decimal.js';
 import { stripe } from '@/shared/utils/stripe/config';
-import { getUserCredit, supabaseAdmin } from '../supabase/admin';
+import {
+  createOrRetrieveStripeCustomer,
+  getUserCredit,
+  supabaseAdmin,
+} from '../supabase/admin';
 import { User } from '@supabase/supabase-js';
 import { getUserStripeCustomerId } from '../stripe/server';
 
@@ -88,8 +92,16 @@ export class BillingService {
     totalMonthlyUsage: number;
   }> {
     try {
-      const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
-      const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+      const monthStart = new Date(
+        month.getFullYear(),
+        month.getMonth(),
+        1,
+      ).toISOString();
+      const monthEnd = new Date(
+        month.getFullYear(),
+        month.getMonth() + 1,
+        0,
+      ).toISOString();
 
       const { data, error } = await supabaseAdmin
         .from('swarms_cloud_api_activities')
@@ -107,11 +119,15 @@ export class BillingService {
         };
       }
 
-      const totalMonthlyUsage = data.reduce(
-        (acc, item) => acc + (item.total_cost ?? 0),
-        0,
-      );
-      return { status: 200, message: 'Success', totalMonthlyUsage };
+      const totalMonthlyUsage = data
+        .reduce((acc, item) => acc + (item.total_cost ?? 0), 0)
+        .toFixed(2);
+
+      return {
+        status: 200,
+        message: 'Success',
+        totalMonthlyUsage: Number(totalMonthlyUsage),
+      };
     } catch (error) {
       console.error('Error calculating total monthly usage:', error);
       return {
@@ -123,37 +139,54 @@ export class BillingService {
   }
 
   async sendInvoiceToUser(totalAmount: number, user: User): Promise<void> {
+    if (totalAmount <= 0) return;
+
     if (!user) {
       throw new Error('User session not found');
     }
 
-    const customerId = await getUserStripeCustomerId(user);
-
-    if (!customerId) {
-      throw new Error('Customer ID not found');
-    }
-
     try {
+      const customerId = await createOrRetrieveStripeCustomer({
+        email: user.email ?? '',
+        uuid: user.id,
+      });
+
+      if (!customerId) {
+        throw new Error('Customer ID not found');
+      }
+
       const invoiceItem = await stripe.invoiceItems.create({
         customer: customerId,
-        amount: totalAmount * 100,
+        amount: Number(totalAmount) * 100,
         currency: 'usd',
-        description: `Monthly billing for user ID ${user.id}`,
+        description: `Monthly API Usage billing for user ID ${user.id}`,
       });
 
       const invoice = await stripe.invoices.create({
         customer: customerId,
-        auto_advance: true,
+        description: `Monthly API Usage billing for invoice item ${invoiceItem.id}`,
+        collection_method: 'send_invoice',
         due_date: Math.floor(Date.now() / 1000) + 72 * 60 * 60, // Due date (72 hours from now)
       });
 
-      await supabaseAdmin.from('billing_transactions').insert({
-        user_id: user.id,
-        total_monthly_cost: totalAmount,
-        stripe_customer_id: customerId,
-        invoice_id: invoice.id,
-        transaction_id: invoiceItem.id,
-      });
+      const billingTransactions = await supabaseAdmin
+        .from('swarm_cloud_billing_transcations')
+        .insert([
+          {
+            user_id: user.id,
+            total_montly_cost: parseFloat(totalAmount.toFixed(2)),
+            stripe_customer_id: customerId,
+            invoice_id: invoice.id,
+          },
+        ]);
+
+      if (billingTransactions.error) {
+        console.error(
+          'Error inserting billing transaction:',
+          billingTransactions.error.message,
+        );
+        throw new Error('Could not insert billing transaction');
+      }
 
       await stripe.invoices.sendInvoice(invoice.id);
     } catch (error) {

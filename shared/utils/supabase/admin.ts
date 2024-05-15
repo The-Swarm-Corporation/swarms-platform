@@ -370,9 +370,12 @@ const manageSubscriptionStatusChange = async (
 };
 
 const increaseUserCredit = async (uuid: string, amount: number) => {
-  const { credit: currentCredit } = await getUserCredit(uuid);
+  const { credit: currentCredit, credit_count } = await getUserCredit(uuid);
   // Increase credit amount
   const newCredit = currentCredit + amount;
+
+  // Increase credit count
+  const newCreditCount = credit_count + 1;
 
   // Perform upsert operation
   const response = await supabaseAdmin
@@ -381,6 +384,7 @@ const increaseUserCredit = async (uuid: string, amount: number) => {
       {
         user_id: uuid,
         credit: newCredit,
+        credit_count: newCreditCount,
       },
       {
         onConflict: 'user_id',
@@ -399,23 +403,36 @@ const getUserCredit = async (uuid: string) => {
   try {
     const { data, error } = await supabaseAdmin
       .from('swarms_cloud_users_credits')
-      .select('credit, free_credit, credit_plan')
+      .select('credit, free_credit, credit_plan, credit_count')
       .eq('user_id', uuid)
       .single();
     if (error) {
       console.error(error.message);
-      return { credit: 0, free_credit: 0, credit_plan: 'default'};
+      return {
+        credit: 0,
+        free_credit: 0,
+        credit_plan: 'default',
+        credit_count: 0,
+      };
     }
-    return { credit: data?.credit ?? 0, free_credit: data?.free_credit ?? 0, credit_plan: data?.credit_plan};
+    return {
+      credit: data?.credit ?? 0,
+      free_credit: data?.free_credit ?? 0,
+      credit_plan: data?.credit_plan,
+      credit_count: data?.credit_count ?? 0,
+    };
   } catch (e) {
     console.error(e);
-    return { credit: 0, free_credit: 0, credit_plan: 'default'};
+    return {
+      credit: 0,
+      free_credit: 0,
+      credit_plan: 'default',
+      credit_count: 0,
+    };
   }
 };
 
-const getStripeCustomerId = async (
-  userId: string,
-): Promise<string | null> => {
+const getStripeCustomerId = async (userId: string): Promise<string | null> => {
   const { data, error } = await supabaseAdmin
     .from('customers')
     .select('stripe_customer_id')

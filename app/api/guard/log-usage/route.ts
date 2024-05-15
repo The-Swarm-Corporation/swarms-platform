@@ -1,4 +1,3 @@
-import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { z } from 'zod';
 
 const bodySchema = z.object({
