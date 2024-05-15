@@ -6,7 +6,6 @@ import {
   supabaseAdmin,
 } from '../supabase/admin';
 import { User } from '@supabase/supabase-js';
-import { getUserStripeCustomerId } from '../stripe/server';
 
 export class BillingService {
   private userId: string;
