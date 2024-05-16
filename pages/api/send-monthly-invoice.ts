@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextApiRequest, NextApiResponse } from 'next';
 import { BillingService } from '@/shared/utils/api/billing-service';
 import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { chunk } from '@/shared/utils/helpers';
@@ -6,8 +6,20 @@ import { User } from '@supabase/supabase-js';
 
 const BATCH_SIZE = 50;
 
-export async function GET() {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   try {
+    const authorizationHeader = req.headers?.['Authorization'];
+
+    if (
+      !authorizationHeader ||
+      authorizationHeader !== `Bearer ${process.env.CRON_SECRET}`
+    ) {
+      return res.status(401).end('Unauthorized');
+    }
+
     const currentDate = new Date();
     const lastMonthDate = new Date(
       currentDate.getFullYear(),
@@ -17,10 +29,9 @@ export async function GET() {
 
     if (currentDate.getDate() === lastMonthDate.getDate()) {
       console.log('Skipping invoice generation for current month');
-      return NextResponse.json({
-        message: 'Invoice generation skipped',
-        status: 200,
-      });
+      return res
+        .status(200)
+        .json({ message: 'Skipping invoice generation for current month' });
     }
 
     const { data: allUsers, error: fetchError } = await supabaseAdmin
@@ -29,15 +40,12 @@ export async function GET() {
 
     if (fetchError) {
       console.error('Error fetching users:', fetchError);
-      return NextResponse.json(
-        { message: 'Internal server error' },
-        { status: 500 },
-      );
+      return res.status(500).json({ message: 'Internal server error' });
     }
 
     if (!allUsers || allUsers.length === 0) {
       console.log('No users found');
-      return NextResponse.json({ message: 'No users found' }, { status: 404 });
+      return res.status(404).json({ message: 'No users found' });
     }
 
     const userBatches = chunk(allUsers, BATCH_SIZE);
@@ -57,24 +65,21 @@ export async function GET() {
                 'Error calculating total monthly usage:',
                 usage.message,
               );
-              return new Response('Internal server error', { status: 500 });
+              return res.status(500).json({ message: 'Internal server error' });
             }
 
-            // await billingService.sendInvoiceToUser(
-            //   usage.totalMonthlyUsage,
-            //   user as unknown as User,
-            // );
+            await billingService.sendInvoiceToUser(
+              usage.totalMonthlyUsage,
+              user as unknown as User,
+            );
           }),
         );
       }),
     );
 
-    return NextResponse.json({
-      message: 'Invoice generation successful',
-      status: 200,
-    });
+    return res.status(200).json({ message: 'Invoice generation successful' });
   } catch (error) {
     console.error('Error sending invoices:', error);
-    NextResponse.error();
+    return res.status(500).send('Something definitely went wrong');
   }
 }
