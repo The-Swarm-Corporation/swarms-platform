@@ -108,7 +108,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                           <input
                             type="hidden"
                             name="pathName"
-                            value={usePathname()}
+                            value={usePathname()?.toString()}
                           />
                           <button
                             type="submit"
