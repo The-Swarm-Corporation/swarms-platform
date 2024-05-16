@@ -24,6 +24,8 @@ const Credit = () => {
   const creditPlanQuery = trpc.panel.getUserCreditPlan.useQuery();
   const creditPlanMutation = trpc.panel.updateUserCreditPlan.useMutation();
 
+  console.log({  creditPlanQuery: creditPlanQuery.data })
+
   const isLoading = creditPlanMutation.isPending;
   const isQueryLoading = creditPlanQuery.isLoading;
   const currentPlan = creditPlanQuery.data?.credit_plan;
@@ -88,19 +90,21 @@ const Credit = () => {
             <LoadingSpinner />
           ) : (
             <div className="flex items-center justify-center p-1 bg-secondary rounded-md">
-              {plans.map((plan) => (
-                <PlanSwitchDialog
-                  key={plan}
-                  plan={plan}
-                  isLoading={isLoading}
-                  openModal={openModals[plan]}
-                  currentPlan={currentPlan as Plan}
-                  setOpenModal={(value) =>
-                    setOpenModals((prev) => ({ ...prev, [plan]: value }))
-                  }
-                  handleConfirm={handleCreditPlanChange}
-                />
-              ))}
+              {plans.map((plan) => {
+                return (
+                  <PlanSwitchDialog
+                    key={plan}
+                    plan={plan}
+                    isLoading={isLoading}
+                    openModal={openModals[plan]}
+                    currentPlan={(currentPlan as Plan) || "default"}
+                    setOpenModal={(value) =>
+                      setOpenModals((prev) => ({ ...prev, [plan]: value }))
+                    }
+                    handleConfirm={handleCreditPlanChange}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

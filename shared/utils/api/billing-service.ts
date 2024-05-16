@@ -3,6 +3,7 @@ import { stripe } from '@/shared/utils/stripe/config';
 import {
   createOrRetrieveStripeCustomer,
   getUserCredit,
+  getUserCreditPlan,
   supabaseAdmin,
 } from '../supabase/admin';
 import { User } from '@supabase/supabase-js';
@@ -21,15 +22,15 @@ export class BillingService {
     credit_plan: string;
   }> {
     try {
-      const { credit, free_credit, credit_plan } = await getUserCredit(
-        this.userId,
-      );
+      const { credit, free_credit } = await getUserCredit(this.userId);
+      const credit_plan = await getUserCreditPlan(this.userId);
+
       const remainingCredit = credit + free_credit;
       return {
         status: 200,
         message: 'Success',
         remainingCredit,
-        credit_plan: credit_plan ?? 'default',
+        credit_plan,
       };
     } catch (error) {
       console.error('Error fetching remaining credit:', error);
@@ -154,18 +155,19 @@ export class BillingService {
         throw new Error('Customer ID not found');
       }
 
-      const invoiceItem = await stripe.invoiceItems.create({
+      const invoice = await stripe.invoices.create({
+        customer: customerId,
+        description: `Monthly API Usage billing for ${user.email}`,
+        collection_method: 'send_invoice',
+        due_date: Math.floor(Date.now() / 1000) + 72 * 60 * 60, // Due date (72 hours from now)
+      });
+
+      let invoiceItem = await stripe.invoiceItems.create({
         customer: customerId,
         amount: Number(totalAmount) * 100,
         currency: 'usd',
-        description: `Monthly API Usage billing for user ID ${user.id}`,
-      });
-
-      const invoice = await stripe.invoices.create({
-        customer: customerId,
-        description: `Monthly API Usage billing for invoice item ${invoiceItem.id}`,
-        collection_method: 'send_invoice',
-        due_date: Math.floor(Date.now() / 1000) + 72 * 60 * 60, // Due date (72 hours from now)
+        invoice: invoice.id,
+        description: `Monthly API Usage billing for user ${user.email} with invoice ID ${invoice.id}`,
       });
 
       const billingTransactions = await supabaseAdmin
@@ -255,33 +257,43 @@ export class BillingService {
       if (!latestTransaction.invoiceId) {
         return {
           status: 200,
-          message: 'Success',
+          message: 'No invoiceId found',
           invoiceId: null,
           is_paid: true,
         };
       }
 
       // Retrieve invoice payment status using the invoiceId
-      const { data: invoiceData, error: invoiceError } = await supabaseAdmin
-        .from('invoices')
-        .select('is_paid')
-        .eq('id', latestTransaction.invoiceId)
-        .single();
+      const invoices = await stripe.invoices.retrieve(
+        latestTransaction.invoiceId,
+      );
 
-      if (invoiceError) {
-        console.error('Error fetching invoice:', invoiceError);
+      // Check if the due_date has passed
+      let isDueDatePassed: boolean;
+
+      if (invoices?.due_date) {
+        const dueDate = new Date(invoices.due_date * 1000); // Convert due_date to milliseconds
+        const currentDate = new Date();
+        isDueDatePassed = currentDate.getTime() > dueDate.getTime();
+      } else {
+        // If due_date is null or undefined, consider it as passed to prevent blocking user
+        isDueDatePassed = true;
+      }
+
+      // If due_date has not passed, return true (since no payment is needed)
+      if (!isDueDatePassed) {
         return {
-          status: 500,
-          message: 'Error fetching invoice',
-          is_paid: false,
-          invoiceId: latestTransaction.invoiceId,
+          status: 200,
+          message: 'Due date has not passed yet',
+          is_paid: true,
+          invoiceId: null,
         };
       }
 
       return {
         status: 200,
-        message: 'Success',
-        is_paid: !!invoiceData.is_paid,
+        message: 'Invoice payment status has been generated',
+        is_paid: !!invoices.paid,
         invoiceId: null,
       };
     } catch (error) {

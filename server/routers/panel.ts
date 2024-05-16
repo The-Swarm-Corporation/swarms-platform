@@ -15,9 +15,9 @@ const panelRouter = router({
   getUserCreditPlan: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
     const { data, error } = await ctx.supabase
-      .from('swarms_cloud_users_credits')
-      .select('credit_plan, credit_count')
-      .eq('user_id', user.id)
+      .from('users')
+      .select('credit_plan')
+      .eq('id', user.id)
       .single();
 
     if (error) {
@@ -62,9 +62,9 @@ const panelRouter = router({
       }
 
       const credits = await ctx.supabase
-        .from('swarms_cloud_users_credits')
+        .from('users')
         .update({ credit_plan: input.credit_plan as CreditPlan })
-        .eq('user_id', user.id);
+        .eq('id', user.id);
 
       if (credits.error) {
         throw new TRPCError({

@@ -399,11 +399,26 @@ const increaseUserCredit = async (uuid: string, amount: number) => {
   }
 };
 
+const getUserCreditPlan = async (uuid: string) => {
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('credit_plan')
+    .eq('id', uuid)
+    .single();
+
+  if (error) {
+    console.error(`Failed to fetch user credit plan: ${error.message}`);
+    throw new Error(`Failed to fetch user credit plan: ${error.message}`);
+  }
+
+  return data.credit_plan ?? 'default';
+};
+
 const getUserCredit = async (uuid: string) => {
   try {
     const { data, error } = await supabaseAdmin
       .from('swarms_cloud_users_credits')
-      .select('credit, free_credit, credit_plan, credit_count')
+      .select('credit, free_credit, credit_count')
       .eq('user_id', uuid)
       .single();
     if (error) {
@@ -411,14 +426,12 @@ const getUserCredit = async (uuid: string) => {
       return {
         credit: 0,
         free_credit: 0,
-        credit_plan: 'default',
         credit_count: 0,
       };
     }
     return {
       credit: data?.credit ?? 0,
       free_credit: data?.free_credit ?? 0,
-      credit_plan: data?.credit_plan,
       credit_count: data?.credit_count ?? 0,
     };
   } catch (e) {
@@ -426,7 +439,6 @@ const getUserCredit = async (uuid: string) => {
     return {
       credit: 0,
       free_credit: 0,
-      credit_plan: 'default',
       credit_count: 0,
     };
   }
@@ -449,6 +461,7 @@ const getStripeCustomerId = async (userId: string): Promise<string | null> => {
 
 export {
   getUserCredit,
+  getUserCreditPlan,
   increaseUserCredit,
   upsertProductRecord,
   upsertPriceRecord,

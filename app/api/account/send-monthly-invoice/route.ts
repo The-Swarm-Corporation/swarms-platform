@@ -1,15 +1,12 @@
+import { NextResponse } from 'next/server';
 import { BillingService } from '@/shared/utils/api/billing-service';
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { chunk } from '@/shared/utils/helpers';
 import { User } from '@supabase/supabase-js';
 
 const BATCH_SIZE = 50;
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+export async function GET() {
   try {
     const currentDate = new Date();
     const lastMonthDate = new Date(
@@ -20,7 +17,10 @@ export default async function handler(
 
     if (currentDate.getDate() === lastMonthDate.getDate()) {
       console.log('Skipping invoice generation for current month');
-      return res.status(200).json({ message: 'Invoice generation skipped' });
+      return NextResponse.json({
+        message: 'Invoice generation skipped',
+        status: 200,
+      });
     }
 
     const { data: allUsers, error: fetchError } = await supabaseAdmin
@@ -29,12 +29,15 @@ export default async function handler(
 
     if (fetchError) {
       console.error('Error fetching users:', fetchError);
-      return res.status(500).json({ message: 'Internal server error' });
+      return NextResponse.json(
+        { message: 'Internal server error' },
+        { status: 500 },
+      );
     }
 
     if (!allUsers || allUsers.length === 0) {
       console.log('No users found');
-      return res.status(404).json({ message: 'No users found' });
+      return NextResponse.json({ message: 'No users found' }, { status: 404 });
     }
 
     const userBatches = chunk(allUsers, BATCH_SIZE);
@@ -66,9 +69,12 @@ export default async function handler(
       }),
     );
 
-    res.status(200).json({ message: 'Invoice generation successful' });
+    return NextResponse.json({
+      message: 'Invoice generation successful',
+      status: 200,
+    });
   } catch (error) {
     console.error('Error sending invoices:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    NextResponse.error();
   }
 }
