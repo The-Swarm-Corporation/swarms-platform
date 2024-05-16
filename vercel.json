@@ -1,8 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/send-invoices",
-      "schedule": "*/10 * * * *"
+      "path": "/api/send-monthly-invoice",
+      "schedule": "0 0 2 * *"
     }
   ]
 }
