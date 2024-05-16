@@ -24,8 +24,6 @@ const Credit = () => {
   const creditPlanQuery = trpc.panel.getUserCreditPlan.useQuery();
   const creditPlanMutation = trpc.panel.updateUserCreditPlan.useMutation();
 
-  console.log({  creditPlanQuery: creditPlanQuery.data })
-
   const isLoading = creditPlanMutation.isPending;
   const isQueryLoading = creditPlanQuery.isLoading;
   const currentPlan = creditPlanQuery.data?.credit_plan;
