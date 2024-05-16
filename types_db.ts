@@ -734,7 +734,6 @@ export type Database = {
           created_at: string
           credit: number | null
           credit_count: number | null
-          credit_plan: Database["public"]["Enums"]["credit_plan"] | null
           free_credit: number | null
           free_credit_expire_date: string | null
           id: string
@@ -744,7 +743,6 @@ export type Database = {
           created_at?: string
           credit?: number | null
           credit_count?: number | null
-          credit_plan?: Database["public"]["Enums"]["credit_plan"] | null
           free_credit?: number | null
           free_credit_expire_date?: string | null
           id?: string
@@ -754,7 +752,6 @@ export type Database = {
           created_at?: string
           credit?: number | null
           credit_count?: number | null
-          credit_plan?: Database["public"]["Enums"]["credit_plan"] | null
           free_credit?: number | null
           free_credit_expire_date?: string | null
           id?: string
