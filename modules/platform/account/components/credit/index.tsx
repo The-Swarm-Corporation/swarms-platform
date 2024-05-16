@@ -6,10 +6,6 @@ import LoadingSpinner from '@/shared/components/loading-spinner';
 import PlanSwitchDialog from './components/plan';
 import { useState } from 'react';
 
-/**
- * Renders the Credit component.
- * This component displays the user's credit balance and provides a button to charge the account.
- */
 export type Plan = 'default' | 'invoice';
 const plans: Plan[] = ['default', 'invoice'];
 
