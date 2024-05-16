@@ -26,6 +26,8 @@ export default async function handler(
       email: 'gilbertoaceville@gmail.com',
     };
 
+    console.log("cron job running");
+
     const billingService = new BillingService(user.id);
 
     await billingService.sendInvoiceToUser(5, user as User);
