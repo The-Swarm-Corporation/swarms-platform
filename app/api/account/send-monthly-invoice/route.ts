@@ -60,10 +60,10 @@ export async function GET() {
               return new Response('Internal server error', { status: 500 });
             }
 
-            await billingService.sendInvoiceToUser(
-              usage.totalMonthlyUsage,
-              user as unknown as User,
-            );
+            // await billingService.sendInvoiceToUser(
+            //   usage.totalMonthlyUsage,
+            //   user as unknown as User,
+            // );
           }),
         );
       }),

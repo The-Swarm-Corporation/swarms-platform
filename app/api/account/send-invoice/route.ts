@@ -23,7 +23,7 @@ async function GET(req: Request) {
 
     const billingService = new BillingService(user.id);
 
-    await billingService.sendInvoiceToUser(5, user as unknown as User);
+    // await billingService.sendInvoiceToUser(5, user as unknown as User);
 
     return new Response('Invoice generation successful', { status: 200 });
   } catch (error) {
