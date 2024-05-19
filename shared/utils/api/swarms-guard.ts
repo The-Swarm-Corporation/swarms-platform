@@ -4,7 +4,7 @@ import { getUserOrganizationRole } from './organization';
 
 type Options = {
   apiKey: string | null;
-  organizationId: string | null;
+  organizationPublicId: string | null;
   modelId: string | null;
 };
 type UsageOptions = {
@@ -20,6 +20,7 @@ type UsageOptions = {
   output_tokens: number;
   max_tokens: number;
   messages: any;
+  invoice_total_cost?: number;
 };
 export class SwarmsApiGuard {
   apiKey: string | null;
@@ -30,9 +31,9 @@ export class SwarmsApiGuard {
   apiKeyRecordId: string | null = null;
   userId: string | null = null;
 
-  constructor({ apiKey, organizationId, modelId }: Options) {
+  constructor({ apiKey, organizationPublicId, modelId }: Options) {
     this.apiKey = apiKey;
-    this.organizationPublicId = organizationId;
+    this.organizationPublicId = organizationPublicId;
     this.modelId = modelId;
   }
   async isAuthenticated(): Promise<{
@@ -139,6 +140,7 @@ export class SwarmsApiGuard {
           output_tokens: usage.output_tokens,
           max_tokens: usage.max_tokens,
           messages: usage.messages,
+          invoice_total_cost: usage.invoice_total_cost,
         } as Tables<'swarms_cloud_api_activities'>,
       ]);
 

@@ -1,5 +1,10 @@
 import { BillingService } from '@/shared/utils/api/billing-service';
+import {
+  calculateRemainingCredit,
+  checkRemainingCredits,
+} from '@/shared/utils/api/calculate-credits';
 import { SwarmsApiGuard } from '@/shared/utils/api/swarms-guard';
+import Decimal from 'decimal.js';
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 async function POST(req: Request) {
@@ -11,7 +16,7 @@ async function POST(req: Request) {
 
   const headers = req.headers;
 
-  const organizationId = headers.get('Swarms-Organization');
+  const organizationPublicId = headers.get('Swarms-Organization');
   let apiKey = headers.get('Authorization');
   if (apiKey) {
     apiKey = apiKey.replace('Bearer ', '');
@@ -22,7 +27,7 @@ async function POST(req: Request) {
 
   const modelId = data?.model;
 
-  const guard = new SwarmsApiGuard({ apiKey, organizationId, modelId });
+  const guard = new SwarmsApiGuard({ apiKey, organizationPublicId, modelId });
   const isAuthenticated = await guard.isAuthenticated();
 
   if (isAuthenticated.status !== 200) {
@@ -36,35 +41,60 @@ async function POST(req: Request) {
     return new Response('User ID not found', { status: 500 });
   }
 
-  const billingService = new BillingService(userId);
-  const credits = await billingService.getRemainingCredit();
-  const lastInvoiceStatus =
-    await billingService.checkLastInvoicePaymentStatus();
-
-  if (credits.remainingCredit <= 0 && credits.credit_plan === 'default') {
-    return new Response('No remaining credits', {
-      status: 400,
-    });
-  }
-
-  if (lastInvoiceStatus.status !== 200) {
-    return new Response(lastInvoiceStatus.message, {
-      status: lastInvoiceStatus.status,
-    });
-  }
-
-  if (!lastInvoiceStatus.is_paid) {
-    return new Response(
-      `Outstanding invoice - ${lastInvoiceStatus?.invoiceId} not paid in full`,
-      {
-        status: 400,
-      },
-    );
-  }
-
   // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS
   const endpoint = guard.modelRecord?.api_endpoint;
   const url = `${endpoint}/chat/completions`;
+
+  const billingService = new BillingService(userId);
+  const invoicePaymentStatus = await billingService.checkInvoicePaymentStatus();
+  const checkCredits = await checkRemainingCredits(
+    userId,
+    organizationPublicId,
+  );
+
+  if (
+    checkCredits.credit_plan === 'invoice' &&
+    invoicePaymentStatus.status !== 200
+  ) {
+    return new Response(invoicePaymentStatus.message, {
+      status: invoicePaymentStatus.status,
+    });
+  }
+
+  if (!invoicePaymentStatus.is_paid) {
+    return new Response(invoicePaymentStatus.message, {
+      status: invoicePaymentStatus.status,
+    });
+  }
+
+  // since input & output are price per million tokens
+  // check if user has sufficient credits by estimates
+
+  const price_million_input = guard.modelRecord?.price_million_input || 0;
+  const price_million_output = guard.modelRecord?.price_million_output || 0;
+
+  const estimatedTokens = 2000; // estimated tokens
+  const estimatedCost =
+    (estimatedTokens / 1000000) * price_million_input +
+    (estimatedTokens / 1000000) * price_million_output;
+
+  if (checkCredits.status !== 200) {
+    return new Response(checkCredits.message, {
+      status: checkCredits.status,
+    });
+  }
+
+  const remainingCredit = new Decimal(checkCredits.remainingCredits);
+  const decimalEstimatedCost = new Decimal(estimatedCost);
+
+  if (
+    checkCredits.credit_plan === 'default' &&
+    remainingCredit.lessThan(decimalEstimatedCost)
+  ) {
+    return new Response('Insufficient credits', {
+      status: 402,
+    });
+  }
 
   try {
     const res = await fetch(url, {
@@ -76,11 +106,6 @@ async function POST(req: Request) {
     });
     const res_json = (await res.json()) as OpenAI.Completion;
 
-    if (res.status != 200) {
-      return new Response('Internal Error', {
-        status: res.status,
-      });
-    }
     const price_million_input = guard.modelRecord?.price_million_input || 0;
     const price_million_output = guard.modelRecord?.price_million_output || 0;
     const input_price =
@@ -90,6 +115,16 @@ async function POST(req: Request) {
       price_million_output;
 
     const totalCost = input_price + output_price;
+
+    // Update the total cost based on the credit plan
+    let totalCostToUpdate = 0;
+    let invoiceTotalCostToUpdate = 0;
+
+    if (checkCredits.credit_plan === 'default') {
+      totalCostToUpdate = totalCost;
+    } else if (checkCredits.credit_plan === 'invoice') {
+      invoiceTotalCostToUpdate = totalCost;
+    }
 
     const choices =
       res_json.choices as unknown as OpenAI.Chat.Completions.ChatCompletion.Choice[];
@@ -102,12 +137,15 @@ async function POST(req: Request) {
     ];
 
     // calculate remaining credit
-    const creditBalance =
-      await billingService.calculateRemainingCredit(totalCost);
+    const creditBalance = await calculateRemainingCredit(
+      totalCost,
+      userId,
+      organizationPublicId,
+    );
 
-    if (creditBalance.status !== 200) {
-      return new Response(creditBalance.message, {
-        status: creditBalance.status,
+    if (creditBalance?.status !== 200) {
+      return new Response(creditBalance?.message, {
+        status: creditBalance?.status,
       });
     }
 
@@ -122,7 +160,8 @@ async function POST(req: Request) {
       model: modelId,
       temperature: data.temperature ?? 0,
       top_p: data.top_p ?? 0,
-      total_cost: totalCost,
+      total_cost: totalCostToUpdate,
+      invoice_total_cost: invoiceTotalCostToUpdate,
       stream: data.stream ?? false,
     });
 

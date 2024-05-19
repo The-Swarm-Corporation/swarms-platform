@@ -283,6 +283,7 @@ export type Database = {
           id: string
           input_cost: number | null
           input_tokens: number | null
+          invoice_total_cost: number
           max_tokens: number | null
           messages: Json | null
           model_id: string | null
@@ -303,6 +304,7 @@ export type Database = {
           id?: string
           input_cost?: number | null
           input_tokens?: number | null
+          invoice_total_cost?: number
           max_tokens?: number | null
           messages?: Json | null
           model_id?: string | null
@@ -323,6 +325,7 @@ export type Database = {
           id?: string
           input_cost?: number | null
           input_tokens?: number | null
+          invoice_total_cost?: number
           max_tokens?: number | null
           messages?: Json | null
           model_id?: string | null

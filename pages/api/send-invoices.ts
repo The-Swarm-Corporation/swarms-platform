@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { BillingService } from '@/shared/utils/api/billing-service';
-import { User } from '@supabase/supabase-js';
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,11 +21,15 @@ export default async function handler(
     }
 
     const user = {
-      id: '16203c2a-9001-4b58-85b6-db2de7fb4383',
+      id: '34ea9ab4-b402-445d-9e16-1f630bb83b28',
       email: 'gilbertoaceville@gmail.com',
     };
 
     const billingService = new BillingService(user.id);
+    const usage =
+      await billingService.calculateTotalMonthlyUsage(lastMonthDate);
+
+    console.dir(usage, { depth: null });
 
     // await billingService.sendInvoiceToUser(5, user as User);
 

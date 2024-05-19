@@ -1,9 +1,6 @@
-import Decimal from 'decimal.js';
 import { stripe } from '@/shared/utils/stripe/config';
 import {
   createOrRetrieveStripeCustomer,
-  getUserCredit,
-  getUserCreditPlan,
   supabaseAdmin,
 } from '../supabase/admin';
 import { User } from '@supabase/supabase-js';
@@ -15,81 +12,16 @@ export class BillingService {
     this.userId = userId;
   }
 
-  async getRemainingCredit(): Promise<{
+  async calculateTotalMonthlyUsage(month: Date): Promise<{
     status: number;
     message: string;
-    remainingCredit: number;
-    credit_plan: string;
-  }> {
-    try {
-      const { credit, free_credit } = await getUserCredit(this.userId);
-      const credit_plan = await getUserCreditPlan(this.userId);
-
-      const remainingCredit = credit + free_credit;
-      return {
-        status: 200,
-        message: 'Success',
-        remainingCredit,
-        credit_plan,
-      };
-    } catch (error) {
-      console.error('Error fetching remaining credit:', error);
-      return {
-        status: 500,
-        message: 'Internal server error',
-        remainingCredit: 0,
-        credit_plan: 'default',
-      };
-    }
-  }
-
-  async calculateRemainingCredit(totalAPICost: number): Promise<{
-    status: number;
-    message: string;
-    newCredit: number;
-  }> {
-    if (totalAPICost <= 0) {
-      return {
-        status: 400,
-        message: 'Invalid total API cost',
-        newCredit: 0,
-      };
-    }
-
-    try {
-      const { remainingCredit } = await this.getRemainingCredit();
-
-      const decimalTotalAPICost = new Decimal(totalAPICost);
-      const decimalCurrentCredit = new Decimal(remainingCredit);
-      const newCredit = decimalCurrentCredit
-        .minus(decimalTotalAPICost)
-        .toNumber();
-
-      await supabaseAdmin.from('swarms_cloud_users_credits').upsert(
-        {
-          user_id: this.userId,
-          credit: newCredit,
-        },
-        {
-          onConflict: 'user_id',
-        },
-      );
-
-      return {
-        status: 200,
-        message: 'Remaining credit calculated successfully',
-        newCredit,
-      };
-    } catch (error) {
-      console.error('Error calculating remaining credit:', error);
-      return { status: 500, message: 'Internal server error', newCredit: 0 };
-    }
-  }
-
-  async calculateTotalMonthlyUsageForUser(month: Date): Promise<{
-    status: number;
-    message: string;
-    totalMonthlyUsage: number;
+    user: { totalCost: number; id: string };
+    organizations: {
+      name?: string;
+      organizationId: string;
+      totalCost: number;
+      ownerId: string;
+    }[];
   }> {
     try {
       const monthStart = new Date(
@@ -103,42 +35,113 @@ export class BillingService {
         0,
       ).toISOString();
 
-      const { data, error } = await supabaseAdmin
+      // Get user activities (excluding organization activities)
+      const { data: userActivities, error: userError } = await supabaseAdmin
         .from('swarms_cloud_api_activities')
-        .select('total_cost')
+        .select('invoice_total_cost')
         .eq('user_id', this.userId)
+        .is('organization_id', null)
         .gte('created_at', monthStart)
         .lte('created_at', monthEnd);
 
-      if (error) {
-        console.error('Error calculating total monthly usage:', error);
+      if (userError) {
+        console.error('Error fetching user activities:', userError);
         return {
           status: 500,
           message: 'Internal server error',
-          totalMonthlyUsage: 0,
+          user: { totalCost: 0, id: this.userId },
+          organizations: [],
         };
       }
 
-      const totalMonthlyUsage = data
-        .reduce((acc, item) => acc + (item.total_cost ?? 0), 0)
-        .toFixed(2);
+      const userTotal = userActivities.reduce(
+        (acc, item) => acc + (item.invoice_total_cost ?? 0),
+        0,
+      );
+
+      // Get organization activities
+      const { data: organizationActivities, error: orgError } =
+        await supabaseAdmin
+          .from('swarms_cloud_api_activities')
+          .select('invoice_total_cost, organization_id')
+          .not('organization_id', 'is', null)
+          .gte('created_at', monthStart)
+          .lte('created_at', monthEnd);
+
+      if (orgError) {
+        console.error('Error fetching organization activities:', orgError);
+        return {
+          status: 500,
+          message: 'Internal server error',
+          user: { totalCost: Number(userTotal), id: this.userId },
+          organizations: [],
+        };
+      }
+
+      const organizations: {
+        organizationId: string;
+        totalCost: number;
+        ownerId: string;
+        name?: string;
+      }[] = [];
+
+      // Accumulate organization data
+      for (const activity of organizationActivities) {
+        const organizationId = activity.organization_id;
+        let existingOrg = organizations.find(
+          (org) => org.organizationId === organizationId,
+        );
+
+        if (existingOrg) {
+          existingOrg.totalCost += activity.invoice_total_cost || 0;
+        } else {
+          // Fetch owner ID for the organization
+          const { data: ownerData, error: ownerError } = await supabaseAdmin
+            .from('swarms_cloud_organizations')
+            .select('owner_user_id, name')
+            .eq('id', organizationId ?? '')
+            .single();
+
+          if (ownerError) {
+            console.error('Error fetching owner ID:', ownerError);
+            continue;
+          }
+
+          if (ownerData) {
+            organizations.push({
+              organizationId: organizationId ?? '',
+              name: ownerData.name ?? '',
+              totalCost: activity.invoice_total_cost || 0,
+              ownerId: ownerData.owner_user_id ?? '',
+            });
+          } else {
+            console.error('Organization not found for ID:', organizationId);
+          }
+        }
+      }
 
       return {
         status: 200,
         message: 'Success',
-        totalMonthlyUsage: Number(totalMonthlyUsage),
+        user: { totalCost: Number(userTotal), id: this.userId },
+        organizations,
       };
     } catch (error) {
       console.error('Error calculating total monthly usage:', error);
       return {
         status: 500,
         message: 'Internal server error',
-        totalMonthlyUsage: 0,
+        user: { totalCost: 0, id: this.userId },
+        organizations: [],
       };
     }
   }
 
-  async sendInvoiceToUser(totalAmount: number, user: User): Promise<void> {
+  async sendInvoiceToUser(
+    totalAmount: number,
+    user: User,
+    message = 'Monthly API Usage billing',
+  ): Promise<void> {
     if (totalAmount <= 0) return;
 
     if (!user) {
@@ -157,7 +160,7 @@ export class BillingService {
 
       const invoice = await stripe.invoices.create({
         customer: customerId,
-        description: `Monthly API Usage billing for ${user.email}`,
+        description: message,
         collection_method: 'send_invoice',
         due_date: Math.floor(Date.now() / 1000) + 72 * 60 * 60, // Due date (72 hours from now)
       });
@@ -175,7 +178,7 @@ export class BillingService {
         .insert([
           {
             user_id: user.id,
-            total_montly_cost: parseFloat(totalAmount.toFixed(2)),
+            total_montly_cost: parseFloat(totalAmount.toFixed(5)),
             stripe_customer_id: customerId,
             invoice_id: invoice.id,
           },
@@ -196,105 +199,98 @@ export class BillingService {
     }
   }
 
-  async getLatestBillingTransaction(): Promise<{
+  async getAllBillingTransactions(): Promise<{
     status: number;
     message: string;
-    invoiceId?: string | null;
+    transactions?: any[] | null;
   }> {
     try {
       if (!this.userId) {
         return { status: 400, message: 'User session not found' };
       }
 
-      const { data: latestTransaction, error } = await supabaseAdmin
-        .from('billing_transactions')
+      const { data: transactions, error } = await supabaseAdmin
+        .from('swarm_cloud_billing_transcations')
         .select('*')
         .eq('user_id', this.userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching latest billing transaction:', error);
+        console.error('Error fetching billing transactions:', error);
         return {
           status: 400,
-          message: 'Error fetching latest billing transaction',
+          message: 'Error fetching billing transactions',
         };
       }
 
-      if (latestTransaction && latestTransaction.invoice_id)
+      if (transactions && transactions.length > 0) {
         return {
           status: 200,
           message: 'Success',
-          invoiceId: latestTransaction.invoice_id,
+          transactions,
         };
+      }
 
       return {
-        status: 400,
-        message: 'No latest billing transaction found',
-        invoiceId: null,
+        status: 404,
+        message: 'No billing transactions found',
+        transactions: null,
       };
     } catch (error) {
-      console.error('Error fetching latest billing transaction:', error);
+      console.error('Error fetching billing transactions:', error);
       return {
-        status: 400,
-        message: 'Error fetching latest billing transaction',
+        status: 500,
+        message: 'Internal server error',
       };
     }
   }
 
-  async checkLastInvoicePaymentStatus(): Promise<{
+  async checkInvoicePaymentStatus(): Promise<{
     status: number;
     message: string;
     is_paid: boolean;
-    invoiceId?: string | null;
+    unpaidInvoiceId?: string | null;
   }> {
     try {
-      // Retrieve latest billing transaction
-      const latestTransaction = await this.getLatestBillingTransaction();
+      // Retrieve all billing transactions
+      const { status, message, transactions } = await this.getAllBillingTransactions();
 
-      // If no invoiceId is found, return true (since no payment is needed)
-      if (!latestTransaction.invoiceId) {
+      if (status !== 200 || !transactions) {
         return {
-          status: 200,
-          message: 'No invoiceId found',
-          invoiceId: null,
-          is_paid: true,
+          status,
+          message,
+          is_paid: false,
         };
       }
 
-      // Retrieve invoice payment status using the invoiceId
-      const invoices = await stripe.invoices.retrieve(
-        latestTransaction.invoiceId,
-      );
+      // Check each transaction's invoice status
+      for (const transaction of transactions) {
+        const { invoice_id } = transaction;
+        if (!invoice_id) continue;
 
-      // Check if the due_date has passed
-      let isDueDatePassed: boolean;
+        const invoice = await stripe.invoices.retrieve(invoice_id);
 
-      if (invoices?.due_date) {
-        const dueDate = new Date(invoices.due_date * 1000); // Convert due_date to milliseconds
-        const currentDate = new Date();
-        isDueDatePassed = currentDate.getTime() > dueDate.getTime();
-      } else {
-        // If due_date is null or undefined, consider it as passed to prevent blocking user
-        isDueDatePassed = true;
+        if (invoice?.due_date) {
+          const dueDate = new Date(invoice.due_date * 1000); // Convert due_date to milliseconds
+          const currentDate = new Date();
+
+          if (currentDate.getTime() > dueDate.getTime() && !invoice.paid) {
+            return {
+              status: 200,
+              message: `Found unpaid invoice with passed due date. Invoice ID: ${invoice_id}.`,
+              is_paid: false,
+              unpaidInvoiceId: invoice_id,
+            };
+          }
+        }
       }
 
-      // If due_date has not passed, return true (since no payment is needed)
-      if (!isDueDatePassed) {
-        return {
-          status: 200,
-          message: 'Due date has not passed yet',
-          is_paid: true,
-          invoiceId: null,
-        };
-      }
-
+      // If no unpaid invoices with passed due dates were found
       return {
         status: 200,
-        message: 'Invoice payment status has been generated',
-        is_paid: !!invoices.paid,
-        invoiceId: null,
+        message: 'All invoices are paid or due dates have not passed',
+        is_paid: true,
+        unpaidInvoiceId: null,
       };
     } catch (error) {
       console.error('Error checking invoice payment status:', error);
@@ -302,7 +298,7 @@ export class BillingService {
         status: 500,
         message: 'Internal server error',
         is_paid: false,
-        invoiceId: null,
+        unpaidInvoiceId: null,
       };
     }
   }

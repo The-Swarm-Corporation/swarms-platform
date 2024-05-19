@@ -56,9 +56,7 @@ export default async function handler(
           batch.map(async (user) => {
             const billingService = new BillingService(user.id);
             const usage =
-              await billingService.calculateTotalMonthlyUsageForUser(
-                lastMonthDate,
-              );
+              await billingService.calculateTotalMonthlyUsage(lastMonthDate);
 
             if (usage.status !== 200) {
               console.error(
@@ -68,9 +66,20 @@ export default async function handler(
               return res.status(500).json({ message: 'Internal server error' });
             }
 
+            let totalAmount = usage.user.totalCost;
+            let invoiceDescription = `Monthly API Usage billing ${user.email}`;
+
+            usage.organizations.forEach((org) => {
+              if (org.ownerId === user.id) {
+                totalAmount += org.totalCost;
+                invoiceDescription = `Monthly API Usage billing for ${org.name}`;
+              }
+            });
+
             await billingService.sendInvoiceToUser(
-              usage.totalMonthlyUsage,
+              totalAmount,
               user as unknown as User,
+              invoiceDescription,
             );
           }),
         );

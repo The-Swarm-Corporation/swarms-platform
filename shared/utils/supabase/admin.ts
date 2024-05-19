@@ -415,33 +415,20 @@ const getUserCreditPlan = async (uuid: string) => {
 };
 
 const getUserCredit = async (uuid: string) => {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from('swarms_cloud_users_credits')
-      .select('credit, free_credit, credit_count')
-      .eq('user_id', uuid)
-      .single();
-    if (error) {
-      console.error(error.message);
-      return {
-        credit: 0,
-        free_credit: 0,
-        credit_count: 0,
-      };
-    }
-    return {
-      credit: data?.credit ?? 0,
-      free_credit: data?.free_credit ?? 0,
-      credit_count: data?.credit_count ?? 0,
-    };
-  } catch (e) {
-    console.error(e);
-    return {
-      credit: 0,
-      free_credit: 0,
-      credit_count: 0,
-    };
+  const { data, error } = await supabaseAdmin
+    .from('swarms_cloud_users_credits')
+    .select('credit, free_credit, credit_count')
+    .eq('user_id', uuid)
+    .single();
+  if (error) {
+    console.error(error.message);
+    throw new Error(`Failed to fetch user credit: ${error.message}`);
   }
+  return {
+    credit: data?.credit ?? 0,
+    free_credit: data?.free_credit ?? 0,
+    credit_count: data?.credit_count ?? 0,
+  };
 };
 
 const getStripeCustomerId = async (userId: string): Promise<string | null> => {

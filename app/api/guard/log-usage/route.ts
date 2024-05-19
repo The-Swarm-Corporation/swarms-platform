@@ -31,7 +31,7 @@ async function POST(req: Request) {
   if (secretkey !== process.env.GUARD_SECRET_KEY) {
     return new Response('Invalid Secret Key', { status: 401 });
   }
-  const organizationId = headers.get('Swarms-Organization');
+  const organizationPublicId = headers.get('Swarms-Organization');
   const apiKey = headers.get('Authorization');
 
   const body = await req.json();
@@ -42,7 +42,7 @@ async function POST(req: Request) {
   }
   const modelId = body?.model;
 
-  const guard = new SwarmsApiGuard({ apiKey, organizationId, modelId });
+  const guard = new SwarmsApiGuard({ apiKey, organizationPublicId, modelId });
   const isAuthenticated = await guard.isAuthenticated();
   if (isAuthenticated.status !== 200) {
     return new Response(isAuthenticated.message, {
