@@ -1,6 +1,8 @@
 import { SwarmsApiGuard } from '@/shared/utils/api/swarms-guard';
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
+
+//Proxy Function
 async function POST(req: Request) {
   /* 
       headers:
