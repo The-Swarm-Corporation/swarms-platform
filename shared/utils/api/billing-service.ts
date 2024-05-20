@@ -1,9 +1,14 @@
 import { stripe } from '@/shared/utils/stripe/config';
-import {
-  createOrRetrieveStripeCustomer,
-  supabaseAdmin,
-} from '../supabase/admin';
+import { supabaseAdmin } from '../supabase/admin';
 import { User } from '@supabase/supabase-js';
+import {
+  attemptAutomaticCharge,
+  findUnpaidInvoice,
+  getLatestBillingTransaction,
+} from './charge-customer';
+import Stripe from 'stripe';
+import { getUserStripeCustomerId } from '../stripe/server';
+import { getOrganizationOwner } from './organization';
 
 export class BillingService {
   private userId: string;
@@ -85,7 +90,7 @@ export class BillingService {
         name?: string;
       }[] = [];
 
-      // Accumulate organization data
+      // Aggregate organization data
       for (const activity of organizationActivities) {
         const organizationId = activity.organization_id;
         let existingOrg = organizations.find(
@@ -149,20 +154,33 @@ export class BillingService {
     }
 
     try {
-      const customerId = await createOrRetrieveStripeCustomer({
-        email: user.email ?? '',
-        uuid: user.id,
-      });
+      const customerId = await getUserStripeCustomerId(user);
 
       if (!customerId) {
         throw new Error('Customer ID not found');
       }
 
+      // Check for default payment method
+      const customer = (await stripe.customers.retrieve(
+        customerId,
+      )) as Stripe.Customer;
+
+      if (!customer || !customer.invoice_settings.default_payment_method) {
+        console.error(
+          'No default payment method found for customer:',
+          customer.email,
+        );
+        throw new Error('No default payment method found for user');
+      }
+
       const invoice = await stripe.invoices.create({
         customer: customerId,
+        auto_advance: true,
         description: message,
-        collection_method: 'send_invoice',
-        due_date: Math.floor(Date.now() / 1000) + 72 * 60 * 60, // Due date (72 hours from now)
+        default_payment_method: customer.invoice_settings
+          .default_payment_method as string,
+        collection_method: 'charge_automatically', // Charge automatically
+        // due_date: Math.floor(Date.now() / 1000) + 72 * 60 * 60, // Due date (72 hours from now)
       });
 
       let invoiceItem = await stripe.invoiceItems.create({
@@ -173,6 +191,11 @@ export class BillingService {
         description: `Monthly API Usage billing for user ${user.email} with invoice ID ${invoice.id}`,
       });
 
+      const captureResult = await stripe.invoices.pay(invoice.id);
+
+      // Check capture result for success
+      console.log('Invoice payment captured:', captureResult.paid);
+
       const billingTransactions = await supabaseAdmin
         .from('swarm_cloud_billing_transcations')
         .insert([
@@ -181,6 +204,7 @@ export class BillingService {
             total_montly_cost: parseFloat(totalAmount.toFixed(5)),
             stripe_customer_id: customerId,
             invoice_id: invoice.id,
+            payment_successful: captureResult.paid,
           },
         ]);
 
@@ -192,70 +216,40 @@ export class BillingService {
         throw new Error('Could not insert billing transaction');
       }
 
-      await stripe.invoices.sendInvoice(invoice.id);
+      console.log('User successfully charged automatically');
     } catch (error) {
-      console.error('Error generating invoice:', error);
-      throw new Error('Could not generate invoice');
+      console.error('Error charging user automatically:', error);
+      throw new Error('Could not charge user automatically');
     }
   }
 
-  async getAllBillingTransactions(): Promise<{
-    status: number;
-    message: string;
-    transactions?: any[] | null;
-  }> {
-    try {
-      if (!this.userId) {
-        return { status: 400, message: 'User session not found' };
-      }
-
-      const { data: transactions, error } = await supabaseAdmin
-        .from('swarm_cloud_billing_transcations')
-        .select('*')
-        .eq('user_id', this.userId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching billing transactions:', error);
-        return {
-          status: 400,
-          message: 'Error fetching billing transactions',
-        };
-      }
-
-      if (transactions && transactions.length > 0) {
-        return {
-          status: 200,
-          message: 'Success',
-          transactions,
-        };
-      }
-
-      return {
-        status: 404,
-        message: 'No billing transactions found',
-        transactions: null,
-      };
-    } catch (error) {
-      console.error('Error fetching billing transactions:', error);
-      return {
-        status: 500,
-        message: 'Internal server error',
-      };
-    }
-  }
-
-  async checkInvoicePaymentStatus(): Promise<{
+  async checkInvoicePaymentStatus(organizationId?: string): Promise<{
     status: number;
     message: string;
     is_paid: boolean;
     unpaidInvoiceId?: string | null;
   }> {
     try {
-      // Retrieve all billing transactions
-      const { status, message, transactions } = await this.getAllBillingTransactions();
+      let userId = this.userId;
 
-      if (status !== 200 || !transactions) {
+      if (organizationId) {
+        // Fetch the organization owner's user ID
+        const orgOwnerId = await getOrganizationOwner(organizationId);
+        if (!orgOwnerId)
+          return {
+            status: 500,
+            message: 'Internal server error',
+            is_paid: false,
+            unpaidInvoiceId: null,
+          };
+
+        userId = orgOwnerId ?? '';
+      }
+
+      const { status, message, transaction } =
+        await getLatestBillingTransaction(userId);
+
+      if (status !== 200) {
         return {
           status,
           message,
@@ -263,34 +257,44 @@ export class BillingService {
         };
       }
 
-      // Check each transaction's invoice status
-      for (const transaction of transactions) {
-        const { invoice_id } = transaction;
-        if (!invoice_id) continue;
-
-        const invoice = await stripe.invoices.retrieve(invoice_id);
-
-        if (invoice?.due_date) {
-          const dueDate = new Date(invoice.due_date * 1000); // Convert due_date to milliseconds
-          const currentDate = new Date();
-
-          if (currentDate.getTime() > dueDate.getTime() && !invoice.paid) {
-            return {
-              status: 200,
-              message: `Found unpaid invoice with passed due date. Invoice ID: ${invoice_id}.`,
-              is_paid: false,
-              unpaidInvoiceId: invoice_id,
-            };
-          }
-        }
+      // user might not be billed yet
+      if (!transaction) {
+        return {
+          status: 200,
+          message: 'User has no billing transactions yet.',
+          is_paid: true, // so consider user as paid if no transactions exist
+          unpaidInvoiceId: null,
+        };
       }
 
-      // If no unpaid invoices with passed due dates were found
+      const unpaidInvoice = await findUnpaidInvoice(transaction);
+
+      if (!unpaidInvoice) {
+        return {
+          status: 200,
+          message: 'Invoice is paid.',
+          is_paid: true,
+          unpaidInvoiceId: null,
+        };
+      }
+
+      console.error('Found last unpaid invoice:', unpaidInvoice.id);
+
+      // Attempt automatic charge for unpaid invoice
+      const charged = await attemptAutomaticCharge(unpaidInvoice.id);
+      if (!charged) {
+        console.error(
+          'Failed to automatically charge for invoice:',
+          unpaidInvoice.id,
+        );
+      }
+
+      // Regardless of auto-charge success/failure, return unpaid invoice info
       return {
-        status: 200,
-        message: 'All invoices are paid or due dates have not passed',
-        is_paid: true,
-        unpaidInvoiceId: null,
+        status: 402,
+        message: 'Unpaid invoice found. Automatic charges attempted.',
+        is_paid: false,
+        unpaidInvoiceId: unpaidInvoice.id,
       };
     } catch (error) {
       console.error('Error checking invoice payment status:', error);

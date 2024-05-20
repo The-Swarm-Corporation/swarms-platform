@@ -10,6 +10,7 @@ import {
   getSubscriptionStatus,
   getUserStripeCustomerId,
 } from '@/shared/utils/stripe/server';
+import { createOrRetrieveStripeCustomer } from '@/shared/utils/supabase/admin';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import Stripe from 'stripe';
@@ -113,7 +114,10 @@ const paymentRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
-      const stripeCustomerId = await getUserStripeCustomerId(user);
+      const stripeCustomerId = await createOrRetrieveStripeCustomer({
+        email: user.email ?? '',
+        uuid: user.id,
+      });
       if (!stripeCustomerId) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',

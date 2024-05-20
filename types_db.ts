@@ -242,6 +242,7 @@ export type Database = {
           created_at: string
           id: string
           invoice_id: string | null
+          payment_successful: boolean
           stripe_customer_id: string | null
           total_montly_cost: number | null
           transaction_id: string | null
@@ -251,6 +252,7 @@ export type Database = {
           created_at?: string
           id?: string
           invoice_id?: string | null
+          payment_successful?: boolean
           stripe_customer_id?: string | null
           total_montly_cost?: number | null
           transaction_id?: string | null
@@ -260,6 +262,7 @@ export type Database = {
           created_at?: string
           id?: string
           invoice_id?: string | null
+          payment_successful?: boolean
           stripe_customer_id?: string | null
           total_montly_cost?: number | null
           transaction_id?: string | null
@@ -677,6 +680,35 @@ export type Database = {
             foreignKeyName: "public_swarms_cloud_organizations_owner_user_id_fkey"
             columns: ["owner_user_id"]
             isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_rate_limits: {
+        Row: {
+          created_at: string
+          last_request_at: string | null
+          request_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          last_request_at?: string | null
+          request_count?: number | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          last_request_at?: string | null
+          request_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_rate_limits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },

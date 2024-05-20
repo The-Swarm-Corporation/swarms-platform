@@ -46,7 +46,9 @@ async function POST(req: Request) {
   const url = `${endpoint}/chat/completions`;
 
   const billingService = new BillingService(userId);
-  const invoicePaymentStatus = await billingService.checkInvoicePaymentStatus();
+  const invoicePaymentStatus = await billingService.checkInvoicePaymentStatus(
+    organizationPublicId ?? '',
+  );
   const checkCredits = await checkRemainingCredits(
     userId,
     organizationPublicId,

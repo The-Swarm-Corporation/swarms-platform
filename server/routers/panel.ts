@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { User } from '@supabase/supabase-js';
 import { getUserCredit } from '@/shared/utils/supabase/admin';
+import { getUserStripeCustomerId } from '@/shared/utils/stripe/server';
+import { stripe } from '@/shared/utils/stripe/config';
+import Stripe from 'stripe';
 
 type CreditPlan = 'default' | 'invoice';
 
@@ -49,15 +52,40 @@ const panelRouter = router({
         });
       }
 
-      if (
-        input.credit_plan === 'invoice' &&
-        invoices.data.length < 5 &&
-        userCredit.credit_count < 5
-      ) {
+      if (input.credit_plan === 'invoice' && userCredit.credit_count < 2) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message:
-            'You need at least five(5) credit payments before switching to invoice plan',
+            'You need at least two(2) manual credit payments before switching to invoice plan',
+        });
+      }
+
+      const stripeCustomerId = await getUserStripeCustomerId(user);
+      if (!stripeCustomerId) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error while creating stripe customer',
+        });
+      }
+      const paymentMethods = await stripe.paymentMethods.list({
+        customer: stripeCustomerId,
+        type: 'card',
+      });
+
+      if (!paymentMethods.data.length) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Please add a payment method in the "Manage Cards" section to switch to invoice plan',
+        });
+      }
+
+      const customer = (await stripe.customers.retrieve(
+        stripeCustomerId,
+      )) as Stripe.Customer;
+      if (!customer || !customer.invoice_settings.default_payment_method) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'No default payment method found. Click on added card to set as default',
         });
       }
 

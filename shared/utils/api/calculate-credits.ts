@@ -7,6 +7,7 @@ import {
   supabaseAdmin,
 } from '../supabase/admin';
 import { getOrganizationOwner } from './organization';
+import { stripe } from '../stripe/config';
 
 export async function checkRemainingCredits(
   userId: string,

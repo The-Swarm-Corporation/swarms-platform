@@ -219,7 +219,11 @@ const createOrRetrieveStripeCustomer = async ({
       if (!existingStripeCustomer.deleted) {
         stripeCustomerId = existingStripeCustomer?.id;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error(
+        `Failed to retrieve Stripe customer with ID: ${existingSupabaseCustomer.stripe_customer_id}`,
+      );
+    }
   } else {
     // If Stripe ID is missing from Supabase, try to retrieve Stripe customer ID by email
     const stripeCustomers = await stripe.customers.list({ email: email });

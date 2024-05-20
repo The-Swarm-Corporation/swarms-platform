@@ -1,6 +1,7 @@
 import { Tables } from '@/types_db';
 import { supabaseAdmin } from '../supabase/admin';
 import { getUserOrganizationRole } from './organization';
+import { checkRateLimit } from './rate-limit';
 
 type Options = {
   apiKey: string | null;
@@ -80,11 +81,18 @@ export class SwarmsApiGuard {
       }
     }
 
-    // check billing limits: SOON // does user have to have subscription to make use of credits
+    // check billing limits: SOON
 
     // check user is not banned: SOON
 
-    // check rate limit : SOON
+    // check rate limit
+    const isAllowed = await checkRateLimit(this.userId);
+    if (!isAllowed) {
+      return {
+        status: 429,
+        message: 'Too Many Requests. Please try again later.',
+      };
+    }
 
     // check model exists
     const modelInfo = await supabaseAdmin
