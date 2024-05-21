@@ -13,7 +13,6 @@ export default function Landing() {
       <CompaniesSection />
       <CodeSampleSection />
       <GoogleGeminiEffect />
-      <PanelSection />
       <PricingSection />
       <OpenSourceSection />
     </>
