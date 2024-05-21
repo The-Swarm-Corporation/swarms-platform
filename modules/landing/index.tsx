@@ -15,7 +15,6 @@ export default function Landing() {
       <GoogleGeminiEffect />
       <PanelSection />
       <PricingSection />
-      <FeaturesSection />
       <OpenSourceSection />
     </>
   );
