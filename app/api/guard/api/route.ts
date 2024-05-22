@@ -2,8 +2,11 @@ import { SwarmsApiGuard } from '@/shared/utils/api/swarms-guard';
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 import NodeCache from 'node-cache';
+import fetch from 'node-fetch';
+import { Agent } from 'http';
 
 const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
+const agent = new Agent({ keepAlive: true });
 
 async function POST(req: Request) {
   const headers = req.headers;
@@ -43,15 +46,16 @@ async function POST(req: Request) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify(data),
+      agent,
     });
-    
-    const res_json = await res.json() as OpenAI.Completion;
 
     if (res.status != 200) {
       return new Response('Internal Error', {
         status: res.status,
       });
     }
+
+    const res_json = await res.json() as OpenAI.Completion;
 
     const price_million_input = guard.modelRecord?.price_million_input || 0;
     const price_million_output = guard.modelRecord?.price_million_output || 0;
@@ -67,7 +71,8 @@ async function POST(req: Request) {
       },
     ];
 
-    const logResult = await guard.logUsage({
+    // Parallel logging of usage
+    const logUsagePromise = guard.logUsage({
       input_cost: input_price,
       output_cost: output_price,
       input_tokens: res_json.usage?.prompt_tokens ?? 0,
@@ -80,6 +85,9 @@ async function POST(req: Request) {
       total_cost: input_price + output_price,
       stream: data.stream ?? false,
     });
+
+    // Await logging result in parallel
+    const [logResult] = await Promise.all([logUsagePromise]);
 
     if (logResult.status !== 200) {
       return new Response(logResult.message, {
