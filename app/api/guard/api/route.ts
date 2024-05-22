@@ -1,27 +1,27 @@
 import { SwarmsApiGuard } from '@/shared/utils/api/swarms-guard';
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
+import NodeCache from 'node-cache';
 
-//Proxy Function
+const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
+
 async function POST(req: Request) {
-  /* 
-      headers:
-        Authorization: Bearer <token> : Required
-        Organization ID : Optional
-    */
-
   const headers = req.headers;
-
   const organizationId = headers.get('Swarms-Organization');
   let apiKey = headers.get('Authorization');
   if (apiKey) {
     apiKey = apiKey.replace('Bearer ', '');
   }
 
-  const data =
-    (await req.json()) as OpenAI.Chat.Completions.ChatCompletionCreateParams;
-
+  const data = await req.json() as OpenAI.Chat.Completions.ChatCompletionCreateParams;
   const modelId = data?.model;
+
+  // Cache key based on request data
+  const cacheKey = `${organizationId}-${modelId}-${JSON.stringify(data.messages)}`;
+  const cachedResponse = cache.get(cacheKey);
+  if (cachedResponse) {
+    return NextResponse.json(cachedResponse);
+  }
 
   const guard = new SwarmsApiGuard({ apiKey, organizationId, modelId });
   const isAuthenticated = await guard.isAuthenticated();
@@ -31,7 +31,7 @@ async function POST(req: Request) {
       status: isAuthenticated.status,
     });
   }
-  // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS
+
   const endpoint = guard.modelRecord?.api_endpoint;
   const url = `${endpoint}/chat/completions`;
 
@@ -40,26 +40,25 @@ async function POST(req: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify(data),
     });
-    const res_json = (await res.json()) as OpenAI.Completion;
+    
+    const res_json = await res.json() as OpenAI.Completion;
 
     if (res.status != 200) {
       return new Response('Internal Error', {
         status: res.status,
       });
     }
+
     const price_million_input = guard.modelRecord?.price_million_input || 0;
     const price_million_output = guard.modelRecord?.price_million_output || 0;
-    const input_price =
-      ((res_json.usage?.prompt_tokens ?? 0) / 1000000) * price_million_input;
-    const output_price =
-      ((res_json.usage?.completion_tokens ?? 0) / 1000000) *
-      price_million_output;
+    const input_price = ((res_json.usage?.prompt_tokens ?? 0) / 1000000) * price_million_input;
+    const output_price = ((res_json.usage?.completion_tokens ?? 0) / 1000000) * price_million_output;
 
-    const choices =
-      res_json.choices as unknown as OpenAI.Chat.Completions.ChatCompletion.Choice[];
+    const choices = res_json.choices as unknown as OpenAI.Chat.Completions.ChatCompletion.Choice[];
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       ...data.messages,
       {
@@ -67,7 +66,7 @@ async function POST(req: Request) {
         content: choices[0]?.message?.content,
       },
     ];
-    // log the result
+
     const logResult = await guard.logUsage({
       input_cost: input_price,
       output_cost: output_price,
@@ -81,11 +80,16 @@ async function POST(req: Request) {
       total_cost: input_price + output_price,
       stream: data.stream ?? false,
     });
+
     if (logResult.status !== 200) {
       return new Response(logResult.message, {
         status: logResult.status,
       });
     }
+
+    // Cache the response
+    cache.set(cacheKey, res_json);
+
     return NextResponse.json(res_json);
   } catch (error) {
     console.log('error', error);
