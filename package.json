@@ -81,7 +81,8 @@
     "uuid": "^9.0.1",
     "vaul": "^0.9.0",
     "zod": "^3.22.4",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "node-cache": "latest"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
