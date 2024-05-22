@@ -187,72 +187,12 @@ export async function createStripePortal(user: User, currentPath: string) {
   }
 }
 
-// export async function addPaymentMethodIfNotExists(
-//   stripeCustomerId: string,
-//   paymentMethodId: string,
-//   redirectPath = PLATFORM.ACCOUNT,
-// ) {
-//   // Check for duplicate payment methods using fingerprint
-//   const paymentMethods = await stripe.paymentMethods.list({
-//     customer: stripeCustomerId,
-//     type: 'card',
-//   });
-//   const paymentMethod = (await stripe.paymentMethods.retrieve(
-//     paymentMethodId,
-//   )) as Stripe.PaymentMethod;
-
-//   if (!paymentMethod) {
-//     return;
-//   }
-//   const existingPaymentMethod = paymentMethods.data.find(
-//     (method) => method.card?.fingerprint === paymentMethod.card?.fingerprint,
-//   );
-//   if (existingPaymentMethod) {
-//     throw new Error('Payment method already exists');
-//   }
-
-//   try {
-//     // PaymentIntent for validation with a small amount
-//     const paymentIntent = await stripe.paymentIntents.create({
-//       amount: 100,
-//       currency: 'usd',
-//       customer: stripeCustomerId,
-//       payment_method: paymentMethodId,
-//       return_url: getURL(redirectPath),
-//       confirmation_method: "automatic",
-//       confirm: true,
-//     });
-
-//     if (paymentIntent.status === 'succeeded') {
-//       console.log('Card validated successfully');
-//       const attachedPaymentMethod = await stripe.paymentMethods.attach(
-//         paymentMethod.id,
-//         { customer: stripeCustomerId },
-//       );
-//       return attachedPaymentMethod;
-//     } else {
-//       console.error(
-//         'Error validating card:',
-//         paymentIntent.last_payment_error?.message,
-//       );
-//       throw new Error(
-//         'Invalid card details or could not be confirmed. Please try again.',
-//       );
-//     }
-//   } catch (error: any) {
-//     console.error('Error adding payment method:', error);
-//     throw new Error(
-//       error?.message || 'An error occurred while adding the payment method',
-//     );
-//   }
-// }
-
 export async function addPaymentMethodIfNotExists(
   stripeCustomerId: string,
   paymentMethodId: string,
+  redirectPath = PLATFORM.ACCOUNT,
 ) {
-  // make sure its not duplicate, check with fingerprint
-  // save to stripe
+  // Check for duplicate payment methods using fingerprint
   const paymentMethods = await stripe.paymentMethods.list({
     customer: stripeCustomerId,
     type: 'card',
@@ -270,10 +210,39 @@ export async function addPaymentMethodIfNotExists(
   if (existingPaymentMethod) {
     throw new Error('Payment method already exists');
   }
-  // attach
-  const attachedPaymentMethod = await stripe.paymentMethods.attach(
-    paymentMethod.id,
-    { customer: stripeCustomerId },
-  );
-  return attachedPaymentMethod;
+
+  try {
+    // PaymentIntent for validation with a small amount
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 100,
+      currency: 'usd',
+      customer: stripeCustomerId,
+      payment_method: paymentMethodId,
+      return_url: getURL(redirectPath),
+      confirmation_method: "automatic",
+      confirm: true,
+    });
+
+    if (paymentIntent.status === 'succeeded') {
+      console.log('Card validated successfully');
+      const attachedPaymentMethod = await stripe.paymentMethods.attach(
+        paymentMethod.id,
+        { customer: stripeCustomerId },
+      );
+      return attachedPaymentMethod;
+    } else {
+      console.error(
+        'Error validating card:',
+        paymentIntent.last_payment_error?.message,
+      );
+      throw new Error(
+        'Invalid card details or could not be confirmed. Please try again.',
+      );
+    }
+  } catch (error: any) {
+    console.error('Error adding payment method:', error);
+    throw new Error(
+      error?.message || 'An error occurred while adding the payment method',
+    );
+  }
 }
