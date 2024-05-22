@@ -1,7 +1,7 @@
 import { SwarmsApiGuard } from '@/shared/utils/api/swarms-guard';
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
-import fetch from 'node-fetch';
+import fetch, { RequestInit } from 'node-fetch';
 import { Agent } from 'http';
 import NodeCache from 'node-cache';
 import { Worker } from 'worker_threads';
@@ -9,7 +9,7 @@ import { Worker } from 'worker_threads';
 const agent = new Agent({ keepAlive: true });
 const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
 
-async function fetchWithRetries(url, options, retries = 3) {
+async function fetchWithRetries(url: string, options: RequestInit, retries: number = 3): Promise<Response> {
   try {
     return await fetch(url, options);
   } catch (error) {
@@ -38,7 +38,7 @@ async function POST(req: Request) {
 
   let guard;
   if (cachedAuth) {
-    guard = cachedAuth;
+    guard = cachedAuth as SwarmsApiGuard;
   } else {
     guard = new SwarmsApiGuard({ apiKey, organizationId, modelId });
     const isAuthenticated = await guard.isAuthenticated();
