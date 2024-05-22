@@ -71,7 +71,7 @@ async function POST(req: Request) {
       });
     }
 
-    const res_json = await res.json() as OpenAI.Completion;
+    const res_json = await res.json() as OpenAI.Chat.Completions.ChatCompletion;
     const price_million_input = guard.modelRecord?.price_million_input || 0;
     const price_million_output = guard.modelRecord?.price_million_output || 0;
     const input_price = ((res_json.usage?.prompt_tokens ?? 0) / 1000000) * price_million_input;
@@ -82,7 +82,7 @@ async function POST(req: Request) {
       ...data.messages,
       {
         role: 'assistant',
-        content: choices[0]?.message?.content,
+        content: choices[0]?.message?.content || '',
       },
     ];
 
