@@ -88,23 +88,18 @@ async function POST(req: Request) {
     ];
 
     // Offloading logging to a worker thread
-    const logWorker = new Worker('./logUsageWorker.js', {
-      workerData: {
-        guardData: { apiKey, organizationId, modelId },
-        logData: {
-          input_cost: input_price,
-          output_cost: output_price,
-          input_tokens: res_json.usage?.prompt_tokens ?? 0,
-          output_tokens: res_json.usage?.completion_tokens ?? 0,
-          max_tokens: data.max_tokens ?? 0,
-          messages,
-          model: modelId,
-          temperature: data.temperature ?? 0,
-          top_p: data.top_p ?? 0,
-          total_cost: input_price + output_price,
-          stream: data.stream ?? false,
-        }
-      }
+    const logResult = await guard.logUsage({
+      input_cost: input_price,
+      output_cost: output_price,
+      input_tokens: res_json.usage?.prompt_tokens ?? 0,
+      output_tokens: res_json.usage?.completion_tokens ?? 0,
+      max_tokens: data.max_tokens ?? 0,
+      messages,
+      model: modelId,
+      temperature: data.temperature ?? 0,
+      top_p: data.top_p ?? 0,
+      total_cost: input_price + output_price,
+      stream: data.stream ?? false,
     });
 
     logWorker.on('message', (logResult) => {
