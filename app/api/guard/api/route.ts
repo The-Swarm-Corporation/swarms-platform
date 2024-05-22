@@ -4,7 +4,6 @@ import { OpenAI } from 'openai';
 import fetch, { RequestInit, Response as FetchResponse } from 'node-fetch';
 import { Agent } from 'http';
 import NodeCache from 'node-cache';
-import { Worker } from 'worker_threads';
 
 const agent = new Agent({ keepAlive: true });
 const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
@@ -78,7 +77,7 @@ async function POST(req: Request) {
     const input_price = ((res_json.usage?.prompt_tokens ?? 0) / 1000000) * price_million_input;
     const output_price = ((res_json.usage?.completion_tokens ?? 0) / 1000000) * price_million_output;
 
-    const choices = res_json.choices as unknown as OpenAI.Chat.Completions.ChatCompletion.Choice[];
+    const choices = res_json.choices as OpenAI.Chat.Completions.ChatCompletion.Choice[];
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       ...data.messages,
       {
@@ -87,7 +86,7 @@ async function POST(req: Request) {
       },
     ];
 
-    // Offloading logging to a worker thread
+    // Logging usage directly without a worker thread
     const logResult = await guard.logUsage({
       input_cost: input_price,
       output_cost: output_price,
@@ -102,21 +101,9 @@ async function POST(req: Request) {
       stream: data.stream ?? false,
     });
 
-    logWorker.on('message', (logResult) => {
-      if (logResult.status !== 200) {
-        console.error(`Log Error: ${logResult.message}`);
-      }
-    });
-
-    logWorker.on('error', (error) => {
-      console.error('Worker Error:', error);
-    });
-
-    logWorker.on('exit', (code) => {
-      if (code !== 0) {
-        console.error(`Worker stopped with exit code ${code}`);
-      }
-    });
+    if (logResult.status !== 200) {
+      console.error(`Log Error: ${logResult.message}`);
+    }
 
     return NextResponse.json(res_json);
   } catch (error) {
