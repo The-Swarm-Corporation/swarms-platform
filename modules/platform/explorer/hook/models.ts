@@ -49,7 +49,6 @@ export default function useModels() {
 
   const handleOptionChange = useCallback(
     (value: string) => {
-      if (isDataLoading) return;
       setFilterOption(value);
       if (value === 'swarms' || value === 'models') {
         setOptions([value]);
@@ -65,7 +64,6 @@ export default function useModels() {
   const handleRemoveOption = useCallback(
     (optionToRemove: string) => {
       let updatedOptions = [];
-      if (isDataLoading) return;
       if (options.length === 1) {
         updatedOptions = optionToRemove === 'swarms' ? ['models'] : ['swarms'];
       } else {
