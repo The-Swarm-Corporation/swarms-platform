@@ -86,13 +86,13 @@ export class SwarmsApiGuard {
     // check user is not banned: SOON
 
     // check rate limit
-    const isAllowed = await checkRateLimit(this.userId);
-    if (!isAllowed) {
-      return {
-        status: 429,
-        message: 'Too Many Requests. Please try again later.',
-      };
-    }
+    // const isAllowed = await checkRateLimit(this.userId);
+    // if (!isAllowed) {
+    //   return {
+    //     status: 429,
+    //     message: 'Too Many Requests. Please try again later.',
+    //   };
+    // }
 
     // check model exists
     const modelInfo = await supabaseAdmin
