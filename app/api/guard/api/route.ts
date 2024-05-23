@@ -90,7 +90,7 @@ async function POST(req: Request) {
     });
   }
 
-  if (!invoicePaymentStatus.is_paid) {
+  if (!invoicePaymentStatus.is_paid && checkCredits.credit_plan === 'invoice') {
     return new Response(invoicePaymentStatus.message, {
       status: invoicePaymentStatus.status,
     });

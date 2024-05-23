@@ -246,15 +246,6 @@ export class BillingService {
         userId = orgOwnerId ?? '';
       }
 
-      if (!userId) {
-        return {
-          status: 400,
-          message: 'User id is missing.',
-          is_paid: false,
-          unpaidInvoiceId: null,
-        };
-      }
-
       const { status, message, transaction } =
         await getLatestBillingTransaction(userId);
 
