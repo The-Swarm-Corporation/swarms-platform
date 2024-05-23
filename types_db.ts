@@ -696,7 +696,7 @@ export type Database = {
           created_at?: string
           last_request_at?: string | null
           request_count?: number | null
-          user_id?: string
+          user_id: string
         }
         Update: {
           created_at?: string

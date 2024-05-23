@@ -10,14 +10,14 @@ import { getOrganizationOwner } from './organization';
 
 export async function checkRemainingCredits(
   userId: string,
-  organizationId: string | null,
+  organizationPublicId: string | null,
 ) {
   let id = userId;
 
-  if (organizationId) {
+  if (organizationPublicId) {
     // Fetch the organization owner's user ID
-    const orgOwnerId = await getOrganizationOwner(organizationId);
-    if (!orgOwnerId)
+    const orgId = await getOrganizationOwner(organizationPublicId);
+    if (!orgId)
       return {
         status: 400,
         remainingCredits: 0,
@@ -25,7 +25,7 @@ export async function checkRemainingCredits(
         credit_plan: 'default',
       };
 
-    id = orgOwnerId ?? '';
+    id = orgId ?? '';
   }
 
   const [credits, credit_plan] = await Promise.all([
@@ -36,8 +36,8 @@ export async function checkRemainingCredits(
   const remainingCredits = credits.credit + credits.free_credit;
 
   if (remainingCredits <= 0 && credit_plan === 'default') {
-    const status = organizationId ? 402 : 400;
-    const message = organizationId
+    const status = organizationPublicId ? 402 : 400;
+    const message = organizationPublicId
       ? 'Insufficient organization credits'
       : 'No remaining credits';
 
@@ -60,7 +60,7 @@ export async function checkRemainingCredits(
 export async function calculateRemainingCredit(
   totalAPICost: number,
   userId: string,
-  organizationId: string | null,
+  organizationPublicId: string | null,
 ): Promise<
   | {
       status: number;
@@ -72,17 +72,17 @@ export async function calculateRemainingCredit(
 
   let id = userId;
 
-  if (organizationId) {
+  if (organizationPublicId) {
     // Fetch the organization owner's user ID
-    const orgOwnerId = await getOrganizationOwner(organizationId);
-    if (!orgOwnerId)
+    const orgId = await getOrganizationOwner(organizationPublicId);
+    if (!orgId)
       return {
         status: 500,
         message:
           'Internal server error - invoice organization not found for calc rem credits',
       };
 
-    id = orgOwnerId ?? '';
+    id = orgId ?? '';
   }
 
   try {

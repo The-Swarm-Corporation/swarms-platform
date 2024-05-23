@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { BillingService } from '@/shared/utils/api/billing-service';
 import { User } from '@supabase/supabase-js';
+import { checkRateLimit } from '@/shared/utils/api/rate-limit';
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,9 +23,12 @@ export default async function handler(
     }
 
     const user = {
-      id: '16203c2a-9001-4b58-85b6-db2de7fb4383',
+      id: 'b0d99278-dda8-4fd7-b0b8-a83dd4206e60',
       email: 'gilbertoaceville@gmail.com',
     };
+
+    // const data = await checkRateLimit(user.id);
+    // console.log({ data });
 
     const billingService = new BillingService(user.id);
     // const usage =
@@ -32,11 +36,13 @@ export default async function handler(
 
     // console.dir(usage, { depth: null });
 
-    const invoiceDescription = `Monthly API Usage billing ${user.email}`;
+    // const invoiceDescription = `Monthly API Usage billing ${user.email}`;
 
-    await billingService.sendInvoiceToUser(5, user as User, invoiceDescription);
+    // await billingService.sendInvoiceToUser(5, user as User, invoiceDescription);
 
-    await billingService.checkInvoicePaymentStatus();
+    const invoiceStatus = await billingService.checkInvoicePaymentStatus("");
+
+    console.dir(invoiceStatus, { depth: null });
 
     return res.status(200).json({ message: 'Invoice status successful' });
   } catch (error) {

@@ -223,7 +223,7 @@ export class BillingService {
     }
   }
 
-  async checkInvoicePaymentStatus(organizationId?: string): Promise<{
+  async checkInvoicePaymentStatus(organizationPublicId?: string): Promise<{
     status: number;
     message: string;
     is_paid: boolean;
@@ -232,10 +232,10 @@ export class BillingService {
     try {
       let userId = this.userId;
 
-      if (organizationId) {
+      if (organizationPublicId) {
         // Fetch the organization owner's user ID
-        const orgOwnerId = await getOrganizationOwner(organizationId);
-        if (!orgOwnerId)
+        const orgId = await getOrganizationOwner(organizationPublicId);
+        if (!orgId)
           return {
             status: 500,
             message: 'Internal server error - invoice organization not found',
@@ -243,7 +243,7 @@ export class BillingService {
             unpaidInvoiceId: null,
           };
 
-        userId = orgOwnerId ?? '';
+        userId = orgId ?? '';
       }
 
       const { status, message, transaction } =
@@ -272,7 +272,7 @@ export class BillingService {
       if (!unpaidInvoice) {
         return {
           status: 200,
-          message: 'Invoice is paid.',
+          message: 'Success.',
           is_paid: true,
           unpaidInvoiceId: null,
         };

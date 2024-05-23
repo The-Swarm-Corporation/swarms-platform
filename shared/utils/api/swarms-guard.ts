@@ -79,20 +79,31 @@ export class SwarmsApiGuard {
       if (!userRoleInOrg) {
         return { status: 401, message: 'User is not part of the organization' };
       }
+
+      // check rate limit - set for organizations only
+      const isAllowed = await checkRateLimit(org.data.owner_user_id ?? '');
+      if (!isAllowed) {
+        return {
+          status: 429,
+          message: 'Too Many Requests. Please try again later.',
+        };
+      }
     }
 
     // check billing limits: SOON
 
     // check user is not banned: SOON
 
-    // check rate limit
-    // const isAllowed = await checkRateLimit(this.userId);
-    // if (!isAllowed) {
-    //   return {
-    //     status: 429,
-    //     message: 'Too Many Requests. Please try again later.',
-    //   };
-    // }
+    // check rate limit - set for users only
+    if (!this.organizationPublicId) {
+      const isAllowed = await checkRateLimit(this.userId, 30);
+      if (!isAllowed) {
+        return {
+          status: 429,
+          message: 'Too Many Requests. Please try again later.',
+        };
+      }
+    }
 
     // check model exists
     const modelInfo = await supabaseAdmin

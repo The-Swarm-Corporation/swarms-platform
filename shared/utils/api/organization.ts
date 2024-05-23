@@ -33,11 +33,11 @@ export const getUserOrganizationRole = async (
   return null;
 };
 
-export const getOrganizationOwner = async (organizationId: string) => {
+export const getOrganizationOwner = async (organizationPublicId: string) => {
   const { data, error } = await supabaseAdmin
     .from('swarms_cloud_organizations')
     .select('owner_user_id')
-    .eq('id', organizationId)
+    .eq('public_id', organizationPublicId)
     .single();
 
   if (error) {

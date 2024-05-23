@@ -91,7 +91,7 @@ const Credit = () => {
                     plan={plan}
                     isLoading={isLoading}
                     openModal={openModals[plan]}
-                    currentPlan={(currentPlan as Plan) || "default"}
+                    currentPlan={(currentPlan as Plan) || 'default'}
                     setOpenModal={(value) =>
                       setOpenModals((prev) => ({ ...prev, [plan]: value }))
                     }

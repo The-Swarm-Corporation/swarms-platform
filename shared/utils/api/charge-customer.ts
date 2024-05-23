@@ -97,6 +97,14 @@ async function getLatestBillingTransaction(userId: string): Promise<{
     .single();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      return {
+        status: 200,
+        message: 'No billing transactions found',
+        transaction: null,
+      };
+    }
+
     console.error('Error fetching latest billing transaction:', error);
     return {
       status: 400,
