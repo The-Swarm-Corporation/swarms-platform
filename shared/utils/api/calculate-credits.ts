@@ -44,14 +44,14 @@ export async function checkRemainingCredits(
     return {
       status,
       message,
-      remainingCredits,
+      remainingCredits: 0,
       credit_plan,
     };
   }
 
   return {
     status: 200,
-    remainingCredits: 0,
+    remainingCredits,
     message: 'Success',
     credit_plan,
   };

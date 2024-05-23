@@ -102,7 +102,7 @@ async function POST(req: Request) {
   const price_million_input = guard.modelRecord?.price_million_input || 0;
   const price_million_output = guard.modelRecord?.price_million_output || 0;
 
-  const estimatedTokens = 2000; // estimated tokens
+  const estimatedTokens = 1000; // estimated tokens
   const estimatedCost =
     (estimatedTokens / 1000000) * price_million_input +
     (estimatedTokens / 1000000) * price_million_output;
@@ -114,7 +114,7 @@ async function POST(req: Request) {
   }
 
   const remainingCredit = new Decimal(checkCredits.remainingCredits);
-  const decimalEstimatedCost = new Decimal(0);
+  const decimalEstimatedCost = new Decimal(estimatedCost);
 
   if (
     checkCredits.credit_plan === 'default' &&
@@ -153,6 +153,15 @@ async function POST(req: Request) {
       price_million_output;
 
     const totalCost = input_price + output_price;
+
+    if (
+      checkCredits.credit_plan === 'default' &&
+      remainingCredit.lessThan(totalCost)
+    ) {
+      return new Response('Insufficient credits', {
+        status: 402,
+      });
+    }
 
     // Update the total cost based on the credit plan
     let totalCostToUpdate = 0;
