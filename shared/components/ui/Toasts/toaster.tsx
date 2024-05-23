@@ -19,10 +19,10 @@ export function Toaster() {
   const router = useRouter();
 
   useEffect(() => {
-    const status = searchParams.get('status');
-    const status_description = searchParams.get('status_description');
-    const error = searchParams.get('error');
-    const error_description = searchParams.get('error_description');
+    const status = searchParams?.get('status');
+    const status_description = searchParams?.get('status_description');
+    const error = searchParams?.get('error');
+    const error_description = searchParams?.get('error_description');
     if (error || status) {
       toast({
         title: error
@@ -34,7 +34,7 @@ export function Toaster() {
       // Clear any 'error', 'status', 'status_description', and 'error_description' search params
       // so that the toast doesn't show up again on refresh, but leave any other search params
       // intact.
-      const newSearchParams = new URLSearchParams(searchParams.toString());
+      const newSearchParams = new URLSearchParams(searchParams?.toString());
       const paramsToRemove = [
         'error',
         'status',

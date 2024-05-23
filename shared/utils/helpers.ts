@@ -228,3 +228,16 @@ export function formatPrice(
     minimumFractionDigits: hasDecimalPlaces ? 2 : 0,
   }).format(Number(price));
 }
+
+/**
+ * _.chunk(['a', 'b', 'c', 'd'], 2);
+ * => [['a', 'b'], ['c', 'd']]
+ * @returns an array of elements split into groups the length of size
+ */
+export const chunk = <T>(input: T[], size: number): T[][] => {
+  return input.reduce<T[][]>((arr, item, idx) => {
+    return idx % size === 0
+      ? [...arr, [item]]
+      : [...arr.slice(0, -1), [...arr.slice(-1)[0], item]];
+  }, []);
+};

@@ -1,10 +1,11 @@
 import { Tables } from '@/types_db';
 import { supabaseAdmin } from '../supabase/admin';
 import { getUserOrganizationRole } from './organization';
+import { checkRateLimit } from './rate-limit';
 
 type Options = {
   apiKey: string | null;
-  organizationId: string | null;
+  organizationPublicId: string | null;
   modelId: string | null;
 };
 type UsageOptions = {
@@ -20,6 +21,7 @@ type UsageOptions = {
   output_tokens: number;
   max_tokens: number;
   messages: any;
+  invoice_total_cost?: number;
 };
 export class SwarmsApiGuard {
   apiKey: string | null;
@@ -30,9 +32,9 @@ export class SwarmsApiGuard {
   apiKeyRecordId: string | null = null;
   userId: string | null = null;
 
-  constructor({ apiKey, organizationId, modelId }: Options) {
+  constructor({ apiKey, organizationPublicId, modelId }: Options) {
     this.apiKey = apiKey;
-    this.organizationPublicId = organizationId;
+    this.organizationPublicId = organizationPublicId;
     this.modelId = modelId;
   }
   async isAuthenticated(): Promise<{
@@ -83,7 +85,14 @@ export class SwarmsApiGuard {
 
     // check user is not banned: SOON
 
-    // check rate limit : SOON
+    // check rate limit
+    const isAllowed = await checkRateLimit(this.userId);
+    if (!isAllowed) {
+      return {
+        status: 429,
+        message: 'Too Many Requests. Please try again later.',
+      };
+    }
 
     // check model exists
     const modelInfo = await supabaseAdmin
@@ -100,6 +109,11 @@ export class SwarmsApiGuard {
 
     return { status: 200, message: 'Success' };
   }
+
+  getUserId(): string | null {
+    return this.userId;
+  }
+
   async logUsage(usage: UsageOptions): Promise<{
     status: number;
     message: string;
@@ -134,7 +148,8 @@ export class SwarmsApiGuard {
           output_tokens: usage.output_tokens,
           max_tokens: usage.max_tokens,
           messages: usage.messages,
-        } as Tables<'swarms_cloud_api_activities'>,
+          invoice_total_cost: usage.invoice_total_cost,
+        } as unknown as Tables<'swarms_cloud_api_activities'>,
       ]);
 
     if (activity.error) {

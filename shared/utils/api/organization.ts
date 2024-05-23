@@ -33,6 +33,22 @@ export const getUserOrganizationRole = async (
   return null;
 };
 
+export const getOrganizationOwner = async (organizationId: string) => {
+  const { data, error } = await supabaseAdmin
+    .from('swarms_cloud_organizations')
+    .select('owner_user_id')
+    .eq('id', organizationId)
+    .single();
+
+  if (error) {
+    const errorMsg = error ? error.message : 'No organization owner found';
+    console.error('Error fetching organization details:', errorMsg);
+    throw new Error(`Error fetching organization details: ${errorMsg}`);
+  }
+
+  return data.owner_user_id;
+};
+
 export const submitInviteCode = async (code: string, userId: string) => {
   const invite = await supabaseAdmin
     .from('swarms_cloud_organization_member_invites')

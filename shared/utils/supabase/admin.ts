@@ -219,7 +219,11 @@ const createOrRetrieveStripeCustomer = async ({
       if (!existingStripeCustomer.deleted) {
         stripeCustomerId = existingStripeCustomer?.id;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error(
+        `Failed to retrieve Stripe customer with ID: ${existingSupabaseCustomer.stripe_customer_id}`,
+      );
+    }
   } else {
     // If Stripe ID is missing from Supabase, try to retrieve Stripe customer ID by email
     const stripeCustomers = await stripe.customers.list({ email: email });
@@ -370,9 +374,12 @@ const manageSubscriptionStatusChange = async (
 };
 
 const increaseUserCredit = async (uuid: string, amount: number) => {
-  const currentCredit = await getUserCredit(uuid);
+  const { credit: currentCredit, credit_count } = await getUserCredit(uuid);
   // Increase credit amount
   const newCredit = currentCredit + amount;
+
+  // Increase credit count
+  const newCreditCount = credit_count + 1;
 
   // Perform upsert operation
   const response = await supabaseAdmin
@@ -381,6 +388,7 @@ const increaseUserCredit = async (uuid: string, amount: number) => {
       {
         user_id: uuid,
         credit: newCredit,
+        credit_count: newCreditCount,
       },
       {
         onConflict: 'user_id',
@@ -394,26 +402,57 @@ const increaseUserCredit = async (uuid: string, amount: number) => {
     return true;
   }
 };
-const getUserCredit = async (uuid: string) => {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from('swarms_cloud_users_credits')
-      .select('credit')
-      .eq('user_id', uuid)
-      .single();
-    if (error) {
-      console.error(error.message);
-      return 0;
-    }
-    return data?.credit ?? 0;
-  } catch (e) {
-    console.error(e);
-    return 0;
+
+const getUserCreditPlan = async (uuid: string) => {
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('credit_plan')
+    .eq('id', uuid)
+    .single();
+
+  if (error) {
+    console.error(`Failed to fetch user credit plan: ${error.message}`);
+    throw new Error(`Failed to fetch user credit plan: ${error.message}`);
   }
+
+  return data.credit_plan ?? 'default';
+};
+
+const getUserCredit = async (uuid: string) => {
+  const { data, error } = await supabaseAdmin
+    .from('swarms_cloud_users_credits')
+    .select('credit, free_credit, credit_count')
+    .eq('user_id', uuid)
+    .single();
+  if (error) {
+    console.error(error.message);
+    throw new Error(`Failed to fetch user credit: ${error.message}`);
+  }
+  return {
+    credit: data?.credit ?? 0,
+    free_credit: data?.free_credit ?? 0,
+    credit_count: data?.credit_count ?? 0,
+  };
+};
+
+const getStripeCustomerId = async (userId: string): Promise<string | null> => {
+  const { data, error } = await supabaseAdmin
+    .from('customers')
+    .select('stripe_customer_id')
+    .eq('id', userId)
+    .single(); // Using .single() as we expect only one record for each user
+
+  if (error) {
+    console.error('Error fetching Stripe customer ID:', error);
+    throw new Error('Failed to fetch Stripe customer ID');
+  }
+
+  return data ? data.stripe_customer_id : null;
 };
 
 export {
   getUserCredit,
+  getUserCreditPlan,
   increaseUserCredit,
   upsertProductRecord,
   upsertPriceRecord,
@@ -423,5 +462,6 @@ export {
   manageSubscriptionStatusChange,
   retrieveUserStripeCustomerId,
   upsertInvoiceRecord,
+  getStripeCustomerId,
   retrieveUserIdFromCustomerId,
 };

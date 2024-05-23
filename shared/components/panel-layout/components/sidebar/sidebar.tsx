@@ -91,7 +91,7 @@ const PanelLayoutSidebar = () => {
                 onSubmit={(e) => handleRequest(e, SignOut, router)}
                 className="w-full"
               >
-                <input type="hidden" name="pathName" value={usePathname()} />
+                <input type="hidden" name="pathName" value={usePathname()?.toString()} />
                 <button type="submit" className="flex items-center w-full">
                   <LogOut size={20} className="mr-2" /> Sign out
                 </button>

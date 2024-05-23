@@ -34,14 +34,14 @@ const apiKeyRouter = router({
       //   });
       // }
       const name = input.name.trim();
-      if (name == '') {
+      if (name === '') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Name is required',
         });
       }
 
-      if (name == 'playground') {
+      if (name === 'playground') {
         // error
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -84,7 +84,7 @@ const apiKeyRouter = router({
         });
       }
 
-      if (apiKey.data.name == 'playground') {
+      if (apiKey.data.name === 'playground') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Cannot delete playground api key',

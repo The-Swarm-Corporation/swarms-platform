@@ -44,7 +44,7 @@ export default function Pricing({ user, products, subscription }: Props) {
   const [billingInterval, setBillingInterval] =
     useState<BillingInterval>('month');
   const [priceIdLoading, setPriceIdLoading] = useState<string>();
-  const currentPath = usePathname();
+  const currentPath = usePathname() ?? "";
 
   const handleStripeCheckout = async (price: Price) => {
     setPriceIdLoading(price.id);

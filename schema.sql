@@ -302,6 +302,7 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_users_credits" (
     "user_id" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "credit" bigint
+    "free_credit" bigint
 );
 
 ALTER TABLE "public"."swarms_cloud_users_credits" OWNER TO "postgres";
