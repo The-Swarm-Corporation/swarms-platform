@@ -20,9 +20,6 @@ const Credit = () => {
   const creditPlanQuery = trpc.panel.getUserCreditPlan.useQuery();
   const creditPlanMutation = trpc.panel.updateUserCreditPlan.useMutation();
 
-  const paymentMethod = trpc.payment.getDefaultPaymentMethod.useQuery();
-  const paymentMethods = trpc.payment.getUserPaymentMethods.useQuery();
-
   const isLoading = creditPlanMutation.isPending;
   const isQueryLoading = creditPlanQuery.isLoading;
   const currentPlan = creditPlanQuery.data?.credit_plan;

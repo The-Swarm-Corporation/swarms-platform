@@ -37,12 +37,8 @@ const useSubscription = () => {
     });
   };
 
-  const credit = useMemo(
-    () => (userCredit.data ? userCredit.data / 100 : 0),
-    [userCredit.data],
-  );
   return {
-    credit,
+    credit: userCredit.data,
     creditLoading: userCredit.isLoading,
     data: getSubscription,
     statusLoading: getSubscription.isLoading,

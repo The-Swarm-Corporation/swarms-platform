@@ -767,27 +767,27 @@ export type Database = {
       swarms_cloud_users_credits: {
         Row: {
           created_at: string
-          credit: number | null
+          credit: number
           credit_count: number | null
-          free_credit: number | null
+          free_credit: number
           free_credit_expire_date: string | null
           id: string
           user_id: string | null
         }
         Insert: {
           created_at?: string
-          credit?: number | null
+          credit?: number
           credit_count?: number | null
-          free_credit?: number | null
+          free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
           user_id?: string | null
         }
         Update: {
           created_at?: string
-          credit?: number | null
+          credit?: number
           credit_count?: number | null
-          free_credit?: number | null
+          free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
           user_id?: string | null

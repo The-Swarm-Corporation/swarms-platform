@@ -78,7 +78,8 @@ export async function calculateRemainingCredit(
     if (!orgOwnerId)
       return {
         status: 500,
-        message: 'Internal server error - invoice organization not found for calc rem credits',
+        message:
+          'Internal server error - invoice organization not found for calc rem credits',
       };
 
     id = orgOwnerId ?? '';
@@ -106,14 +107,15 @@ export async function calculateRemainingCredit(
     await supabaseAdmin.from('swarms_cloud_users_credits').upsert(
       {
         user_id: id,
-        credit: newCredit.toNumber(),
-        free_credit: newFreeCredit.toNumber(),
+        credit: Number(newCredit),
+        free_credit: Number(newFreeCredit),
       },
       {
         onConflict: 'user_id',
       },
     );
 
+    console.log('Remaining credit calculated successfully');
     return {
       status: 200,
       message: 'Remaining credit calculated successfully',
