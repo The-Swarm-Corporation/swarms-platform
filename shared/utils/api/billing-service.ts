@@ -246,8 +246,17 @@ export class BillingService {
         userId = orgId ?? '';
       }
 
+      if (!userId) {
+        return {
+          status: 400,
+          message: 'User session not found',
+          is_paid: false,
+          unpaidInvoiceId: null,
+        };
+      }
+
       const { status, message, transaction } =
-        await getLatestBillingTransaction("dd8a7b80-61af-4659-b6f6-b864157581ed");
+        await getLatestBillingTransaction(this.userId);
 
       if (status !== 200) {
         return {
@@ -300,7 +309,7 @@ export class BillingService {
       console.error('Error checking invoice payment status:', error);
       return {
         status: 500,
-        message: `Internal server error - invoice, ${this.userId} ${error}`,
+        message: `Internal server error - invoice, user => ${this.userId}, organization => ${organizationPublicId} error => ${error}`,
         is_paid: false,
         unpaidInvoiceId: null,
       };
