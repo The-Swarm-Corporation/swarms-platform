@@ -256,7 +256,7 @@ export class BillingService {
       }
 
       const { status, message, transaction } =
-        await getLatestBillingTransaction(this.userId);
+        await getLatestBillingTransaction(userId);
 
       if (status !== 200) {
         return {
@@ -309,7 +309,7 @@ export class BillingService {
       console.error('Error checking invoice payment status:', error);
       return {
         status: 500,
-        message: `Internal server error - invoice, user => ${this.userId}, organization => ${organizationPublicId} error => ${error}`,
+        message: `Internal server error ${error}`,
         is_paid: false,
         unpaidInvoiceId: null,
       };
