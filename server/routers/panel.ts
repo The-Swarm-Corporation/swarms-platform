@@ -6,8 +6,7 @@ import { getUserCredit } from '@/shared/utils/supabase/admin';
 import { getUserStripeCustomerId } from '@/shared/utils/stripe/server';
 import { stripe } from '@/shared/utils/stripe/config';
 import Stripe from 'stripe';
-
-type CreditPlan = 'default' | 'invoice';
+import { Tables } from '@/types_db';
 
 const panelRouter = router({
   getUserCredit: userProcedure.query(async ({ ctx }) => {
@@ -38,19 +37,6 @@ const panelRouter = router({
       const user = ctx.session.data.session?.user as User;
 
       const userCredit = await getUserCredit(user.id);
-
-      const invoices = await ctx.supabase
-        .from('invoices')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'paid');
-
-      if (invoices.error) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Error while fetching user invoices',
-        });
-      }
 
       if (input.credit_plan === 'invoice' && userCredit.credit_count < 2) {
         throw new TRPCError({
@@ -91,7 +77,7 @@ const panelRouter = router({
 
       const credits = await ctx.supabase
         .from('users')
-        .update({ credit_plan: input.credit_plan as CreditPlan })
+        .update({ credit_plan: input.credit_plan as Tables<"users">["credit_plan"] })
         .eq('id', user.id);
 
       if (credits.error) {

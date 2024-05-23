@@ -7,13 +7,30 @@ import { SwarmsApiGuard } from '@/shared/utils/api/swarms-guard';
 import Decimal from 'decimal.js';
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
-async function POST(req: Request) {
-  /* 
-      headers:
-        Authorization: Bearer <token> : Required
-        Organization ID : Optional
-    */
+import fetch, { RequestInit, Response as FetchResponse } from 'node-fetch';
+import { Agent } from 'http';
+import NodeCache from 'node-cache';
 
+const agent = new Agent({ keepAlive: true });
+const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
+
+async function fetchWithRetries(
+  url: string,
+  options: RequestInit,
+  retries: number = 3,
+): Promise<FetchResponse> {
+  try {
+    return await fetch(url, options);
+  } catch (error) {
+    if (retries > 0) {
+      return fetchWithRetries(url, options, retries - 1);
+    } else {
+      throw error;
+    }
+  }
+}
+
+async function POST(req: Request) {
   const headers = req.headers;
 
   const organizationPublicId = headers.get('Swarms-Organization');
@@ -24,16 +41,26 @@ async function POST(req: Request) {
 
   const data =
     (await req.json()) as OpenAI.Chat.Completions.ChatCompletionCreateParams;
-
   const modelId = data?.model;
 
-  const guard = new SwarmsApiGuard({ apiKey, organizationPublicId, modelId });
-  const isAuthenticated = await guard.isAuthenticated();
+  // Cache key based on API key and organization ID
+  const authCacheKey = `auth-${apiKey}-${organizationPublicId}`;
+  const cachedAuth = cache.get(authCacheKey);
 
-  if (isAuthenticated.status !== 200) {
-    return new Response(isAuthenticated.message, {
-      status: isAuthenticated.status,
-    });
+  let guard: SwarmsApiGuard;
+  if (cachedAuth) {
+    guard = cachedAuth as SwarmsApiGuard;
+  } else {
+    guard = new SwarmsApiGuard({ apiKey, organizationPublicId, modelId });
+    const isAuthenticated = await guard.isAuthenticated();
+
+    if (isAuthenticated.status !== 200) {
+      return new Response(isAuthenticated.message, {
+        status: isAuthenticated.status,
+      });
+    }
+
+    cache.set(authCacheKey, guard);
   }
 
   const userId = guard.getUserId();
@@ -99,15 +126,24 @@ async function POST(req: Request) {
   }
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithRetries(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(data),
+      agent,
     });
-    const res_json = (await res.json()) as OpenAI.Completion;
 
+    if (res.status != 200) {
+      return new Response('Internal Error - fetching model', {
+        status: res.status,
+      });
+    }
+
+    const res_json =
+      (await res.json()) as OpenAI.Chat.Completions.ChatCompletion;
     const price_million_input = guard.modelRecord?.price_million_input || 0;
     const price_million_output = guard.modelRecord?.price_million_output || 0;
     const input_price =
@@ -129,26 +165,31 @@ async function POST(req: Request) {
     }
 
     const choices =
-      res_json.choices as unknown as OpenAI.Chat.Completions.ChatCompletion.Choice[];
+      res_json.choices as OpenAI.Chat.Completions.ChatCompletion.Choice[];
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       ...data.messages,
       {
         role: 'assistant',
-        content: choices[0]?.message?.content,
+        content: choices[0]?.message?.content || '',
       },
     ];
 
     // calculate remaining credit
-    const creditBalance = await calculateRemainingCredit(
-      totalCost,
-      userId,
-      organizationPublicId,
-    );
+    if (
+      checkCredits.credit_plan === 'default' &&
+      remainingCredit.greaterThan(0)
+    ) {
+      const creditBalance = await calculateRemainingCredit(
+        totalCost,
+        userId,
+        organizationPublicId,
+      );
 
-    if (creditBalance?.status !== 200) {
-      return new Response(creditBalance?.message, {
-        status: creditBalance?.status,
-      });
+      if (creditBalance?.status !== 200) {
+        return new Response(creditBalance?.message, {
+          status: creditBalance?.status,
+        });
+      }
     }
 
     // log the result
@@ -168,9 +209,7 @@ async function POST(req: Request) {
     });
 
     if (logResult.status !== 200) {
-      return new Response(logResult.message, {
-        status: logResult.status,
-      });
+      console.error(`Log Error: ${logResult.message}`);
     }
     // console.log({ logResult });
 

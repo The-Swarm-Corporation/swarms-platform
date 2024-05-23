@@ -7,7 +7,6 @@ import {
   supabaseAdmin,
 } from '../supabase/admin';
 import { getOrganizationOwner } from './organization';
-import { stripe } from '../stripe/config';
 
 export async function checkRemainingCredits(
   userId: string,
@@ -20,9 +19,9 @@ export async function checkRemainingCredits(
     const orgOwnerId = await getOrganizationOwner(organizationId);
     if (!orgOwnerId)
       return {
-        status: 500,
+        status: 400,
         remainingCredits: 0,
-        message: 'Internal server error',
+        message: 'Organization owner not found',
         credit_plan: 'default',
       };
 
@@ -121,6 +120,6 @@ export async function calculateRemainingCredit(
     };
   } catch (error) {
     console.error('Error calculating remaining credit:', error);
-    return { status: 500, message: 'Internal server error' };
+    return { status: 500, message: 'Internal server error - Calc rem credits' };
   }
 }

@@ -32,9 +32,9 @@ export default async function handler(
 
     // console.dir(usage, { depth: null });
 
-    // const invoiceDescription = `Monthly API Usage billing ${user.email}`;
+    const invoiceDescription = `Monthly API Usage billing ${user.email}`;
 
-    // await billingService.sendInvoiceToUser(5, user as User, invoiceDescription);
+    await billingService.sendInvoiceToUser(5, user as User, invoiceDescription);
 
     await billingService.checkInvoicePaymentStatus();
 

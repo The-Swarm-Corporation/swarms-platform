@@ -149,7 +149,7 @@ export class SwarmsApiGuard {
           max_tokens: usage.max_tokens,
           messages: usage.messages,
           invoice_total_cost: usage.invoice_total_cost,
-        } as Tables<'swarms_cloud_api_activities'>,
+        } as unknown as Tables<'swarms_cloud_api_activities'>,
       ]);
 
     if (activity.error) {
