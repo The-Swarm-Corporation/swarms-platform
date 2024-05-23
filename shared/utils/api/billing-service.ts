@@ -247,7 +247,7 @@ export class BillingService {
       }
 
       const { status, message, transaction } =
-        await getLatestBillingTransaction(userId);
+        await getLatestBillingTransaction("dd8a7b80-61af-4659-b6f6-b864157581ed");
 
       if (status !== 200) {
         return {
@@ -300,7 +300,7 @@ export class BillingService {
       console.error('Error checking invoice payment status:', error);
       return {
         status: 500,
-        message: 'Internal server error - Invoice payment status failed',
+        message: `Internal server error - invoice, ${this.userId} ${error}`,
         is_paid: false,
         unpaidInvoiceId: null,
       };

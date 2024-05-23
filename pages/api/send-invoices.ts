@@ -23,7 +23,7 @@ export default async function handler(
     }
 
     const user = {
-      id: 'b0d99278-dda8-4fd7-b0b8-a83dd4206e60',
+      id: '16203c2a-9001-4b58-85b6-db2de7fb4383',
       email: 'gilbertoaceville@gmail.com',
     };
 
