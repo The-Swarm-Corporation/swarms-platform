@@ -114,7 +114,7 @@ async function POST(req: Request) {
   }
 
   const remainingCredit = new Decimal(checkCredits.remainingCredits);
-  const decimalEstimatedCost = new Decimal(estimatedCost);
+  const decimalEstimatedCost = new Decimal(0);
 
   if (
     checkCredits.credit_plan === 'default' &&
