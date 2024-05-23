@@ -78,7 +78,7 @@ export async function calculateRemainingCredit(
     if (!orgOwnerId)
       return {
         status: 500,
-        message: 'Internal server error',
+        message: 'Internal server error - invoice organization not found for calc rem credits',
       };
 
     id = orgOwnerId ?? '';

@@ -238,7 +238,7 @@ export class BillingService {
         if (!orgOwnerId)
           return {
             status: 500,
-            message: 'Internal server error',
+            message: 'Internal server error - invoice organization not found',
             is_paid: false,
             unpaidInvoiceId: null,
           };
@@ -300,7 +300,7 @@ export class BillingService {
       console.error('Error checking invoice payment status:', error);
       return {
         status: 500,
-        message: 'Internal server error',
+        message: 'Internal server error - Invoice payment status failed',
         is_paid: false,
         unpaidInvoiceId: null,
       };

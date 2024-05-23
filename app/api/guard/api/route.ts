@@ -136,7 +136,7 @@ async function POST(req: Request) {
       agent,
     });
 
-    if (res.status != 200) {
+    if (res.status !== 200) {
       return new Response('Internal Error - fetching model', {
         status: res.status,
       });
@@ -216,7 +216,7 @@ async function POST(req: Request) {
     return NextResponse.json(res_json);
   } catch (error) {
     console.log('error', error);
-    return new Response('Internal Server Error', {
+    return new Response('Internal Server Error - Swarms gaurd api', {
       status: 500,
     });
   }

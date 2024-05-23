@@ -157,7 +157,7 @@ export class SwarmsApiGuard {
 
       return {
         status: 500,
-        message: 'Internal Server Error',
+        message: 'Internal Server Error - Swarms activity log failed',
       };
     }
 
