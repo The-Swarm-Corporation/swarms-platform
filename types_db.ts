@@ -688,18 +688,21 @@ export type Database = {
       swarms_cloud_rate_limits: {
         Row: {
           created_at: string
+          id: string
           last_request_at: string | null
           request_count: number | null
           user_id: string
         }
         Insert: {
           created_at?: string
+          id?: string
           last_request_at?: string | null
           request_count?: number | null
           user_id: string
         }
         Update: {
           created_at?: string
+          id?: string
           last_request_at?: string | null
           request_count?: number | null
           user_id?: string
@@ -708,7 +711,7 @@ export type Database = {
           {
             foreignKeyName: "swarms_cloud_rate_limits_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -947,6 +950,7 @@ export type Database = {
           credit_plan: Database["public"]["Enums"]["credit_plan"]
           email: string | null
           full_name: string | null
+          had_free_credits: boolean
           id: string
           job_title: string | null
           payment_method: Json | null
@@ -964,6 +968,7 @@ export type Database = {
           credit_plan?: Database["public"]["Enums"]["credit_plan"]
           email?: string | null
           full_name?: string | null
+          had_free_credits?: boolean
           id: string
           job_title?: string | null
           payment_method?: Json | null
@@ -981,6 +986,7 @@ export type Database = {
           credit_plan?: Database["public"]["Enums"]["credit_plan"]
           email?: string | null
           full_name?: string | null
+          had_free_credits?: boolean
           id?: string
           job_title?: string | null
           payment_method?: Json | null
