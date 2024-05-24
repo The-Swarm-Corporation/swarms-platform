@@ -9,10 +9,11 @@ import {
 import useCardManager from './hooks/hook';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import Modal from '@/shared/components/modal';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { Trash } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
+import { useSearchParams } from 'next/navigation';
 
 const CardManagerInside = () => {
   const manager = useCardManager();
@@ -20,6 +21,15 @@ const CardManagerInside = () => {
   const stripe = useStripe();
   const elements = useElements();
   const toast = useToast();
+  const searchParams = useSearchParams();
+  const cardAvailable = searchParams?.get('card_available');
+
+  useEffect(() => {
+    if (cardAvailable && cardAvailable === 'false') {
+      setIsAddCardModalOpen(true);
+    }
+  }, []);
+
   const handleSubmit = async (event: any) => {
     event.preventDefault();
 

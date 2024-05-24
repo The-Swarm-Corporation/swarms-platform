@@ -2,8 +2,10 @@ import { router, userProcedure } from '@/app/api/trpc/trpc-router';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { User } from '@supabase/supabase-js';
-import { getUserCredit } from '@/shared/utils/supabase/admin';
-import { getUserStripeCustomerId } from '@/shared/utils/stripe/server';
+import {
+  createOrRetrieveStripeCustomer,
+  getUserCredit,
+} from '@/shared/utils/supabase/admin';
 import { stripe } from '@/shared/utils/stripe/config';
 import Stripe from 'stripe';
 import { Tables } from '@/types_db';
@@ -38,15 +40,19 @@ const panelRouter = router({
 
       const userCredit = await getUserCredit(user.id);
 
-      if (input.credit_plan === 'invoice' && userCredit.credit_count < 2) {
+      if (input.credit_plan === 'invoice' && userCredit.credit_count < 3) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message:
-            'You need at least two(2) manual credit payments before switching to invoice plan',
+            'You need at least three(3) manual credit payments before switching to invoice plan',
         });
       }
 
-      const stripeCustomerId = await getUserStripeCustomerId(user);
+      const stripeCustomerId = await createOrRetrieveStripeCustomer({
+        email: user.email ?? '',
+        uuid: user.id,
+      });
+
       if (!stripeCustomerId) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -61,7 +67,8 @@ const panelRouter = router({
       if (!paymentMethods.data.length) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Please add a payment method in the "Manage Cards" section to switch to invoice plan',
+          message:
+            'Please add a payment method in the "Manage Cards" section to switch to invoice plan',
         });
       }
 
@@ -71,13 +78,16 @@ const panelRouter = router({
       if (!customer || !customer.invoice_settings.default_payment_method) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'No default payment method found. Click on added card to set as default',
+          message:
+            'No default payment method found. Click on added card to set as default',
         });
       }
 
       const credits = await ctx.supabase
         .from('users')
-        .update({ credit_plan: input.credit_plan as Tables<"users">["credit_plan"] })
+        .update({
+          credit_plan: input.credit_plan as Tables<'users'>['credit_plan'],
+        })
         .eq('id', user.id);
 
       if (credits.error) {

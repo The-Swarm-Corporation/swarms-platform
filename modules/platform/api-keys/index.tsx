@@ -20,7 +20,7 @@ import {
   TableRow,
 } from '@/shared/components/ui/table';
 import { SwarmApiKey } from '@/shared/models/db-types';
-import { formatDate } from '@/shared/utils/helpers';
+import { createQueryString, formatDate } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 
 import {
@@ -31,14 +31,16 @@ import {
 } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
-import router from 'next/router';
 import Link from 'next/link';
 import { PLATFORM } from '@/shared/constants/links';
+import { useRouter } from 'next/navigation';
 
 const ApiKeys = () => {
   const apiKeys = trpc.apiKey.getApiKeys.useQuery();
   const addApiKey = trpc.apiKey.addApiKey.useMutation();
   const [keyName, setKeyName] = useState<string>('');
+
+  const router = useRouter();
   const [generatedKey, setGeneratedKey] = useState<string | null>('');
   const toast = useToast();
   const columns: ColumnDef<Partial<SwarmApiKey>>[] = useMemo(() => {
@@ -94,19 +96,39 @@ const ApiKeys = () => {
     if (addApiKey.isPending) {
       return;
     }
-    addApiKey.mutateAsync({ name: keyName }).then((data) => {
-      setKeyName('');
-      setGeneratedKey(data?.key ?? '');
-      apiKeys.refetch();
-      toast.toast({
-        title: 'API key created',
+    addApiKey
+      .mutateAsync({ name: keyName })
+      .then((data) => {
+        setKeyName('');
+        setGeneratedKey(data?.key ?? '');
+        apiKeys.refetch();
+        toast.toast({
+          title: 'API key created',
+        });
+        confetti({
+          particleCount: 150,
+          spread: 90,
+          origin: { y: 0.6 },
+        });
+      })
+      .catch((error) => {
+        toast.toast({
+          description:
+            error.message || 'An error occurred while creating API key',
+          variant: 'destructive',
+        });
+        if (error.message) {
+          if (error.message.toLowerCase().includes('payment method missing')) {
+            const params = createQueryString('card_available', 'false');
+
+            router.push(PLATFORM.ACCOUNT + '?' + params);
+          }
+
+          if (error.message.toLowerCase().includes('not found')) {
+            router.push(PLATFORM.ACCOUNT);
+          }
+        }
       });
-      confetti({
-        particleCount: 150,
-        spread: 90,
-        origin: { y: 0.6 },
-      });
-    });
   };
 
   return (

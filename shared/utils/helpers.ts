@@ -241,3 +241,10 @@ export const chunk = <T>(input: T[], size: number): T[][] => {
       : [...arr.slice(0, -1), [...arr.slice(-1)[0], item]];
   }, []);
 };
+
+export const createQueryString = (name: string, value: string) => {
+  const params = new URLSearchParams();
+  params.set(name, value);
+
+  return params.toString();
+};

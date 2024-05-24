@@ -1,9 +1,11 @@
 import { router, userProcedure } from '@/app/api/trpc/trpc-router';
 import { generateApiKey } from '@/shared/utils/helpers';
-import { getSubscriptionStatus } from '@/shared/utils/stripe/server';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { stripe } from '@/shared/utils/stripe/config';
+import Stripe from 'stripe';
+import { createOrRetrieveStripeCustomer } from '@/shared/utils/supabase/admin';
 
 const apiKeyRouter = router({
   // api key page
@@ -48,6 +50,42 @@ const apiKeyRouter = router({
           message: 'cannot create api key with name "playground"',
         });
       }
+
+      const stripeCustomerId = await createOrRetrieveStripeCustomer({
+        email: user.email ?? '',
+        uuid: user.id,
+      });
+
+      if (!stripeCustomerId) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error while creating stripe customer',
+        });
+      }
+
+      const paymentMethods = await stripe.paymentMethods.list({
+        customer: stripeCustomerId,
+        type: 'card',
+      });
+
+      if (!paymentMethods.data.length) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Payment method missing. Add valid card to continue',
+        });
+      }
+
+      const customer = (await stripe.customers.retrieve(
+        stripeCustomerId,
+      )) as Stripe.Customer;
+      if (!customer || !customer.invoice_settings.default_payment_method) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message:
+            'Default payment method not found. Click on added card to set as default',
+        });
+      }
+
       try {
         const key = generateApiKey();
         const newApiKey = await ctx.supabase
