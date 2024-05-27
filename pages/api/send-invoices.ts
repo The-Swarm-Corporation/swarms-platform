@@ -24,8 +24,8 @@ export default async function handler(
     }
 
     const user = {
-      id: 'c751e2e5-62d9-415f-95c8-ec170075375e',
-      email: 'kye@apac.ai',
+      id: '',
+      email: '',
     };
 
     // const data = await checkRateLimit(user.id);
