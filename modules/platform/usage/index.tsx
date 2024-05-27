@@ -13,9 +13,10 @@ import {
 
 const Usage = () => {
   // bar chart with 2 y-axis, x axis for time , y axis for (cost,count)
+  const year = new Date().getFullYear();
   const data: any[] = [...new Array(24)].map((_, i) => ({
     // month name + day
-    month: new Date(2021, 0, i + 1).toLocaleDateString('en', {
+    month: new Date(year, 0, i + 1).toLocaleDateString('en', {
       month: 'short',
       day: 'numeric',
     }),
