@@ -24,8 +24,8 @@ export default async function handler(
     }
 
     const user = {
-      id: '',
-      email: '',
+      id: '16203c2a-9001-4b58-85b6-db2de7fb4383',
+      email: 'gilbertoaceville@gmail.com',
     };
 
     // const data = await checkRateLimit(user.id);

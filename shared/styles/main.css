@@ -56,6 +56,10 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  .pie-chart .recharts-pie-labels g:last-child {
+    @apply invisible;
+  }
 }
 
 @layer utilities {

@@ -1,32 +1,22 @@
 import { supabaseAdmin } from '../supabase/admin';
 
-type DailyCost = {
+export type DailyCost = {
   date: string;
   totalCost: number;
   invoiceTotalCost?: number;
   modelCosts: { [modelId: string]: number };
 };
 
-type UserUsage = {
+export type UserUsage = {
   totalCost: number;
   invoiceTotalCost: number;
   dailyCosts: DailyCost[];
 };
 
-type OrganizationUsage = {
-  name?: string;
-  organizationId: string;
-  totalCost: number;
-  invoiceTotalCost: number;
-  ownerId?: string;
-  dailyCosts: DailyCost[];
-};
-
-interface UsageResponse {
+export interface UsageResponse {
   status: number;
   message: string;
   user?: UserUsage;
-  organizations?: OrganizationUsage[];
 }
 
 export async function userAPICluster(
