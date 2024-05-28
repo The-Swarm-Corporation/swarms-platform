@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { BillingService } from '@/shared/utils/api/billing-service';
 import { User } from '@supabase/supabase-js';
 import { checkRateLimit } from '@/shared/utils/api/rate-limit';
+import { userAPICluster } from '@/shared/utils/api/usage';
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,7 +12,7 @@ export default async function handler(
     const currentDate = new Date();
     const lastMonthDate = new Date(
       currentDate.getFullYear(),
-      currentDate.getMonth() - 1,
+      currentDate.getMonth(),
       1,
     );
 
@@ -40,9 +41,11 @@ export default async function handler(
 
     // await billingService.sendInvoiceToUser(5, user as User, invoiceDescription);
 
-    const invoiceStatus = await billingService.checkInvoicePaymentStatus("");
+    // const invoiceStatus = await billingService.checkInvoicePaymentStatus("");
 
-    console.dir(invoiceStatus, { depth: null });
+    const cluster = await userAPICluster(user.id, lastMonthDate);
+
+    console.dir(cluster, { depth: null });
 
     return res.status(200).json({ message: 'Invoice status successful' });
   } catch (error) {

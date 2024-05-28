@@ -9,6 +9,8 @@ import {
 import { stripe } from '@/shared/utils/stripe/config';
 import Stripe from 'stripe';
 import { Tables } from '@/types_db';
+import { userAPICluster } from '@/shared/utils/api/usage';
+import { isEmpty } from '@/shared/utils/helpers';
 
 const panelRouter = router({
   getUserCredit: userProcedure.query(async ({ ctx }) => {
@@ -32,6 +34,41 @@ const panelRouter = router({
     }
 
     return data;
+  }),
+  getUserFreeCredits: userProcedure.query(async ({ ctx }) => {
+    const user = ctx.session.data.session?.user as User;
+    const { data, error } = await ctx.supabase
+      .from('users')
+      .select('had_free_credits')
+      .eq('id', user.id)
+      .single();
+
+    if (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error while fetching users',
+      });
+    }
+
+    if (!data?.had_free_credits) {
+      console.log('User already has no free credits yet');
+      return; // User already has no free credits yet
+    }
+
+    const { data: credits, error: creditError } = await ctx.supabase
+      .from('swarms_cloud_users_credits')
+      .select('free_credit')
+      .eq('user_id', user.id)
+      .single();
+
+    if (creditError) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error while fetching user free credits',
+      });
+    }
+
+    return credits.free_credit;
   }),
   updateUserCreditPlan: userProcedure
     .input(z.object({ credit_plan: z.string() }))
@@ -144,6 +181,27 @@ const panelRouter = router({
         });
       }
       return true;
+    }),
+  getUsageAPICluster: userProcedure
+    .input(
+      z.object({
+        month: z.date(),
+      }),
+    )
+    .mutation(async ({ ctx, input: { month } }) => {
+      const user = ctx.session.data.session?.user as User;
+
+      const cluster = await userAPICluster(user.id, month);
+
+      if (cluster.status !== 200) {
+        throw new Error(cluster.message);
+      }
+
+      if (isEmpty(cluster.user)) {
+        return null;
+      }
+
+      return cluster.user;
     }),
 });
 
