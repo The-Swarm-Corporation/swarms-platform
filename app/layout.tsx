@@ -2,9 +2,9 @@ import { Toaster } from '@/shared/components/ui/Toasts/toaster';
 import { ThemeProvider } from '@/shared/components/ui/theme-provider';
 import { helvetica } from '@/shared/styles/fonts';
 import { TrpcProvider } from '@/shared/utils/trpc/trpc-provider';
+import { Analytics } from '@vercel/analytics/react';
 import { Viewport } from 'next';
 import { Suspense } from 'react';
-import { Analytics } from '@vercel/analytics/react';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -24,7 +24,7 @@ export default async function Layout({
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem
+          enableSystem={false}
           disableTransitionOnChange
         >
           <TrpcProvider>{children}</TrpcProvider>

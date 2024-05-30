@@ -1,17 +1,15 @@
 'use client';
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Spotlight } from '@/shared/components/spotlight';
-import Image from 'next/image';
-import GitHubImage from '@/public/images/github.png';
 import DiscordImage from '@/public/images/discord.png';
+import GitHubImage from '@/public/images/github.png';
 import TwitterImage from '@/public/images/twitter.png';
 import AnimatedTooltip from '@/shared/components/tool-tip';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 const OpenSourceSection = () => {
   return (
-    <div className="flex max-md:flex-col">
-      <div className="flex-1 h-[40rem] w-full rounded-md flex md:items-center md:justify-center bg-background antialiased relative overflow-hidden">
+    <div className="flex max-md:flex-col bg-[url(/images/dots-bg.svg)] dark:bg-[url(/images/dot-bg-dark.svg)]">
+      <div className="flex-1 h-[40rem] w-full rounded-md flex md:items-center md:justify-center bg-background antialiased relative overflow-hidden  bg-[url(/images/dots-bg.svg)] dark:bg-[url(/images/dot-bg-dark.svg)]">
         {/* <Spotlight
           className="-top-40 left-0 md:left-60 md:-top-20"
           fill="white"
@@ -27,7 +25,7 @@ const OpenSourceSection = () => {
           </p>
         </div>
       </div>
-      <div className="min-h-72 flex-1 flex justify-center items-center relative overflow-hidden bg-background">
+      <div className="min-h-72 flex-1 flex justify-center items-center relative overflow-hidden bg-background  bg-[url(/images/dots-bg.svg)] dark:bg-[url(/images/dot-bg-dark.svg)]">
         <motion.div
           transition={{ duration: 10, repeat: Infinity, ease: 'easeIn' }}
           initial="rest"
@@ -35,7 +33,7 @@ const OpenSourceSection = () => {
             x: [-50, -10, -50],
             y: [-70, 10, -70],
           }}
-          className="flex flex-col items-center gap-10"
+          className="flex flex-col items-center gap-10 cursor-pointer"
         >
           <AnimatedTooltip
             tooltip={
@@ -62,7 +60,7 @@ const OpenSourceSection = () => {
             x: [10, -5, 10],
             y: [10, -5, 10],
           }}
-          className="flex flex-col items-center gap-10"
+          className="flex flex-col items-center gap-10 cursor-pointer"
         >
           <AnimatedTooltip
             tooltip={
@@ -89,7 +87,7 @@ const OpenSourceSection = () => {
             x: [50, 30, 50],
             y: [-10, 5, -10],
           }}
-          className="flex flex-col items-center gap-10"
+          className="flex flex-col items-center gap-10 cursor-pointer"
         >
           <AnimatedTooltip
             tooltip={

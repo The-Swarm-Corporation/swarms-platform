@@ -1,17 +1,18 @@
 'use client';
 
-import Link from 'next/link';
-import { SignOut } from '@/shared/utils/auth-helpers/server';
-import { handleRequest } from '@/shared/utils/auth-helpers/client';
 import Logo from '@/shared/components/icons/Logo';
-import { usePathname, useRouter } from 'next/navigation';
-import { getRedirectMethod } from '@/shared/utils/auth-helpers/settings';
-import s from './Navbar.module.css';
 import { DISCORD, PLATFORM, SWARMS_GITHUB } from '@/shared/constants/links';
+import { handleRequest } from '@/shared/utils/auth-helpers/client';
+import { SignOut } from '@/shared/utils/auth-helpers/server';
+import { getRedirectMethod } from '@/shared/utils/auth-helpers/settings';
 import { cn } from '@/shared/utils/cn';
-import { Drawer, DrawerContent, DrawerTrigger, DrawerClose } from '../drawer';
-import { Button } from '../Button';
 import { Menu, X } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { Button } from '../Button';
+import { Drawer, DrawerClose, DrawerContent, DrawerTrigger } from '../drawer';
+import s from './Navbar.module.css';
+import ThemeToggler from './theme-toggler';
 
 interface NavlinksProps {
   user?: any;
@@ -28,6 +29,9 @@ export default function Navlinks({ user }: NavlinksProps) {
           <Logo />
         </div>
         <nav className="flex ml-2 md:ml-6 gap-3 max-md:hidden">
+          <Link href="/pricing" className={s.link}>
+            Get Started
+          </Link>
           <Link href="/pricing" className={s.link}>
             Pricing
           </Link>
@@ -111,6 +115,7 @@ export default function Navlinks({ user }: NavlinksProps) {
         <Link href="https://calendly.com/swarm-corp/30min" className={s.link}>
           Get Demo
         </Link>
+        <ThemeToggler />
       </div>
     </div>
   );
