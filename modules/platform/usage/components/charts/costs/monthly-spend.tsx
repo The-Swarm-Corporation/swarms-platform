@@ -9,8 +9,8 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { UserUsage } from '@/shared/utils/api/usage';
-import CustomTooltip from './tooltip';
-import { getColorForModel } from '../helpers/get-color-model';
+import CustomTooltip from '../tooltip';
+import { getColorForModel } from '../../helpers/get-color-model';
 
 export default function MonthlySpend({
   usageData,
@@ -25,45 +25,51 @@ export default function MonthlySpend({
     );
   }
 
-  const month = usageData?.dailyCosts[0]?.date
-    ? new Date(usageData.dailyCosts[0].date).getMonth()
-    : null;
-  const year = usageData?.dailyCosts[0]?.date
-    ? new Date(usageData.dailyCosts[0].date).getFullYear()
-    : null;
-
-  const daysInMonth =
-    month !== null && year !== null
-      ? new Date(year, month + 1, 0).getDate()
-      : 0;
+  const daysInMonth = useMemo(() => {
+    const firstDate = new Date(usageData.dailyCosts[0].date);
+    const year = firstDate.getFullYear();
+    const month = firstDate.getMonth();
+    return new Date(year, month + 1, 0).getDate();
+  }, [usageData]);
 
   const chartData = [];
   for (let day = 1; day <= daysInMonth; day++) {
-    const dateString = new Date(year!, month!, day).toISOString().slice(0, 10);
+    const date = new Date(usageData.dailyCosts[0].date);
+    date.setDate(day);
+    const dateString = date.toISOString().slice(0, 10);
+
     const dailyCost = usageData?.dailyCosts.find(
       (cost) => cost.date === dateString,
     );
+
+    const modelCosts: { [key: string]: number } = {};
+    if (dailyCost && dailyCost.model) {
+      for (const [model, obj] of Object.entries(dailyCost.model)) {
+        modelCosts[model] = obj.costs;
+      }
+    } else {
+      for (const model of Object.keys(
+        (usageData as UserUsage)?.dailyCosts?.[0]?.model || {},
+      )) {
+        modelCosts[model] = 0;
+      }
+    }
+
     chartData.push({
       date: new Date(dateString).toLocaleDateString('en-US', {
         day: '2-digit',
         month: 'short',
       }),
       totalCost: dailyCost?.totalCost,
-      ...dailyCost?.modelCosts,
+      ...modelCosts,
     });
   }
-
-  const tickInterval = useMemo(() => Math.ceil(daysInMonth / 5), [daysInMonth]); // Show approximately 5 dates on the x-axis
 
   return (
     <div className="chart mt-5">
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={chartData} barSize={20}>
-          <XAxis
-            dataKey="date"
-            interval={tickInterval - 1}
-            tick={{ fontSize: 12 }}
-          />
+          <XAxis dataKey="date" minTickGap={50} tick={{ fontSize: 12 }} />
           <YAxis
             tickFormatter={(value) => `$${value.toFixed(2)}`}
             tick={{ fontSize: 12 }}
@@ -91,7 +97,7 @@ export default function MonthlySpend({
             wrapperStyle={{ fontSize: '12px' }}
           />
           {Object.keys(
-            (usageData as UserUsage)?.dailyCosts?.[0]?.modelCosts,
+            (usageData as UserUsage)?.dailyCosts?.[0]?.model || {},
           )?.map((modelName) => (
             <Bar
               key={modelName}

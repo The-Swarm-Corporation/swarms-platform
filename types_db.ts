@@ -294,6 +294,7 @@ export type Database = {
           output_cost: number | null
           output_tokens: number | null
           repetition_penalty: number | null
+          request_count: number
           stream: boolean | null
           temperature: number | null
           top_p: number | null
@@ -315,6 +316,7 @@ export type Database = {
           output_cost?: number | null
           output_tokens?: number | null
           repetition_penalty?: number | null
+          request_count?: number
           stream?: boolean | null
           temperature?: number | null
           top_p?: number | null
@@ -336,6 +338,7 @@ export type Database = {
           output_cost?: number | null
           output_tokens?: number | null
           repetition_penalty?: number | null
+          request_count?: number
           stream?: boolean | null
           temperature?: number | null
           top_p?: number | null
@@ -685,6 +688,38 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_prompts: {
+        Row: {
+          created_at: string
+          id: string
+          prompt: string | null
+          use_cases: Json[] | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prompt?: string | null
+          use_cases?: Json[] | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prompt?: string | null
+          use_cases?: Json[] | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_prompts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       swarms_cloud_rate_limits: {
         Row: {
           created_at: string
@@ -771,7 +806,7 @@ export type Database = {
         Row: {
           created_at: string
           credit: number
-          credit_count: number | null
+          credit_count: number
           free_credit: number
           free_credit_expire_date: string | null
           id: string
@@ -780,7 +815,7 @@ export type Database = {
         Insert: {
           created_at?: string
           credit?: number
-          credit_count?: number | null
+          credit_count?: number
           free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
@@ -789,7 +824,7 @@ export type Database = {
         Update: {
           created_at?: string
           credit?: number
-          credit_count?: number | null
+          credit_count?: number
           free_credit?: number
           free_credit_expire_date?: string | null
           id?: string

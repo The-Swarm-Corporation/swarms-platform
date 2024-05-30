@@ -4,7 +4,9 @@ export type DailyCost = {
   date: string;
   totalCost: number;
   invoiceTotalCost?: number;
-  modelCosts: { [modelId: string]: number };
+  model?: {
+    [modelId: string]: { tokens: number; requests: number; costs: number };
+  };
 };
 
 export type UserUsage = {
@@ -39,7 +41,7 @@ export async function userAPICluster(
     const { data: userActivities, error: userError } = await supabaseAdmin
       .from('swarms_cloud_api_activities')
       .select(
-        'invoice_total_cost,total_cost,created_at,model_id,swarms_cloud_models(name)',
+        'invoice_total_cost,total_cost,created_at,input_tokens,output_tokens,request_count,model_id,swarms_cloud_models(name)',
       )
       .eq('user_id', userId)
       .is('organization_id', null)
@@ -68,6 +70,9 @@ export async function userAPICluster(
           total_cost,
           created_at,
           model_id,
+          input_tokens,
+          output_tokens,
+          request_count,
           organization_id,
           swarms_cloud_models(name),
           swarms_cloud_organizations!inner(owner_user_id)
@@ -98,11 +103,12 @@ export async function userAPICluster(
       (acc, item) => acc + (item.total_cost || 0),
       0,
     );
+
     const userInvoiceTotalCost = allActivities.reduce(
       (acc, item) => acc + (item.invoice_total_cost || 0),
       0,
     );
-
+    // Calculate daily costs
     const userDailyCosts: DailyCost[] = [];
 
     for (const activity of allActivities) {
@@ -117,7 +123,7 @@ export async function userAPICluster(
         existingDailyCost = {
           date: activityDate,
           totalCost: 0,
-          modelCosts: {},
+          model: {},
         };
         userDailyCosts.push(existingDailyCost);
       }
@@ -125,11 +131,28 @@ export async function userAPICluster(
       // Update total costs
       existingDailyCost.totalCost +=
         (activity.total_cost || 0) + (activity.invoice_total_cost || 0);
-      // Update model costs
-      existingDailyCost.modelCosts[modelName] =
-        (existingDailyCost.modelCosts[modelName] || 0) +
-        (activity.total_cost || 0) +
-        (activity.invoice_total_cost || 0);
+
+      // Update model costs, tokens and requests
+      if (
+        activity.request_count ||
+        activity.input_tokens ||
+        activity.output_tokens
+      ) {
+        existingDailyCost.model = existingDailyCost.model || {};
+        existingDailyCost.model[modelName] = {
+          tokens:
+            (existingDailyCost.model[modelName]?.tokens || 0) +
+            (activity.input_tokens || 0) +
+            (activity.output_tokens || 0),
+          requests:
+            (existingDailyCost.model[modelName]?.requests || 0) +
+            (activity.request_count || 0),
+          costs:
+            (existingDailyCost.model[modelName]?.costs || 0) +
+            (activity.total_cost || 0) +
+            (activity.invoice_total_cost || 0),
+        };
+      }
     }
 
     return {
