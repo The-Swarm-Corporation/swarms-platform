@@ -1,21 +1,21 @@
 import Logo from '@/shared/components/icons/Logo';
+import EmailSignIn from '@/shared/components/ui/AuthForms/EmailSignIn';
+import ForgotPassword from '@/shared/components/ui/AuthForms/ForgotPassword';
+import OauthSignIn from '@/shared/components/ui/AuthForms/OauthSignIn';
+import PasswordSignIn from '@/shared/components/ui/AuthForms/PasswordSignIn';
+import Separator from '@/shared/components/ui/AuthForms/Separator';
+import SignUp from '@/shared/components/ui/AuthForms/Signup';
+import UpdatePassword from '@/shared/components/ui/AuthForms/UpdatePassword';
+import Card from '@/shared/components/ui/Card';
+import {
+  getAuthTypes,
+  getDefaultSignInView,
+  getRedirectMethod,
+  getViewTypes,
+} from '@/shared/utils/auth-helpers/settings';
 import { createClient } from '@/shared/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import {
-  getAuthTypes,
-  getViewTypes,
-  getDefaultSignInView,
-  getRedirectMethod,
-} from '@/shared/utils/auth-helpers/settings';
-import Card from '@/shared/components/ui/Card';
-import PasswordSignIn from '@/shared/components/ui/AuthForms/PasswordSignIn';
-import EmailSignIn from '@/shared/components/ui/AuthForms/EmailSignIn';
-import Separator from '@/shared/components/ui/AuthForms/Separator';
-import OauthSignIn from '@/shared/components/ui/AuthForms/OauthSignIn';
-import ForgotPassword from '@/shared/components/ui/AuthForms/ForgotPassword';
-import UpdatePassword from '@/shared/components/ui/AuthForms/UpdatePassword';
-import SignUp from '@/shared/components/ui/AuthForms/Signup';
 
 export default async function SignIn({
   params,
@@ -56,7 +56,7 @@ export default async function SignIn({
 
   return (
     <div className="flex justify-center height-screen-helper">
-      <div className="flex flex-col justify-between max-w-lg p-3 m-auto w-80 ">
+      <div className="flex flex-col justify-between max-w-lg p-3 m-auto w-96 ">
         <div className="flex justify-center pb-12 ">
           <Logo width={64} height={64} />
         </div>

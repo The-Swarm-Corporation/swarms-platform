@@ -7,8 +7,8 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/shared/components/ui/tabs';
-import TabsData from './data';
 import { useEffect, useState } from 'react';
+import TabsData from './data';
 
 interface IStepProps {
   title: string;

@@ -1,17 +1,17 @@
 'use client';
 
-import { Button } from '@/shared/components/ui/Button';
-import { cn } from '@/shared/utils/cn';
-import React, { useEffect, useState } from 'react';
-import MonthPicker from './components/month-picker';
-import { trpc } from '@/shared/utils/trpc/trpc';
-import { UserUsage } from '@/shared/utils/api/usage';
-import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import LoadingSpinner from '@/shared/components/loading-spinner';
-import MonthlyChart from './components/monthy-usage';
-import MonthlyPricing from './components/charts/monthly-pricing';
+import { Button } from '@/shared/components/ui/Button';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { UserUsage } from '@/shared/utils/api/usage';
+import { cn } from '@/shared/utils/cn';
+import { trpc } from '@/shared/utils/trpc/trpc';
+import { useEffect, useState } from 'react';
 import ModelUsage from './components/charts/models';
+import MonthlyPricing from './components/charts/monthly-pricing';
 import CreditsUsage from './components/credits';
+import MonthPicker from './components/month-picker';
+import MonthlyChart from './components/monthy-usage';
 
 type UsageTab = 'cost' | 'activity';
 type UsageData = UserUsage | null;

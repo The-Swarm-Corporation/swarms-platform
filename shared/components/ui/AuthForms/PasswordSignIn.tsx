@@ -1,9 +1,9 @@
 'use client';
 
 import { Button } from '@/shared/components/ui/Button';
-import Link from 'next/link';
-import { signInWithPassword } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
+import { signInWithPassword } from '@/shared/utils/auth-helpers/server';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 

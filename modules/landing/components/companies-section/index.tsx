@@ -35,7 +35,7 @@ const companies = [
 
 const CompaniesSection = () => {
   return (
-    <section className="bg-background">
+    <section className="bg-background bg-[url(/images/dots-bg.svg)] dark:bg-[url(/images/dot-bg-dark.svg)]">
       <div className="py-16 lg:py-24 mx-auto max-w-screen-xl px-4">
         <h2 className="mb-8 lg:mb-16 text-6xl font-extrabold tracking-tight leading-tight text-center text-gray-900 dark:text-white">
           Used By
