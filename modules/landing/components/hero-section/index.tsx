@@ -1,14 +1,13 @@
 'use client';
-import React from 'react';
 import { Button } from '@/shared/components/ui/Button';
 import { PLATFORM, SWARMS_GITHUB } from '@/shared/constants/links';
 import { cn } from '@/shared/utils/cn';
+import Rive from '@rive-app/react-canvas';
 import { Github } from 'lucide-react';
 import Link from 'next/link';
-import Rive from '@rive-app/react-canvas';
 const HeroSection = () => {
   return (
-    <div className="mx-auto container w-full flex flex-col  md:flex-row md:h-screen justify-center items-center gap-8 md:gap-0">
+    <div className="mx-auto container w-full flex flex-col md:flex-row md:h-screen justify-center items-center gap-8 md:gap-0">
       <div className="md:flex-1 flex flex-col items-center text-center md:text-left md:items-start md:px-4 gap-6 ">
         <h1 className="text-6xl md:text-7xl font-bold text-primary">Swarms</h1>
         <h2 className="text-4xl md:text-5xl font-bold">Orchestrate Agents</h2>

@@ -1,12 +1,11 @@
 'use client';
 
 import { Button } from '@/shared/components/ui/Button';
-import React from 'react';
-import Link from 'next/link';
-import { signUp } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
+import { signUp } from '@/shared/utils/auth-helpers/server';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 // Define prop type with allowEmail boolean
 interface SignUpProps {

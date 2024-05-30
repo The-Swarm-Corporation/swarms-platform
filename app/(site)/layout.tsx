@@ -1,9 +1,9 @@
-import { Metadata, Viewport } from 'next';
 import Footer from '@/shared/components/ui/Footer';
 import Navbar from '@/shared/components/ui/Navbar';
-import { PropsWithChildren } from 'react';
-import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
+import { getURL } from '@/shared/utils/helpers';
+import { Metadata, Viewport } from 'next';
+import { PropsWithChildren } from 'react';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -55,7 +55,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
   return (
     <>
       <Navbar />
-      <main className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]">
+      <main className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)] bg-[url(/images/dots-bg.svg)] dark:bg-[url(/images/dot-bg-dark.svg)]">
         {children}
       </main>
       <Footer />

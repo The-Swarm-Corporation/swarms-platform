@@ -4,9 +4,9 @@ import React from 'react';
 
 const MAX_FREE_CREDITS = 20;
 export default function CreditsUsage() {
-  const userFreeCredits = trpc.panel.getUserFreeCredits.useQuery();
+  const userFreeCredits = 15.5;
 
-  const usedCredits = MAX_FREE_CREDITS - Number(userFreeCredits?.data);
+  const usedCredits = MAX_FREE_CREDITS - Number(userFreeCredits);
   const usedPercentage = (usedCredits / MAX_FREE_CREDITS) * 100;
   const remainingPercentage =
     (Number(userFreeCredits) / MAX_FREE_CREDITS) * 100;
@@ -30,9 +30,9 @@ export default function CreditsUsage() {
       </div>
 
       <div className="mt-4">
-        {userFreeCredits.isLoading ? (
+        {/* {userFreeCredits.isLoading ? (
           <LoadingSpinner />
-        ) : (
+        ) : ( */}
           <>
             <div className="relative w-full h-6 rounded-sm">
               <div
@@ -52,7 +52,7 @@ export default function CreditsUsage() {
               ${usedCredits.toFixed(2)} / ${MAX_FREE_CREDITS.toFixed(2)}
             </p>
           </>
-        )}
+        {/* )} */}
       </div>
     </section>
   );

@@ -14,7 +14,7 @@ export default async function Navbar() {
       <a href="#skip" className="sr-only focus:not-sr-only">
         Skip to content
       </a>
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-full mx-auto pl-32 pr-32 dark:bg-[#0f172a] bg-cyan-700">
         <Navlinks user={user} />
       </div>
     </nav>
