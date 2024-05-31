@@ -7,6 +7,7 @@ import { Bot, PencilRuler } from 'lucide-react';
 import { makeUrl } from '@/shared/utils/helpers';
 import { PUBLIC } from '@/shared/constants/links';
 
+// TODO: Add types
 export default function Swarms({
   isLoading,
   pendingSwarms,

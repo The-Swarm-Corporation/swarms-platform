@@ -6,6 +6,7 @@ import { ScanEye, TextQuote } from 'lucide-react';
 import Link from 'next/link';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 
+// TODO: Add types
 export default function Models({ models, filteredModels }: any) {
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">

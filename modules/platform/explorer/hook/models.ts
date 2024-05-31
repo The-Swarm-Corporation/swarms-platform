@@ -26,6 +26,7 @@ export default function useModels() {
     [debouncedSearch],
   );
 
+  // TODO: Add types
   const filterData = useCallback(
     (data: any, key: string) => {
       if (!data) return [];

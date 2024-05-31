@@ -7,6 +7,7 @@ import InfoCard from '../info-card';
 import { Terminal } from 'lucide-react';
 import { PUBLIC } from '@/shared/constants/links';
 
+// TODO: Add types
 export default function Prompts({
   allPrompts,
   filteredPrompts,
