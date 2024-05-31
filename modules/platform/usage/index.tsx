@@ -5,7 +5,10 @@ import { cn } from '@/shared/utils/cn';
 import React, { useEffect, useState } from 'react';
 import MonthPicker from './components/month-picker';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { UserUsage } from '@/shared/utils/api/usage';
+import {
+  OrganizationUsage as OrgUsage,
+  UserUsage,
+} from '@/shared/utils/api/usage';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import MonthlyChart from './components/monthy-usage';
@@ -13,14 +16,18 @@ import MonthlyPricing from './components/charts/costs/monthly-pricing';
 import ModelUsage from './components/charts/costs/models-cost';
 import CreditsUsage from './components/credits';
 import ModelActivity from './components/charts/activity/models-activity';
+import OrganizationUsage from './components/organization-usage';
 
 type UsageTab = 'cost' | 'activity';
 type UsageData = UserUsage | null;
+type OrgUsageData = OrgUsage | null;
 
 export default function Usage() {
   const [activeTab, setActiveTab] = useState<UsageTab>('cost');
   const [month, setMonth] = useState(new Date());
   const [usageData, setUsageData] = useState<UsageData>(null);
+  const [organizationUsageData, setOrganizationUsageData] =
+    useState<OrgUsageData>(null);
   const toast = useToast();
 
   const isCost = activeTab === 'cost';
@@ -31,16 +38,20 @@ export default function Usage() {
   const handleMonthChange = (newMonth: Date) => setMonth(newMonth);
 
   const usageMutation = trpc.panel.getUsageAPICluster.useMutation();
+  const organizationUsageMutation =
+    trpc.panel.getOrganizationUsage.useMutation();
 
   useEffect(() => {
-    usageMutation
-      .mutateAsync({ month })
-      .then((data) => {
-        setUsageData(data as UsageData);
+    Promise.all([
+      usageMutation.mutateAsync({ month }),
+      organizationUsageMutation.mutateAsync({ month }),
+    ])
+      .then(([usageData, organizationUsageData]) => {
+        setUsageData(usageData as UserUsage);
+        setOrganizationUsageData(organizationUsageData);
       })
       .catch((err) => {
         console.error(err);
-
         toast.toast({
           description: err?.message || 'Error fetching usage data',
           variant: 'destructive',
@@ -114,11 +125,14 @@ export default function Usage() {
           {usageMutation.isPending ? (
             <LoadingSpinner />
           ) : (
-            <div>
-              <ModelActivity usageData={usageData} />
-            </div>
+            <ModelActivity usageData={usageData} />
           )}
         </div>
+        {organizationUsageData && (
+          <div className="w-full xl:w-[45%]">
+            <OrganizationUsage organizationUsage={organizationUsageData} />
+          </div>
+        )}
       </section>
     </article>
   );

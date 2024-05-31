@@ -45,13 +45,13 @@ export default function MonthlySpend({
     const modelCosts: { [key: string]: number } = {};
     if (dailyCost && dailyCost.model) {
       for (const [model, obj] of Object.entries(dailyCost.model)) {
-        modelCosts[model] = obj.costs;
+        modelCosts[model.trim()] = obj.costs;
       }
     } else {
       for (const model of Object.keys(
         (usageData as UserUsage)?.dailyCosts?.[0]?.model || {},
       )) {
-        modelCosts[model] = 0;
+        modelCosts[model.trim()] = 0;
       }
     }
 
@@ -64,6 +64,15 @@ export default function MonthlySpend({
       ...modelCosts,
     });
   }
+
+  const allModels: string[] = [];
+  usageData.dailyCosts.forEach((dailyCost) => {
+    if (dailyCost.model) {
+      Object.keys(dailyCost.model).forEach((modelName) => {
+        allModels.push(modelName.trim());
+      });
+    }
+  });
 
   return (
     <div className="chart mt-5">
@@ -91,22 +100,17 @@ export default function MonthlySpend({
               fontSize: '12px',
             }}
           />
-          <Legend
-            verticalAlign="top"
-            align="right"
-            wrapperStyle={{ fontSize: '12px' }}
-          />
-          {Object.keys(
-            (usageData as UserUsage)?.dailyCosts?.[0]?.model || {},
-          )?.map((modelName) => (
-            <Bar
-              key={modelName}
-              dataKey={modelName}
-              stackId="a"
-              fill={getColorForModel(modelName, usageData)}
-              radius={[2, 2, 0, 0]}
-            />
-          ))}
+          {allModels?.map((modelName) => {
+            return (
+              <Bar
+                key={modelName}
+                dataKey={modelName}
+                stackId="a"
+                fill={getColorForModel(modelName, usageData)}
+                radius={[2, 2, 0, 0]}
+              />
+            );
+          })}
         </BarChart>
       </ResponsiveContainer>
     </div>

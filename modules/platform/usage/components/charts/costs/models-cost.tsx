@@ -74,7 +74,7 @@ export default function ModelUsage({
     <div className="model-charts mt-16 xl:mb-10 grid md:grid-cols-2">
       {Object.keys(modelData).map((modelName) => (
         <div key={modelName} className="model-chart mb-5">
-          <h4 className="mb-5 text-gray-300">{modelName}</h4>
+          <h4 className="mb-5">{modelName}</h4>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={modelData[modelName]} barSize={15}>
               <XAxis dataKey="date" tick={{ fontSize: 12 }} minTickGap={50} />
@@ -98,11 +98,6 @@ export default function ModelUsage({
                   color: '#374151',
                   fontSize: '12px',
                 }}
-              />
-              <Legend
-                verticalAlign="top"
-                align="right"
-                wrapperStyle={{ fontSize: '12px' }}
               />
 
               <Bar
