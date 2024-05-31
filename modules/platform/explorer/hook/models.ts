@@ -6,6 +6,7 @@ import { defaultOptions, explorerOptions } from '@/shared/constants/explorer';
 export default function useModels() {
   const models = trpc.explorer.getModels.useQuery();
   const allSwarms = trpc.explorer.getAllApprovedSwarms.useQuery();
+  const allPrompts = trpc.explorer.getAllPrompts.useQuery();
 
   const isDataLoading = models.isLoading && allSwarms.isLoading;
 
@@ -47,15 +48,35 @@ export default function useModels() {
         );
   }, [allSwarms.data, filterOption, search]);
 
+  const filteredPrompts = useMemo(() => {
+    if (!allPrompts.data?.data) return [];
+    return !search || filterOption === 'prompts'
+      ? allPrompts.data.data
+      : allPrompts.data.data.filter(
+          (prompt) =>
+            prompt?.prompt?.toLowerCase().includes(search.toLowerCase()) ||
+            prompt?.name?.toLowerCase().includes(search.toLowerCase()),
+        );
+  }, [allPrompts.data, filterOption, search]);
+
   const handleOptionChange = useCallback(
     (value: string) => {
       if (isDataLoading) return;
       setFilterOption(value);
-      if (value === 'swarms' || value === 'models') {
+      if (value === 'swarms' || value === 'models' || value === 'prompts') {
         setOptions([value]);
       } else {
-        const updatedOptions =
-          options[0] === 'swarms' ? ['swarms', 'models'] : ['models', 'swarms'];
+        let updatedOptions: string[] = [];
+
+        if (options[0] === 'swarms') {
+          updatedOptions = ['swarms', 'models', 'prompts'];
+        }
+        if (options[0] === 'models') {
+          updatedOptions = ['models', 'prompts', 'swarms'];
+        }
+        if (options[0] === 'prompts') {
+          updatedOptions = ['prompts', 'swarms', 'models'];
+        }
         setOptions(updatedOptions);
       }
     },
@@ -64,17 +85,25 @@ export default function useModels() {
 
   const handleRemoveOption = useCallback(
     (optionToRemove: string) => {
-      let updatedOptions = [];
+      let updatedOptions: string[] = [];
       if (isDataLoading) return;
       if (options.length === 1) {
-        updatedOptions = optionToRemove === 'swarms' ? ['models'] : ['swarms'];
+        if (options[0] === 'swarms') {
+          updatedOptions = ['models', 'prompts'];
+        }
+        if (options[0] === 'models') {
+          updatedOptions = ['prompts', 'swarms'];
+        }
+        if (options[0] === 'prompts') {
+          updatedOptions = ['swarms', 'models'];
+        }
       } else {
         updatedOptions = options.filter((option) => option !== optionToRemove);
       }
 
       setOptions(updatedOptions);
       setFilterOption(
-        updatedOptions.length === 1 ? updatedOptions[0] : 'swarms-and-models',
+        updatedOptions.length === 1 ? updatedOptions[0] : 'swarms-models-prompts',
       );
     },
     [options, isDataLoading],
@@ -83,6 +112,7 @@ export default function useModels() {
   return {
     filteredModels,
     filteredSwarms,
+    filteredPrompts,
     search,
     options,
     filterOption,

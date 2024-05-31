@@ -692,22 +692,31 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          name: string | null
           prompt: string | null
-          use_cases: Json[] | null
+          status: Database["public"]["Enums"]["user_prompts_status"] | null
+          tags: string | null
+          use_cases: Json | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          name?: string | null
           prompt?: string | null
-          use_cases?: Json[] | null
+          status?: Database["public"]["Enums"]["user_prompts_status"] | null
+          tags?: string | null
+          use_cases?: Json | null
           user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          name?: string | null
           prompt?: string | null
-          use_cases?: Json[] | null
+          status?: Database["public"]["Enums"]["user_prompts_status"] | null
+          tags?: string | null
+          use_cases?: Json | null
           user_id?: string | null
         }
         Relationships: [
@@ -1072,6 +1081,7 @@ export type Database = {
         | "past_due"
         | "unpaid"
         | "paused"
+      user_prompts_status: "approved" | "pending" | "rejected"
       user_swarms_status: "approved" | "pending" | "rejected"
       user_tier: "tier1" | "tier2" | "tier3" | "tier4"
       users_wallets_transaction_type: "reduct" | "add"

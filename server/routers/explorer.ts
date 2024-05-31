@@ -176,6 +176,104 @@ const explorerRouter = router({
         return true;
       } catch (e) {}
     }),
+  // Validate prompt
+  validatePrompt: userProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const prompt = input;
+      // at least 5 characters
+      if (prompt.length < 5) {
+        return {
+          error: 'Prompt should be at least 5 characters',
+          valid: false,
+        };
+      }
+
+      const user_id = ctx.session.data.session?.user?.id || '';
+      const promptData = await ctx.supabase
+        .from('swarms_cloud_prompts')
+        .select('*')
+        .eq('prompt', prompt)
+        .eq('user_id', user_id);
+      const exists = (promptData.data ?? [])?.length > 0;
+      return {
+        valid: !exists,
+        error: exists ? 'Prompt already exists' : '',
+      };
+    }),
+
+  // Add prompt
+  addPrompt: userProcedure
+    .input(
+      z.object({
+        name: z.string().optional(),
+        prompt: z.string(),
+        useCases: z.array(z.any()),
+        tags: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!input.prompt) {
+        throw 'Prompt is required';
+      }
+
+      // rate limiter - 1 prompt per minute
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const lastSubmits = await ctx.supabase
+        .from('swarms_cloud_prompts')
+        .select('*')
+        .eq('user_id', user_id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if ((lastSubmits?.data ?? [])?.length > 0) {
+        const lastSubmit = lastSubmits.data?.[0] || { created_at: new Date() };
+        const lastSubmitTime = new Date(lastSubmit.created_at);
+        const currentTime = new Date();
+        const diff = currentTime.getTime() - lastSubmitTime.getTime();
+        const diffMinutes = diff / (1000 * 60); // 1 minute
+        if (diffMinutes < 1) {
+          throw 'You can only submit one prompt per minute';
+        }
+      }
+
+      try {
+        const prompts = await ctx.supabase.from('swarms_cloud_prompts').insert([
+          {
+            name: input.name,
+            use_cases: input.useCases,
+            prompt: input.prompt,
+            user_id: user_id,
+            tags: input.tags,
+            status: 'pending',
+          } as Tables<'swarms_cloud_prompts'>,
+        ]);
+        if (prompts.error) {
+          throw prompts.error;
+        }
+        return true;
+      } catch (e) {
+        throw "Couldn't add prompt";
+      }
+    }),
+  getAllPrompts: publicProcedure.query(async ({ ctx }) => {
+    const prompts = await ctx.supabase
+      .from('swarms_cloud_prompts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    return prompts;
+  }),
+  getPromptById: publicProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      const model = await ctx.supabase
+        .from('swarms_cloud_prompts')
+        .select('*')
+        .eq('id', input)
+        .single();
+      return model.data;
+    }),
 
   reloadSwarmStatus: userProcedure
     .input(z.string())
