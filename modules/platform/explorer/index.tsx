@@ -1,21 +1,7 @@
 'use client';
 
 import { trpc } from '@/shared/utils/trpc/trpc';
-import InfoCard from './components/info-card';
-import {
-  Bot,
-  PencilRuler,
-  ScanEye,
-  TextQuote,
-  X,
-  Terminal,
-} from 'lucide-react';
-import Link from 'next/link';
-import { makeUrl } from '@/shared/utils/helpers';
-import { PUBLIC } from '@/shared/constants/links';
-import LoadingSpinner from '@/shared/components/loading-spinner';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import { Button } from '@/shared/components/ui/Button';
 import { useEffect, useState } from 'react';
 import {
   Select,
@@ -29,6 +15,11 @@ import Input from '@/shared/components/ui/Input';
 import useModels from './hook/models';
 import { explorerOptions } from '@/shared/constants/explorer';
 import AddPromptModal from './components/add-prompt-modal';
+import Models from './components/content/models';
+import Prompts from './components/content/prompts';
+import Swarms from './components/content/swarms';
+import { Activity, Grid2X2 } from 'lucide-react';
+import { cn } from '@/shared/utils/cn';
 
 const Explorer = () => {
   const models = trpc.explorer.getModels.useQuery();
@@ -97,8 +88,40 @@ const Explorer = () => {
   };
 
   const onAddPrompt = () => {
-    console.log('prompt added successfully');
+    allPrompts.refetch();
   };
+
+  const elements = [
+    { key: 'models', content: <Models {...{ models, filteredModels }} /> },
+    {
+      key: 'prompts',
+      content: (
+        <Prompts {...{ allPrompts, filteredPrompts, setAddPromptModalOpen }} />
+      ),
+    },
+    {
+      key: 'swarms',
+      content: (
+        <Swarms
+          {...{
+            isLoading,
+            pendingSwarms,
+            filteredSwarms,
+            setAddSwarmModalOpen,
+            trySynthify,
+          }}
+        />
+      ),
+    },
+  ];
+
+  // Rearrange elements based on filterOption
+  const reorderedElements = elements.sort((a, b) => {
+    if (a.key === filterOption) return -1;
+    if (b.key === filterOption) return 1;
+    return 0;
+  });
+
   return (
     <>
       <AddSwarmModal
@@ -122,16 +145,22 @@ const Explorer = () => {
         <div className="mt-8 pb-4 sticky top-20 bg-white dark:bg-black z-10">
           <ul className="p-0 mb-2 flex items-center gap-3">
             {options.map((option) => {
+              const colorSelector =
+                filterOption === option || filterOption === 'all'
+                  ? 'text-green-500'
+                  : 'text-primary';
               return (
                 <li
                   key={option}
-                  className="shadow cursor-pointer capitalize rounded-sm flex items-center justify-between bg-secondary text-foreground w-24 p-1 px-2 text-sm"
+                  className={cn(
+                    'shadow cursor-pointer capitalize text-center rounded-sm flex items-center justify-center bg-secondary text-foreground w-24 p-1 px-2 text-sm',
+                    colorSelector,
+                  )}
                 >
                   {option}
-                  <X
-                    size={20}
-                    className="ml-2 hover:text-primary"
-                    onClick={() => handleRemoveOption(option)}
+                  <Activity
+                    size={15}
+                    className={cn('ml-2 font-bold', colorSelector)}
                   />
                 </li>
               );
@@ -167,134 +196,7 @@ const Explorer = () => {
           </div>
         </div>
         <div className="flex flex-col h-full">
-          <div className="flex flex-col min-h-1/2 gap-2 py-8">
-            <h1 className="text-3xl font-bold pb-2">Models</h1>
-            <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
-              {models.isLoading ? (
-                <LoadingSpinner size={24} />
-              ) : filteredModels.length > 0 ? (
-                filteredModels?.map((model) => (
-                  <Link
-                    key={model.id}
-                    className="w-full h-[220px] sm:w-full"
-                    target="_blank"
-                    href={makeUrl(PUBLIC.MODEL, { slug: model.slug })}
-                  >
-                    <InfoCard
-                      title={model.name || ''}
-                      description={model.description || ''}
-                      input={model.price_million_input ?? null}
-                      output={model.price_million_output ?? null}
-                      icon={
-                        model.model_type == 'vision' ? (
-                          <ScanEye />
-                        ) : (
-                          <TextQuote />
-                        )
-                      }
-                      className="w-full h-full"
-                    />
-                  </Link>
-                ))
-              ) : (
-                <div className="border p-4 rounded-md text-center">
-                  No models found
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col min-h-1/2 gap-2 py-8">
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold pb-2">Prompts</h1>
-              <Button onClick={() => setAddPromptModalOpen(true)}>
-                Add Prompt
-              </Button>
-            </div>
-            <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
-              {allPrompts.isLoading ? (
-                <LoadingSpinner size={24} />
-              ) : filteredPrompts.length > 0 ? (
-                filteredPrompts?.map((prompt) => (
-                  <Link
-                    key={prompt.id}
-                    className="w-full h-[220px] sm:w-full"
-                    target="_blank"
-                    href={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
-                  >
-                    <InfoCard
-                      title={prompt.name || ''}
-                      description={prompt.prompt || ''}
-                      icon={<Terminal />}
-                      className="w-full h-full"
-                    />
-                  </Link>
-                ))
-              ) : (
-                <div className="border p-4 rounded-md text-center">
-                  No prompts found
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col min-h-1/2 gap-2 py-8">
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold pb-2">Swarms</h1>
-              <Button onClick={() => setAddSwarmModalOpen(true)}>
-                Add Swarm
-              </Button>
-            </div>
-            <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
-              {/* pending */}
-              {isLoading && (
-                <div>
-                  <LoadingSpinner size={24} />
-                </div>
-              )}
-              {!isLoading &&
-                pendingSwarms.data?.data?.map((swarm) => (
-                  <Link
-                    key={swarm.id}
-                    className="w-full h-[200px] sm:w-full"
-                    target="_blank"
-                    href={swarm.pr_link || '#'}
-                  >
-                    <InfoCard
-                      title={`${swarm.name} [PENDING]`}
-                      description={swarm.description || ''}
-                      icon={<Bot />}
-                      className="w-full h-full"
-                    />
-                  </Link>
-                ))}
-              {/* all */}
-              {!isLoading &&
-                filteredSwarms?.map((swarm) => (
-                  <Link
-                    key={swarm.id}
-                    className="w-full h-[200px] sm:w-full"
-                    target="_blank"
-                    href={makeUrl(PUBLIC.SWARM, { name: swarm.name })}
-                  >
-                    <InfoCard
-                      title={swarm.name || ''}
-                      description={swarm.description || ''}
-                      icon={<Bot />}
-                      className="w-full h-full"
-                      btnLabel="Get Started"
-                    />
-                  </Link>
-                ))}
-              <div className="w-full h-[200px] sm:w-full" onClick={trySynthify}>
-                <InfoCard
-                  title="Synthify"
-                  description="Synthify is a platform that allows you to create dataset for llms,vlms ."
-                  icon={<PencilRuler />}
-                  btnLabel="Get Started"
-                  className="w-full h-full"
-                />
-              </div>
-            </div>
-          </div>
+          {reorderedElements.map(({ content }) => content)}
         </div>
       </div>
     </>

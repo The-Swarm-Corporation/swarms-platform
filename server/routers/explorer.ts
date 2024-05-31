@@ -253,6 +253,7 @@ const explorerRouter = router({
         }
         return true;
       } catch (e) {
+        console.error(e);
         throw "Couldn't add prompt";
       }
     }),
