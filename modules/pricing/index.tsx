@@ -15,7 +15,7 @@ const Pricing = () => {
   const handleTabChange = (tab: PricingTab) => setActiveTab(tab);
 
   return (
-    <section className="bg-background relative overflow-hidden bg-[url(/images/dots-bg.svg)] dark:bg-[url(/images/dot-bg-dark.svg)]">
+    <section className="relative overflow-hidden" id='pricing'>
       <div className="relative flex flex-col items-center justify-center max-w-6xl px-8 py-12 mx-auto lg:py-24">
         <div>
           <span className="text-6xl font-bold tracking-wide capitalize">

@@ -1,4 +1,6 @@
 import { UserUsage } from '@/shared/utils/api/usage';
+import { cn } from '@/shared/utils/cn';
+import React from 'react';
 import MonthlySpend from './charts/monthly-spend';
 
 export default function MonthlyChart({ data }: { data: UserUsage | null }) {

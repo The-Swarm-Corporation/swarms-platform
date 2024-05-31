@@ -10,22 +10,22 @@ const nextConfig = {
   },
   rewrites() {
     return {
-      beforeFiles: [
-        {
-          source: '/:path*',
-          has: [
-            {
-              type: 'host',
-              value: 'api.swarms.world',
-            },
-          ],
-          destination: '/api/guard/api',
-        },
-        {
-          source: '/api/v1/:path*',
-          destination: '/api/guard/api',
-        },
-      ],
+      // beforeFiles: [
+      //   {
+      //     source: '/:path*',
+      //     has: [
+      //       {
+      //         type: 'host',
+      //         value: 'api.swarms.world',
+      //       },
+      //     ],
+      //     destination: '/api/guard/api',
+      //   },
+      //   {
+      //     source: '/api/v1/:path*',
+      //     destination: '/api/guard/api',
+      //   },
+      // ],
     };
   },
 };

@@ -1,15 +1,16 @@
-import { UserUsage } from '@/shared/utils/api/usage';
+import React, { useMemo } from 'react';
 import {
-  Bar,
   BarChart,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
+  Bar,
   XAxis,
   YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
 } from 'recharts';
-import { getColorForModel } from '../helpers/get-color-model';
 import CustomTooltip from './tooltip';
+import { getColorForModel } from '../helpers/get-color-model';
+import { UserUsage } from '@/shared/utils/api/usage';
 
 export default function ModelUsage({
   usageData,

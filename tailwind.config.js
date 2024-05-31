@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ['class'],
+  darkMode: 'class',
   content: [
     './shared/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
@@ -16,6 +16,10 @@ module.exports = {
       },
     },
     extend: {
+      backgroundImage: {
+        'dot-bg': "url('/images/dot-bg.svg')",
+        'dot-bg-dark': "url('/images/dot-bg-dark.svg')",
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

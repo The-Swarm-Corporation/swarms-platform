@@ -99,7 +99,7 @@ If you are not familiar with Supabase, don't worry, it's easy to set up.
 
 We have provided some helpful materials to guide you through the process.
 
-1. [Supabase Docs](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs)
+1. [Supabase Docs](m/docs/guides/getting-started/quickstarts/nextjs)
 2. [FreeCodeCamp - Learn Supabase](https://www.freecodecamp.org/news/learn-supabase-open-source-firebase-alternative/)
 
 > **IMPORTANT:** To note that no page can be viewed on the browser without values for the env variables:

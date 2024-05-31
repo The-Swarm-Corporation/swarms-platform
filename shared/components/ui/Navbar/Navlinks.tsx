@@ -9,6 +9,7 @@ import { cn } from '@/shared/utils/cn';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import SmoothScrollLink from '../../smooth-scroll/SmoothScrollLink';
 import { Button } from '../Button';
 import { Drawer, DrawerClose, DrawerContent, DrawerTrigger } from '../drawer';
 import s from './Navbar.module.css';
@@ -29,12 +30,12 @@ export default function Navlinks({ user }: NavlinksProps) {
           <Logo />
         </div>
         <nav className="flex ml-2 md:ml-6 gap-3 max-md:hidden">
-          <Link href="/pricing" className={s.link}>
+          <SmoothScrollLink href="#get_started" className={s.link}>
             Get Started
-          </Link>
-          <Link href="/pricing" className={s.link}>
+          </SmoothScrollLink>
+          <SmoothScrollLink href="#pricing" className={s.link}>
             Pricing
-          </Link>
+          </SmoothScrollLink>
           <Link href={SWARMS_GITHUB} className={cn(s.link, 'hidden md:inline')}>
             GitHub
           </Link>

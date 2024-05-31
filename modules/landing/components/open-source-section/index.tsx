@@ -8,8 +8,8 @@ import Image from 'next/image';
 
 const OpenSourceSection = () => {
   return (
-    <div className="flex max-md:flex-col bg-[url(/images/dots-bg.svg)] dark:bg-[url(/images/dot-bg-dark.svg)]">
-      <div className="flex-1 h-[40rem] w-full rounded-md flex md:items-center md:justify-center bg-background antialiased relative overflow-hidden  bg-[url(/images/dots-bg.svg)] dark:bg-[url(/images/dot-bg-dark.svg)]">
+    <div className="flex max-md:flex-col">
+      <div className="flex-1 h-[40rem] w-full rounded-md flex md:items-center md:justify-center antialiased relative overflow-hidden">
         {/* <Spotlight
           className="-top-40 left-0 md:left-60 md:-top-20"
           fill="white"
@@ -25,7 +25,7 @@ const OpenSourceSection = () => {
           </p>
         </div>
       </div>
-      <div className="min-h-72 flex-1 flex justify-center items-center relative overflow-hidden bg-background  bg-[url(/images/dots-bg.svg)] dark:bg-[url(/images/dot-bg-dark.svg)]">
+      <div className="min-h-72 flex-1 flex justify-center items-center relative overflow-hidden">
         <motion.div
           transition={{ duration: 10, repeat: Infinity, ease: 'easeIn' }}
           initial="rest"

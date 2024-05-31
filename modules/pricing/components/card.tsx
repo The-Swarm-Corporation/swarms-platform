@@ -1,7 +1,6 @@
 import { cn } from '@/shared/utils/cn';
-import Link from 'next/link';
 import { Bolt, CheckCircle, Gem, PackageOpen, Sparkles } from 'lucide-react';
-import React from 'react';
+import Link from 'next/link';
 
 export interface PricingCardProps {
   title: string;
