@@ -73,6 +73,18 @@
     animation: slideUp 300ms ease-out;
   }
 
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  .no-scrollbar {
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
   .transition-custom {
     transition:
       transform 0.25s cubic-bezier(0.7, 0.98, 0.86, 0.98),
