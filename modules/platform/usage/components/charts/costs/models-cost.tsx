@@ -8,8 +8,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import CustomTooltip from './tooltip';
-import { getColorForModel } from '../helpers/get-color-model';
+import CustomTooltip from '../tooltip';
+import { getColorForModel } from '../../helpers/get-color-model';
 import { UserUsage } from '@/shared/utils/api/usage';
 
 export default function ModelUsage({
@@ -28,28 +28,43 @@ export default function ModelUsage({
     ? new Date(usageData.dailyCosts[0].date).getFullYear()
     : null;
 
-  const daysInMonth =
-    month !== null && year !== null
-      ? new Date(year, month + 1, 0).getDate()
-      : 0;
+  const daysInMonth = useMemo(() => {
+    const firstDate = new Date(usageData.dailyCosts[0].date);
+    const year = firstDate.getFullYear();
+    const month = firstDate.getMonth();
+    return new Date(year, month + 1, 0).getDate();
+  }, [usageData]);
 
   // Create an object to store costs per model
   const modelData: any = {};
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const dateString = new Date(year!, month!, day).toISOString().slice(0, 10);
+    const date = new Date(usageData.dailyCosts[0].date);
+    date.setDate(day);
+    const dateString = date.toISOString().slice(0, 10);
+
     const dailyCost = usageData?.dailyCosts.find(
       (cost) => cost.date === dateString,
     );
-    if (dailyCost) {
-      for (const [model, cost] of Object.entries(dailyCost.modelCosts)) {
+    if (dailyCost && dailyCost.model) {
+      for (const [model, obj] of Object.entries(dailyCost.model)) {
         if (!modelData[model]) modelData[model] = [];
         modelData[model].push({
           date: new Date(dateString).toLocaleDateString('en-US', {
             day: '2-digit',
             month: 'short',
           }),
-          totalCost: cost,
+          totalCost: obj.costs,
+        });
+      }
+    } else {
+      for (const model of Object.keys(modelData)) {
+        modelData[model].push({
+          date: new Date(dateString).toLocaleDateString('en-US', {
+            day: '2-digit',
+            month: 'short',
+          }),
+          totalCost: 0,
         });
       }
     }
@@ -59,13 +74,10 @@ export default function ModelUsage({
     <div className="model-charts mt-16 xl:mb-10 grid md:grid-cols-2">
       {Object.keys(modelData).map((modelName) => (
         <div key={modelName} className="model-chart mb-5">
-          <h4 className="mb-5 text-gray-300">{modelName}</h4>
+          <h4 className="mb-5">{modelName}</h4>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={modelData[modelName]} barSize={15}>
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 12 }}
-              />
+              <XAxis dataKey="date" tick={{ fontSize: 12 }} minTickGap={50} />
               <YAxis
                 tickFormatter={(value) => `$${value.toFixed(2)}`}
                 tick={{ fontSize: 12 }}
@@ -84,13 +96,8 @@ export default function ModelUsage({
                   backgroundColor: 'rgba(255, 255, 255, 0.8)',
                   border: '1px solid #e5e7eb',
                   color: '#374151',
-                  fontSize: '12px'
+                  fontSize: '12px',
                 }}
-              />
-              <Legend
-                verticalAlign="top"
-                align="right"
-                wrapperStyle={{ fontSize: '12px' }}
               />
 
               <Bar

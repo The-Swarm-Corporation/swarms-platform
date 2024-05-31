@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { BillingService } from '@/shared/utils/api/billing-service';
 import { User } from '@supabase/supabase-js';
 import { checkRateLimit } from '@/shared/utils/api/rate-limit';
-import { userAPICluster } from '@/shared/utils/api/usage';
+import { getOrganizationUsage, userAPICluster } from '@/shared/utils/api/usage';
 
 export default async function handler(
   req: NextApiRequest,
@@ -24,7 +24,7 @@ export default async function handler(
     }
 
     const user = {
-      id: '16203c2a-9001-4b58-85b6-db2de7fb4383',
+      id: '',
       email: 'gilbertoaceville@gmail.com',
     };
 
@@ -43,9 +43,9 @@ export default async function handler(
 
     // const invoiceStatus = await billingService.checkInvoicePaymentStatus("");
 
-    const cluster = await userAPICluster(user.id, lastMonthDate);
+    const cluster = await getOrganizationUsage(user.id, lastMonthDate);
 
-    console.dir(cluster, { depth: null });
+    // console.dir(cluster, { depth: null });
 
     return res.status(200).json({ message: 'Invoice status successful' });
   } catch (error) {

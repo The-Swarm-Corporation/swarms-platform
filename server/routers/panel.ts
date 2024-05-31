@@ -9,7 +9,7 @@ import {
 import { stripe } from '@/shared/utils/stripe/config';
 import Stripe from 'stripe';
 import { Tables } from '@/types_db';
-import { userAPICluster } from '@/shared/utils/api/usage';
+import { getOrganizationUsage, userAPICluster } from '@/shared/utils/api/usage';
 import { isEmpty } from '@/shared/utils/helpers';
 
 const panelRouter = router({
@@ -202,6 +202,27 @@ const panelRouter = router({
       }
 
       return cluster.user;
+    }),
+    getOrganizationUsage: userProcedure
+    .input(
+      z.object({
+        month: z.date(),
+      }),
+    )
+    .mutation(async ({ ctx, input: { month } }) => {
+      const user = ctx.session.data.session?.user as User;
+
+      const usage = await getOrganizationUsage(user.id, month);
+
+      if (usage.status !== 200) {
+        throw new Error(usage.message);
+      }
+
+      if (isEmpty(usage.organization)) {
+        return null;
+      }
+
+      return usage.organization;
     }),
 });
 
