@@ -84,7 +84,7 @@ export default function PasswordSignIn({
         borderColor: 'lightgrey',
       },
       '&.Mui-focused fieldset': {
-        borderColor: 'blue',
+        borderColor: 'black',
       },
       '.dark & fieldset': {
         borderColor: 'grey',
@@ -93,14 +93,14 @@ export default function PasswordSignIn({
         borderColor: 'lightgrey',
       },
       '.dark &.Mui-focused fieldset': {
-        borderColor: 'blue',
+        borderColor: 'black',
       },
     },
   };
 
   return (
     <Box
-      className="my-8 max-w-xl mx-auto p-6 rounded-md bg-white dark:bg-[#0a0f1a] text-black dark:text-white"
+      className="my-8 max-w-xl mx-auto p-6 rounded-md bg-white dark:bg-black text-black dark:text-white"
     >
       <form noValidate className="mb-4" onSubmit={handleSubmit}>
         <div className="grid gap-4">
@@ -162,7 +162,7 @@ export default function PasswordSignIn({
             type="submit"
             className={`mt-1 p-3 rounded-md ${isSubmitting
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
+              : 'bg-white text-white dark:bg-black '
               }`}
             disabled={isSubmitting}
           >
@@ -171,19 +171,19 @@ export default function PasswordSignIn({
         </div>
       </form>
       <Typography className="text-sm">
-        <MuiLink component={Link} href="/signin/forgot_password" className="font-light" underline="none">
+        <MuiLink component={Link} href="/signin/forgot_password" className="font-light dark:text-white" underline="none">
           Forgot your password?
         </MuiLink>
       </Typography>
       {allowEmail && (
         <Typography className="text-sm mt-4">
-          <MuiLink component={Link} href="/signin/email_signin" className="font-light" underline="none">
+          <MuiLink component={Link} href="/signin/email_signin" className="font-light dark:text-white" underline="none">
             Sign in via magic link
           </MuiLink>
         </Typography>
       )}
       <Typography className="text-sm mt-4">
-        <MuiLink component={Link} href="/signin/signup" className="font-light" underline="none">
+        <MuiLink component={Link} href="/signin/signup" className="font-light dark:text-white" underline="none">
           Don't have an account? Sign up
         </MuiLink>
       </Typography>

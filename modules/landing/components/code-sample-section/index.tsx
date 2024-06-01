@@ -45,7 +45,7 @@ const CodeSampleSection = () => {
   }, []);
 
   return (
-    <div className=" shadow-5xl container bg-background p-10 dark:bg-[#0a0f1a] rounded-md" id='get_started'>
+    <div className=" shadow-5xl container bg-background p-10 dark:bg-black rounded-md" id='get_started'>
       <h2 className="text-8xl max-sm:text-4xl font-bold text-center mb-12">
         Get Started
       </h2>
