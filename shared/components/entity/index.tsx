@@ -1,6 +1,12 @@
+'use client';
+
 import React, { PropsWithChildren } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
-import { cn } from '@/shared/utils/cn';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Copy } from 'lucide-react';
+import { useToast } from '../ui/Toasts/use-toast';
 
 interface Entity extends PropsWithChildren {
   name?: string;
@@ -20,16 +26,61 @@ export default function EntityComponent({
   usecases,
   children,
 }: Entity) {
+  const toast = useToast();
+
   const isPrompt = title.toLowerCase() === 'prompt';
+
+  async function copyToClipboard(text: string) {
+    if (!text) return;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.toast({ title: 'Copied to clipboard' });
+    } catch (error) {
+      console.error('Failed to copy: ', error);
+    }
+  }
 
   return (
     <div className="max-w-6xl px-6 mx-auto">
       <div className="flex flex-col py-16">
-        <h2 className={cn(isPrompt && 'mb-4')}>{title}</h2>
-        {isPrompt && name && <p className="text-sm text-gray-400">{name}</p>}
-        <h1 className={cn('text-6xl', isPrompt && 'mt-4')}>
-          {isPrompt ? prompt : name}
-        </h1>
+        <h2>{title}</h2>
+        {isPrompt && name && (
+          <p className="text-xl text-gray-400 my-2">{name}</p>
+        )}
+        {isPrompt ? (
+          <div className="relative">
+            <ReactMarkdown
+              className="bg-gray-800 text-white p-5 py-7 rounded-lg overflow-auto"
+              children={prompt ?? ''}
+              components={{
+                code({ node, className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || '');
+                  return match ? (
+                    <SyntaxHighlighter
+                      PreTag="div"
+                      style={darcula}
+                      language={match[1]}
+                      children={String(children).replace(/\n$/, '')}
+                      {...(props as any)}
+                    />
+                  ) : (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            />
+            <Copy
+              size={25}
+              className="absolute top-2 right-2 p-1 text-primary cursor-pointer"
+              onClick={() => copyToClipboard(prompt ?? '')}
+            />
+          </div>
+        ) : (
+          <h1 className="text-6xl">{name}</h1>
+        )}
         {description && (
           <div className="text-base mt-4 text-gray-400">{description}</div>
         )}
