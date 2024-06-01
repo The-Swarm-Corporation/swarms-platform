@@ -27,7 +27,6 @@ export default function Prompts({
             <Link
               key={prompt.id}
               className="w-full h-[220px] sm:w-full"
-              target="_blank"
               href={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
             >
               <InfoCard
