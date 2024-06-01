@@ -46,34 +46,36 @@ export default function ForgotPassword({
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
-              className="w-full p-3 rounded-md bg-zinc-800 text-white"
+              className="w-full p-3 rounded-md bg-white dark:bg-zinc-800 dark:text-white"
             />
           </div>
           <Button
             variant="outline"
             type="submit"
-            className="mt-1"
-            loading={isSubmitting}
-            disabled={disableButton}
+            className={`mt-1 p-3 rounded-md ${isSubmitting
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
+              }`}
+            disabled={isSubmitting}
           >
-            Send Email
+            {isSubmitting ? 'Signing in...' : 'Sign in'}
           </Button>
         </div>
       </form>
       <p>
-        <Link href="/signin/password_signin" className="font-light text-sm">
+        <Link href="/signin/password_signin" className="font-light text-sm text-blue-600 dark:text-blue-400">
           Sign in with email and password
         </Link>
       </p>
       {allowEmail && (
         <p>
-          <Link href="/signin/email_signin" className="font-light text-sm">
+          <Link href="/signin/email_signin" className="font-light text-sm text-blue-600 dark:text-blue-400">
             Sign in via magic link
           </Link>
         </p>
       )}
       <p>
-        <Link href="/signin/signup" className="font-light text-sm">
+        <Link href="/signin/signup" className="font-light text-sm text-blue-600 dark:text-blue-400">
           Don't have an account? Sign up
         </Link>
       </p>

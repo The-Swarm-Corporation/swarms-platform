@@ -1,3 +1,4 @@
+import { cn } from '@/shared/utils/cn';
 import React, { MouseEvent } from 'react';
 
 interface SmoothScrollLinkProps {
@@ -33,7 +34,7 @@ const SmoothScrollLink: React.FC<SmoothScrollLinkProps> = ({
   };
 
   return (
-    <a href={href} className={className} onClick={handleClick}>
+    <a href={href} className={cn(className, 'link link--metis')} onClick={handleClick}>
       {children}
     </a>
   );

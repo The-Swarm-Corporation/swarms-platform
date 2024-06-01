@@ -44,12 +44,14 @@ const OpenSourceSection = () => {
             }
           >
             <div className="w-24 h-24 md:w-32 md:h-32">
-              <Image
-                alt="discord"
-                fill
-                className="object-fill object-left-top absolute rounded-lg inset-0"
-                src={DiscordImage}
-              />
+              <a href='https://discord.gg/gr5Hf8Tt'>
+                <Image
+                  alt="discord"
+                  fill
+                  className="object-fill object-left-top absolute rounded-lg inset-0"
+                  src={DiscordImage}
+                />
+              </a>
             </div>
           </AnimatedTooltip>
         </motion.div>
@@ -71,12 +73,14 @@ const OpenSourceSection = () => {
             }
           >
             <div className="w-28 h-28 md:w-60 md:h-60">
-              <Image
-                alt="github"
-                fill
-                className="object-fill object-left-top absolute rounded-lg inset-0"
-                src={GitHubImage}
-              />
+              <a href='https://github.com/kyegomez/swarms-platform'>
+                <Image
+                  alt="github"
+                  fill
+                  className="object-fill object-left-top absolute rounded-lg inset-0"
+                  src={GitHubImage}
+                />
+              </a>
             </div>
           </AnimatedTooltip>
         </motion.div>

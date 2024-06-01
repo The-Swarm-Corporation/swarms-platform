@@ -5,6 +5,7 @@ import { cn } from '@/shared/utils/cn';
 import Rive from '@rive-app/react-canvas';
 import { Github } from 'lucide-react';
 import Link from 'next/link';
+
 const HeroSection = () => {
   return (
     <div className="mx-auto container w-full flex flex-col xl:flex-row xl:h-screen justify-center items-center gap-8 xl:gap-0">

@@ -62,7 +62,7 @@ const AnimatedTooltip = ({
               rotate: rotate,
               whiteSpace: 'nowrap',
             }}
-            className="absolute -top-16 -left-1/2 translate-x-1/2 flex  flex-col items-center justify-center rounded-md bg-black z-50 shadow-xl px-4 py-2"
+            className="absolute -top-16 -left-1/2 translate-x-1/2 flex  flex-col items-center justify-center rounded-md bg-black z-50 shadow-xl px-4 py-2 dark:bg-white bg:text-black"
           >
             {tooltip}
           </motion.div>

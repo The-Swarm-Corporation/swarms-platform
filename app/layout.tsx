@@ -21,6 +21,7 @@ export default async function Layout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={helvetica.className}>
+
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

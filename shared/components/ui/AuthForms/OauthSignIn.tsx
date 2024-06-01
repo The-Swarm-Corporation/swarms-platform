@@ -47,7 +47,7 @@ export default function OauthSignIn() {
           <Button
             variant="outline"
             type="submit"
-            className="w-full"
+            className="w-full p-4"
             loading={isSubmitting}
           >
             <span className="mr-2">{provider.icon}</span>

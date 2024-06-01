@@ -36,17 +36,17 @@ export default function Navlinks({ user }: NavlinksProps) {
           <SmoothScrollLink href="#pricing" className={s.link}>
             Pricing
           </SmoothScrollLink>
-          <Link href={SWARMS_GITHUB} className={cn(s.link, 'hidden md:inline')}>
+          <Link href={SWARMS_GITHUB} className={cn(s.link, 'hidden md:inline link link--metis')}>
             GitHub
           </Link>
-          <Link href={DISCORD} className={cn(s.link, 'hidden md:inline')}>
+          <Link href={DISCORD} className={cn(s.link, 'hidden md:inline link link--metis')}>
             Community
           </Link>
-          <Link href="https://swarms.apac.ai/en/latest/" className={s.link}>
+          <Link href="https://swarms.apac.ai/en/latest/" className={cn(s.link, 'link link--metis')}>
             Docs
           </Link>
           {user && (
-            <Link href={PLATFORM.DASHBOARD} className={s.link}>
+            <Link href={PLATFORM.DASHBOARD} className={cn(s.link, 'link link--metis')}>
               Dashboard
             </Link>
           )}
@@ -71,23 +71,23 @@ export default function Navlinks({ user }: NavlinksProps) {
                 <DrawerClose className="absolute top-4 right-4">
                   <X />
                 </DrawerClose>
-                <Link href="/pricing" className={s.link}>
+                <Link href="/pricing" className={cn(s.link, 'link link--metis')}>
                   Pricing
                 </Link>
-                <Link href={SWARMS_GITHUB} className={s.link}>
+                <Link href={SWARMS_GITHUB} className={cn(s.link, 'link link--metis')}>
                   GitHub
                 </Link>
-                <Link href={DISCORD} className={s.link}>
+                <Link href={DISCORD} className={cn(s.link, 'link link--metis')}>
                   Community
                 </Link>
                 <Link
                   href="https://swarms.apac.ai/en/latest/"
-                  className={s.link}
+                  className={cn(s.link, 'link link--metis')}
                 >
                   Docs
                 </Link>
                 {user && (
-                  <Link href={PLATFORM.DASHBOARD} className={s.link}>
+                  <Link href={PLATFORM.DASHBOARD} className={cn(s.link, 'link link--metis')}>
                     Dashboard
                   </Link>
                 )}
@@ -101,19 +101,19 @@ export default function Navlinks({ user }: NavlinksProps) {
         {user ? (
           <form onSubmit={(e) => handleRequest(e, SignOut, router)}>
             <input type="hidden" name="pathName" value={usePathname()?.toString()} />
-            <button type="submit" className={s.link}>
+            <button type="submit" className={cn(s.link, 'link link--metis')}>
               Sign out
             </button>
           </form>
         ) : (
-          <Link href="/signin" className={s.link}>
+          <Link href="/signin" className={cn(s.link, 'link link--metis')}>
             Sign In
           </Link>
         )}
-        <Link href="/signin/signup" className={s.link}>
+        <Link href="/signin/signup" className={cn(s.link, 'link link--metis')}>
           Sign Up
         </Link>
-        <Link href="https://calendly.com/swarm-corp/30min" className={s.link}>
+        <Link href="https://calendly.com/swarm-corp/30min" className={cn(s.link, 'link link--metis')}>
           Get Demo
         </Link>
         <ThemeToggler />
