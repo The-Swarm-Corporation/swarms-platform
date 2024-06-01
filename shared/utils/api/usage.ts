@@ -231,6 +231,13 @@ export async function getOrganizationUsage(
         .single();
 
     if (organizationError || !organizationData) {
+      if (organizationError.code === 'PGRST116') {
+        return {
+          status: 200,
+          message: '',
+          organization: {} as any,
+        };
+      }
       console.error('Error fetching organization:', organizationError);
       return {
         status: 500,

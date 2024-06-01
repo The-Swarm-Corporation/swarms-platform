@@ -29,7 +29,11 @@ type ModalDataProps = {
 
 export default function ModelActivity({ usageData }: ModelUsageProps) {
   if (!usageData || !usageData?.dailyCosts?.length) {
-    return null;
+    return (
+      <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground mt-5 mb-8 gap-2 w-full">
+        <h3 className="opacity-60">No activities available for the current month</h3>
+      </div>
+    );
   }
 
   const daysInMonth = useMemo(() => {

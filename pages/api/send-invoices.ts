@@ -16,12 +16,12 @@ export default async function handler(
       1,
     );
 
-    if (currentDate.getDate() === lastMonthDate.getDate()) {
-      console.log('Skipping invoice generation for current month');
-      return res
-        .status(200)
-        .json({ message: 'Skipping invoice generation for current month' });
-    }
+    // if (currentDate.getDate() === lastMonthDate.getDate()) {
+    //   console.log('Skipping invoice generation for current month');
+    //   return res
+    //     .status(200)
+    //     .json({ message: 'Skipping invoice generation for current month' });
+    // }
 
     const user = {
       id: '',
@@ -45,7 +45,7 @@ export default async function handler(
 
     const cluster = await getOrganizationUsage(user.id, lastMonthDate);
 
-    // console.dir(cluster, { depth: null });
+    console.dir(cluster, { depth: null });
 
     return res.status(200).json({ message: 'Invoice status successful' });
   } catch (error) {
