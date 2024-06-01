@@ -1,4 +1,5 @@
 import { OrganizationUsage as OrgUsage } from '@/shared/utils/api/usage';
+import { isEmpty } from '@/shared/utils/helpers';
 import React from 'react';
 
 export default function OrganizationUsage({
@@ -6,6 +7,7 @@ export default function OrganizationUsage({
 }: {
   organizationUsage: OrgUsage | null;
 }) {
+  if (!organizationUsage) return null;
 
   function OrganizationCard({ name, totalReqCount, models }: OrgUsage) {
     return (
@@ -40,7 +42,9 @@ export default function OrganizationUsage({
         models={organizationUsage?.models ?? {}}
       />
 
-      <h2 className="my-6"> Primary Users</h2>
+      {!isEmpty(organizationUsage?.users) && (
+        <h2 className="my-6"> Primary Users</h2>
+      )}
       {organizationUsage?.users?.map((user) => (
         <OrganizationCard
           key={user.email}
