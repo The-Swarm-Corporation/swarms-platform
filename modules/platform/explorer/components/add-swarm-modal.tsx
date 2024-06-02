@@ -205,7 +205,7 @@ const AddSwarmModal = ({ isOpen, onClose, onAddSuccessfuly }: Props) => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter description"
-                className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 "
+                className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -242,7 +242,7 @@ const AddSwarmModal = ({ isOpen, onClose, onAddSuccessfuly }: Props) => {
                           setUseCases(newUseCases);
                         }}
                         placeholder="Description"
-                        className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 "
+                        className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
                       />
                     </div>
                     <div className="w-4">

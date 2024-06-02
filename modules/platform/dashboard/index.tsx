@@ -1,12 +1,6 @@
 'use client';
-import CodeBox from '@/shared/components/code-box';
 import { Button } from '@/shared/components/ui/Button';
 import { DISCORD, PLATFORM, SWARM_CALENDLY } from '@/shared/constants/links';
-import {
-  VLM_SAMPLE_GO,
-  VLM_SAMPLE_JS,
-  VLM_SAMPLE_PY,
-} from '@/shared/data/vlm-sample';
 import useSubscription from '@/shared/hooks/subscription';
 import { commaSeparated, formatSepndTime } from '@/shared/utils/helpers';
 import { Check } from 'lucide-react';
@@ -45,33 +39,6 @@ const Dashboard = () => {
         </div>
       </div>
       <div className="flex flex-col gap-4 mt-4">
-        {subscription.statusLoading && <div>Loading...</div>}
-        {!subscription.isLoading && subscription.isSubscribed && (
-          <div>
-            <div className="relative">
-              <CodeBox
-                classes={{
-                  content: 'h-[50vh] overflow-y-auto',
-                }}
-                sampleCodes={{
-                  python: {
-                    sourceCode: VLM_SAMPLE_PY,
-                    title: 'main.py',
-                  },
-                  javascript: {
-                    sourceCode: VLM_SAMPLE_JS,
-                    title: 'main.js',
-                  },
-                  go: {
-                    sourceCode: VLM_SAMPLE_GO,
-                    title: 'main.go',
-                  },
-                }}
-              />
-            </div>
-          </div>
-        )}
-
         <div className="border rounded-md p-8 py-10">
           <h2 className="text-2xl font-bold">Subscribe now to get access</h2>
           <span className="text-muted-foreground">

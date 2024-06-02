@@ -18,6 +18,7 @@ const Prompt = async ({ id }: { id: string }) => {
       title="Prompt"
       tags={tags}
       usecases={usecases}
+      description={prompt.description ?? ''}
       name={prompt.name ?? ''}
       prompt={prompt.prompt ?? ''}
     />
