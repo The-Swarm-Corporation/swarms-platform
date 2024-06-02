@@ -691,39 +691,42 @@ export type Database = {
       swarms_cloud_prompts: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           name: string | null
           prompt: string | null
           status: Database["public"]["Enums"]["user_prompts_status"] | null
           tags: string | null
           use_cases: Json | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           name?: string | null
           prompt?: string | null
           status?: Database["public"]["Enums"]["user_prompts_status"] | null
           tags?: string | null
           use_cases?: Json | null
-          user_id?: string | null
+          user_id?: string
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           name?: string | null
           prompt?: string | null
           status?: Database["public"]["Enums"]["user_prompts_status"] | null
           tags?: string | null
           use_cases?: Json | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "swarms_cloud_prompts_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },

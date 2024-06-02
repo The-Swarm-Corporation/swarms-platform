@@ -208,6 +208,7 @@ const explorerRouter = router({
       z.object({
         name: z.string().optional(),
         prompt: z.string(),
+        description: z.string().optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
       }),
@@ -215,6 +216,11 @@ const explorerRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (!input.prompt) {
         throw 'Prompt is required';
+      }
+
+      // at least 5 characters
+      if (!input.name || input.name.trim()?.length < 2) {
+        throw 'Name should be at least 2 characters';
       }
 
       // rate limiter - 1 prompt per minute
@@ -243,6 +249,7 @@ const explorerRouter = router({
             name: input.name,
             use_cases: input.useCases,
             prompt: input.prompt,
+            description: input.description,
             user_id: user_id,
             tags: input.tags,
             status: 'pending',

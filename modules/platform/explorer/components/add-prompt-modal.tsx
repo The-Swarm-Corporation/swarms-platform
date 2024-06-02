@@ -16,6 +16,7 @@ interface Props {
 
 const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
   const [promptName, setPromptName] = useState('');
+  const [description, setDescription] = useState('');
   const [prompt, setPrompt] = useState('');
   const [tags, setTags] = useState('');
   const [useCases, setUseCases] = useState<
@@ -51,13 +52,23 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
       });
       return;
     }
-    if (prompt.length === 0) {
+
+    if (promptName.trim().length < 2) {
+      toast.toast({
+        title: 'Name should be at least 2 characters long',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (prompt.trim().length === 0) {
       toast.toast({
         title: 'Prompt is required',
         variant: 'destructive',
       });
       return;
     }
+
     if (validatePrompt.data && !validatePrompt.data.valid) {
       toast.toast({
         title: 'Invalid Prompt',
@@ -81,13 +92,20 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
       }
     }
 
+    const trimTags = tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .join(',');
+
     // Add prompt
     addPrompt
       .mutateAsync({
         name: promptName,
         prompt,
+        description,
         useCases,
-        tags,
+        tags: trimTags,
       })
       .then(() => {
         toast.toast({
@@ -97,6 +115,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         onAddSuccessfully();
         // Reset form
         setPromptName('');
+        setDescription('');
         setPrompt('');
         setTags('');
         setUseCases([{ title: '', description: '' }]);
@@ -122,6 +141,15 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
           </div>
         </div>
         <div className="flex flex-col gap-1">
+          <span>Description</span>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter description"
+            className="w-full h-15 p-2 border rounded-md bg-transparent outline-0 resize-none"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
           <span>Prompt</span>
           <div className="relatvie">
             <textarea
@@ -132,7 +160,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
               }}
               required
               placeholder="Enter prompt here..."
-              className="w-full h-20 p-2 border rounded-md bg-transparent outline-0"
+              className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
             />
             {validatePrompt.isPending ? (
               <div className="absolute right-2 top-2">
@@ -197,7 +225,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
                       setUseCases(newUseCases);
                     }}
                     placeholder="Description"
-                    className="w-full h-20 p-2 border rounded-md bg-transparent outline-0"
+                    className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
                   />
                 </div>
                 <div className="w-4">
