@@ -23,6 +23,10 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
     setIsSubmitting(false);
   };
 
+  const handleRoutingToSignIn = () => {
+    router?.push('/signin')
+  }
+
   return (
     <div className="my-8">
       <form
@@ -66,7 +70,7 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
           </Button>
         </div>
       </form>
-      <p className="text-gray-700 dark:text-gray-300 mt-4">Already have an account?</p>
+      <p className="text-gray-700 dark:text-gray-300 mt-4 cursor-pointer" onClick={handleRoutingToSignIn}>Already have an account?</p>
       <p className='mt-4'>
         <Link href="/signin/password_signin" className="font-light text-sm dark: text-white">
           Sign in with email and password
