@@ -4,23 +4,20 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { defaultOptions, explorerOptions } from '@/shared/constants/explorer';
 
 export default function useModels() {
-  const models = trpc.explorer.getModels.useQuery();
-  const allSwarms = trpc.explorer.getAllApprovedSwarms.useQuery();
+  const modelsQuery = trpc.explorer.getModels.useQuery();
+  const swarmsQuery = trpc.explorer.getAllApprovedSwarms.useQuery();
+  const promptsQuery = trpc.explorer.getAllPrompts.useQuery();
 
-  const isDataLoading = models.isLoading && allSwarms.isLoading;
+  const isDataLoading =
+    modelsQuery.isLoading && swarmsQuery.isLoading && promptsQuery.isLoading;
 
   const [options, setOptions] = useState(defaultOptions);
   const [search, setSearch] = useState('');
   const [filterOption, setFilterOption] = useState<string>(
-    explorerOptions[explorerOptions.length - 1].value,
+    explorerOptions[0].value,
   );
 
-  const debouncedSearch = useMemo(() => {
-    const debouncedFn = debounce((value: string) => {
-      setSearch(value);
-    }, 100);
-    return debouncedFn;
-  }, []);
+  const debouncedSearch = useMemo(() => debounce(setSearch, 100), []);
 
   const handleSearchChange = useCallback(
     (value: string) => {
@@ -29,52 +26,58 @@ export default function useModels() {
     [debouncedSearch],
   );
 
-  const filteredModels = useMemo(() => {
-    if (!models.data?.data) return [];
-    return !search || filterOption === 'swarms'
-      ? models.data.data
-      : models.data.data.filter((model) =>
-          model?.name?.toLowerCase().includes(search.toLowerCase()),
+  // TODO: Add types
+  const filterData = useCallback(
+    (data: any, key: string) => {
+      if (!data) return [];
+      if (filterOption === 'all') {
+        return data.filter(
+          (item: any) =>
+            item?.name?.toLowerCase().includes(search.toLowerCase()) ||
+            item?.prompt?.toLowerCase().includes(search.toLowerCase()),
         );
-  }, [models.data, filterOption, search]);
+      }
+      if (!search || filterOption !== key) return data;
+      return data.filter(
+        (item: any) =>
+          item?.name?.toLowerCase().includes(search.toLowerCase()) ||
+          item?.prompt?.toLowerCase().includes(search.toLowerCase()),
+      );
+    },
+    [search, filterOption],
+  );
 
-  const filteredSwarms = useMemo(() => {
-    if (!allSwarms.data?.data) return [];
-    return !search || filterOption === 'models'
-      ? allSwarms.data.data
-      : allSwarms.data.data.filter((swarm) =>
-          swarm?.name?.toLowerCase().includes(search.toLowerCase()),
-        );
-  }, [allSwarms.data, filterOption, search]);
+  const filteredModels = useMemo(
+    () => filterData(modelsQuery.data?.data, 'models'),
+    [modelsQuery.data, filterData],
+  );
+  const filteredSwarms = useMemo(
+    () => filterData(swarmsQuery.data?.data, 'swarms'),
+    [swarmsQuery.data, filterData],
+  );
+  const filteredPrompts = useMemo(
+    () => filterData(promptsQuery.data?.data, 'prompts'),
+    [promptsQuery.data, filterData],
+  );
 
   const handleOptionChange = useCallback(
     (value: string) => {
       if (isDataLoading) return;
+
       setFilterOption(value);
-      if (value === 'swarms' || value === 'models') {
-        setOptions([value]);
-      } else {
-        const updatedOptions =
-          options[0] === 'swarms' ? ['swarms', 'models'] : ['models', 'swarms'];
-        setOptions(updatedOptions);
-      }
     },
-    [options, isDataLoading],
+    [isDataLoading],
   );
 
   const handleRemoveOption = useCallback(
     (optionToRemove: string) => {
-      let updatedOptions = [];
       if (isDataLoading) return;
-      if (options.length === 1) {
-        updatedOptions = optionToRemove === 'swarms' ? ['models'] : ['swarms'];
-      } else {
-        updatedOptions = options.filter((option) => option !== optionToRemove);
-      }
-
+      const updatedOptionsSet = new Set(options);
+      updatedOptionsSet.delete(optionToRemove);
+      const updatedOptions = Array.from(updatedOptionsSet);
       setOptions(updatedOptions);
       setFilterOption(
-        updatedOptions.length === 1 ? updatedOptions[0] : 'swarms-and-models',
+        updatedOptions.length ? updatedOptions[0] : 'swarms-models-prompts',
       );
     },
     [options, isDataLoading],
@@ -83,6 +86,7 @@ export default function useModels() {
   return {
     filteredModels,
     filteredSwarms,
+    filteredPrompts,
     search,
     options,
     filterOption,

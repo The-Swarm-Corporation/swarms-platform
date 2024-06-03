@@ -5,39 +5,53 @@ import { cn } from '@/shared/utils/cn';
 import React, { useEffect, useState } from 'react';
 import MonthPicker from './components/month-picker';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { UserUsage } from '@/shared/utils/api/usage';
+import {
+  OrganizationUsage as OrgUsage,
+  UserUsage,
+} from '@/shared/utils/api/usage';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import MonthlyChart from './components/monthy-usage';
-import MonthlyPricing from './components/charts/monthly-pricing';
-import ModelUsage from './components/charts/models';
+import MonthlyPricing from './components/charts/costs/monthly-pricing';
+import ModelUsage from './components/charts/costs/models-cost';
 import CreditsUsage from './components/credits';
+import ModelActivity from './components/charts/activity/models-activity';
+import OrganizationUsage from './components/organization-usage';
 
 type UsageTab = 'cost' | 'activity';
 type UsageData = UserUsage | null;
+type OrgUsageData = OrgUsage | null;
 
 export default function Usage() {
   const [activeTab, setActiveTab] = useState<UsageTab>('cost');
   const [month, setMonth] = useState(new Date());
   const [usageData, setUsageData] = useState<UsageData>(null);
+  const [organizationUsageData, setOrganizationUsageData] =
+    useState<OrgUsageData>(null);
   const toast = useToast();
 
   const isCost = activeTab === 'cost';
+  const isActivity = activeTab === 'activity';
+
   const handleTabChange = (tab: UsageTab) => setActiveTab(tab);
 
   const handleMonthChange = (newMonth: Date) => setMonth(newMonth);
 
   const usageMutation = trpc.panel.getUsageAPICluster.useMutation();
+  const organizationUsageMutation =
+    trpc.panel.getOrganizationUsage.useMutation();
 
   useEffect(() => {
-    usageMutation
-      .mutateAsync({ month })
-      .then((data) => {
-        setUsageData(data as UsageData);
+    Promise.all([
+      usageMutation.mutateAsync({ month }),
+      organizationUsageMutation.mutateAsync({ month }),
+    ])
+      .then(([usageData, organizationUsageData]) => {
+        setUsageData(usageData as UserUsage);
+        setOrganizationUsageData(organizationUsageData);
       })
       .catch((err) => {
         console.error(err);
-
         toast.toast({
           description: err?.message || 'Error fetching usage data',
           variant: 'destructive',
@@ -68,7 +82,7 @@ export default function Usage() {
             className={cn(
               'px-6 py-0 h-8 w-28 lg:w-32 text-sm font-medium capitalize focus:outline-none focus-visible:outline-black bg-transparent text-black dark:text-white',
               'hover:bg-transparent, hover:text-primary rounded-md shadow-md',
-              activeTab === 'activity' &&
+              isActivity &&
                 'bg-primary text-white hover:text-white hover:bg-primary',
             )}
           >
@@ -79,7 +93,12 @@ export default function Usage() {
         <MonthPicker month={month} onMonthChange={handleMonthChange} />
       </section>
 
-      <section className="mt-8 md:mt-14 flex justify-center max-xl:flex-col gap-10">
+      <section
+        className={cn(
+          'mt-8 md:mt-14 justify-center max-xl:flex-col gap-10 hidden',
+          isCost && 'flex',
+        )}
+      >
         <div className="w-full">
           {usageMutation.isPending ? (
             <LoadingSpinner />
@@ -94,6 +113,26 @@ export default function Usage() {
           <MonthlyPricing usageData={usageData} month={month} />
           <CreditsUsage />
         </div>
+      </section>
+
+      <section
+        className={cn(
+          'mt-8 justify-center max-xl:flex-col gap-10 hidden',
+          isActivity && 'flex',
+        )}
+      >
+        <div className="w-full">
+          {usageMutation.isPending ? (
+            <LoadingSpinner />
+          ) : (
+            <ModelActivity usageData={usageData} />
+          )}
+        </div>
+        {organizationUsageData && (
+          <div className="w-full xl:w-[45%]">
+            <OrganizationUsage organizationUsage={organizationUsageData} />
+          </div>
+        )}
       </section>
     </article>
   );

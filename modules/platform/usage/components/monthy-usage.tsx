@@ -1,7 +1,7 @@
 import { UserUsage } from '@/shared/utils/api/usage';
 import { cn } from '@/shared/utils/cn';
 import React from 'react';
-import MonthlySpend from './charts/monthly-spend';
+import MonthlySpend from './charts/costs/monthly-spend';
 
 export default function MonthlyChart({ data }: { data: UserUsage | null }) {
   const totalCost = data?.totalCost ? data.totalCost.toFixed(3) : 0;

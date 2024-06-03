@@ -294,6 +294,7 @@ export type Database = {
           output_cost: number | null
           output_tokens: number | null
           repetition_penalty: number | null
+          request_count: number
           stream: boolean | null
           temperature: number | null
           top_p: number | null
@@ -315,6 +316,7 @@ export type Database = {
           output_cost?: number | null
           output_tokens?: number | null
           repetition_penalty?: number | null
+          request_count?: number
           stream?: boolean | null
           temperature?: number | null
           top_p?: number | null
@@ -336,6 +338,7 @@ export type Database = {
           output_cost?: number | null
           output_tokens?: number | null
           repetition_penalty?: number | null
+          request_count?: number
           stream?: boolean | null
           temperature?: number | null
           top_p?: number | null
@@ -685,6 +688,50 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_prompts: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string | null
+          prompt: string | null
+          status: Database["public"]["Enums"]["user_prompts_status"] | null
+          tags: string | null
+          use_cases: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          prompt?: string | null
+          status?: Database["public"]["Enums"]["user_prompts_status"] | null
+          tags?: string | null
+          use_cases?: Json | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          prompt?: string | null
+          status?: Database["public"]["Enums"]["user_prompts_status"] | null
+          tags?: string | null
+          use_cases?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_prompts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       swarms_cloud_rate_limits: {
         Row: {
           created_at: string
@@ -771,7 +818,7 @@ export type Database = {
         Row: {
           created_at: string
           credit: number
-          credit_count: number | null
+          credit_count: number
           free_credit: number
           free_credit_expire_date: string | null
           id: string
@@ -780,7 +827,7 @@ export type Database = {
         Insert: {
           created_at?: string
           credit?: number
-          credit_count?: number | null
+          credit_count?: number
           free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
@@ -789,7 +836,7 @@ export type Database = {
         Update: {
           created_at?: string
           credit?: number
-          credit_count?: number | null
+          credit_count?: number
           free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
@@ -1037,6 +1084,7 @@ export type Database = {
         | "past_due"
         | "unpaid"
         | "paused"
+      user_prompts_status: "approved" | "pending" | "rejected"
       user_swarms_status: "approved" | "pending" | "rejected"
       user_tier: "tier1" | "tier2" | "tier3" | "tier4"
       users_wallets_transaction_type: "reduct" | "add"
