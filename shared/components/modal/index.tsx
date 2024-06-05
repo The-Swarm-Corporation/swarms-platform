@@ -15,6 +15,7 @@ interface Props {
   footer?: React.ReactNode;
   className?: string;
   showHeader?: boolean;
+  showClose?: boolean;
 }
 
 const Modal = ({
