@@ -137,7 +137,7 @@ async function POST(req: Request) {
     });
 
     if (res.status !== 200) {
-      return new Response(`Internal Error - fetching model, ${res}`, {
+      return new Response(`Internal Error - fetching model, ${res.json}, ${res.statusText}`, {
         status: res.status,
       });
     }
