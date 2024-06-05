@@ -17,10 +17,11 @@ const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
 async function fetchWithRetries(
   url: string,
   options: RequestInit,
-  retries: number = 3,
-): Promise<FetchResponse> {
+  retries = 3,
+) {
   try {
-    return await fetch(url, options);
+    const response = await fetch(url, options);
+    return response;
   } catch (error) {
     if (retries > 0) {
       return fetchWithRetries(url, options, retries - 1);
@@ -137,9 +138,13 @@ async function POST(req: Request) {
     });
 
     if (res.status !== 200) {
-      return new Response('Internal Error - fetching model', {
-        status: res.status,
-      });
+      const errorBody = await res.text();
+      return new Response(
+        `Internal Error - fetching model, ${errorBody}`,
+        {
+          status: res.status,
+        },
+      );
     }
 
     const res_json =

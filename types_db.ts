@@ -414,6 +414,27 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_blacklists: {
+        Row: {
+          created_at: string
+          id: string
+          list: Json | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          list?: Json | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          list?: Json | null
+          type?: string | null
+        }
+        Relationships: []
+      }
       swarms_cloud_models: {
         Row: {
           api_endpoint: string | null
@@ -1043,6 +1064,7 @@ export type Database = {
           payment_method: Json | null
           referral: string | null
           signup_reason: string | null
+          username: string | null
         }
         Insert: {
           about_company?: string | null
@@ -1061,6 +1083,7 @@ export type Database = {
           payment_method?: Json | null
           referral?: string | null
           signup_reason?: string | null
+          username?: string | null
         }
         Update: {
           about_company?: string | null
@@ -1079,6 +1102,7 @@ export type Database = {
           payment_method?: Json | null
           referral?: string | null
           signup_reason?: string | null
+          username?: string | null
         }
         Relationships: [
           {
