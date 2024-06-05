@@ -18,6 +18,7 @@ export const AUTH = {
 export const PUBLIC = {
   MODEL: '/model/{slug}',
   SWARM: '/swarm/{name}',
+  PROMPT: '/prompt/{id}',
 };
 
 const SWARMS_DOCS = 'https://swarms.apac.ai/en/latest/';

@@ -1,7 +1,8 @@
 export const explorerOptions = [
+  { label: 'All', value: 'all' },
   { label: 'Swarms', value: 'swarms' },
   { label: 'Models', value: 'models' },
-  { label: 'Models & Swarms', value: 'swarms-and-models' },
+  { label: 'Prompts', value: 'prompts' },
 ];
 
-export const defaultOptions = ['swarms', 'models'];
+export const defaultOptions = ['swarms', 'models', 'prompts'];

@@ -2,7 +2,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { UserUsage } from '@/shared/utils/api/usage';
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { getMonthRange } from '../helpers/get-month-range';
+import { getMonthRange } from '../../helpers/get-month-range';
 
 const COLORS = ['#4BC0C0', '#2D2D2D'];
 

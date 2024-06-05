@@ -80,6 +80,7 @@ export class SwarmsApiGuard {
         return { status: 401, message: 'User is not part of the organization' };
       }
 
+      //TODO: Rewrite the checkRateLimit function so organization ownerId does not clash when it becomes userOwnerId, add request_count to organizations table
       // check rate limit - set for organizations only
       const isAllowed = await checkRateLimit(org.data.owner_user_id ?? '');
       if (!isAllowed) {
@@ -96,7 +97,7 @@ export class SwarmsApiGuard {
 
     // check rate limit - set for users only
     if (!this.organizationPublicId) {
-      const isAllowed = await checkRateLimit(this.userId, 30);
+      const isAllowed = await checkRateLimit(this.userId, 40);
       if (!isAllowed) {
         return {
           status: 429,

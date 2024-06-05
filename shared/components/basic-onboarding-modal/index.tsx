@@ -312,7 +312,6 @@ const BasicOnboardingModal = () => {
               </Link>
               <Link
                 href="https://swarms.world/platform/explorer"
-                target="_blank"
               >
                 <Button>Explore Models & Swarms</Button>
               </Link>

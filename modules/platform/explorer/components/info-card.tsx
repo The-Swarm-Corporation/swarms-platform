@@ -30,7 +30,7 @@ const InfoCard = ({
       <div className="flex items-center justify-center w-10 h-10 bg-primary text-white rounded-full aspect-square">
         {icon}
       </div>
-      <div className="h-4/5 flex flex-col">
+      <div className="h-4/5 flex flex-col overflow-y-auto no-scrollbar">
         <div className="flex flex-col gap-2 flex-grow">
           <h1 className="text-xl sm:text-2xl font-bold">{title}</h1>
           <span title={description} className="text-sm">

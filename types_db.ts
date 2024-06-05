@@ -294,6 +294,7 @@ export type Database = {
           output_cost: number | null
           output_tokens: number | null
           repetition_penalty: number | null
+          request_count: number
           stream: boolean | null
           temperature: number | null
           top_p: number | null
@@ -315,6 +316,7 @@ export type Database = {
           output_cost?: number | null
           output_tokens?: number | null
           repetition_penalty?: number | null
+          request_count?: number
           stream?: boolean | null
           temperature?: number | null
           top_p?: number | null
@@ -336,6 +338,7 @@ export type Database = {
           output_cost?: number | null
           output_tokens?: number | null
           repetition_penalty?: number | null
+          request_count?: number
           stream?: boolean | null
           temperature?: number | null
           top_p?: number | null
@@ -537,8 +540,8 @@ export type Database = {
           role: Database["public"]["Enums"]["organization_member_role"] | null
           secret_code: string | null
           status:
-            | Database["public"]["Enums"]["organization_member_invite_status"]
-            | null
+          | Database["public"]["Enums"]["organization_member_invite_status"]
+          | null
           user_id: string | null
         }
         Insert: {
@@ -550,8 +553,8 @@ export type Database = {
           role?: Database["public"]["Enums"]["organization_member_role"] | null
           secret_code?: string | null
           status?:
-            | Database["public"]["Enums"]["organization_member_invite_status"]
-            | null
+          | Database["public"]["Enums"]["organization_member_invite_status"]
+          | null
           user_id?: string | null
         }
         Update: {
@@ -563,8 +566,8 @@ export type Database = {
           role?: Database["public"]["Enums"]["organization_member_role"] | null
           secret_code?: string | null
           status?:
-            | Database["public"]["Enums"]["organization_member_invite_status"]
-            | null
+          | Database["public"]["Enums"]["organization_member_invite_status"]
+          | null
           user_id?: string | null
         }
         Relationships: [
@@ -685,6 +688,90 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_prompts: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string | null
+          prompt: string | null
+          status: Database["public"]["Enums"]["user_prompts_status"] | null
+          tags: string | null
+          use_cases: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          prompt?: string | null
+          status?: Database["public"]["Enums"]["user_prompts_status"] | null
+          tags?: string | null
+          use_cases?: Json | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          prompt?: string | null
+          status?: Database["public"]["Enums"]["user_prompts_status"] | null
+          tags?: string | null
+          use_cases?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_prompts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_prompt_ratings: {
+        Row: {
+          id: string,
+          prompt_id: string | null,
+          user_id: string | null,
+          rating: number | null,
+          created_at: string | null
+        },
+        Insert: {
+          id: string,
+          prompt_id: string | null,
+          user_id: string | null,
+          rating: number | null,
+          created_at: string | null
+        },
+        Update: {
+          id: string,
+          prompt_id?: string | null,
+          user_id: string | null,
+          rating: number | null,
+          created_at: string | null
+        },
+        Relationships: [
+          {
+            foreignKeyName: "prompt_ratings_prompt_id_fkey",
+            columns: ["prompt_id"],
+            isOneToOne: false,
+            referencedRelation: "swarms_cloud_prompts",
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_ratings_user_id_fkey",
+            columns: ["user_id"],
+            isOneToOne: false,
+            referencedRelation: "users",
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+
       swarms_cloud_rate_limits: {
         Row: {
           created_at: string
@@ -771,7 +858,7 @@ export type Database = {
         Row: {
           created_at: string
           credit: number
-          credit_count: number | null
+          credit_count: number
           free_credit: number
           free_credit_expire_date: string | null
           id: string
@@ -780,7 +867,7 @@ export type Database = {
         Insert: {
           created_at?: string
           credit?: number
-          credit_count?: number | null
+          credit_count?: number
           free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
@@ -789,7 +876,7 @@ export type Database = {
         Update: {
           created_at?: string
           credit?: number
-          credit_count?: number | null
+          credit_count?: number
           free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
@@ -890,8 +977,8 @@ export type Database = {
           new_balance: number | null
           old_balance: number | null
           type:
-            | Database["public"]["Enums"]["users_wallets_transaction_type"]
-            | null
+          | Database["public"]["Enums"]["users_wallets_transaction_type"]
+          | null
           user_id: string | null
           wallet_id: string | null
         }
@@ -903,8 +990,8 @@ export type Database = {
           new_balance?: number | null
           old_balance?: number | null
           type?:
-            | Database["public"]["Enums"]["users_wallets_transaction_type"]
-            | null
+          | Database["public"]["Enums"]["users_wallets_transaction_type"]
+          | null
           user_id?: string | null
           wallet_id?: string | null
         }
@@ -916,8 +1003,8 @@ export type Database = {
           new_balance?: number | null
           old_balance?: number | null
           type?:
-            | Database["public"]["Enums"]["users_wallets_transaction_type"]
-            | null
+          | Database["public"]["Enums"]["users_wallets_transaction_type"]
+          | null
           user_id?: string | null
           wallet_id?: string | null
         }
@@ -1021,22 +1108,23 @@ export type Database = {
       credit_plan: "default" | "invoice"
       model_type: "text" | "vision"
       organization_member_invite_status:
-        | "waiting"
-        | "joined"
-        | "expired"
-        | "canceled"
+      | "waiting"
+      | "joined"
+      | "expired"
+      | "canceled"
       organization_member_role: "manager" | "reader"
       pricing_plan_interval: "day" | "week" | "month" | "year"
       pricing_type: "one_time" | "recurring"
       subscription_status:
-        | "trialing"
-        | "active"
-        | "canceled"
-        | "incomplete"
-        | "incomplete_expired"
-        | "past_due"
-        | "unpaid"
-        | "paused"
+      | "trialing"
+      | "active"
+      | "canceled"
+      | "incomplete"
+      | "incomplete_expired"
+      | "past_due"
+      | "unpaid"
+      | "paused"
+      user_prompts_status: "approved" | "pending" | "rejected"
       user_swarms_status: "approved" | "pending" | "rejected"
       user_tier: "tier1" | "tier2" | "tier3" | "tier4"
       users_wallets_transaction_type: "reduct" | "add"
@@ -1051,80 +1139,80 @@ type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
   PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
+  | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+  | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+    Database[PublicTableNameOrOptions["schema"]]["Views"])
+  : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    PublicSchema["Views"])
+  ? (PublicSchema["Tables"] &
+    PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
+  | keyof PublicSchema["Tables"]
+  | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
+  | keyof PublicSchema["Tables"]
+  | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
+  | keyof PublicSchema["Enums"]
+  | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
-    : never
+  ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+  : never

@@ -169,6 +169,8 @@ export async function signInWithPassword(formData: FormData) {
   const password = String(formData.get('password')).trim();
   let redirectPath: string | undefined;
 
+  console.log('------------This is the react component-------', email, password);
+  
   const supabase = createClient();
   const { error, data } = await supabase.auth.signInWithPassword({
     email,

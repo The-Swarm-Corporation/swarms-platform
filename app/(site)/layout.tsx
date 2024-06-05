@@ -55,7 +55,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
   return (
     <>
       <Navbar />
-      <main className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)] bg-dot-bg dark:bg-dot-bg-dark dark:bg-black">
+      <main className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)] bg-dot-bg dark:bg-dot-bg-dark dark:bg-black overflow-x-hidden">
         {children}
       </main>
       <Footer />

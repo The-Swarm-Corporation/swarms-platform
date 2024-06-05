@@ -2,7 +2,7 @@ import { supabaseAdmin } from '../supabase/admin';
 
 export async function checkRateLimit(
   userId: string,
-  rateLimitMaxRequests = 40,
+  rateLimitMaxRequests = 100,
 ): Promise<boolean> {
   // Fetch user's existing request count and last request timestamp
   const { data: userLimitData, error } = await supabaseAdmin
