@@ -42,6 +42,15 @@ const Credit = () => {
       return;
     }
 
+    if (plan) {
+      toast.toast({
+        description:
+          'Service is currently unavailable. Please try again later.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       const response = await creditPlanMutation.mutateAsync({
         credit_plan: plan,

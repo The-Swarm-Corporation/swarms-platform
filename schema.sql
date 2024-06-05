@@ -12,10 +12,6 @@ SET row_security = off;
 
 CREATE EXTENSION IF NOT EXISTS "pgsodium" WITH SCHEMA "pgsodium";
 
-CREATE SCHEMA IF NOT EXISTS "public";
-
-ALTER SCHEMA "public" OWNER TO "pg_database_owner";
-
 COMMENT ON SCHEMA "public" IS 'standard public schema';
 
 CREATE EXTENSION IF NOT EXISTS "pg_graphql" WITH SCHEMA "graphql";
@@ -29,6 +25,13 @@ CREATE EXTENSION IF NOT EXISTS "pgjwt" WITH SCHEMA "extensions";
 CREATE EXTENSION IF NOT EXISTS "supabase_vault" WITH SCHEMA "vault";
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
+
+CREATE TYPE "public"."credit_plan" AS ENUM (
+    'default',
+    'invoice'
+);
+
+ALTER TYPE "public"."credit_plan" OWNER TO "postgres";
 
 CREATE TYPE "public"."model_type" AS ENUM (
     'text',
@@ -82,6 +85,22 @@ CREATE TYPE "public"."subscription_status" AS ENUM (
 
 ALTER TYPE "public"."subscription_status" OWNER TO "postgres";
 
+CREATE TYPE "public"."user_prompts_status" AS ENUM (
+    'approved',
+    'pending',
+    'rejected'
+);
+
+ALTER TYPE "public"."user_prompts_status" OWNER TO "postgres";
+
+CREATE TYPE "public"."user_swarms_status" AS ENUM (
+    'approved',
+    'pending',
+    'rejected'
+);
+
+ALTER TYPE "public"."user_swarms_status" OWNER TO "postgres";
+
 CREATE TYPE "public"."user_tier" AS ENUM (
     'tier1',
     'tier2',
@@ -90,6 +109,13 @@ CREATE TYPE "public"."user_tier" AS ENUM (
 );
 
 ALTER TYPE "public"."user_tier" OWNER TO "postgres";
+
+CREATE TYPE "public"."users_wallets_transaction_type" AS ENUM (
+    'reduct',
+    'add'
+);
+
+ALTER TYPE "public"."users_wallets_transaction_type" OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."get_user_id_by_email"("email" "text") RETURNS TABLE("id" "uuid")
     LANGUAGE "plpgsql" SECURITY DEFINER
@@ -103,13 +129,11 @@ ALTER FUNCTION "public"."get_user_id_by_email"("email" "text") OWNER TO "postgre
 
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    AS $$
-begin
-  insert into public.users (id, full_name, avatar_url)
-  values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+    AS $$begin
+  insert into public.users (id, full_name, avatar_url, email)
+  values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url', new.email);
   return new;
-end;
-$$;
+end;$$;
 
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
 
@@ -191,6 +215,19 @@ CREATE TABLE IF NOT EXISTS "public"."subscriptions" (
 
 ALTER TABLE "public"."subscriptions" OWNER TO "postgres";
 
+CREATE TABLE IF NOT EXISTS "public"."swarm_cloud_billing_transcations" (
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "user_id" "uuid",
+    "total_montly_cost" double precision,
+    "stripe_customer_id" "text",
+    "transaction_id" "uuid" DEFAULT "gen_random_uuid"(),
+    "invoice_id" "text",
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "payment_successful" boolean DEFAULT false NOT NULL
+);
+
+ALTER TABLE "public"."swarm_cloud_billing_transcations" OWNER TO "postgres";
+
 CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_api_activities" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -198,21 +235,25 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_api_activities" (
     "model_id" "uuid",
     "input_tokens" bigint,
     "output_tokens" bigint,
-    "all_cost" double precision,
+    "total_cost" double precision,
     "input_cost" double precision,
     "output_cost" double precision,
     "messages" "json",
-    "status" integer,
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "temperature" real,
     "top_p" real,
     "echo" boolean,
     "stream" boolean,
     "repetition_penalty" real,
-    "max_tokens" integer
+    "max_tokens" integer,
+    "organization_id" "uuid",
+    "invoice_total_cost" double precision DEFAULT '0'::double precision NOT NULL,
+    "request_count" bigint DEFAULT '1'::bigint NOT NULL
 );
 
 ALTER TABLE "public"."swarms_cloud_api_activities" OWNER TO "postgres";
+
+COMMENT ON COLUMN "public"."swarms_cloud_api_activities"."invoice_total_cost" IS 'Get total cost of user on the invoice credit_plan';
 
 CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_api_keys" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
@@ -244,7 +285,13 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_models" (
     "docs" "json",
     "model_type" "public"."model_type",
     "support_functions" boolean DEFAULT false,
-    "api_endpoint" "text"
+    "api_endpoint" "text",
+    "use_cases" "json" DEFAULT '[]'::"json",
+    "tags" "text",
+    "model_card_md" "text",
+    "slug" "text",
+    "price_million_input" double precision,
+    "price_million_output" double precision
 );
 
 ALTER TABLE "public"."swarms_cloud_models" OWNER TO "postgres";
@@ -297,12 +344,54 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_organizations" (
 
 ALTER TABLE "public"."swarms_cloud_organizations" OWNER TO "postgres";
 
+CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_prompts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "user_id" "uuid" DEFAULT "auth"."uid"() NOT NULL,
+    "prompt" "text",
+    "name" "text",
+    "use_cases" "json",
+    "status" "public"."user_prompts_status",
+    "tags" "text",
+    "description" "text"
+);
+
+ALTER TABLE "public"."swarms_cloud_prompts" OWNER TO "postgres";
+
+CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_rate_limits" (
+    "user_id" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "request_count" bigint DEFAULT '0'::bigint,
+    "last_request_at" timestamp without time zone,
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL
+);
+
+ALTER TABLE "public"."swarms_cloud_rate_limits" OWNER TO "postgres";
+
+CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_user_swarms" (
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "user_id" "uuid",
+    "pr_id" "text",
+    "pr_link" "text",
+    "code" "text",
+    "name" "text",
+    "description" "text",
+    "tags" "text",
+    "use_cases" "json",
+    "status" "public"."user_swarms_status",
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL
+);
+
+ALTER TABLE "public"."swarms_cloud_user_swarms" OWNER TO "postgres";
+
 CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_users_credits" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "credit" bigint
-    "free_credit" bigint
+    "credit" numeric DEFAULT '0'::numeric NOT NULL,
+    "free_credit" numeric DEFAULT '0'::numeric NOT NULL,
+    "free_credit_expire_date" timestamp without time zone,
+    "credit_count" bigint DEFAULT '0'::bigint NOT NULL
 );
 
 ALTER TABLE "public"."swarms_cloud_users_credits" OWNER TO "postgres";
@@ -317,6 +406,34 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_users_tiers" (
 
 ALTER TABLE "public"."swarms_cloud_users_tiers" OWNER TO "postgres";
 
+CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_users_wallets" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "balance" bigint DEFAULT '0'::bigint,
+    "user_id" "uuid" DEFAULT "gen_random_uuid"(),
+    "name" "text",
+    "expire_date" timestamp with time zone,
+    "is_deleted" boolean,
+    "is_expired" boolean,
+    "order" integer
+);
+
+ALTER TABLE "public"."swarms_cloud_users_wallets" OWNER TO "postgres";
+
+CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_users_wallets_transactions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "wallet_id" "uuid",
+    "user_id" "uuid",
+    "old_balance" bigint,
+    "new_balance" bigint,
+    "type" "public"."users_wallets_transaction_type",
+    "amount" bigint,
+    "description" "text"
+);
+
+ALTER TABLE "public"."swarms_cloud_users_wallets_transactions" OWNER TO "postgres";
+
 CREATE TABLE IF NOT EXISTS "public"."users" (
     "id" "uuid" NOT NULL,
     "full_name" "text",
@@ -329,10 +446,18 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
     "basic_onboarding_completed" boolean DEFAULT false,
     "signup_reason" "text",
     "referral" "text",
-    "about_company" "text"
+    "about_company" "text",
+    "email" "text",
+    "credit_fraction" numeric DEFAULT '0'::numeric,
+    "credit_plan" "public"."credit_plan" DEFAULT 'default'::"public"."credit_plan" NOT NULL,
+    "had_free_credits" boolean DEFAULT false NOT NULL
 );
 
 ALTER TABLE "public"."users" OWNER TO "postgres";
+
+COMMENT ON COLUMN "public"."users"."credit_plan" IS 'Set a credit plan for your to choose between charging manually or sending invoices at the end of the month.';
+
+COMMENT ON COLUMN "public"."users"."had_free_credits" IS 'Has user ever received free credits?';
 
 ALTER TABLE ONLY "public"."customers"
     ADD CONSTRAINT "customers_pkey" PRIMARY KEY ("id");
@@ -348,6 +473,12 @@ ALTER TABLE ONLY "public"."products"
 
 ALTER TABLE ONLY "public"."subscriptions"
     ADD CONSTRAINT "subscriptions_pkey" PRIMARY KEY ("id");
+
+ALTER TABLE ONLY "public"."swarm_cloud_billing_transcations"
+    ADD CONSTRAINT "swarm_cloud_billing_transcations_id_key" UNIQUE ("id");
+
+ALTER TABLE ONLY "public"."swarm_cloud_billing_transcations"
+    ADD CONSTRAINT "swarm_cloud_billing_transcations_pkey" PRIMARY KEY ("id");
 
 ALTER TABLE ONLY "public"."swarms_cloud_api_activities"
     ADD CONSTRAINT "swarms_cloud_api_activities_pkey" PRIMARY KEY ("id");
@@ -373,6 +504,21 @@ ALTER TABLE ONLY "public"."swarms_cloud_organization_members"
 ALTER TABLE ONLY "public"."swarms_cloud_organizations"
     ADD CONSTRAINT "swarms_cloud_organizations_pkey" PRIMARY KEY ("id");
 
+ALTER TABLE ONLY "public"."swarms_cloud_prompts"
+    ADD CONSTRAINT "swarms_cloud_prompts_id_key" UNIQUE ("id");
+
+ALTER TABLE ONLY "public"."swarms_cloud_prompts"
+    ADD CONSTRAINT "swarms_cloud_prompts_pkey" PRIMARY KEY ("id");
+
+ALTER TABLE ONLY "public"."swarms_cloud_rate_limits"
+    ADD CONSTRAINT "swarms_cloud_rate_limits_pkey" PRIMARY KEY ("id");
+
+ALTER TABLE ONLY "public"."swarms_cloud_user_swarms"
+    ADD CONSTRAINT "swarms_cloud_user_swarms_name_key" UNIQUE ("name");
+
+ALTER TABLE ONLY "public"."swarms_cloud_user_swarms"
+    ADD CONSTRAINT "swarms_cloud_user_swarms_pkey" PRIMARY KEY ("id");
+
 ALTER TABLE ONLY "public"."swarms_cloud_users_credits"
     ADD CONSTRAINT "swarms_cloud_users_credits_pkey" PRIMARY KEY ("id");
 
@@ -382,8 +528,17 @@ ALTER TABLE ONLY "public"."swarms_cloud_users_credits"
 ALTER TABLE ONLY "public"."swarms_cloud_users_tiers"
     ADD CONSTRAINT "swarms_cloud_users_tiers_pkey" PRIMARY KEY ("id");
 
+ALTER TABLE ONLY "public"."swarms_cloud_users_wallets"
+    ADD CONSTRAINT "swarms_cloud_users_wallets_pkey" PRIMARY KEY ("id");
+
+ALTER TABLE ONLY "public"."swarms_cloud_users_wallets_transactions"
+    ADD CONSTRAINT "swarms_cloud_users_wallets_transactions_pkey" PRIMARY KEY ("id");
+
 ALTER TABLE ONLY "public"."users"
     ADD CONSTRAINT "users_pkey" PRIMARY KEY ("id");
+
+ALTER TABLE ONLY "public"."swarm_cloud_billing_transcations"
+    ADD CONSTRAINT "Swarm Cloud Billing Transcations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 
 ALTER TABLE ONLY "public"."prices"
     ADD CONSTRAINT "prices_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id");
@@ -399,6 +554,9 @@ ALTER TABLE ONLY "public"."swarms_cloud_api_activities"
 
 ALTER TABLE ONLY "public"."swarms_cloud_api_activities"
     ADD CONSTRAINT "public_swarms_cloud_api_activities_model_id_fkey" FOREIGN KEY ("model_id") REFERENCES "public"."swarms_cloud_models"("id");
+
+ALTER TABLE ONLY "public"."swarms_cloud_api_activities"
+    ADD CONSTRAINT "public_swarms_cloud_api_activities_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."swarms_cloud_organizations"("id");
 
 ALTER TABLE ONLY "public"."swarms_cloud_api_activities"
     ADD CONSTRAINT "public_swarms_cloud_api_activities_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
@@ -433,6 +591,9 @@ ALTER TABLE ONLY "public"."swarms_cloud_organization_members"
 ALTER TABLE ONLY "public"."swarms_cloud_organizations"
     ADD CONSTRAINT "public_swarms_cloud_organizations_owner_user_id_fkey" FOREIGN KEY ("owner_user_id") REFERENCES "public"."users"("id");
 
+ALTER TABLE ONLY "public"."swarms_cloud_user_swarms"
+    ADD CONSTRAINT "public_swarms_cloud_user_swarms_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+
 ALTER TABLE ONLY "public"."swarms_cloud_users_credits"
     ADD CONSTRAINT "public_swarms_cloud_users_credits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 
@@ -444,6 +605,21 @@ ALTER TABLE ONLY "public"."subscriptions"
 
 ALTER TABLE ONLY "public"."subscriptions"
     ADD CONSTRAINT "subscriptions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id");
+
+ALTER TABLE ONLY "public"."swarms_cloud_prompts"
+    ADD CONSTRAINT "swarms_cloud_prompts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+
+ALTER TABLE ONLY "public"."swarms_cloud_rate_limits"
+    ADD CONSTRAINT "swarms_cloud_rate_limits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE ONLY "public"."swarms_cloud_users_wallets_transactions"
+    ADD CONSTRAINT "swarms_cloud_users_wallets_transactions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+
+ALTER TABLE ONLY "public"."swarms_cloud_users_wallets_transactions"
+    ADD CONSTRAINT "swarms_cloud_users_wallets_transactions_wallet_id_fkey" FOREIGN KEY ("wallet_id") REFERENCES "public"."swarms_cloud_users_wallets"("id");
+
+ALTER TABLE ONLY "public"."swarms_cloud_users_wallets"
+    ADD CONSTRAINT "swarms_cloud_users_wallets_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 
 ALTER TABLE ONLY "public"."users"
     ADD CONSTRAINT "users_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id");
@@ -468,6 +644,8 @@ ALTER TABLE "public"."products" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE "public"."subscriptions" ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE "public"."swarm_cloud_billing_transcations" ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE "public"."swarms_cloud_api_activities" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE "public"."swarms_cloud_api_keys" ENABLE ROW LEVEL SECURITY;
@@ -482,11 +660,27 @@ ALTER TABLE "public"."swarms_cloud_organization_members" ENABLE ROW LEVEL SECURI
 
 ALTER TABLE "public"."swarms_cloud_organizations" ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE "public"."swarms_cloud_prompts" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE "public"."swarms_cloud_rate_limits" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE "public"."swarms_cloud_user_swarms" ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE "public"."swarms_cloud_users_credits" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE "public"."swarms_cloud_users_tiers" ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE "public"."swarms_cloud_users_wallets" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE "public"."swarms_cloud_users_wallets_transactions" ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
+
+ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
+
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."prices";
+
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."products";
 
 GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
@@ -521,6 +715,10 @@ GRANT ALL ON TABLE "public"."subscriptions" TO "anon";
 GRANT ALL ON TABLE "public"."subscriptions" TO "authenticated";
 GRANT ALL ON TABLE "public"."subscriptions" TO "service_role";
 
+GRANT ALL ON TABLE "public"."swarm_cloud_billing_transcations" TO "anon";
+GRANT ALL ON TABLE "public"."swarm_cloud_billing_transcations" TO "authenticated";
+GRANT ALL ON TABLE "public"."swarm_cloud_billing_transcations" TO "service_role";
+
 GRANT ALL ON TABLE "public"."swarms_cloud_api_activities" TO "anon";
 GRANT ALL ON TABLE "public"."swarms_cloud_api_activities" TO "authenticated";
 GRANT ALL ON TABLE "public"."swarms_cloud_api_activities" TO "service_role";
@@ -549,6 +747,18 @@ GRANT ALL ON TABLE "public"."swarms_cloud_organizations" TO "anon";
 GRANT ALL ON TABLE "public"."swarms_cloud_organizations" TO "authenticated";
 GRANT ALL ON TABLE "public"."swarms_cloud_organizations" TO "service_role";
 
+GRANT ALL ON TABLE "public"."swarms_cloud_prompts" TO "anon";
+GRANT ALL ON TABLE "public"."swarms_cloud_prompts" TO "authenticated";
+GRANT ALL ON TABLE "public"."swarms_cloud_prompts" TO "service_role";
+
+GRANT ALL ON TABLE "public"."swarms_cloud_rate_limits" TO "anon";
+GRANT ALL ON TABLE "public"."swarms_cloud_rate_limits" TO "authenticated";
+GRANT ALL ON TABLE "public"."swarms_cloud_rate_limits" TO "service_role";
+
+GRANT ALL ON TABLE "public"."swarms_cloud_user_swarms" TO "anon";
+GRANT ALL ON TABLE "public"."swarms_cloud_user_swarms" TO "authenticated";
+GRANT ALL ON TABLE "public"."swarms_cloud_user_swarms" TO "service_role";
+
 GRANT ALL ON TABLE "public"."swarms_cloud_users_credits" TO "anon";
 GRANT ALL ON TABLE "public"."swarms_cloud_users_credits" TO "authenticated";
 GRANT ALL ON TABLE "public"."swarms_cloud_users_credits" TO "service_role";
@@ -556,6 +766,14 @@ GRANT ALL ON TABLE "public"."swarms_cloud_users_credits" TO "service_role";
 GRANT ALL ON TABLE "public"."swarms_cloud_users_tiers" TO "anon";
 GRANT ALL ON TABLE "public"."swarms_cloud_users_tiers" TO "authenticated";
 GRANT ALL ON TABLE "public"."swarms_cloud_users_tiers" TO "service_role";
+
+GRANT ALL ON TABLE "public"."swarms_cloud_users_wallets" TO "anon";
+GRANT ALL ON TABLE "public"."swarms_cloud_users_wallets" TO "authenticated";
+GRANT ALL ON TABLE "public"."swarms_cloud_users_wallets" TO "service_role";
+
+GRANT ALL ON TABLE "public"."swarms_cloud_users_wallets_transactions" TO "anon";
+GRANT ALL ON TABLE "public"."swarms_cloud_users_wallets_transactions" TO "authenticated";
+GRANT ALL ON TABLE "public"."swarms_cloud_users_wallets_transactions" TO "service_role";
 
 GRANT ALL ON TABLE "public"."users" TO "anon";
 GRANT ALL ON TABLE "public"."users" TO "authenticated";
