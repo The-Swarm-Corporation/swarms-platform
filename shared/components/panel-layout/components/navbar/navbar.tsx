@@ -14,12 +14,15 @@ import { handleRequest } from '@/shared/utils/auth-helpers/client';
 import { NAV_LINKS } from '../const';
 import NavItem from '../item';
 import NavbarSearch from './components/search';
+import { trpc } from '@/shared/utils/trpc/trpc';
 
 export default function PlatformNavBar({ user }: { user: User | null }) {
   const dropdownRef = useRef(null);
   const path = usePathname();
   const router = useRouter();
   const { isOn, setOn, setOff } = useToggle();
+  const username = trpc.main.getUser.useQuery().data?.username;
+  const profileName = username ? username : user?.user_metadata?.email;
 
   useOnClickOutside(dropdownRef, setOff);
   return (
@@ -59,9 +62,9 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                 className="rounded-full"
               />
             ) : (
-              user?.user_metadata?.email && (
+              profileName && (
                 <div className="bg-secondary flex justify-center items-center h-8 w-8 rounded-full uppercase">
-                  {user?.user_metadata?.email?.charAt(0)}
+                  {profileName?.charAt(0)}
                 </div>
               )
             )}
@@ -77,12 +80,12 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                   'p-4 text-sm rounded-t-md border-b-slate-800 border-b flex justify-between items-center',
                 )}
               >
-                <NavItem title={user?.user_metadata?.email} />
+                <NavItem title={profileName} />
                 <span
                   title="Active user"
                   className="inline-flex shrink-0 items-center justify-center whitespace-nowrap text-sm border border-input bg-secondary text-foreground font-medium shadow-sm hover:bg-accent hover:text-accent-foreground h-8 py-2 gap-[6px] rounded-full px-2"
                 >
-                  A+
+                  {profileName?.charAt(0)?.toUpperCase()}_swarms+
                 </span>
               </li>
               {NAV_LINKS.account?.map((item, index, array) => {
