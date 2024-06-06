@@ -76,11 +76,10 @@ const InfoCard = ({
       </div>
 
       {
-        isRating && (
+        isRating && query.members.data?.length && (
           <Link
             href={makeUrl(PUBLIC.PROMPTRATING, { id: promptId })}
             target='_blank'
-            onClick={handleRatingClick}
           >
             <div>
               <svg
