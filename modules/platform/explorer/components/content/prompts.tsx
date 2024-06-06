@@ -4,12 +4,10 @@ import LoadingSpinner from '@/shared/components/loading-spinner';
 import { Button } from '@/shared/components/ui/Button';
 import { makeUrl } from '@/shared/utils/helpers';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React from 'react';
 import InfoCard from '../info-card';
 import { Terminal } from 'lucide-react';
 import { PUBLIC } from '@/shared/constants/links';
-import CustomizedSlider from '@/shared/components/ui/Slider/Slider';
-import { trpc } from '@/shared/utils/trpc/trpc';
 
 // TODO: Add types
 export default function Prompts({
@@ -17,10 +15,6 @@ export default function Prompts({
   filteredPrompts,
   setAddPromptModalOpen,
 }: any) {
-
-  const [ratingValue, setRatingValue] = useState(0)
-
-  const addPrompt = trpc.prompt.setPromptRating.useMutation();
 
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
@@ -33,21 +27,22 @@ export default function Prompts({
           <LoadingSpinner size={24} />
         ) : filteredPrompts.length > 0 ? (
           filteredPrompts?.map((prompt: any) => (
-            <div className='flex flex-col'>
-              <Link
+            <div className='flex flex-col w-full h-[220px] sm:w-full mb-11' key={prompt.id}>
+              {/* <Link
                 key={prompt.id}
                 className="w-full h-[220px] sm:w-full mb-11"
                 href={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
-              >
-                <InfoCard
-                  title={prompt.name || ''}
-                  description={prompt.prompt || ''}
-                  icon={<Terminal />}
-                  className="w-full h-full"
-                />
-              </Link>
-              <CustomizedSlider setRatingValue={setRatingValue} />
-              <Button className='mt-2'>Rate</Button>
+              > */}
+              <InfoCard
+                title={prompt.name || ''}
+                description={prompt.prompt || ''}
+                icon={<Terminal />}
+                className="w-full h-full"
+                isRating={true}
+                promptId={prompt.id}
+                link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
+              />
+              {/* </Link> */}
             </div>
           ))
         ) : (

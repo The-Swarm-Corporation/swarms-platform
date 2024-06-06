@@ -441,6 +441,7 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
     "billing_address" "jsonb",
     "payment_method" "jsonb",
     "company_name" "text",
+    "username" "text",
     "job_title" "text",
     "country_code" "text",
     "basic_onboarding_completed" boolean DEFAULT false,

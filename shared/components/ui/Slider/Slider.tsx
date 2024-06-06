@@ -47,10 +47,7 @@ type CustomizedSliderProps = {
     setRatingValue: (value: number) => void;
 };
 
-export default function CustomizedSlider({ setRatingValue }: CustomizedSliderProps) {
-    const handleChange = (event: Event, newValue: number | number[]) => {
-        setRatingValue(newValue as number);
-    };
+export default function CustomizedSlider() {
 
     return (
         <PrettoSlider
@@ -60,7 +57,6 @@ export default function CustomizedSlider({ setRatingValue }: CustomizedSliderPro
             min={0}
             max={10}
             step={1}
-            onChange={handleChange}
         />
     );
 }

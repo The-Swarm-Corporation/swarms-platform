@@ -33,9 +33,6 @@ const Explorer = () => {
   // Prompts
   const allPrompts = trpc.explorer.getAllPrompts.useQuery();
 
-  //Ratings
-  const [ratingValue, setRatingValue] = useState(0)
-
   const [addSwarModalOpen, setAddSwarmModalOpen] = useState(false);
   const [addPromptModalOpen, setAddPromptModalOpen] = useState(false);
   const {
@@ -99,7 +96,7 @@ const Explorer = () => {
     {
       key: 'prompts',
       content: (
-        <Prompts {...{ allPrompts, filteredPrompts, setAddPromptModalOpen, setRatingValue }} />
+        <Prompts {...{ allPrompts, filteredPrompts, setAddPromptModalOpen }} />
       ),
     },
     {

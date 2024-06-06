@@ -19,6 +19,7 @@ export const PUBLIC = {
   MODEL: '/model/{slug}',
   SWARM: '/swarm/{name}',
   PROMPT: '/prompt/{id}',
+  PROMPTRATING: '/prompt/rating/{id}'
 };
 
 const SWARMS_DOCS = 'https://swarms.apac.ai/en/latest/';
