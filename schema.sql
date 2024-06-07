@@ -272,6 +272,7 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_models" (
     "unique_name" "text" NOT NULL,
     "name" "text",
     "description" "text",
+    "image_url" "text",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp without time zone,
     "creator" "text",
@@ -353,7 +354,8 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_prompts" (
     "use_cases" "json",
     "status" "public"."user_prompts_status",
     "tags" "text",
-    "description" "text"
+    "description" "text",
+    "image_url" "text"
 );
 
 ALTER TABLE "public"."swarms_cloud_prompts" OWNER TO "postgres";
