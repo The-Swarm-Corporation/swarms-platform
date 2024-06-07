@@ -66,10 +66,36 @@ const InfoCard = ({
   }
 
   const handleCopy = () => {
-    navigator.clipboard.writeText('https://lu.ma/bfyeteau').then(() => {
+    navigator.clipboard.writeText("https://swarms.world/model/qwen-vl").then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  const handleShareWithTweet = () => {
+    const message = "Check out this cool model/prompt/swarm on the swarms platform!";
+    const link = "https://swarms.world/model/qwen-vl";
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(link)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleShareWithLinkedIn = () => {
+    const link = "https://swarms.world/model/qwen-vl";
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleShareWithFacebook = () => {
+    const link = "https://swarms.world/model/qwen-vl";
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleShareWithEmail = () => {
+    const subject = "Check this out!";
+    const message = "Check out this cool model/prompt/swarm on the swarms platform!\n\nhttps://swarms.world/model/qwen-vl";
+    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -165,16 +191,16 @@ const InfoCard = ({
           className="flex flex-col items-center justify-center"
         >
           <div className='flex flex-wrap gap-16'>
-            <span className='flex flex-col items-center justify-center cursor-pointer'>
+            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithTweet}>
               <Twitter />Tweet
             </span>
-            <span className='flex flex-col items-center justify-center cursor-pointer'>
+            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithLinkedIn}>
               <Linkedin />Post
             </span>
-            <span className='flex flex-col items-center justify-center cursor-pointer'>
+            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithFacebook}>
               <Facebook />Share
             </span>
-            <span className='flex flex-col items-center justify-center cursor-pointer'>
+            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithEmail}>
               <Send />Email
             </span>
           </div>

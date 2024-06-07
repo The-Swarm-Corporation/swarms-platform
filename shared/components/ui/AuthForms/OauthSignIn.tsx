@@ -27,34 +27,40 @@ export default function OauthSignIn() {
     },
     /* Add desired OAuth providers here */
   ];
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    setIsSubmitting(true); // Disable the button while the request is being handled
+  const [isSubmitting, setIsSubmitting] = useState<{ [key: string]: boolean }>({});
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, providerName: string) => {
+    e.preventDefault();
+    setIsSubmitting(prevState => ({ ...prevState, [providerName]: true })); // Disable the button while the request is being handled
+
     await signInWithOAuth(e);
-    setIsSubmitting(false);
+
+    setIsSubmitting(prevState => ({ ...prevState, [providerName]: false }));
   };
 
   return (
     <div className="mt-8">
-      {oAuthProviders.map((provider) => (
-        <form
-          key={provider.name}
-          className="pb-2"
-          onSubmit={(e) => handleSubmit(e)}
-        >
-          <input type="hidden" name="provider" value={provider.name} />
-          <Button
-            variant="outline"
-            type="submit"
-            className="w-full"
-            loading={isSubmitting}
+      {
+        oAuthProviders.map((provider) => (
+          <form
+            key={provider.name}
+            className="pb-2"
+            onSubmit={(e) => handleSubmit(e, provider.name)}
           >
-            <span className="mr-2">{provider.icon}</span>
-            <span>{provider.displayName}</span>
-          </Button>
-        </form>
-      ))}
+            <input type="hidden" name="provider" value={provider.name} />
+            <Button
+              variant="outline"
+              type="submit"
+              className="w-full p-4"
+              loading={isSubmitting[provider.name] || false}
+            >
+              <span className="mr-2">{provider.icon}</span>
+              <span>{provider.displayName}</span>
+            </Button>
+          </form>
+        ))
+      }
     </div>
   );
 }

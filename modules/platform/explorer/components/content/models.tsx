@@ -16,23 +16,26 @@ export default function Models({ models, filteredModels }: any) {
           <LoadingSpinner size={24} />
         ) : filteredModels.length > 0 ? (
           filteredModels?.map((model: any) => (
-            <Link
-              key={model.id}
-              className="w-full h-[220px] sm:w-full"
-              target="_blank"
-              href={makeUrl(PUBLIC.MODEL, { slug: model.slug })}
-            >
-              <InfoCard
-                title={model.name || ''}
-                description={model.description || ''}
-                input={model.price_million_input ?? null}
-                output={model.price_million_output ?? null}
-                icon={
-                  model.model_type == 'vision' ? <ScanEye /> : <TextQuote />
-                }
-                className="w-full h-full"
-              />
-            </Link>
+              // <Link
+              //   key={model.id}
+              //   className="w-full h-[220px] sm:w-full"
+              //   target="_blank"
+              //   href={makeUrl(PUBLIC.MODEL, { slug: model.slug })}
+              // >
+              <div className='flex flex-col w-full h-[220px] sm:w-full mb-11' key={model.id}>
+                <InfoCard
+                  title={model.name || ''}
+                  description={model.description || ''}
+                  input={model.price_million_input ?? null}
+                  output={model.price_million_output ?? null}
+                  icon={
+                    model.model_type == 'vision' ? <ScanEye /> : <TextQuote />
+                  }
+                  className="w-full h-full"
+                  link={makeUrl(PUBLIC.MODEL, { slug: model.slug })}
+                />
+                </div>
+              // </Link>
           ))
         ) : (
           <div className="border p-4 rounded-md text-center">
