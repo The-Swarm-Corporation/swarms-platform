@@ -6,6 +6,12 @@ interface ObjectOrArray {
   constructor: typeof Object | typeof Array;
 }
 
+export type ShareDetails = {
+  message: string;
+  link: string;
+  subject?: string;
+};
+
 export const getURL = (path: string = '') => {
   // Check if NEXT_PUBLIC_SITE_URL is set and non-empty. Set this to your site URL in production env.
   let url =
@@ -247,4 +253,34 @@ export const createQueryString = (name: string, value: string) => {
   params.set(name, value);
 
   return params.toString();
+};
+
+export const openShareWindow= (platform: string, details: ShareDetails) => {
+  const { message, link, subject } = details;
+  const encodedLink = encodeURIComponent(link);
+  let url = '';
+
+  switch (platform) {
+    case 'twitter':
+      url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodedLink}`;
+      break;
+    case 'linkedin':
+      url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedLink}`;
+      break;
+    case 'facebook':
+      url = `https://www.facebook.com/sharer/sharer.php?u=${encodedLink}`;
+      break;
+    case 'email':
+      if (subject) {
+        const encodedSubject = encodeURIComponent(subject);
+        const encodedMessage = encodeURIComponent(`${message}\n\n${link}`);
+        url = `https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodedSubject}&body=${encodedMessage}`;
+      }
+      break;
+    default:
+      console.error('Unsupported platform');
+      return;
+  }
+
+  window.open(url, '_blank');
 };
