@@ -25,6 +25,12 @@ interface Props {
 
 const collapsedMenu = 'collapsedMenu';
 
+type ShareDetails = {
+  message: string;
+  link: string;
+  subject?: string;
+};
+
 const InfoCard = ({
   title,
   description,
@@ -71,32 +77,48 @@ const InfoCard = ({
     });
   };
 
-  const handleShareWithTweet = () => {
-    const message = "Check out this cool model/prompt/swarm on the swarms platform!";
-    const link = "https://swarms.world/model/qwen-vl";
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(link)}`;
+  const openShareWindow = (platform: string, details: ShareDetails) => {
+    const { message, link, subject } = details;
+    const encodedLink = encodeURIComponent(link);
+    let url = '';
+  
+    switch (platform) {
+      case 'twitter':
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodedLink}`;
+        break;
+      case 'linkedin':
+        url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedLink}`;
+        break;
+      case 'facebook':
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodedLink}`;
+        break;
+      case 'email':
+        if (subject) {
+          const encodedSubject = encodeURIComponent(subject);
+          const encodedMessage = encodeURIComponent(`${message}\n\n${link}`);
+          url = `https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodedSubject}&body=${encodedMessage}`;
+        }
+        break;
+      default:
+        console.error('Unsupported platform');
+        return;
+    }
+  
     window.open(url, '_blank');
   };
-
-  const handleShareWithLinkedIn = () => {
-    const link = "https://swarms.world/model/qwen-vl";
-    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}`;
-    window.open(url, '_blank');
+  
+  const shareDetails: ShareDetails = {
+    message: "Check out this cool model/prompt/swarm on the swarms platform!",
+    link: "https://swarms.world/model/qwen-vl",
+    subject: "Check this out!"
   };
-
-  const handleShareWithFacebook = () => {
-    const link = "https://swarms.world/model/qwen-vl";
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
-    window.open(url, '_blank');
-  };
-
-  const handleShareWithEmail = () => {
-    const subject = "Check this out!";
-    const message = "Check out this cool model/prompt/swarm on the swarms platform!\n\nhttps://swarms.world/model/qwen-vl";
-    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
-  };
-
+  
+  const handleShareWithTweet = () => openShareWindow('twitter', shareDetails);
+  const handleShareWithLinkedIn = () => openShareWindow('linkedin', shareDetails);
+  const handleShareWithFacebook = () => openShareWindow('facebook', shareDetails);
+  const handleShareWithEmail = () => openShareWindow('email', shareDetails);
+  
+  
   const renderPrice = (label: string, price: number) => (
     <li className="pricing-unit">
       <span className="font-semibold">{label}</span>
