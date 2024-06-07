@@ -219,6 +219,7 @@ export async function addPaymentMethodIfNotExists(
       customer: stripeCustomerId,
       payment_method: paymentMethodId,
       return_url: getURL(redirectPath),
+      setup_future_usage: "off_session",
       confirmation_method: "automatic",
       confirm: true,
     });

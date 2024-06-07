@@ -1,7 +1,7 @@
 import { createClient } from '@/shared/utils/supabase/server';
 import PanelLayoutSidebar from './components/sidebar/sidebar';
-import BasicOnboardingModal from '../basic-onboarding-modal';
 import PlatformNavBar from './components/navbar/navbar';
+import LayoutModals from './components/modal';
 
 const PanelLayout = async ({ children }: { children: React.ReactNode }) => {
   const supabase = createClient();
@@ -21,7 +21,7 @@ const PanelLayout = async ({ children }: { children: React.ReactNode }) => {
           {children}
         </div>
       </div>
-      <BasicOnboardingModal />
+      <LayoutModals />
     </>
   );
 };
