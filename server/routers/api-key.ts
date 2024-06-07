@@ -75,16 +75,16 @@ const apiKeyRouter = router({
         });
       }
 
-      const customer = (await stripe.customers.retrieve(
-        stripeCustomerId,
-      )) as Stripe.Customer;
-      if (!customer || !customer.invoice_settings.default_payment_method) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message:
-            'Default payment method not found. Click on added card to set as default',
-        });
-      }
+      // const customer = (await stripe.customers.retrieve(
+      //   stripeCustomerId,
+      // )) as Stripe.Customer;
+      // if (!customer || !customer.invoice_settings.default_payment_method) {
+      //   throw new TRPCError({
+      //     code: 'NOT_FOUND',
+      //     message:
+      //       'Default payment method not found. Click on added card to set as default',
+      //   });
+      // }
 
       try {
         const key = generateApiKey();
