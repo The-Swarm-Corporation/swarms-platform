@@ -840,6 +840,7 @@ export type Database = {
           created_at: string
           credit: number
           credit_count: number
+          credit_limit: number
           free_credit: number
           free_credit_expire_date: string | null
           id: string
@@ -849,6 +850,7 @@ export type Database = {
           created_at?: string
           credit?: number
           credit_count?: number
+          credit_limit?: number
           free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
@@ -858,6 +860,7 @@ export type Database = {
           created_at?: string
           credit?: number
           credit_count?: number
+          credit_limit?: number
           free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
