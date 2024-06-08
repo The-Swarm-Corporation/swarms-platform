@@ -61,7 +61,7 @@ async function POST(req: Request) {
 
   // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS
   const endpoint = guard.modelRecord?.api_endpoint;
-  const url = `${endpoint}/chat/completions`;
+  const url = `${endpoint}/v1/chat/completions`;
 
   // const billingService = new BillingService(userId);
   // const invoicePaymentStatus = await billingService.checkInvoicePaymentStatus(
