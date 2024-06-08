@@ -22,7 +22,6 @@ export default function Swarms({
         <Button onClick={() => setAddSwarmModalOpen(true)}>Add Swarm</Button>
       </div>
       <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
-        {/* pending */}
         {isLoading && (
           <div>
             <LoadingSpinner size={24} />
@@ -30,37 +29,30 @@ export default function Swarms({
         )}
         {!isLoading &&
           pendingSwarms.data?.data?.map((swarm: any) => (
-            <Link
-              key={swarm.id}
-              className="w-full h-[200px] sm:w-full"
-              target="_blank"
-              href={swarm.pr_link || '#'}
-            >
+       
+            <div className=' w-full h-[220px] sm:w-full' key={swarm.id}>
               <InfoCard
                 title={`${swarm.name} [PENDING]`}
                 description={swarm.description || ''}
                 icon={<Bot />}
                 className="w-full h-full"
+                link={swarm.pr_link || '#'}
               />
-            </Link>
+            </div>
           ))}
-        {/* all */}
         {!isLoading &&
           filteredSwarms?.map((swarm: any) => (
-            <Link
-              key={swarm.id}
-              className="w-full h-[200px] sm:w-full"
-              target="_blank"
-              href={makeUrl(PUBLIC.SWARM, { name: swarm.name })}
-            >
+           
+            <div className=' w-full h-[220px] sm:w-full' key={swarm.id}>
               <InfoCard
                 title={swarm.name || ''}
                 description={swarm.description || ''}
                 icon={<Bot />}
                 className="w-full h-full"
                 btnLabel="Get Started"
+                link={makeUrl(PUBLIC.SWARM, { name: swarm.name })}
               />
-            </Link>
+            </div>
           ))}
         <div className="w-full h-[200px] sm:w-full" onClick={trySynthify}>
           <InfoCard
@@ -69,6 +61,7 @@ export default function Swarms({
             icon={<PencilRuler />}
             btnLabel="Get Started"
             className="w-full h-full"
+            link=''
           />
         </div>
       </div>
