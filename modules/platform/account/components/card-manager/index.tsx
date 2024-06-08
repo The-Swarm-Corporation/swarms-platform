@@ -14,6 +14,7 @@ import LoadingSpinner from '@/shared/components/loading-spinner';
 import { Trash } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useSearchParams } from 'next/navigation';
+import { isEmpty } from '@/shared/utils/helpers';
 
 const CardManagerInside = () => {
   const manager = useCardManager();
@@ -25,10 +26,16 @@ const CardManagerInside = () => {
   const cardAvailable = searchParams?.get('card_available');
 
   useEffect(() => {
-    if (cardAvailable && cardAvailable === 'false') {
+    if (
+      isEmpty(manager.methods.data) &&
+      cardAvailable &&
+      cardAvailable === 'false'
+    ) {
       setIsAddCardModalOpen(true);
+    }else {
+      setIsAddCardModalOpen(false);
     }
-  }, []);
+  }, [manager.methods.data, cardAvailable]);
 
   const handleSubmit = async (event: any) => {
     event.preventDefault();

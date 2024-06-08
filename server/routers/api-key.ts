@@ -71,7 +71,8 @@ const apiKeyRouter = router({
       if (!paymentMethods.data.length) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Payment method missing. Add valid card to continue',
+          message:
+            'Payment method missing. Add valid card to continue and click on added card to set as default',
         });
       }
 
