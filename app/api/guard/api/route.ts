@@ -42,7 +42,7 @@ async function POST(req: Request) {
 
   const data =
     (await req.json()) as OpenAI.Chat.Completions.ChatCompletionCreateParams;
-  const modelId = data?.model;
+  // const modelId = data?.model;
 
   // Cache key based on API key and organization ID
   const authCacheKey = `auth-${apiKey}-${organizationPublicId}`;
@@ -52,7 +52,7 @@ async function POST(req: Request) {
   if (cachedAuth) {
     guard = cachedAuth as SwarmsApiGuard;
   } else {
-    guard = new SwarmsApiGuard({ apiKey, organizationPublicId, modelId });
+    guard = new SwarmsApiGuard({ apiKey, organizationPublicId });
     const isAuthenticated = await guard.isAuthenticated();
 
     if (isAuthenticated.status !== 200) {
@@ -70,7 +70,7 @@ async function POST(req: Request) {
   }
 
   // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS
-  const endpoint = guard.modelRecord?.api_endpoint;
+  const endpoint = process.env.GUARD_MODEL_ENDPOINT;
   const url = `${endpoint}/chat/completions`;
 
   const billingService = new BillingService(userId);
@@ -100,8 +100,8 @@ async function POST(req: Request) {
   // since input & output are price per million tokens
   // check if user has sufficient credits by estimates
 
-  const price_million_input = guard.modelRecord?.price_million_input || 0;
-  const price_million_output = guard.modelRecord?.price_million_output || 0;
+  const price_million_input = 3;
+  const price_million_output = 5;
 
   const estimatedTokens = 1000; // estimated tokens
   const estimatedCost =
@@ -149,8 +149,8 @@ async function POST(req: Request) {
 
     const res_json =
       (await res.json()) as OpenAI.Chat.Completions.ChatCompletion;
-    const price_million_input = guard.modelRecord?.price_million_input || 0;
-    const price_million_output = guard.modelRecord?.price_million_output || 0;
+    const price_million_input = 3;
+    const price_million_output = 5;
     const input_price =
       ((res_json.usage?.prompt_tokens ?? 0) / 1000000) * price_million_input;
     const output_price =
@@ -214,7 +214,7 @@ async function POST(req: Request) {
       output_tokens: res_json.usage?.completion_tokens ?? 0,
       max_tokens: data.max_tokens ?? 0,
       messages,
-      model: modelId,
+      model: process.env.GUARD_MODEL_NAME ?? "",
       temperature: data.temperature ?? 0,
       top_p: data.top_p ?? 0,
       total_cost: totalCostToUpdate,

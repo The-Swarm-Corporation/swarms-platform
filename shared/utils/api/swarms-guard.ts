@@ -6,7 +6,7 @@ import { checkRateLimit } from './rate-limit';
 type Options = {
   apiKey: string | null;
   organizationPublicId: string | null;
-  modelId: string | null;
+  modelId?: string | null;
 };
 type UsageOptions = {
   model: string;
@@ -27,7 +27,7 @@ export class SwarmsApiGuard {
   apiKey: string | null;
   organizationPublicId: string | null;
   organizationId: string | null = null;
-  modelId: string | null;
+  // modelId: string | null;
   modelRecord: Tables<'swarms_cloud_models'> | null = null;
   apiKeyRecordId: string | null = null;
   userId: string | null = null;
@@ -35,7 +35,7 @@ export class SwarmsApiGuard {
   constructor({ apiKey, organizationPublicId, modelId }: Options) {
     this.apiKey = apiKey;
     this.organizationPublicId = organizationPublicId;
-    this.modelId = modelId;
+    // this.modelId = modelId;
   }
   async isAuthenticated(): Promise<{
     status: number;
@@ -59,9 +59,9 @@ export class SwarmsApiGuard {
     this.apiKeyRecordId = apiKeyInfo.data.id;
     this.userId = apiKeyInfo.data.user_id;
 
-    if (!this.modelId) {
-      return { status: 400, message: 'model is missing' };
-    }
+    // if (!this.modelId) {
+    //   return { status: 400, message: 'model is missing' };
+    // }
 
     // check organization validation if provided
     if (this.organizationPublicId) {
@@ -107,17 +107,17 @@ export class SwarmsApiGuard {
     }
 
     // check model exists
-    const modelInfo = await supabaseAdmin
-      .from('swarms_cloud_models')
-      .select('*')
-      .eq('unique_name', this.modelId)
-      .neq('enabled', false)
-      .maybeSingle();
+    // const modelInfo = await supabaseAdmin
+    //   .from('swarms_cloud_models')
+    //   .select('*')
+    //   .eq('unique_name', this.modelId)
+    //   .neq('enabled', false)
+    //   .maybeSingle();
 
-    if (!modelInfo?.data?.id) {
-      return { status: 404, message: 'Model not found' };
-    }
-    this.modelRecord = modelInfo.data;
+    // if (!modelInfo?.data?.id) {
+    //   return { status: 404, message: 'Model not found' };
+    // }
+    // this.modelRecord = modelInfo.data;
 
     return { status: 200, message: 'Success' };
   }
