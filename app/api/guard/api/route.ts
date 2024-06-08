@@ -129,7 +129,7 @@ async function POST(req: Request) {
     if (res.status !== 200) {
       const errorBody = await res.text();
       return new Response(
-        `Internal Error - fetching model, URL: ${url} with model ID: ${modelId}, endpoint---${endpoint}, isAuthenticated---${isAuthenticated}, userId---${userId}, organizationPublicId---${organizationPublicId}, apiKey---${apiKey}, ${errorBody}`,
+        `Internal Error - fetching model, URL: ${url} with model ID: ${modelId}, endpoint---${endpoint}, isAuthenticated---${isAuthenticated.message}, userId---${userId}, organizationPublicId---${organizationPublicId}, apiKey---${apiKey}, status---${res.status}, statusText---${res.statusText}, data---${data}, ${errorBody}`,
         {
           status: res.status,
         },
