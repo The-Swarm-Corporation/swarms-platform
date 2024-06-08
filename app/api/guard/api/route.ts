@@ -11,25 +11,25 @@ import fetch, { RequestInit, Response as FetchResponse } from 'node-fetch';
 import { Agent } from 'http';
 import NodeCache from 'node-cache';
 
-const agent = new Agent({ keepAlive: true });
-const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
+// const agent = new Agent({ keepAlive: true });
+// const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
 
-async function fetchWithRetries(
-  url: string,
-  options: RequestInit,
-  retries = 3,
-) {
-  try {
-    const response = await fetch(url, options);
-    return response;
-  } catch (error) {
-    if (retries > 0) {
-      return fetchWithRetries(url, options, retries - 1);
-    } else {
-      throw error;
-    }
-  }
-}
+// async function fetchWithRetries(
+//   url: string,
+//   options: RequestInit,
+//   retries = 3,
+// ) {
+//   try {
+//     const response = await fetch(url, options);
+//     return response;
+//   } catch (error) {
+//     if (retries > 0) {
+//       return fetchWithRetries(url, options, retries - 1);
+//     } else {
+//       throw error;
+//     }
+//   }
+// }
 
 async function POST(req: Request) {
   const headers = req.headers;
@@ -42,26 +42,16 @@ async function POST(req: Request) {
 
   const data =
     (await req.json()) as OpenAI.Chat.Completions.ChatCompletionCreateParams;
-  // const modelId = data?.model;
 
-  // Cache key based on API key and organization ID
-  const authCacheKey = `auth-${apiKey}-${organizationPublicId}`;
-  const cachedAuth = cache.get(authCacheKey);
+  const modelId = data?.model;
 
-  let guard: SwarmsApiGuard;
-  if (cachedAuth) {
-    guard = cachedAuth as SwarmsApiGuard;
-  } else {
-    guard = new SwarmsApiGuard({ apiKey, organizationPublicId });
-    const isAuthenticated = await guard.isAuthenticated();
+  const guard = new SwarmsApiGuard({ apiKey, organizationPublicId, modelId });
+  const isAuthenticated = await guard.isAuthenticated();
 
-    if (isAuthenticated.status !== 200) {
-      return new Response(isAuthenticated.message, {
-        status: isAuthenticated.status,
-      });
-    }
-
-    cache.set(authCacheKey, guard);
+  if (isAuthenticated.status !== 200) {
+    return new Response(isAuthenticated.message, {
+      status: isAuthenticated.status
+    });
   }
 
   const userId = guard.getUserId();
@@ -70,7 +60,7 @@ async function POST(req: Request) {
   }
 
   // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS
-  const endpoint = process.env.GUARD_MODEL_ENDPOINT;
+  const endpoint = guard.modelRecord?.api_endpoint;
   const url = `${endpoint}/chat/completions`;
 
   const billingService = new BillingService(userId);
@@ -100,8 +90,8 @@ async function POST(req: Request) {
   // since input & output are price per million tokens
   // check if user has sufficient credits by estimates
 
-  const price_million_input = 3;
-  const price_million_output = 5;
+  const price_million_input = guard.modelRecord?.price_million_input || 0;
+  const price_million_output = guard.modelRecord?.price_million_output || 0;
 
   const estimatedTokens = 1000; // estimated tokens
   const estimatedCost =
@@ -127,15 +117,14 @@ async function POST(req: Request) {
   }
 
   try {
-    const res = await fetchWithRetries(url, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data),
-      agent,
+      body: JSON.stringify(data)
     });
+    // const res_json = (await res.json()) as OpenAI.Completion;
 
     if (res.status !== 200) {
       const errorBody = await res.text();
@@ -149,8 +138,8 @@ async function POST(req: Request) {
 
     const res_json =
       (await res.json()) as OpenAI.Chat.Completions.ChatCompletion;
-    const price_million_input = 3;
-    const price_million_output = 5;
+    const price_million_input = guard.modelRecord?.price_million_input || 0;
+    const price_million_output = guard.modelRecord?.price_million_output || 0;
     const input_price =
       ((res_json.usage?.prompt_tokens ?? 0) / 1000000) * price_million_input;
     const output_price =
@@ -214,7 +203,7 @@ async function POST(req: Request) {
       output_tokens: res_json.usage?.completion_tokens ?? 0,
       max_tokens: data.max_tokens ?? 0,
       messages,
-      model: process.env.GUARD_MODEL_NAME ?? "",
+      model: modelId,
       temperature: data.temperature ?? 0,
       top_p: data.top_p ?? 0,
       total_cost: totalCostToUpdate,

@@ -1,12 +1,12 @@
 import { Tables } from '@/types_db';
 import { supabaseAdmin } from '../supabase/admin';
 import { getUserOrganizationRole } from './organization';
-import { checkRateLimit } from './rate-limit';
+// import { checkRateLimit } from './rate-limit';
 
 type Options = {
   apiKey: string | null;
   organizationPublicId: string | null;
-  modelId?: string | null;
+  modelId: string | null;
 };
 type UsageOptions = {
   model: string;
@@ -27,7 +27,7 @@ export class SwarmsApiGuard {
   apiKey: string | null;
   organizationPublicId: string | null;
   organizationId: string | null = null;
-  // modelId: string | null;
+  modelId: string | null;
   modelRecord: Tables<'swarms_cloud_models'> | null = null;
   apiKeyRecordId: string | null = null;
   userId: string | null = null;
@@ -35,7 +35,7 @@ export class SwarmsApiGuard {
   constructor({ apiKey, organizationPublicId, modelId }: Options) {
     this.apiKey = apiKey;
     this.organizationPublicId = organizationPublicId;
-    // this.modelId = modelId;
+    this.modelId = modelId;
   }
   async isAuthenticated(): Promise<{
     status: number;
@@ -59,9 +59,9 @@ export class SwarmsApiGuard {
     this.apiKeyRecordId = apiKeyInfo.data.id;
     this.userId = apiKeyInfo.data.user_id;
 
-    // if (!this.modelId) {
-    //   return { status: 400, message: 'model is missing' };
-    // }
+    if (!this.modelId) {
+      return { status: 400, message: 'model is missing' };
+    }
 
     // check organization validation if provided
     if (this.organizationPublicId) {
@@ -82,13 +82,13 @@ export class SwarmsApiGuard {
 
       //TODO: Rewrite the checkRateLimit function so organization ownerId does not clash when it becomes userOwnerId, add request_count to organizations table
       // check rate limit - set for organizations only
-      const isAllowed = await checkRateLimit(org.data.owner_user_id ?? '');
-      if (!isAllowed) {
-        return {
-          status: 429,
-          message: 'Too Many Requests. Please try again later.',
-        };
-      }
+      // const isAllowed = await checkRateLimit(org.data.owner_user_id ?? '');
+      // if (!isAllowed) {
+      //   return {
+      //     status: 429,
+      //     message: 'Too Many Requests. Please try again later.',
+      //   };
+      // }
     }
 
     // check billing limits: SOON
@@ -96,28 +96,28 @@ export class SwarmsApiGuard {
     // check user is not banned: SOON
 
     // check rate limit - set for users only
-    if (!this.organizationPublicId) {
-      const isAllowed = await checkRateLimit(this.userId, 40);
-      if (!isAllowed) {
-        return {
-          status: 429,
-          message: 'Too Many Requests. Please try again later.',
-        };
-      }
-    }
+    // if (!this.organizationPublicId) {
+    //   const isAllowed = await checkRateLimit(this.userId, 40);
+    //   if (!isAllowed) {
+    //     return {
+    //       status: 429,
+    //       message: 'Too Many Requests. Please try again later.',
+    //     };
+    //   }
+    // }
 
     // check model exists
-    // const modelInfo = await supabaseAdmin
-    //   .from('swarms_cloud_models')
-    //   .select('*')
-    //   .eq('unique_name', this.modelId)
-    //   .neq('enabled', false)
-    //   .maybeSingle();
+    const modelInfo = await supabaseAdmin
+      .from('swarms_cloud_models')
+      .select('*')
+      .eq('unique_name', this.modelId)
+      .neq('enabled', false)
+      .maybeSingle();
 
-    // if (!modelInfo?.data?.id) {
-    //   return { status: 404, message: 'Model not found' };
-    // }
-    // this.modelRecord = modelInfo.data;
+    if (!modelInfo?.data?.id) {
+      return { status: 404, message: 'Model not found' };
+    }
+    this.modelRecord = modelInfo.data;
 
     return { status: 200, message: 'Success' };
   }
