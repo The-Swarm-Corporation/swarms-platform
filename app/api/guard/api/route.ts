@@ -11,25 +11,24 @@ import fetch, { RequestInit, Response as FetchResponse } from 'node-fetch';
 import { Agent } from 'http';
 import NodeCache from 'node-cache';
 
-// const agent = new Agent({ keepAlive: true });
-// const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
+const agent = new Agent({ keepAlive: true });
+const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
 
-// async function fetchWithRetries(
-//   url: string,
-//   options: RequestInit,
-//   retries = 3,
-// ) {
-//   try {
-//     const response = await fetch(url, options);
-//     return response;
-//   } catch (error) {
-//     if (retries > 0) {
-//       return fetchWithRetries(url, options, retries - 1);
-//     } else {
-//       throw error;
-//     }
-//   }
-// }
+async function fetchWithRetries(
+  url: string,
+  options: RequestInit,
+  retries: number = 3,
+): Promise<FetchResponse> {
+  try {
+    return await fetch(url, options);
+  } catch (error) {
+    if (retries > 0) {
+      return fetchWithRetries(url, options, retries - 1);
+    } else {
+      throw error;
+    }
+  }
+}
 
 async function POST(req: Request) {
   const headers = req.headers;
@@ -42,16 +41,26 @@ async function POST(req: Request) {
 
   const data =
     (await req.json()) as OpenAI.Chat.Completions.ChatCompletionCreateParams;
-
   const modelId = data?.model;
 
-  const guard = new SwarmsApiGuard({ apiKey, organizationPublicId, modelId });
-  const isAuthenticated = await guard.isAuthenticated();
+  // Cache key based on API key and organization ID
+  const authCacheKey = `auth-${apiKey}-${organizationPublicId}`;
+  const cachedAuth = cache.get(authCacheKey);
 
-  if (isAuthenticated.status !== 200) {
-    return new Response(isAuthenticated.message, {
-      status: isAuthenticated.status,
-    });
+  let guard: SwarmsApiGuard;
+  if (cachedAuth) {
+    guard = cachedAuth as SwarmsApiGuard;
+  } else {
+    guard = new SwarmsApiGuard({ apiKey, organizationPublicId, modelId });
+    const isAuthenticated = await guard.isAuthenticated();
+
+    if (isAuthenticated.status !== 200) {
+      return new Response(isAuthenticated.message, {
+        status: isAuthenticated.status,
+      });
+    }
+
+    cache.set(authCacheKey, guard);
   }
 
   const userId = guard.getUserId();
@@ -63,77 +72,75 @@ async function POST(req: Request) {
   const endpoint = guard.modelRecord?.api_endpoint;
   const url = `${endpoint}/v1/chat/completions`;
 
-  // const billingService = new BillingService(userId);
-  // const invoicePaymentStatus = await billingService.checkInvoicePaymentStatus(
-  //   organizationPublicId ?? '',
-  // );
-  // const checkCredits = await checkRemainingCredits(
-  //   userId,
-  //   organizationPublicId,
-  // );
+  const billingService = new BillingService(userId);
+  const invoicePaymentStatus = await billingService.checkInvoicePaymentStatus(
+    organizationPublicId ?? '',
+  );
+  const checkCredits = await checkRemainingCredits(
+    userId,
+    organizationPublicId,
+  );
 
-  // if (
-  //   checkCredits.credit_plan === 'invoice' &&
-  //   invoicePaymentStatus.status !== 200
-  // ) {
-  //   return new Response(invoicePaymentStatus.message, {
-  //     status: invoicePaymentStatus.status,
-  //   });
-  // }
+  if (
+    checkCredits.credit_plan === 'invoice' &&
+    invoicePaymentStatus.status !== 200
+  ) {
+    return new Response(invoicePaymentStatus.message, {
+      status: invoicePaymentStatus.status,
+    });
+  }
 
-  // if (!invoicePaymentStatus.is_paid) {
-  //   return new Response(invoicePaymentStatus.message, {
-  //     status: invoicePaymentStatus.status,
-  //   });
-  // }
+  if (!invoicePaymentStatus.is_paid) {
+    return new Response(invoicePaymentStatus.message, {
+      status: invoicePaymentStatus.status,
+    });
+  }
 
   // since input & output are price per million tokens
   // check if user has sufficient credits by estimates
 
-  // const price_million_input = guard.modelRecord?.price_million_input || 0;
-  // const price_million_output = guard.modelRecord?.price_million_output || 0;
+  const price_million_input = guard.modelRecord?.price_million_input || 0;
+  const price_million_output = guard.modelRecord?.price_million_output || 0;
 
-  // const estimatedTokens = 1000; // estimated tokens
-  // const estimatedCost =
-  //   (estimatedTokens / 1000000) * price_million_input +
-  //   (estimatedTokens / 1000000) * price_million_output;
+  const estimatedTokens = 1000; // estimated tokens
+  const estimatedCost =
+    (estimatedTokens / 1000000) * price_million_input +
+    (estimatedTokens / 1000000) * price_million_output;
 
-  // if (checkCredits.status !== 200) {
-  //   return new Response(checkCredits.message, {
-  //     status: checkCredits.status,
-  //   });
-  // }
+  if (checkCredits.status !== 200) {
+    return new Response(checkCredits.message, {
+      status: checkCredits.status,
+    });
+  }
 
-  // const remainingCredit = new Decimal(checkCredits.remainingCredits);
-  // const decimalEstimatedCost = new Decimal(estimatedCost);
+  const remainingCredit = new Decimal(checkCredits.remainingCredits);
+  const decimalEstimatedCost = new Decimal(estimatedCost);
 
-  // if (
-  //   checkCredits.credit_plan === 'default' &&
-  //   remainingCredit.lessThan(decimalEstimatedCost)
-  // ) {
-  //   return new Response('Insufficient credits', {
-  //     status: 402,
-  //   });
-  // }
+  if (
+    checkCredits.credit_plan === 'default' &&
+    remainingCredit.lessThan(decimalEstimatedCost)
+  ) {
+    return new Response('Insufficient credits', {
+      status: 402,
+    });
+  }
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithRetries(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(data),
+      agent,
     });
-    // const res_json = (await res.json()) as OpenAI.Completion;
 
     if (res.status !== 200) {
       const errorBody = await res.text();
-      return new Response(
-        `Internal Error - fetching model, URL: ${url} with model ID: ${modelId}, endpoint---${endpoint}, isAuthenticated---${isAuthenticated.message}, userId---${userId}, organizationPublicId---${organizationPublicId}, apiKey---${apiKey}, status---${res.status}, statusText---${res.statusText}, data---${data}, ${errorBody}`,
-        {
-          status: res.status,
-        },
-      );
+      return new Response(`Internal Error - fetching model, ${errorBody}`, {
+        status: res.status,
+      });
     }
 
     const res_json =
@@ -146,26 +153,26 @@ async function POST(req: Request) {
       ((res_json.usage?.completion_tokens ?? 0) / 1000000) *
       price_million_output;
 
-    // const totalCost = input_price + output_price;
+    const totalCost = input_price + output_price;
 
-    // if (
-    //   checkCredits.credit_plan === 'default' &&
-    //   remainingCredit.lessThan(totalCost)
-    // ) {
-    //   return new Response('Insufficient credits', {
-    //     status: 402,
-    //   });
-    // }
+    if (
+      checkCredits.credit_plan === 'default' &&
+      remainingCredit.lessThan(totalCost)
+    ) {
+      return new Response('Insufficient credits', {
+        status: 402,
+      });
+    }
 
     // Update the total cost based on the credit plan
     let totalCostToUpdate = 0;
     let invoiceTotalCostToUpdate = 0;
 
-    // if (checkCredits.credit_plan === 'default') {
-    //   totalCostToUpdate = totalCost;
-    // } else if (checkCredits.credit_plan === 'invoice') {
-    //   invoiceTotalCostToUpdate = totalCost;
-    // }
+    if (checkCredits.credit_plan === 'default') {
+      totalCostToUpdate = totalCost;
+    } else if (checkCredits.credit_plan === 'invoice') {
+      invoiceTotalCostToUpdate = totalCost;
+    }
 
     const choices =
       res_json.choices as OpenAI.Chat.Completions.ChatCompletion.Choice[];
@@ -178,22 +185,22 @@ async function POST(req: Request) {
     ];
 
     // calculate remaining credit
-    // if (
-    //   checkCredits.credit_plan === 'default' &&
-    //   remainingCredit.greaterThan(0)
-    // ) {
-    //   const creditBalance = await calculateRemainingCredit(
-    //     totalCost,
-    //     userId,
-    //     organizationPublicId,
-    //   );
+    if (
+      checkCredits.credit_plan === 'default' &&
+      remainingCredit.greaterThan(0)
+    ) {
+      const creditBalance = await calculateRemainingCredit(
+        totalCost,
+        userId,
+        organizationPublicId,
+      );
 
-    //   if (creditBalance?.status !== 200) {
-    //     return new Response(creditBalance?.message, {
-    //       status: creditBalance?.status,
-    //     });
-    //   }
-    // }
+      if (creditBalance?.status !== 200) {
+        return new Response(creditBalance?.message, {
+          status: creditBalance?.status,
+        });
+      }
+    }
 
     // log the result
     const logResult = await guard.logUsage({
