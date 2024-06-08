@@ -114,17 +114,20 @@ const InfoCard = ({
         )}
       </div>
 
-      <div className="cursor-pointer" onClick={handleShowShareModal}>
+      <div className='cursor-pointer' onClick={handleShowShareModal}>
         <svg
           width="95"
           height="25"
           viewBox="0 0 95 25"
           xmlns="http://www.w3.org/2000/svg"
-          className="rating-svg absolute right-0 md:right-[150px] bottom-0 scale-x-[2.5] scale-y-[1.8] fill-[#FB0101] hover:fill-[#fb0101]"
+          className="rating-svg absolute right-[150px] bottom-0 scale-x-[2.5] scale-y-[1.8] fill-[#FB0101]"
         >
-          <path d="M21 0H95V25H0L21 0Z" className="fill-[#b42020] hover:fill-[#fb0101]" />
+          <path
+            d="M21 0H95V25H0L21 0Z"
+            className="fill-[#b42020]"
+          />
         </svg>
-        <div className="absolute right-0 md:right-[150px] bottom-0 text-white px-4 py-1">
+        <div className="absolute right-[150px] bottom-0 text-white px-4 py-1">
           <div className="relative flex items-center justify-center gap-2 w-[80px]">
             <span>Share</span>
             <Share2 />
@@ -132,16 +135,22 @@ const InfoCard = ({
         </div>
       </div>
 
-      <Link href={link && link} target="_blank">
-        <div className="cursor-pointer">
+      <Link
+        href={link && link}
+        target="_blank"
+      >
+        <div>
           <svg
             width="95"
             height="25"
             viewBox="0 0 95 25"
             xmlns="http://www.w3.org/2000/svg"
-            className="preview-svg absolute right-0 bottom-0 scale-x-[2.5] scale-y-[1.8] fill-[#FB0101] hover:fill-red-400"
+            className="preview-svg absolute right-0 bottom-0 scale-x-[2.5] scale-y-[1.8] fill-[#FB0101]"
           >
-            <path d="M21 0H95V25H0L21 0Z" className="fill-[#FB0101] hover:fill-red-400" />
+            <path
+              d="M21 0H95V25H0L21 0Z"
+              className="fill-[#FB0101]"
+            />
           </svg>
           <div className="absolute right-0 bottom-0 text-white px-4 py-1">
             <div className="relative flex items-center justify-center gap-2 w-[110px]">
@@ -164,7 +173,6 @@ const InfoCard = ({
           </div>
         </div>
       </Link>
-
       {isShowShareModalOpen && (
         <Modal
           isOpen={isShowShareModalOpen}
@@ -172,25 +180,20 @@ const InfoCard = ({
           title="Share the Assets"
           className="flex flex-col items-center justify-center"
         >
-          <div className="flex flex-row flex-wrap gap-4 md:gap-8 lg:gap-16">
-            <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithTweet}>
-              <Twitter className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">Tweet</span>
+          <div className='flex flex-wrap gap-16'>
+            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithTweet}>
+              <Twitter />Tweet
             </span>
-            <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithLinkedIn}>
-              <Linkedin className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">Post</span>
+            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithLinkedIn}>
+              <Linkedin />Post
             </span>
-            <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithFacebook}>
-              <Facebook className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">Share</span>
+            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithFacebook}>
+              <Facebook />Share
             </span>
-            <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithEmail}>
-              <Send className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">Email</span>
+            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithEmail}>
+              <Send />Email
             </span>
           </div>
-
           <div className='w-full h-[1px] bg-white' />
           <div className='flex items-start justify-start w-full flex-col'>
             <span>

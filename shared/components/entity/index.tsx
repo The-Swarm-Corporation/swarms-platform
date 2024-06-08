@@ -5,10 +5,8 @@ import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Facebook, Linkedin, Send, Twitter } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import { useToast } from '../ui/Toasts/use-toast';
-import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
-import { usePathname } from 'next/navigation';
 
 type UseCasesProps = { title: string; description: string }[];
 interface Entity extends PropsWithChildren {
@@ -60,8 +58,6 @@ export default function EntityComponent({
 }: Entity) {
   const toast = useToast();
 
-  const pathName = usePathname()
-
   const isPrompt = title.toLowerCase() === 'prompt';
 
   async function copyToClipboard(text: string) {
@@ -75,17 +71,6 @@ export default function EntityComponent({
     }
   }
 
-  const shareDetails: ShareDetails = {
-    message: "Check out this cool model/prompt/swarm on the swarms platform!",
-    link: `https://swarms.world${pathName}`,
-    subject: "Check this out!"
-  };
-
-  const handleShareWithTweet = () => openShareWindow('twitter', shareDetails);
-  const handleShareWithLinkedIn = () => openShareWindow('linkedin', shareDetails);
-  const handleShareWithFacebook = () => openShareWindow('facebook', shareDetails);
-  const handleShareWithEmail = () => openShareWindow('email', shareDetails);
-
   return (
     <div className="max-w-6xl px-6 mx-auto">
       <div className="flex flex-col py-16">
@@ -94,24 +79,6 @@ export default function EntityComponent({
         {description && (
           <div className="text-base mt-4 text-gray-400">{description}</div>
         )}
-        <div className="flex flex-row flex-wrap gap-4 md:gap-8 lg:gap-16 mt-4">
-          <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithTweet}>
-            <Twitter className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-            <span className="mt-2 text-sm md:text-base lg:text-lg">Tweet</span>
-          </span>
-          <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithLinkedIn}>
-            <Linkedin className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-            <span className="mt-2 text-sm md:text-base lg:text-lg">Post</span>
-          </span>
-          <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithFacebook}>
-            <Facebook className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-            <span className="mt-2 text-sm md:text-base lg:text-lg">Share</span>
-          </span>
-          <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithEmail}>
-            <Send className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-            <span className="mt-2 text-sm md:text-base lg:text-lg">Email</span>
-          </span>
-        </div>
         <div className="flex gap-2 mt-4 select-none flex-wrap">
           {tags?.map(
             (tag) =>
