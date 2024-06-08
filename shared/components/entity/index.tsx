@@ -5,7 +5,7 @@ import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Facebook, Linkedin, Send, Share, Twitter } from 'lucide-react';
+import { Copy, Facebook, Linkedin, Send, Share2, Twitter } from 'lucide-react';
 import { useToast } from '../ui/Toasts/use-toast';
 import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
 import { usePathname } from 'next/navigation';
@@ -113,10 +113,11 @@ export default function EntityComponent({
         {description && (
           <div className="text-base mt-4 text-gray-400">{description}</div>
         )}
-        <div className='flex items-center justify-start mt-4 cursor-pointer'>
-          <Share onClick={handleShowShareModal} size={36} />
-          <span className='ml-1'>Share</span>
-        </div>
+        <button className="inline-flex mt-4 w-[11%] items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          onClick={handleShowShareModal}>
+          <span className='mr-1'>Share</span>
+          <Share2 />
+        </button>
 
         <div className="flex gap-2 mt-4 select-none flex-wrap">
           {tags?.map(
