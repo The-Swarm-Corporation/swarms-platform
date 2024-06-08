@@ -50,7 +50,7 @@ async function POST(req: Request) {
 
   if (isAuthenticated.status !== 200) {
     return new Response(isAuthenticated.message, {
-      status: isAuthenticated.status
+      status: isAuthenticated.status,
     });
   }
 
@@ -63,73 +63,73 @@ async function POST(req: Request) {
   const endpoint = guard.modelRecord?.api_endpoint;
   const url = `${endpoint}/chat/completions`;
 
-  const billingService = new BillingService(userId);
-  const invoicePaymentStatus = await billingService.checkInvoicePaymentStatus(
-    organizationPublicId ?? '',
-  );
-  const checkCredits = await checkRemainingCredits(
-    userId,
-    organizationPublicId,
-  );
+  // const billingService = new BillingService(userId);
+  // const invoicePaymentStatus = await billingService.checkInvoicePaymentStatus(
+  //   organizationPublicId ?? '',
+  // );
+  // const checkCredits = await checkRemainingCredits(
+  //   userId,
+  //   organizationPublicId,
+  // );
 
-  if (
-    checkCredits.credit_plan === 'invoice' &&
-    invoicePaymentStatus.status !== 200
-  ) {
-    return new Response(invoicePaymentStatus.message, {
-      status: invoicePaymentStatus.status,
-    });
-  }
+  // if (
+  //   checkCredits.credit_plan === 'invoice' &&
+  //   invoicePaymentStatus.status !== 200
+  // ) {
+  //   return new Response(invoicePaymentStatus.message, {
+  //     status: invoicePaymentStatus.status,
+  //   });
+  // }
 
-  if (!invoicePaymentStatus.is_paid) {
-    return new Response(invoicePaymentStatus.message, {
-      status: invoicePaymentStatus.status,
-    });
-  }
+  // if (!invoicePaymentStatus.is_paid) {
+  //   return new Response(invoicePaymentStatus.message, {
+  //     status: invoicePaymentStatus.status,
+  //   });
+  // }
 
   // since input & output are price per million tokens
   // check if user has sufficient credits by estimates
 
-  const price_million_input = guard.modelRecord?.price_million_input || 0;
-  const price_million_output = guard.modelRecord?.price_million_output || 0;
+  // const price_million_input = guard.modelRecord?.price_million_input || 0;
+  // const price_million_output = guard.modelRecord?.price_million_output || 0;
 
-  const estimatedTokens = 1000; // estimated tokens
-  const estimatedCost =
-    (estimatedTokens / 1000000) * price_million_input +
-    (estimatedTokens / 1000000) * price_million_output;
+  // const estimatedTokens = 1000; // estimated tokens
+  // const estimatedCost =
+  //   (estimatedTokens / 1000000) * price_million_input +
+  //   (estimatedTokens / 1000000) * price_million_output;
 
-  if (checkCredits.status !== 200) {
-    return new Response(checkCredits.message, {
-      status: checkCredits.status,
-    });
-  }
+  // if (checkCredits.status !== 200) {
+  //   return new Response(checkCredits.message, {
+  //     status: checkCredits.status,
+  //   });
+  // }
 
-  const remainingCredit = new Decimal(checkCredits.remainingCredits);
-  const decimalEstimatedCost = new Decimal(estimatedCost);
+  // const remainingCredit = new Decimal(checkCredits.remainingCredits);
+  // const decimalEstimatedCost = new Decimal(estimatedCost);
 
-  if (
-    checkCredits.credit_plan === 'default' &&
-    remainingCredit.lessThan(decimalEstimatedCost)
-  ) {
-    return new Response('Insufficient credits', {
-      status: 402,
-    });
-  }
+  // if (
+  //   checkCredits.credit_plan === 'default' &&
+  //   remainingCredit.lessThan(decimalEstimatedCost)
+  // ) {
+  //   return new Response('Insufficient credits', {
+  //     status: 402,
+  //   });
+  // }
 
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
     // const res_json = (await res.json()) as OpenAI.Completion;
 
     if (res.status !== 200) {
       const errorBody = await res.text();
       return new Response(
-        `Internal Error - fetching model, ${errorBody}`,
+        `Internal Error - fetching model, URL: ${url} with model ID: ${modelId}, endpoint---${endpoint}, isAuthenticated---${isAuthenticated}, userId---${userId}, organizationPublicId---${organizationPublicId}, apiKey---${apiKey}, ${errorBody}`,
         {
           status: res.status,
         },
@@ -146,26 +146,26 @@ async function POST(req: Request) {
       ((res_json.usage?.completion_tokens ?? 0) / 1000000) *
       price_million_output;
 
-    const totalCost = input_price + output_price;
+    // const totalCost = input_price + output_price;
 
-    if (
-      checkCredits.credit_plan === 'default' &&
-      remainingCredit.lessThan(totalCost)
-    ) {
-      return new Response('Insufficient credits', {
-        status: 402,
-      });
-    }
+    // if (
+    //   checkCredits.credit_plan === 'default' &&
+    //   remainingCredit.lessThan(totalCost)
+    // ) {
+    //   return new Response('Insufficient credits', {
+    //     status: 402,
+    //   });
+    // }
 
     // Update the total cost based on the credit plan
     let totalCostToUpdate = 0;
     let invoiceTotalCostToUpdate = 0;
 
-    if (checkCredits.credit_plan === 'default') {
-      totalCostToUpdate = totalCost;
-    } else if (checkCredits.credit_plan === 'invoice') {
-      invoiceTotalCostToUpdate = totalCost;
-    }
+    // if (checkCredits.credit_plan === 'default') {
+    //   totalCostToUpdate = totalCost;
+    // } else if (checkCredits.credit_plan === 'invoice') {
+    //   invoiceTotalCostToUpdate = totalCost;
+    // }
 
     const choices =
       res_json.choices as OpenAI.Chat.Completions.ChatCompletion.Choice[];
@@ -178,22 +178,22 @@ async function POST(req: Request) {
     ];
 
     // calculate remaining credit
-    if (
-      checkCredits.credit_plan === 'default' &&
-      remainingCredit.greaterThan(0)
-    ) {
-      const creditBalance = await calculateRemainingCredit(
-        totalCost,
-        userId,
-        organizationPublicId,
-      );
+    // if (
+    //   checkCredits.credit_plan === 'default' &&
+    //   remainingCredit.greaterThan(0)
+    // ) {
+    //   const creditBalance = await calculateRemainingCredit(
+    //     totalCost,
+    //     userId,
+    //     organizationPublicId,
+    //   );
 
-      if (creditBalance?.status !== 200) {
-        return new Response(creditBalance?.message, {
-          status: creditBalance?.status,
-        });
-      }
-    }
+    //   if (creditBalance?.status !== 200) {
+    //     return new Response(creditBalance?.message, {
+    //       status: creditBalance?.status,
+    //     });
+    //   }
+    // }
 
     // log the result
     const logResult = await guard.logUsage({
