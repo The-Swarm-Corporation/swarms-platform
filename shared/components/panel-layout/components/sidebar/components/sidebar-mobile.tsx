@@ -72,6 +72,7 @@ const SidebarMobile = () => {
                             'p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md',
                             item.link === path && 'bg-primary text-white',
                           )}
+                          showTitle
                         />
                         {item.link === path && item.items?.length && (
                           <div className="flex flex-col gap-2">
@@ -83,6 +84,7 @@ const SidebarMobile = () => {
                                   subItem.link === path &&
                                     'border border-gray-400 dark:text-white',
                                 )}
+                                showTitle
                               />
                             ))}
                           </div>

@@ -42,7 +42,7 @@ const SHARED_LINKS: MenuProps[] = [
   },
   {
     title: 'Docs',
-    link: NAVIGATION.PRICING,
+    link: NAVIGATION.DOCS,
     icon: <FileText />,
   },
 ];

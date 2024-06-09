@@ -45,7 +45,10 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                     'text-white p-2 py-3 my-1 hover:text-primary',
                     item.link === path && 'text-primary',
                   )}
-                />
+                  showTitle
+                >
+                  {item.title}
+                </NavItem>
               </li>
             ))}
           </ul>
@@ -94,7 +97,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                   <li
                     key={item.title}
                     className={cn(
-                      'p-4 text-sm hover:bg-destructive hover:text-white ',
+                      'text-sm hover:bg-destructive hover:text-white ',
                       item.link === path && 'bg-primary text-white',
                       isLast && 'rounded-b-md border-t-slate-800 border-t',
                     )}
@@ -105,7 +108,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                           {...item}
                           as="form"
                           isIcon
-                          className="w-full"
+                          className="w-full p-4"
                           onSubmit={(e) => handleRequest(e, SignOut, router)}
                         >
                           <input
@@ -124,12 +127,13 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                         <NavItem
                           link="/signin"
                           title="Sign in"
+                          className="p-4"
                           isIcon
                           icon={<LogIn size={20} />}
                         />
                       )
                     ) : (
-                      <NavItem {...item} isIcon />
+                      <NavItem {...item} isIcon showTitle />
                     )}
                   </li>
                 );

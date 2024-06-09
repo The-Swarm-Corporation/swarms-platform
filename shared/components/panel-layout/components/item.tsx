@@ -43,7 +43,8 @@ const NavItem = React.forwardRef(function <
       <Link
         href={link}
         className={cn(
-          'group flex items-center justify-start outline-none',
+          'group flex items-center justify-center outline-none p-4',
+          showTitle && 'justify-start',
           className,
         )}
         ref={ref as RefObject<HTMLAnchorElement>}
@@ -52,7 +53,8 @@ const NavItem = React.forwardRef(function <
         {isIcon && (
           <span
             className={cn(
-              'mr-3 text-black dark:text-white group-hover:text-white hidden',
+              'text-black dark:text-white group-hover:text-white hidden',
+              showTitle && 'mr-3',
               link === path && 'text-white',
               isIcon && 'block',
             )}

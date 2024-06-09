@@ -1,4 +1,5 @@
 'use client';
+import LoadingSpinner from '@/shared/components/loading-spinner';
 import { Button } from '@/shared/components/ui/Button';
 import { DISCORD, PLATFORM, SWARM_CALENDLY } from '@/shared/constants/links';
 import useSubscription from '@/shared/hooks/subscription';
@@ -28,9 +29,13 @@ const Dashboard = () => {
       <h1 className="text-3xl font-extrabold sm:text-4xl">Home</h1>
       <div className="mt-4 flex gap-4 max-md:flex-col">
         <div className="w-1/3 flex flex-col gap-4 border p-4 rounded-md max-md:w-full">
-          <span className="text-primary text-4xl font-bold">
-            {commaSeparated(requestCount)}
-          </span>
+          {userRequests.isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <span className="text-primary text-4xl font-bold">
+              {commaSeparated(requestCount)}
+            </span>
+          )}
           <span className="text-bold text-2xl">Tasks Automated</span>
         </div>
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">
@@ -41,10 +46,14 @@ const Dashboard = () => {
         </div>
 
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">
-          <span className="flex items-end text-primary text-4xl gap-2 font-bold">
-            <span>{timeSaved[0]}</span>
-            <span className="text-3xl">{timeSaved[1]}</span>
-          </span>
+          {userRequests.isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <span className="flex items-end text-primary text-4xl gap-2 font-bold">
+              <span>{timeSaved[0]}</span>
+              <span className="text-3xl">{timeSaved[1]}</span>
+            </span>
+          )}
           <span className="text-bold text-2xl">Time Saved</span>
         </div>
       </div>

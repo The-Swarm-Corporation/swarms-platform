@@ -1,22 +1,18 @@
 'use client';
 
 import { cn } from '@/shared/utils/cn';
-import { Menu, ChevronsLeft, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
-import useToggle from '@/shared/hooks/toggle';
-import { Button } from '@/shared/components/ui/Button';
 import { SIDE_BAR_MENU } from '../const';
 import SidebarMobile from './components/sidebar-mobile';
 import NavItem from '../item';
 
-const collapsedMenu = 'collapsedMenu';
 const PanelLayoutSidebar = () => {
   const path = usePathname();
   const router = useRouter();
-  const { isOn, toggle } = useToggle('off', collapsedMenu);
   const [showTitle, setShowTitle] = useState(true);
 
   return (
@@ -25,26 +21,14 @@ const PanelLayoutSidebar = () => {
       <div
         className={cn(
           'max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 max-lg:hidden',
-          // isOn && 'max-w-0 -translate-x-full',
         )}
       />
       <div
         className={cn(
           'flex flex-col fixed flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 min-h-screen border-r border-gray-900 max-lg:hidden',
-          // isOn && 'max-w-0 -translate-x-full',
           !showTitle && 'max-w-[90px]',
         )}
       >
-        {/* <Button
-          onClick={toggle}
-          className={cn(
-            'rounded-full absolute -right-4 top-0 max-w-8 h-8 w-full cursor-pointer flex p-0 transition-all duration-300 shadow-md',
-            // isOn &&
-              // 'rounded-l-[12px] rounded-r-sm top-28 -right-10 max-w-[none] w-12 h-[30px]',
-          )}
-        >
-          {isOn ? <Menu /> : <ChevronsLeft />}
-        </Button> */}
         <div
           onMouseEnter={() => setShowTitle(true)}
           onMouseLeave={() => setShowTitle(false)}
@@ -84,6 +68,7 @@ const PanelLayoutSidebar = () => {
                               subItem.link === path &&
                                 'border border-gray-400 dark:text-white',
                             )}
+                            showTitle
                           />
                         ))}
                       </div>
