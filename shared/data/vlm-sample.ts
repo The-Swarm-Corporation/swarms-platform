@@ -1,4 +1,4 @@
-const VLM_SAMPLE_PY = `import requests
+const VLM_SAMPLE_PY_FUNC = (model: string) => `import requests
 import base64
 from PIL import Image
 from io import BytesIO
@@ -23,7 +23,7 @@ image_data = {
 
 # Construct the request data
 request_data = {
-    "model": "cogvlm-chat-17b",
+    "model": ${model},
     "messages": [{"role": "user", "content": [text_data, image_data]}],
     "temperature": 0.8,
     "top_p": 0.9,
@@ -38,7 +38,7 @@ response = requests.post(url, json=request_data)
 # Print the response from the server
 print(response.text)`;
 
-const VLM_SAMPLE_GO = `package main
+const VLM_SAMPLE_GO_FUNC = (model: string) => `package main
 
 import (
     "bytes"
@@ -84,7 +84,7 @@ func main() {
     }
 
     requestData := map[string]interface{}{
-        "model": "cogvlm-chat-17b",
+        "model": ${model},
         "messages": []map[string]interface{}{
             {
                 "role":    "user",
@@ -128,68 +128,68 @@ func main() {
     fmt.Println("Response:", string(responseBody))
 }`;
 
-const VLM_SAMPLE_JS = `const fs = require('fs');
-const https = require('https');
-const sharp = require('sharp');
+const VLM_SAMPLE_JS_FUNC = (model: string) => `const fs = require('fs');
+ const https = require('https');
+ const sharp = require('sharp');
+ 
+ // Convert image to Base64
+ async function imageToBase64(imagePath) {
+     try {
+         const imageBuffer = await sharp(imagePath).jpeg().toBuffer();
+         return imageBuffer.toString('base64');
+     } catch (error) {
+         console.error('Error converting image to Base64:', error);
+     }
+ }
+ 
+ // Main function to execute the workflow
+ async function main() {
+     const base64Image = await imageToBase64("images/3897e80dcb0601c0.jpg");
+     const textData = { type: "text", text: "Describe what is in the image" };
+     const imageData = {
+         type: "image_url",
+         image_url: { url: "data:image/jpeg;base64,"+base64Image },
+     };
+ 
+     // Construct the request data
+     const requestData = JSON.stringify({
+         model: ${model},
+         messages: [{ role: "user", content: [textData, imageData] }],
+         temperature: 0.8,
+         top_p: 0.9,
+         max_tokens: 1024,
+     });
+ 
+     const options = {
+         hostname: 'api.swarms.world',
+         path: '/v1/chat/completions',
+         method: 'POST',
+         headers: {
+             'Content-Type': 'application/json',
+             'Content-Length': requestData.length,
+         },
+     };
+ 
+     const req = https.request(options, (res) => {
+         let responseBody = '';
+ 
+         res.on('data', (chunk) => {
+             responseBody += chunk;
+         });
+ 
+         res.on('end', () => {
+             console.log('Response:', responseBody);
+         });
+     });
+ 
+     req.on('error', (error) => {
+         console.error(error);
+     });
+ 
+     req.write(requestData);
+     req.end();
+ }
+ 
+ main();`;
 
-// Convert image to Base64
-async function imageToBase64(imagePath) {
-    try {
-        const imageBuffer = await sharp(imagePath).jpeg().toBuffer();
-        return imageBuffer.toString('base64');
-    } catch (error) {
-        console.error('Error converting image to Base64:', error);
-    }
-}
-
-// Main function to execute the workflow
-async function main() {
-    const base64Image = await imageToBase64("images/3897e80dcb0601c0.jpg");
-    const textData = { type: "text", text: "Describe what is in the image" };
-    const imageData = {
-        type: "image_url",
-        image_url: { url: "data:image/jpeg;base64,"+base64Image },
-    };
-
-    // Construct the request data
-    const requestData = JSON.stringify({
-        model: "cogvlm-chat-17b",
-        messages: [{ role: "user", content: [textData, imageData] }],
-        temperature: 0.8,
-        top_p: 0.9,
-        max_tokens: 1024,
-    });
-
-    const options = {
-        hostname: 'api.swarms.world',
-        path: '/v1/chat/completions',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': requestData.length,
-        },
-    };
-
-    const req = https.request(options, (res) => {
-        let responseBody = '';
-
-        res.on('data', (chunk) => {
-            responseBody += chunk;
-        });
-
-        res.on('end', () => {
-            console.log('Response:', responseBody);
-        });
-    });
-
-    req.on('error', (error) => {
-        console.error(error);
-    });
-
-    req.write(requestData);
-    req.end();
-}
-
-main();`;
-
-export { VLM_SAMPLE_PY, VLM_SAMPLE_GO, VLM_SAMPLE_JS };
+export { VLM_SAMPLE_PY_FUNC, VLM_SAMPLE_GO_FUNC, VLM_SAMPLE_JS_FUNC };

@@ -5,7 +5,6 @@ import {
   TabsTrigger,
 } from '@/shared/components/ui/tabs';
 import VlmPlayground from '@/shared/components/vlm-playground';
-import { getURL } from '@/shared/utils/helpers';
 import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
 import MarkdownPreview from './components/markdown-preview';

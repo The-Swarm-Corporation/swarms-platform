@@ -3,9 +3,9 @@ import { cn } from '@/shared/utils/cn';
 import { useEffect, useRef, useState } from 'react';
 import CodeBox from '../code-box';
 import {
-  VLM_SAMPLE_GO,
-  VLM_SAMPLE_JS,
-  VLM_SAMPLE_PY,
+  VLM_SAMPLE_GO_FUNC,
+  VLM_SAMPLE_JS_FUNC,
+  VLM_SAMPLE_PY_FUNC,
 } from '@/shared/data/vlm-sample';
 import { Slider } from '../ui/slider';
 import Input from '../ui/Input';
@@ -20,6 +20,10 @@ const VlmPlayground = ({ model }: Props) => {
   /*   const [responseMode, setResponseMode] = useState<'text' | 'json' | string>(
     'text'
   ); */
+  const VLM_SAMPLE_PY = VLM_SAMPLE_PY_FUNC(model);
+  const VLM_SAMPLE_JS = VLM_SAMPLE_JS_FUNC(model);
+  const VLM_SAMPLE_GO = VLM_SAMPLE_GO_FUNC(model);
+
   const sampleModes = ['try', 'python', 'javascript', 'go'];
   const [selectedSampleMode, setSelectedSampleMode] =
     useState<(typeof sampleModes)[number]>('try');
