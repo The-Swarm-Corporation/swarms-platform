@@ -9,6 +9,7 @@ import {
 import Stripe from 'stripe';
 import { getUserStripeCustomerId } from '../stripe/server';
 import { getOrganizationOwner } from './organization';
+import { getMonthStartEndDates } from '../helpers';
 
 export class BillingService {
   private userId: string;
@@ -29,16 +30,7 @@ export class BillingService {
     }[];
   }> {
     try {
-      const monthStart = new Date(
-        month.getFullYear(),
-        month.getMonth(),
-        1,
-      ).toISOString();
-      const monthEnd = new Date(
-        month.getFullYear(),
-        month.getMonth() + 1,
-        0,
-      ).toISOString();
+      const { start, end } = getMonthStartEndDates(month);
 
       // Get user activities (excluding organization activities)
       const { data: userActivities, error: userError } = await supabaseAdmin
@@ -46,8 +38,8 @@ export class BillingService {
         .select('invoice_total_cost')
         .eq('user_id', this.userId)
         .is('organization_id', null)
-        .gte('created_at', monthStart)
-        .lte('created_at', monthEnd);
+        .gte('created_at', start)
+        .lte('created_at', end);
 
       if (userError) {
         console.error('Error fetching user activities:', userError);
@@ -70,8 +62,8 @@ export class BillingService {
           .from('swarms_cloud_api_activities')
           .select('invoice_total_cost, organization_id')
           .not('organization_id', 'is', null)
-          .gte('created_at', monthStart)
-          .lte('created_at', monthEnd);
+          .gte('created_at', start)
+          .lte('created_at', end);
 
       if (orgError) {
         console.error('Error fetching organization activities:', orgError);

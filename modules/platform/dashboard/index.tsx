@@ -2,24 +2,34 @@
 import { Button } from '@/shared/components/ui/Button';
 import { DISCORD, PLATFORM, SWARM_CALENDLY } from '@/shared/constants/links';
 import useSubscription from '@/shared/hooks/subscription';
-import { commaSeparated, formatSepndTime } from '@/shared/utils/helpers';
+import { commaSeparated, formatSpentTime } from '@/shared/utils/helpers';
+import { trpc } from '@/shared/utils/trpc/trpc';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
+import { useMemo } from 'react';
 
 const Dashboard = () => {
   const subscription = useSubscription();
 
-  const timeSaved = formatSepndTime(
-    9998777,
-    // seconds
-  ).split(' ');
+  const userRequests = trpc.dashboard.getUserRequestCount.useQuery();
+  const requestCount = userRequests.data ?? 0;
+  const timeSaved = useMemo(() => {
+    const timeInSecs = 5 * 60;
+    const estimatedTimeSaved = requestCount * timeInSecs;
+
+    return formatSpentTime(
+      // seconds
+      estimatedTimeSaved,
+    ).split(' ');
+  }, [userRequests.data]);
+
   return (
     <div className="w-full flex flex-col">
       <h1 className="text-3xl font-extrabold sm:text-4xl">Home</h1>
       <div className="mt-4 flex gap-4 max-md:flex-col">
         <div className="w-1/3 flex flex-col gap-4 border p-4 rounded-md max-md:w-full">
           <span className="text-primary text-4xl font-bold">
-            {commaSeparated(12000)}
+            {commaSeparated(requestCount)}
           </span>
           <span className="text-bold text-2xl">Tasks Automated</span>
         </div>
