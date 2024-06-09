@@ -11,25 +11,24 @@ import fetch, { RequestInit, Response as FetchResponse } from 'node-fetch';
 import { Agent } from 'http';
 import NodeCache from 'node-cache';
 
-// const agent = new Agent({ keepAlive: true });
-// const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
+const agent = new Agent({ keepAlive: true });
+const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
 
-// async function fetchWithRetries(
-//   url: string,
-//   options: RequestInit,
-//   retries = 3,
-// ) {
-//   try {
-//     const response = await fetch(url, options);
-//     return response;
-//   } catch (error) {
-//     if (retries > 0) {
-//       return fetchWithRetries(url, options, retries - 1);
-//     } else {
-//       throw error;
-//     }
-//   }
-// }
+async function fetchWithRetries(
+  url: string,
+  options: RequestInit,
+  retries: number = 3,
+): Promise<FetchResponse> {
+  try {
+    return await fetch(url, options);
+  } catch (error) {
+    if (retries > 0) {
+      return fetchWithRetries(url, options, retries - 1);
+    } else {
+      throw error;
+    }
+  }
+}
 
 async function POST(req: Request) {
   const headers = req.headers;
@@ -42,16 +41,26 @@ async function POST(req: Request) {
 
   const data =
     (await req.json()) as OpenAI.Chat.Completions.ChatCompletionCreateParams;
-
   const modelId = data?.model;
 
-  const guard = new SwarmsApiGuard({ apiKey, organizationPublicId, modelId });
-  const isAuthenticated = await guard.isAuthenticated();
+  // Cache key based on API key and organization ID
+  const authCacheKey = `auth-${apiKey}-${organizationPublicId}`;
+  const cachedAuth = cache.get(authCacheKey);
 
-  if (isAuthenticated.status !== 200) {
-    return new Response(isAuthenticated.message, {
-      status: isAuthenticated.status
-    });
+  let guard: SwarmsApiGuard;
+  if (cachedAuth) {
+    guard = cachedAuth as SwarmsApiGuard;
+  } else {
+    guard = new SwarmsApiGuard({ apiKey, organizationPublicId, modelId });
+    const isAuthenticated = await guard.isAuthenticated();
+
+    if (isAuthenticated.status !== 200) {
+      return new Response(isAuthenticated.message, {
+        status: isAuthenticated.status,
+      });
+    }
+
+    cache.set(authCacheKey, guard);
   }
 
   const userId = guard.getUserId();
@@ -61,7 +70,7 @@ async function POST(req: Request) {
 
   // SEND REQUEST TO DIFFERENT MODELS ENDPOINTS
   const endpoint = guard.modelRecord?.api_endpoint;
-  const url = `${endpoint}/chat/completions`;
+  const url = `${endpoint}/v1/chat/completions`;
 
   const billingService = new BillingService(userId);
   const invoicePaymentStatus = await billingService.checkInvoicePaymentStatus(
@@ -117,23 +126,21 @@ async function POST(req: Request) {
   }
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithRetries(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      agent,
     });
-    // const res_json = (await res.json()) as OpenAI.Completion;
 
     if (res.status !== 200) {
       const errorBody = await res.text();
-      return new Response(
-        `Internal Error - fetching model, ${errorBody}`,
-        {
-          status: res.status,
-        },
-      );
+      return new Response(`Internal Error - fetching model, ${errorBody}`, {
+        status: res.status,
+      });
     }
 
     const res_json =
