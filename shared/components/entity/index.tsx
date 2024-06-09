@@ -109,15 +109,11 @@ export default function EntityComponent({
     <div className="max-w-6xl px-6 mx-auto">
       <div className="flex flex-col py-16">
         <h2>{title}</h2>
+
         {name && <h1 className='text-6xl'>{name}</h1>}
         {description && (
           <div className="text-base mt-4 text-gray-400">{description}</div>
         )}
-        <button className="inline-flex mt-4 w-[11%] items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-          onClick={handleShowShareModal}>
-          <span className='mr-1'>Share</span>
-          <Share2 />
-        </button>
 
         <div className="flex gap-2 mt-4 select-none flex-wrap">
           {tags?.map(
@@ -129,6 +125,13 @@ export default function EntityComponent({
               ),
           )}
         </div>
+
+        <button className="inline-flex mt-4 w-[11%] items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          onClick={handleShowShareModal}>
+          <span className='mr-1'>Share</span>
+          <Share2 />
+        </button>
+
       </div>
       {usecases && <UseCases usecases={usecases} />}
       {isPrompt && (
