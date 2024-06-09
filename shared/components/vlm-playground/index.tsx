@@ -78,7 +78,7 @@ const VlmPlayground = ({ model }: Props) => {
                 key={mode}
                 onClick={() => setSelectedSampleMode(mode)}
                 className={cn(
-                  `px-3 py-1 text-xs rounded-xl text-muted-foreground border border-transparent`,
+                  `px-3 py-1 text-sm rounded-xl text-muted-foreground border border-transparent`,
                   selectedSampleMode === mode
                     ? 'border bg-gray-700 text-white'
                     : '',
