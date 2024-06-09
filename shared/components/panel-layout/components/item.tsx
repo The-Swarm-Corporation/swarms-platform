@@ -10,15 +10,17 @@ interface NavItemProps extends PropsWithChildren {
   as?: 'span' | 'a' | 'form' | React.ElementType;
   className?: string;
   isIcon?: boolean;
+  isShowSidebarItems?: boolean;
+  showTitle?:boolean;
   onSubmit?: (e: React.FormEvent<HTMLFormElement>) => Promise<boolean | void>;
 }
 
 const NavItem = React.forwardRef(function <
   T extends
-    | keyof JSX.IntrinsicElements
-    | React.ComponentType<
-        HTMLAnchorElement | HTMLSpanElement | HTMLFormElement
-      >,
+  | keyof JSX.IntrinsicElements
+  | React.ComponentType<
+    HTMLAnchorElement | HTMLSpanElement | HTMLFormElement
+  >,
 >(
   {
     title,
@@ -30,6 +32,8 @@ const NavItem = React.forwardRef(function <
     as: Component = 'span',
     children,
     onSubmit,
+    isShowSidebarItems,
+    showTitle,
     ...props
   }: NavItemProps,
   ref: ForwardedRef<T>,
@@ -45,7 +49,7 @@ const NavItem = React.forwardRef(function <
         ref={ref as RefObject<HTMLAnchorElement>}
         {...props}
       >
-        {icon && (
+        {isIcon && (
           <span
             className={cn(
               'mr-3 text-black dark:text-white group-hover:text-white hidden',
@@ -56,7 +60,7 @@ const NavItem = React.forwardRef(function <
             {icon}
           </span>
         )}
-        <span>{title}</span>
+        {showTitle&&<span>{title}</span>}
       </Link>
     );
   }
@@ -82,7 +86,7 @@ const NavItem = React.forwardRef(function <
           {icon}
         </span>
       )}
-      {children ? children : <span>{title}</span>}
+      {isShowSidebarItems && children ? children : <span>{title}</span>}
     </Component>
   );
 });

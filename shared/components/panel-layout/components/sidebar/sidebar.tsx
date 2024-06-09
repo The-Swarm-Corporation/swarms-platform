@@ -3,7 +3,7 @@
 import { cn } from '@/shared/utils/cn';
 import { Menu, ChevronsLeft, LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useState } from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
 import useToggle from '@/shared/hooks/toggle';
@@ -17,6 +17,7 @@ const PanelLayoutSidebar = () => {
   const path = usePathname();
   const router = useRouter();
   const { isOn, toggle } = useToggle('off', collapsedMenu);
+  const [showTitle, setShowTitle] = useState(true);
 
   return (
     <>
@@ -24,29 +25,32 @@ const PanelLayoutSidebar = () => {
       <div
         className={cn(
           'max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 max-lg:hidden',
-          isOn && 'max-w-0 -translate-x-full',
+          // isOn && 'max-w-0 -translate-x-full',
         )}
       />
       <div
         className={cn(
           'flex flex-col fixed flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 min-h-screen border-r border-gray-900 max-lg:hidden',
-          isOn && 'max-w-0 -translate-x-full',
+          // isOn && 'max-w-0 -translate-x-full',
+          !showTitle && 'max-w-[90px]',
         )}
       >
-        <Button
+        {/* <Button
           onClick={toggle}
           className={cn(
             'rounded-full absolute -right-4 top-0 max-w-8 h-8 w-full cursor-pointer flex p-0 transition-all duration-300 shadow-md',
-            isOn &&
-              'rounded-l-[12px] rounded-r-sm top-28 -right-10 max-w-[none] w-12 h-[30px]',
+            // isOn &&
+              // 'rounded-l-[12px] rounded-r-sm top-28 -right-10 max-w-[none] w-12 h-[30px]',
           )}
         >
           {isOn ? <Menu /> : <ChevronsLeft />}
-        </Button>
+        </Button> */}
         <div
+          onMouseEnter={() => setShowTitle(true)}
+          onMouseLeave={() => setShowTitle(false)}
           className={cn(
             'flex flex-col justify-between p-4 w-full h-screen visible',
-            isOn && 'invisible',
+            // isOn && 'invisible',
           )}
         >
           <div className="flex flex-col h-[88%] w-[90%]">
@@ -57,9 +61,10 @@ const PanelLayoutSidebar = () => {
                   (subItem) => subItem.link === path,
                 );
                 return (
-                  <div className="flex flex-col gap-2" key={index}>
+                  <div key={index}>
                     <NavItem
                       {...item}
+                      showTitle = {showTitle}
                       isIcon
                       className={cn(
                         'p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md',
@@ -72,6 +77,7 @@ const PanelLayoutSidebar = () => {
                       <div className="flex flex-col gap-2">
                         {item.items?.map((subItem) => (
                           <NavItem
+
                             {...subItem}
                             className={cn(
                               'pl-10  py-1  hover:bg-primary hover:text-white rounded-md',
@@ -92,8 +98,9 @@ const PanelLayoutSidebar = () => {
                 className="w-full"
               >
                 <input type="hidden" name="pathName" value={usePathname()?.toString()} />
-                <button type="submit" className="flex items-center w-full">
-                  <LogOut size={20} className="mr-2" /> Sign out
+                <button type="submit" className="flex items-center justify-start  w-full">
+                  <LogOut size={24} className="mr-2" /> 
+                  {showTitle && <span>SignOut</span>}
                 </button>
               </form>
             </div>
