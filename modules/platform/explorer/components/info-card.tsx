@@ -22,8 +22,6 @@ interface Props {
   link: string
 }
 
-const collapsedMenu = 'collapsedMenu';
-
 const InfoCard = ({
   title,
   description,
@@ -36,7 +34,7 @@ const InfoCard = ({
   promptId,
   link
 }: Props) => {
-
+  const [isButtonHover, setIsButtonHover] = useState(false);
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
@@ -114,7 +112,7 @@ const InfoCard = ({
         )}
       </div>
 
-      <div className='cursor-pointer' onClick={handleShowShareModal}>
+      <div className='cursor-pointer hover:opacity-70' onClick={handleShowShareModal}>
         <svg
           width="95"
           height="25"
@@ -140,19 +138,21 @@ const InfoCard = ({
         target="_blank"
       >
         <div>
-          <svg
-            width="95"
-            height="25"
-            viewBox="0 0 95 25"
-            xmlns="http://www.w3.org/2000/svg"
-            className="preview-svg absolute right-0 bottom-0 scale-x-[2.5] scale-y-[1.8] fill-[#FB0101]"
-          >
-            <path
-              d="M21 0H95V25H0L21 0Z"
-              className="fill-[#FB0101]"
-            />
-          </svg>
-          <div className="absolute right-0 bottom-0 text-white px-4 py-1">
+          <div className='absolute right-0 bottom-0'>
+            <svg
+              width="95"
+              height="25"
+              viewBox="0 0 95 25"
+              xmlns="http://www.w3.org/2000/svg"
+              className="preview-svg scale-x-[2.5] scale-y-[1.8] fill-[#FB0101]"
+            >
+              <path
+                d="M21 0H95V25H0L21 0Z"
+                className={`${isButtonHover ? 'fill-[#c95e5e]' : 'fill-[#FB0101]'}`}
+              />
+            </svg>
+          </div>
+          <div className="absolute right-0 bottom-0 text-white px-4 py-1" onMouseEnter={() => setIsButtonHover(true)} onMouseLeave={() => setIsButtonHover(false)}>
             <div className="relative flex items-center justify-center gap-2 w-[110px]">
               <span>{btnLabel || 'Preview'}</span>
               <svg
