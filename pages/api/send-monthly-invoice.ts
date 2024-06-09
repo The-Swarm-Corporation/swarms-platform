@@ -25,6 +25,7 @@ export default async function handler(
       currentDate.getFullYear(),
       currentDate.getMonth() - 1,
       1,
+      1
     );
 
     if (currentDate.getDate() === lastMonthDate.getDate()) {

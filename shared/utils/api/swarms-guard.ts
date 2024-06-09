@@ -2,6 +2,8 @@ import { Tables } from '@/types_db';
 import { supabaseAdmin } from '../supabase/admin';
 import { getUserOrganizationRole } from './organization';
 import { checkRateLimit } from './rate-limit';
+import { getBillingLimit } from './usage';
+import { currentMonth } from '@/shared/constants/date';
 
 type Options = {
   apiKey: string | null;
@@ -80,9 +82,27 @@ export class SwarmsApiGuard {
         return { status: 401, message: 'User is not part of the organization' };
       }
 
-      //TODO: Rewrite the checkRateLimit function so organization ownerId does not clash when it becomes userOwnerId, add request_count to organizations table
       // check rate limit - set for organizations only
-      const isAllowed = await checkRateLimit(org.data.owner_user_id ?? '');
+      const orgMembers = await supabaseAdmin
+        .from('swarms_cloud_organization_members')
+        .select('user_id')
+        .eq('organization_id', orgId);
+
+      const onlyOrgMembers = (orgMembers.data || [])?.filter(
+        (m) => m.user_id !== org.data?.owner_user_id,
+      );
+
+      for (const member of onlyOrgMembers) {
+        const isAllowed = await checkRateLimit(member.user_id ?? '', 50);
+        if (!isAllowed) {
+          return {
+            status: 429,
+            message: 'Too Many Requests. Please try again later.',
+          };
+        }
+      }
+
+      const isAllowed = await checkRateLimit(org.data.owner_user_id ?? '', 100);
       if (!isAllowed) {
         return {
           status: 429,
@@ -91,13 +111,19 @@ export class SwarmsApiGuard {
       }
     }
 
-    // check billing limits: SOON
+    const isBillingAllowed = await getBillingLimit(this.userId, currentMonth);
+    if (isBillingAllowed.status !== 200) {
+      return {
+        status: isBillingAllowed.status,
+        message: isBillingAllowed.message,
+      };
+    }
 
     // check user is not banned: SOON
 
     // check rate limit - set for users only
     if (!this.organizationPublicId) {
-      const isAllowed = await checkRateLimit(this.userId, 40);
+      const isAllowed = await checkRateLimit(this.userId, 50);
       if (!isAllowed) {
         return {
           status: 429,

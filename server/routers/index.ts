@@ -7,6 +7,7 @@ import publicPlaygroundRouter from './public-playground';
 import explorerRouter from './explorer';
 import apiKeyRouter from './api-key';
 import { organizationRouter } from './organization';
+import dashboardRouter from './dashboard';
 
 export const appRouter = router({
   main: mainRouter,
@@ -17,5 +18,6 @@ export const appRouter = router({
   publicPlayground: publicPlaygroundRouter,
   explorer: explorerRouter,
   organization: organizationRouter,
+  dashboard: dashboardRouter,
 });
 export type AppRouter = typeof appRouter;

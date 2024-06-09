@@ -207,6 +207,7 @@ export async function addPaymentMethodIfNotExists(
   const existingPaymentMethod = paymentMethods.data.find(
     (method) => method.card?.fingerprint === paymentMethod.card?.fingerprint,
   );
+  
   if (existingPaymentMethod) {
     throw new Error('Payment method already exists');
   }

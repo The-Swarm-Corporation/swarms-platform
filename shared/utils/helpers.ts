@@ -167,7 +167,7 @@ export const formatDate = (date: string) => {
 export const commaSeparated = (value: number) =>
   value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-export const formatSepndTime = (value: number) => {
+export const formatSpentTime = (value: number) => {
   // convert seconds to : months, days, hours, minutes, seconds
   const months = Math.floor(value / 2592000);
   const days = Math.floor((value % 2592000) / 86400);
@@ -177,15 +177,15 @@ export const formatSepndTime = (value: number) => {
 
   // return the biggest unit that is not 0
   if (months > 0) {
-    return `${months} months`;
+    return `${months} month${months > 1 ? 's' : ''}`;
   } else if (days > 0) {
-    return `${days} days`;
+    return `${days} day${days > 1 ? 's' : ''}`;
   } else if (hours > 0) {
-    return `${hours} hours`;
+    return `${hours} hour${hours > 1 ? 's' : ''}`;
   } else if (minutes > 0) {
-    return `${minutes} minutes`;
+    return `${minutes} minute${minutes > 1 ? 's' : ''}`;
   } else {
-    return `${seconds} seconds`;
+    return `${seconds} second${seconds > 1 ? 's' : ''}`;
   }
 };
 
@@ -255,7 +255,7 @@ export const createQueryString = (name: string, value: string) => {
   return params.toString();
 };
 
-export const openShareWindow= (platform: string, details: ShareDetails) => {
+export const openShareWindow = (platform: string, details: ShareDetails) => {
   const { message, link, subject } = details;
   const encodedLink = encodeURIComponent(link);
   let url = '';
@@ -285,6 +285,23 @@ export const openShareWindow= (platform: string, details: ShareDetails) => {
   window.open(url, '_blank');
 };
 
+export const getMonthStartEndDates = (month: Date) => {
+  const start = new Date(
+    month.getFullYear(),
+    month.getMonth(),
+    1,
+    1,
+  ).toISOString();
 
+  const end = new Date(
+    month.getFullYear(),
+    month.getMonth() + 1,
+    0,
+    24,
+    59,
+    59,
+    999,
+  ).toISOString();
 
-
+  return { start, end };
+};

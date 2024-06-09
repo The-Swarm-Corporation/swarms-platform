@@ -2,7 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { BillingService } from '@/shared/utils/api/billing-service';
 import { User } from '@supabase/supabase-js';
 import { checkRateLimit } from '@/shared/utils/api/rate-limit';
-import { getOrganizationUsage, userAPICluster } from '@/shared/utils/api/usage';
+import {
+  getBillingLimit,
+  getOrganizationUsage,
+  userAPICluster,
+} from '@/shared/utils/api/usage';
+import { currentMonth } from '@/shared/constants/date';
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,18 +15,19 @@ export default async function handler(
 ) {
   try {
     const currentDate = new Date();
-    const lastMonthDate = new Date(
+    const month = new Date(
       currentDate.getFullYear(),
-      currentDate.getMonth(),
+      currentDate.getMonth() - 1,
+      1,
       1,
     );
 
-    // if (currentDate.getDate() === lastMonthDate.getDate()) {
-    //   console.log('Skipping invoice generation for current month');
-    //   return res
-    //     .status(200)
-    //     .json({ message: 'Skipping invoice generation for current month' });
-    // }
+    if (currentDate.getDate() === month.getDate()) {
+      console.log('Skipping invoice generation for current month');
+      return res
+        .status(200)
+        .json({ message: 'Skipping invoice generation for current month' });
+    }
 
     const user = {
       id: '',
@@ -33,7 +39,7 @@ export default async function handler(
 
     const billingService = new BillingService(user.id);
     // const usage =
-    //   await billingService.calculateTotalMonthlyUsage(lastMonthDate);
+    //   await billingService.calculateTotalMonthlyUsage(month);
 
     // console.dir(usage, { depth: null });
 
@@ -43,9 +49,13 @@ export default async function handler(
 
     // const invoiceStatus = await billingService.checkInvoicePaymentStatus("");
 
-    const cluster = await getOrganizationUsage(user.id, lastMonthDate);
+    // const cluster = await getOrganizationUsage(user.id, month);
 
-    console.dir(cluster, { depth: null });
+    // const billingLimit = await getBillingLimit(user.id, month);
+
+    const rateLimit = await checkRateLimit(user.id, 2)
+
+    console.dir(rateLimit, { depth: null });
 
     return res.status(200).json({ message: 'Invoice status successful' });
   } catch (error) {

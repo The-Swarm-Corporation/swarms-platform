@@ -1,4 +1,6 @@
+import Decimal from 'decimal.js';
 import { supabaseAdmin } from '../supabase/admin';
+import { getMonthStartEndDates } from '../helpers';
 
 // User Types
 export type DailyCost = {
@@ -57,16 +59,7 @@ export async function userAPICluster(
   month: Date,
 ): Promise<UsageResponse> {
   try {
-    const monthStart = new Date(
-      month.getFullYear(),
-      month.getMonth(),
-      1,
-    ).toISOString();
-    const monthEnd = new Date(
-      month.getFullYear(),
-      month.getMonth() + 1,
-      0,
-    ).toISOString();
+    const { start, end } = getMonthStartEndDates(month);
 
     // Fetch direct user activities (excluding organization activities)
     const { data: userActivities, error: userError } = await supabaseAdmin
@@ -76,8 +69,8 @@ export async function userAPICluster(
       )
       .eq('user_id', userId)
       .is('organization_id', null)
-      .gte('created_at', monthStart)
-      .lte('created_at', monthEnd);
+      .gte('created_at', start)
+      .lte('created_at', end);
 
     if (userError) {
       console.error('Error fetching user activities:', userError);
@@ -110,8 +103,8 @@ export async function userAPICluster(
         `,
       )
       .not('organization_id', 'is', null)
-      .gte('created_at', monthStart)
-      .lte('created_at', monthEnd)
+      .gte('created_at', start)
+      .lte('created_at', end)
       .eq('swarms_cloud_organizations.owner_user_id', userId);
 
     if (orgError) {
@@ -211,16 +204,7 @@ export async function getOrganizationUsage(
   month: Date,
 ): Promise<OrganizationResponse> {
   try {
-    const monthStart = new Date(
-      month.getFullYear(),
-      month.getMonth(),
-      1,
-    ).toISOString();
-    const monthEnd = new Date(
-      month.getFullYear(),
-      month.getMonth() + 1,
-      0,
-    ).toISOString();
+    const { start, end } = getMonthStartEndDates(month);
 
     // Check if the user has an organization
     const { data: organizationData, error: organizationError } =
@@ -261,8 +245,8 @@ export async function getOrganizationUsage(
       `,
       )
       .eq('organization_id', organizationId)
-      .gte('created_at', monthStart)
-      .lte('created_at', monthEnd);
+      .gte('created_at', start)
+      .lte('created_at', end);
 
     if (orgError) {
       console.error('Error fetching organization activities:', orgError);
@@ -342,6 +326,108 @@ export async function getOrganizationUsage(
       status: 500,
       message: 'Internal server error',
       organization: {} as any,
+    };
+  }
+}
+
+export async function getBillingLimit(
+  userId: string,
+  month: Date,
+): Promise<UsageResponse> {
+  try {
+    const { start, end } = getMonthStartEndDates(month);
+
+    // Fetch user details
+    const { data: user, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('credit_plan, credit_limit')
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user details:', userError);
+      return {
+        status: 404,
+        message: 'User not found',
+      };
+    }
+
+    if (user.credit_plan !== 'invoice') {
+      return {
+        status: 200,
+        message: 'User is not on an invoice plan',
+      };
+    }
+
+    // Fetch direct user activities (excluding organization activities)
+    const { data: userActivities, error: userActivitiesError } =
+      await supabaseAdmin
+        .from('swarms_cloud_api_activities')
+        .select('invoice_total_cost, created_at')
+        .eq('user_id', userId)
+        .is('organization_id', null)
+        .gte('created_at', start)
+        .lte('created_at', end);
+
+    if (userActivitiesError) {
+      console.error('Error fetching user activities:', userActivitiesError);
+      return {
+        status: 500,
+        message: 'Internal server error',
+      };
+    }
+
+    // Fetch activities for organizations where the user is the owner
+    const { data: orgActivities, error: orgActivitiesError } =
+      await supabaseAdmin
+        .from('swarms_cloud_api_activities')
+        .select(
+          'invoice_total_cost, created_at, organization_id, swarms_cloud_organizations!inner(owner_user_id)',
+        )
+        .not('organization_id', 'is', null)
+        .gte('created_at', start)
+        .lte('created_at', end)
+        .eq('swarms_cloud_organizations.owner_user_id', userId);
+
+    if (orgActivitiesError) {
+      console.error(
+        'Error fetching organization activities:',
+        orgActivitiesError,
+      );
+      return {
+        status: 500,
+        message: 'Internal server error',
+      };
+    }
+
+    // Combine user and organization activities
+    const allActivities = [...userActivities, ...orgActivities];
+
+    // Calculate the total invoice cost
+    const userInvoiceTotalCost = allActivities.reduce((acc, item) => {
+      return acc.plus(new Decimal(item.invoice_total_cost || 0));
+    }, new Decimal(0));
+
+    // Check if the total invoice cost exceeds the user's credit limit
+    const creditLimit = new Decimal(user.credit_limit);
+    const hasExceeded = userInvoiceTotalCost.greaterThanOrEqualTo(creditLimit);
+
+    if (hasExceeded) {
+      return {
+        status: 403,
+        message: 'You have exceeded your billing limit',
+      };
+    }
+
+    return {
+      status: 200,
+      message: 'Within credit limit',
+    };
+  } catch (error) {
+    console.error('Error calculating total monthly usage:', error);
+    return {
+      status: 500,
+      message: 'Internal server error',
     };
   }
 }

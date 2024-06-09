@@ -1018,6 +1018,7 @@ export type Database = {
           company_name: string | null
           country_code: string | null
           credit_fraction: number | null
+          credit_limit: number
           credit_plan: Database["public"]["Enums"]["credit_plan"]
           email: string | null
           full_name: string | null
@@ -1037,6 +1038,7 @@ export type Database = {
           company_name?: string | null
           country_code?: string | null
           credit_fraction?: number | null
+          credit_limit?: number
           credit_plan?: Database["public"]["Enums"]["credit_plan"]
           email?: string | null
           full_name?: string | null
@@ -1056,6 +1058,7 @@ export type Database = {
           company_name?: string | null
           country_code?: string | null
           credit_fraction?: number | null
+          credit_limit?: number
           credit_plan?: Database["public"]["Enums"]["credit_plan"]
           email?: string | null
           full_name?: string | null
