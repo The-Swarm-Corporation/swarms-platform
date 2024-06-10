@@ -9,13 +9,14 @@ import { Check } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
+const TIME_IN_MIN = 10;
 const Dashboard = () => {
   const subscription = useSubscription();
 
   const userRequests = trpc.dashboard.getUserRequestCount.useQuery();
   const requestCount = userRequests.data ?? 0;
   const timeSaved = useMemo(() => {
-    const timeInSecs = 5 * 60;
+    const timeInSecs = TIME_IN_MIN * 60;
     const estimatedTimeSaved = requestCount * timeInSecs;
 
     return formatSpentTime(
