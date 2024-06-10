@@ -48,16 +48,16 @@ const PanelLayoutSidebar = () => {
                   <div key={index}>
                     <NavItem
                       {...item}
-                      showTitle = {showTitle}
+                      showTitle={showTitle}
                       isIcon
                       className={cn(
                         'p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md',
                         (isSubMenuActive || item.link === path) &&
-                          'bg-primary text-white',
+                        'bg-primary text-white',
                       )}
                     />
                     {/* sub items */}
-                    {isSubMenuActive && item.items?.length && (
+                    {isSubMenuActive && showTitle && item.items?.length && (
                       <div className="flex flex-col gap-2">
                         {item.items?.map((subItem) => (
                           <NavItem
@@ -66,7 +66,8 @@ const PanelLayoutSidebar = () => {
                             className={cn(
                               'pl-10  py-1  hover:bg-primary hover:text-white rounded-md',
                               subItem.link === path &&
-                                'border border-gray-400 dark:text-white',
+                              // 'border border-gray-400 dark:text-white',
+                              'bg-primary'
                             )}
                             showTitle
                           />
@@ -84,7 +85,7 @@ const PanelLayoutSidebar = () => {
               >
                 <input type="hidden" name="pathName" value={usePathname()?.toString()} />
                 <button type="submit" className="flex items-center justify-start  w-full">
-                  <LogOut size={24} className="mr-2" /> 
+                  <LogOut size={24} className="mr-2" />
                   {showTitle && <span>SignOut</span>}
                 </button>
               </form>
