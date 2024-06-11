@@ -160,7 +160,7 @@ const InfoCard = ({
 
       </div>
       <div className='flex flex-col justify-end'>
-        <div className='flex flex-col justify-end items-center ml-auto bg-gray-300 rounded-md p-2 w-[42px]'>
+        <div className='flex flex-col justify-end items-center ml-auto bg-gray-200 rounded-md p-2 w-[42px]'>
           <Link href={link && link}
             target="_blank">
             <Ellipsis color='red' className='cursor-pointer hover:scale-125' />
