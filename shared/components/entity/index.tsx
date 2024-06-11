@@ -2,7 +2,7 @@
 
 import React, { PropsWithChildren, useState } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
-import ReactMarkdown from 'react-markdown';
+import Markdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Facebook, Linkedin, Send, Share2, Twitter } from 'lucide-react';
@@ -10,6 +10,7 @@ import { useToast } from '../ui/Toasts/use-toast';
 import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
 import { usePathname } from 'next/navigation';
 import Modal from '../modal';
+import remarkGfm from 'remark-gfm';
 
 type UseCasesProps = { title: string; description: string }[];
 interface Entity extends PropsWithChildren {
@@ -61,7 +62,15 @@ export default function EntityComponent({
 }: Entity) {
 
   const toast = useToast();
-
+  const preprocessMarkdown = (content: string | undefined) => {
+    // Regular expression to match any string inside angle brackets
+    const tagPattern = /(<\/?[^>]+>)/g;
+    if (!content) {
+      return
+    }
+    // Add new lines around the tags
+    return content.replace(tagPattern, '\n$1\n');
+  };
   const pathName = usePathname()
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
@@ -136,9 +145,9 @@ export default function EntityComponent({
       {usecases && <UseCases usecases={usecases} />}
       {isPrompt && (
         <div className="relative my-10">
-          <ReactMarkdown
-            className="bg-gray-800 text-white p-5 py-7 rounded-lg overflow-auto"
-            children={prompt ?? ''}
+          <Markdown
+            className="bg-gray-800 text-white p-5 py-7 rounded-lg leading-normal overflow-hidden white-space-normal whitespace-pre-line"
+            remarkPlugins={[remarkGfm]}
             components={{
               code({ node, className, children, ...props }) {
                 const match = /language-(\w+)/.exec(className || '');
@@ -157,7 +166,9 @@ export default function EntityComponent({
                 );
               },
             }}
-          />
+          >
+            {preprocessMarkdown(prompt) ?? ''}
+          </Markdown >
           <Copy
             size={30}
             className="absolute top-2 right-2 p-1 text-primary cursor-pointer"
