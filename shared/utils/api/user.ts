@@ -76,3 +76,31 @@ export const updateFreeCreditsOnSignin = async (id: string): Promise<void> => {
     console.error('Error updating free credits:', error);
   }
 };
+
+export const getUserById = async (id: string) => {
+  if (!id) {
+    return; // Early return for invalid input
+  }
+
+  try {
+    // Fetch user data and check for existing free credits
+    const { data: user } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    // Check for email confirmation
+    const { data } = await createClient().auth.getUser();
+
+    if (!data?.user?.email_confirmed_at) {
+      return; // User email not confirmed
+    }
+
+    return user; // Return user object if all checks pass
+
+  } catch (error) {
+    console.error('Error updating free credits:', error);
+  }
+};
+

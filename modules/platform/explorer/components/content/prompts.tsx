@@ -28,7 +28,6 @@ export default function Prompts({
         ) : filteredPrompts.length > 0 ? (
           filteredPrompts?.map((prompt: any) => (
             <div className='flex flex-col w-full h-[220px] sm:w-full mb-11' key={prompt.id}>
-       
               <InfoCard
                 title={prompt.name || ''}
                 description={prompt.prompt || ''}
@@ -37,6 +36,7 @@ export default function Prompts({
                 isRating={true}
                 promptId={prompt.id}
                 link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
+                userId={prompt.user_id}
               />
             </div>
           ))
