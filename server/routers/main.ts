@@ -35,6 +35,33 @@ const mainRouter = router({
       username: user_data.data.username,
     };
   }),
+  getUserById: userProcedure
+    .input(z.object({
+      userId: z.string(),
+    }))
+    .query(async ({ input, ctx }) => {
+      const { userId } = input;
+
+      const user_data = await ctx.supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (user_data.error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error while fetching user data',
+        });
+      }
+
+      return {
+        full_name: user_data.data.full_name,
+        email: user_data.data.email,
+        id: user_data.data.id,
+        username: user_data.data.username,
+      };
+    }),
   updateUsername: userProcedure
     .input(
       z.object({

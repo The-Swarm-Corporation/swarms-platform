@@ -1,13 +1,14 @@
 'use client'
 import { cn } from '@/shared/utils/cn';
 import { ShareDetails, formatPrice, getTruncatedString, makeUrl, openShareWindow } from '@/shared/utils/helpers';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useQueryMutation } from '../../settings/organization/hooks/organizations';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import { Facebook, Linkedin, Send, Share2, Twitter } from 'lucide-react';
+import { Facebook, Linkedin, Send, Share2, Twitter, User } from 'lucide-react';
 import Modal from '@/shared/components/modal';
 import useToggle from '@/shared/hooks/toggle';
+import { trpc } from '@/shared/utils/trpc/trpc';
 
 interface Props {
   title: string;
@@ -19,7 +20,8 @@ interface Props {
   output?: number | null;
   isRating?: boolean;
   promptId?: any;
-  link: string
+  link: string;
+  userId?: string
 }
 
 const InfoCard = ({
@@ -32,17 +34,20 @@ const InfoCard = ({
   output,
   isRating,
   promptId,
+  userId,
   link
 }: Props) => {
   const [isButtonHover, setIsButtonHover] = useState(false);
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+  const [userName, setUserName] = useState<string>('')
 
   const toast = useToast();
 
   const { isOff, setOn, setOff, toggle } = useToggle();
 
   const { query } = useQueryMutation();
+  const { data, error, isLoading } = trpc.main.getUserById.useQuery({ userId: userId ?? '' });
 
   const handleRatingClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!query.members.data?.length) {
@@ -50,6 +55,12 @@ const InfoCard = ({
       toast.toast({ description: 'Organization has no members' });
     }
   };
+
+  useEffect(() => {
+    if (data) {
+      setUserName(data?.username ?? '');
+    }
+  }, [data]);
 
   const handleShowShareModal = () => {
     setOn();
@@ -99,6 +110,15 @@ const InfoCard = ({
       <div className="h-4/5 flex flex-col overflow-y-auto no-scrollbar">
         <div className="flex flex-col gap-2 flex-grow">
           <h1 className="text-xl sm:text-2xl font-bold">{title}</h1>
+          {
+            userName && (<div className='flex items-center justify-start text-sm'>
+              <User />
+              <span className='ml-1'>
+                {userName}
+              </span>
+            </div>
+            )
+          }
           <span title={description} className="text-sm">
             {getTruncatedString(description, 100)}
           </span>

@@ -37,6 +37,7 @@ export default function Prompts({
                 isRating={true}
                 promptId={prompt.id}
                 link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
+                userId={prompt.user_id}
               />
             </div>
           ))
