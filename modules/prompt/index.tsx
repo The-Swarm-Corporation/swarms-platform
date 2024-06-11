@@ -7,6 +7,7 @@ const Prompt = async ({ id }: { id: string }) => {
   if (!prompt) {
     redirect('/404');
   }
+
   const tags = prompt?.tags?.split(',') || [];
   const usecases = (prompt?.use_cases ?? []) as {
     title: string;
