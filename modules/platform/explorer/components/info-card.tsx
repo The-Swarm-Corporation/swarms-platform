@@ -21,7 +21,7 @@ interface Props {
   isRating?: boolean;
   promptId?: any;
   link: string;
-  userId: string
+  userId?: string
 }
 
 const InfoCard = ({
@@ -47,7 +47,12 @@ const InfoCard = ({
   const { isOff, setOn, setOff, toggle } = useToggle();
 
   const { query } = useQueryMutation();
-  const { data, error, isLoading } = trpc.main.getUserById.useQuery({ userId });
+  if (userId) {
+    const { data, error, isLoading } = trpc.main.getUserById.useQuery({ userId });
+    if (data) {
+      setUserName(data?.username ?? '');
+    }
+  }
 
   const handleRatingClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!query.members.data?.length) {
@@ -55,12 +60,6 @@ const InfoCard = ({
       toast.toast({ description: 'Organization has no members' });
     }
   };
-
-  useEffect(() => {
-    if (data) {
-      setUserName(data?.username ?? '');
-    }
-  }, [data]);
 
   const handleShowShareModal = () => {
     setOn();
