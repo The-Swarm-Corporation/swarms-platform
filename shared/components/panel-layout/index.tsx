@@ -17,7 +17,7 @@ const PanelLayout = async ({ children }: { children: React.ReactNode }) => {
         <PanelLayoutSidebar />
         {/* content */}
         {/* <Navbar /> */}
-        <div className="flex container lg:max-w-7xl lg:px-12 h-full mx-auto py-8 max-lg:z-10">
+        <div className="flex container lg:max-w-full lg:px-12 h-full mx-auto py-8 max-lg:z-10">
           {children}
         </div>
       </div>
