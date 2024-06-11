@@ -132,13 +132,13 @@ const InfoCard = ({
           {
             userData && (<div className='flex items-center justify-start'>
               <User />
-              <span className=' border-red-600 p-[2px] rounded-sm border'>
+              <span className=''>
                 {userData?.username}
               </span>
             </div>
             )
           }
-          <div className='flex items-center justify-center w-full h-full'>
+          <div className='flex items-center justify-start w-full h-full'>
             <span title={description} className="text-md">
               {getTruncatedString(description, 100)}
             </span>
