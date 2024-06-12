@@ -4,6 +4,8 @@ import Navbar from '@/shared/components/ui/Navbar';
 import { PropsWithChildren } from 'react';
 import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
+import PanelLayoutSidebar from '@/shared/components/panel-layout/components/sidebar/sidebar';
+import { createClient } from '@/shared/utils/supabase/server';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -52,9 +54,16 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 export default async function RootLayout({ children }: PropsWithChildren) {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <>
       <Navbar />
+      {user && <PanelLayoutSidebar />}
       <main className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]">
         {children}
       </main>
