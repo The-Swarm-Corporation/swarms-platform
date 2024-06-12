@@ -6,6 +6,7 @@ import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
 import PanelLayoutSidebar from '@/shared/components/panel-layout/components/sidebar/sidebar';
 import { createClient } from '@/shared/utils/supabase/server';
+import NavbarSearch from '@/shared/components/panel-layout/components/navbar/components/search';
 
 export const viewport: Viewport = {
   themeColor: [
