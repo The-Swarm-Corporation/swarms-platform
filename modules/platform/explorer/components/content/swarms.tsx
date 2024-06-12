@@ -50,6 +50,7 @@ export default function Swarms({
                 icon={<Bot />}
                 className="w-full h-full"
                 btnLabel="Get Started"
+                userId={swarm.user_id}
                 link={makeUrl(PUBLIC.SWARM, { name: swarm.name })}
               />
             </div>

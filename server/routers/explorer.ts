@@ -339,7 +339,7 @@ const explorerRouter = router({
     .query(async ({ ctx, input }) => {
       const swarm = await ctx.supabase
         .from('swarms_cloud_user_swarms')
-        .select('id,name,description,use_cases,tags,status')
+        .select('id,name,description,use_cases,tags,status, user_id')
         .eq('name', input)
         .eq('status', 'approved');
       return swarm.data?.[0];

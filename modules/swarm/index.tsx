@@ -19,6 +19,7 @@ const Swarm = async ({ name }: { name: string }) => {
       description={swarm.description || 'No description provided'}
       tags={tags}
       usecases={usecases}
+      userId={swarm.user_id}
     />
   );
 };
