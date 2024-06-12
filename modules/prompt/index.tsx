@@ -21,6 +21,7 @@ const Prompt = async ({ id }: { id: string }) => {
       description={prompt.description ?? ''}
       name={prompt.name ?? ''}
       prompt={prompt.prompt ?? ''}
+      userId={prompt.user_id ?? ''}
     />
   );
 };

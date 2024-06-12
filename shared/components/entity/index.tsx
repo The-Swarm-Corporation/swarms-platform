@@ -1,16 +1,17 @@
 'use client';
 
-import React, { PropsWithChildren, useState } from 'react';
+import React, { PropsWithChildren, useEffect, useState } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import Markdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Facebook, Linkedin, Send, Share2, Twitter } from 'lucide-react';
+import { Copy, Facebook, Linkedin, Send, Share2, Twitter, User } from 'lucide-react';
 import { useToast } from '../ui/Toasts/use-toast';
 import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
 import { usePathname } from 'next/navigation';
 import Modal from '../modal';
 import remarkGfm from 'remark-gfm';
+import { trpc } from '@/shared/utils/trpc/trpc';
 
 type UseCasesProps = { title: string; description: string }[];
 interface Entity extends PropsWithChildren {
@@ -20,6 +21,7 @@ interface Entity extends PropsWithChildren {
   description?: string;
   usecases?: UseCasesProps;
   prompt?: string;
+  userId?: string | null
 }
 
 function UseCases({ usecases }: { usecases: UseCasesProps }) {
@@ -59,6 +61,7 @@ export default function EntityComponent({
   description,
   usecases,
   children,
+  userId
 }: Entity) {
 
   const toast = useToast();
@@ -74,8 +77,10 @@ export default function EntityComponent({
   const pathName = usePathname()
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+  const [userName, setUserName] = useState<string>('')
 
   const isPrompt = title.toLowerCase() === 'prompt';
+  const { data, error, isLoading } = trpc.main.getUserById.useQuery({ userId: userId ?? '' });
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -87,6 +92,12 @@ export default function EntityComponent({
       console.error('Failed to copy: ', error);
     }
   }
+
+  useEffect(() => {
+    if (data) {
+      setUserName(data?.username ?? '');
+    }
+  }, [data]);
 
   const handleShowShareModal = () => {
     setIsShowModalOpen(true);
@@ -120,6 +131,15 @@ export default function EntityComponent({
         <h2>{title}</h2>
 
         {name && <h1 className='text-6xl'>{name}</h1>}
+        {
+          userName && (<div className='flex items-center justify-start text-sm mt-4'>
+            <User />
+            <span className='ml-1'>
+              {userName}
+            </span>
+          </div>
+          )
+        }
         {description && (
           <div className="text-base mt-4 text-gray-400">{description}</div>
         )}
