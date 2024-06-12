@@ -34,8 +34,6 @@ export default function Prompts({
                 description={prompt.prompt || ''}
                 icon={<Terminal />}
                 className="w-full h-full"
-                isRating={true}
-                promptId={prompt.id}
                 link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
                 userId={prompt.user_id}
               />
