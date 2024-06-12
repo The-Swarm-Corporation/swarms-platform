@@ -62,7 +62,7 @@ const NavItem = React.forwardRef(function <
             {icon}
           </span>
         )}
-        {showTitle&&<span>{title}</span>}
+        {showTitle&&<span className='whitespace-nowrap'>{title}</span>}
       </Link>
     );
   }

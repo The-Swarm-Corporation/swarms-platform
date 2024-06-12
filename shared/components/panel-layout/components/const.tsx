@@ -98,7 +98,7 @@ export const SIDE_BAR_MENU: NavMenuProps = {
     },
     {
       icon: <LockKeyhole size={24} />,
-      title: 'APIKeys',
+      title: 'API Keys',
       link: PLATFORM.API_KEYS,
   },
     {
