@@ -104,7 +104,7 @@ const InfoCard = ({
         className,
       )}
     >
-      <div className="flex items-center justify-center h-10 bg-primary text-white rounded-full aspect-square">
+      <div className="flex items-center justify-center h-10 bg-primary text-white rounded-lg aspect-square">
         {icon}
       </div>
       <div className="h-4/5 flex flex-col overflow-y-auto no-scrollbar">
