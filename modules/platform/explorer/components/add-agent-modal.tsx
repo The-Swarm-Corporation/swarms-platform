@@ -17,6 +17,7 @@ interface Props {
 const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
     const [agentName, setAgentName] = useState('');
     const [description, setDescription] = useState('');
+    const [agent, setAgent] = useState('')
     const [tags, setTags] = useState('');
     const [useCases, setUseCases] = useState<
         {
@@ -31,6 +32,13 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
     ]);
 
     const validateAgent = trpc.explorer.validateAgent.useMutation();
+
+    const debouncedCheckPrompt = useMemo(() => {
+        const debouncedFn = debounce((value: string) => {
+            validateAgent.mutateAsync(value);
+        }, 400);
+        return debouncedFn;
+    }, []);
 
     const toast = useToast();
 
@@ -86,6 +94,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         addAgent
             .mutateAsync({
                 name: agentName,
+                agent,
                 description,
                 useCases,
                 tags: trimTags,
@@ -130,6 +139,48 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
                         placeholder="Enter description"
                         className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
                     />
+                </div>
+                <div className="flex flex-col gap-1">
+                    <span>Agent</span>
+                    <div className="relatvie">
+                        <textarea
+                            value={agent}
+                            onChange={(v) => {
+                                setAgent(v.target.value);
+                                debouncedCheckPrompt(v.target.value);
+                            }}
+                            required
+                            placeholder="Enter prompt here..."
+                            className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+                        />
+                        {validateAgent.isPending ? (
+                            <div className="absolute right-2 top-2">
+                                <LoadingSpinner />
+                            </div>
+                        ) : (
+                            <div className="absolute right-2.5 top-2.5">
+                                {agent.length > 0 && validateAgent.data && (
+                                    <span
+                                        className={
+                                            validateAgent.data.valid
+                                                ? 'text-green-500'
+                                                : 'text-red-500'
+                                        }
+                                    >
+                                        {validateAgent.data.valid ? '✅' : ''}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                    {agent.length > 0 &&
+                        !validateAgent.isPending &&
+                        validateAgent.data &&
+                        !validateAgent.data.valid && (
+                            <span className="text-red-500 text-sm">
+                                {validateAgent.data.error}
+                            </span>
+                        )}
                 </div>
                 <div className="flex flex-col gap-1">
                     <span>Tags</span>

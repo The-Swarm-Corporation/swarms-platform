@@ -373,6 +373,7 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_agents" (
     "agent" "text",
     "name" "text",
     "use_cases" "json",
+    "agent" "text",
     "status" "public"."user_agents_status",
     "tags" "text",
     "description" "text"

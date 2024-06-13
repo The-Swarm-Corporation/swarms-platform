@@ -375,6 +375,7 @@ const explorerRouter = router({
     .input(
       z.object({
         name: z.string().optional(),
+        agent: z.string().optional(),
         description: z.string().optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
