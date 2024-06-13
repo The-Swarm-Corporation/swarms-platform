@@ -375,15 +375,14 @@ const explorerRouter = router({
     .input(
       z.object({
         name: z.string().optional(),
-        agent: z.string(),
         description: z.string().optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (!input.agent) {
-        throw 'Agent is required';
+      if (!input.description) {
+        throw 'Description is required';
       }
 
       // at least 5 characters
@@ -414,7 +413,6 @@ const explorerRouter = router({
       try {
         const agents = await ctx.supabase.from('swarms_cloud_agents').insert([
           {
-            agent: input.agent || null, // Convert `undefined` to `null`
             name: input.name || null, // Convert `undefined` to `null` if name is optional
             description: input.description || null, // Convert `undefined` to `null`
             user_id: user_id,
