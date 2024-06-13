@@ -37,7 +37,7 @@ export default function Navlinks({ user }: NavlinksProps) {
           <Link href={DISCORD} className={cn(s.link, 'hidden md:inline')}>
             Community
           </Link>
-          <Link href="https://swarms.apac.ai/en/latest/" className={s.link}>
+          <Link href="https://docs.swarms.world/en/latest/" className={s.link}>
             Docs
           </Link>
           {user && (
@@ -76,7 +76,7 @@ export default function Navlinks({ user }: NavlinksProps) {
                   Community
                 </Link>
                 <Link
-                  href="https://swarms.apac.ai/en/latest/"
+                  href="https://docs.swarms.world/en/latest/"
                   className={s.link}
                 >
                   Docs

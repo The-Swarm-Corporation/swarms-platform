@@ -21,7 +21,7 @@ export const PUBLIC = {
   PROMPT: '/prompt/{id}',
 };
 
-const SWARMS_DOCS = 'https://swarms.apac.ai/en/latest/';
+const SWARMS_DOCS = 'https://docs.swarms.world/en/latest/';
 export const SWARMS_GITHUB = 'https://github.com/kyegomez/swarms';
 export const DISCORD = 'https://discord.gg/gRXy5mpFHz';
 export const SWARM_CALENDLY = 'https://calendly.com/swarm-corp/30min';

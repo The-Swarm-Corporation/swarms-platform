@@ -41,7 +41,7 @@ export default function Footer() {
             </li>
             <li className="py-3 md:py-0 md:pb-4">
               <Link
-                href="https://swarms.apac.ai/en/latest/"
+                href="https://docs.swarms.world/en/latest/"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
                 Blog
@@ -49,7 +49,7 @@ export default function Footer() {
             </li>
             <li className="py-3 md:py-0 md:pb-4">
               <Link
-                href="https://swarms.apac.ai/en/latest/"
+                href="https://docs.swarms.world/en/latest/"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
                 Documentation

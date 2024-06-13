@@ -145,7 +145,7 @@ const Dashboard = () => {
             <span className="text-muted-foreground">
               Learn more about Swarms through our documentation.
             </span>
-            <Link href="https://swarms.apac.ai/en/latest/">
+            <Link href="https://docs.swarms.world/en/latest/">
               <Button className="mt-4 hover:bg-red-900" variant={'default'}>
                 Documention
               </Button>
