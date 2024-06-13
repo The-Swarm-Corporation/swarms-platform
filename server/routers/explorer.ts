@@ -174,7 +174,7 @@ const explorerRouter = router({
           throw swarm.error;
         }
         return true;
-      } catch (e) {}
+      } catch (e) { }
     }),
   // Validate prompt
   validatePrompt: userProcedure
@@ -344,6 +344,112 @@ const explorerRouter = router({
         .eq('status', 'approved');
       return swarm.data?.[0];
     }),
+
+  //agents
+  validateAgent: userProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const agent = input;
+      // at least 5 characters
+      if (agent.length < 5) {
+        return {
+          error: 'Agent should be at least 5 characters',
+          valid: false,
+        };
+      }
+
+      const user_id = ctx.session.data.session?.user?.id || '';
+      const agentData = await ctx.supabase
+        .from('swarms_cloud_agents')
+        .select('*')
+        .eq('agent', agent)
+        .eq('user_id', user_id);
+      const exists = (agentData.data ?? [])?.length > 0;
+      return {
+        valid: !exists,
+        error: exists ? 'Agent already exists' : '',
+      };
+    }),
+  // Add agent
+  addAgent: userProcedure
+    .input(
+      z.object({
+        name: z.string().optional(),
+        agent: z.string(),
+        description: z.string().optional(),
+        useCases: z.array(z.any()),
+        tags: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!input.agent) {
+        throw 'Agent is required';
+      }
+
+      // at least 5 characters
+      if (!input.name || input.name.trim()?.length < 2) {
+        throw 'Name should be at least 2 characters';
+      }
+
+      // rate limiter - 1 agent per minute
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const lastSubmits = await ctx.supabase
+        .from('swarms_cloud_agents')
+        .select('*')
+        .eq('user_id', user_id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if ((lastSubmits?.data ?? [])?.length > 0) {
+        const lastSubmit = lastSubmits.data?.[0] || { created_at: new Date() };
+        const lastSubmitTime = new Date(lastSubmit.created_at);
+        const currentTime = new Date();
+        const diff = currentTime.getTime() - lastSubmitTime.getTime();
+        const diffMinutes = diff / (1000 * 60); // 1 minute
+        if (diffMinutes < 1) {
+          throw 'You can only submit one agent per minute';
+        }
+      }
+
+      try {
+        const agents = await ctx.supabase.from('swarms_cloud_agents').insert([
+          {
+            agent: input.agent || null, // Convert `undefined` to `null`
+            name: input.name || null, // Convert `undefined` to `null` if name is optional
+            description: input.description || null, // Convert `undefined` to `null`
+            user_id: user_id,
+            tags: input.tags || null, // Convert `undefined` to `null`
+            status: 'pending', // status as "pending"
+          } as Tables<'swarms_cloud_agents'>,
+        ]);
+        if (agents.error) {
+          throw agents.error;
+        }
+        return true;
+      } catch (e) {
+        console.error(e);
+        throw "Couldn't add agent";
+      }
+    }),
+  getAllAgents: publicProcedure.query(async ({ ctx }) => {
+    const agents = await ctx.supabase
+      .from('swarms_cloud_agents')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    return agents;
+  }),
+  getAgentById: publicProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      const model = await ctx.supabase
+        .from('swarms_cloud_agents')
+        .select('*')
+        .eq('id', input)
+        .single();
+      return model.data;
+    }),
+
 });
 
 export default explorerRouter;

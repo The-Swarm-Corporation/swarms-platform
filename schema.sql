@@ -93,6 +93,14 @@ CREATE TYPE "public"."user_prompts_status" AS ENUM (
 
 ALTER TYPE "public"."user_prompts_status" OWNER TO "postgres";
 
+CREATE TYPE "public"."user_agents_status" AS ENUM (
+    'approved',
+    'pending',
+    'rejected'
+);
+
+ALTER TYPE "public"."user_agents_status" OWNER TO "postgres";
+
 CREATE TYPE "public"."user_swarms_status" AS ENUM (
     'approved',
     'pending',
@@ -358,6 +366,20 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_prompts" (
 
 ALTER TABLE "public"."swarms_cloud_prompts" OWNER TO "postgres";
 
+CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_agents" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "user_id" "uuid" DEFAULT "auth"."uid"() NOT NULL,
+    "agent" "text",
+    "name" "text",
+    "use_cases" "json",
+    "status" "public"."user_agents_status",
+    "tags" "text",
+    "description" "text"
+);
+
+ALTER TABLE "public"."swarms_cloud_agents" OWNER TO "postgres";
+
 CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_rate_limits" (
     "user_id" "uuid" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
@@ -510,6 +532,12 @@ ALTER TABLE ONLY "public"."swarms_cloud_prompts"
 ALTER TABLE ONLY "public"."swarms_cloud_prompts"
     ADD CONSTRAINT "swarms_cloud_prompts_pkey" PRIMARY KEY ("id");
 
+ALTER TABLE ONLY "public"."swarms_cloud_agents"
+    ADD CONSTRAINT "swarms_cloud_agents_id_key" UNIQUE ("id");
+
+ALTER TABLE ONLY "public"."swarms_cloud_agents"
+    ADD CONSTRAINT "swarms_cloud_agents_pkey" PRIMARY KEY ("id");
+
 ALTER TABLE ONLY "public"."swarms_cloud_rate_limits"
     ADD CONSTRAINT "swarms_cloud_rate_limits_pkey" PRIMARY KEY ("id");
 
@@ -609,6 +637,9 @@ ALTER TABLE ONLY "public"."subscriptions"
 ALTER TABLE ONLY "public"."swarms_cloud_prompts"
     ADD CONSTRAINT "swarms_cloud_prompts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 
+ALTER TABLE ONLY "public"."swarms_cloud_agents"
+    ADD CONSTRAINT "swarms_cloud_agents_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+
 ALTER TABLE ONLY "public"."swarms_cloud_rate_limits"
     ADD CONSTRAINT "swarms_cloud_rate_limits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON UPDATE CASCADE ON DELETE CASCADE;
 
@@ -661,6 +692,8 @@ ALTER TABLE "public"."swarms_cloud_organization_members" ENABLE ROW LEVEL SECURI
 ALTER TABLE "public"."swarms_cloud_organizations" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE "public"."swarms_cloud_prompts" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE "public"."swarms_cloud_agents" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE "public"."swarms_cloud_rate_limits" ENABLE ROW LEVEL SECURITY;
 
@@ -750,6 +783,10 @@ GRANT ALL ON TABLE "public"."swarms_cloud_organizations" TO "service_role";
 GRANT ALL ON TABLE "public"."swarms_cloud_prompts" TO "anon";
 GRANT ALL ON TABLE "public"."swarms_cloud_prompts" TO "authenticated";
 GRANT ALL ON TABLE "public"."swarms_cloud_prompts" TO "service_role";
+
+GRANT ALL ON TABLE "public"."swarms_cloud_agents" TO "anon";
+GRANT ALL ON TABLE "public"."swarms_cloud_agents" TO "authenticated";
+GRANT ALL ON TABLE "public"."swarms_cloud_agents" TO "service_role";
 
 GRANT ALL ON TABLE "public"."swarms_cloud_rate_limits" TO "anon";
 GRANT ALL ON TABLE "public"."swarms_cloud_rate_limits" TO "authenticated";

@@ -7,9 +7,10 @@ export default function useModels() {
   const modelsQuery = trpc.explorer.getModels.useQuery();
   const swarmsQuery = trpc.explorer.getAllApprovedSwarms.useQuery();
   const promptsQuery = trpc.explorer.getAllPrompts.useQuery();
+  const agentsQuery = trpc.explorer.getAllAgents.useQuery();
 
   const isDataLoading =
-    modelsQuery.isLoading && swarmsQuery.isLoading && promptsQuery.isLoading;
+    modelsQuery.isLoading && swarmsQuery.isLoading && promptsQuery.isLoading && agentsQuery.isLoading;
 
   const [options, setOptions] = useState(defaultOptions);
   const [search, setSearch] = useState('');
@@ -59,6 +60,10 @@ export default function useModels() {
     () => filterData(promptsQuery.data?.data, 'prompts'),
     [promptsQuery.data, filterData],
   );
+  const filteredAgents = useMemo(
+    () => filterData(agentsQuery.data?.data, 'agents'),
+    [agentsQuery.data, filterData],
+  );
 
   const handleOptionChange = useCallback(
     (value: string) => {
@@ -87,6 +92,7 @@ export default function useModels() {
     filteredModels,
     filteredSwarms,
     filteredPrompts,
+    filteredAgents,
     search,
     options,
     filterOption,

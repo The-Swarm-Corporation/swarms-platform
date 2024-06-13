@@ -20,6 +20,8 @@ import Prompts from './components/content/prompts';
 import Swarms from './components/content/swarms';
 import { Activity, Grid2X2 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
+import Agents from './components/content/agents';
+import AddAgentModal from './components/add-agent-modal';
 
 const Explorer = () => {
   const models = trpc.explorer.getModels.useQuery();
@@ -33,12 +35,18 @@ const Explorer = () => {
   // Prompts
   const allPrompts = trpc.explorer.getAllPrompts.useQuery();
 
+  // Agents
+  const allAgents = trpc.explorer.getAllPrompts.useQuery();
+
   const [addSwarModalOpen, setAddSwarmModalOpen] = useState(false);
   const [addPromptModalOpen, setAddPromptModalOpen] = useState(false);
+  const [addAgentModalOpen, setAddAgentModalOpen] = useState(false)
+
   const {
     filteredModels,
     filteredSwarms,
     filteredPrompts,
+    filteredAgents,
     search,
     options,
     filterOption,
@@ -70,7 +78,7 @@ const Explorer = () => {
           duration: 3000,
         });
       })
-      .finally(() => {});
+      .finally(() => { });
   };
   useEffect(() => {
     if (!pendingSwarms.isLoading && pendingSwarms.data) {
@@ -91,12 +99,22 @@ const Explorer = () => {
     allPrompts.refetch();
   };
 
+  const onAddAgent = () => {
+    allAgents.refetch()
+  }
+
   const elements = [
     { key: 'models', content: <Models {...{ models, filteredModels }} /> },
     {
       key: 'prompts',
       content: (
         <Prompts {...{ allPrompts, filteredPrompts, setAddPromptModalOpen }} />
+      ),
+    },
+    {
+      key: 'agents',
+      content: (
+        <Agents {...{ allAgents, filteredAgents, setAddAgentModalOpen }} />
       ),
     },
     {
@@ -133,6 +151,11 @@ const Explorer = () => {
         onAddSuccessfully={onAddPrompt}
         isOpen={addPromptModalOpen}
         onClose={() => setAddPromptModalOpen(false)}
+      />
+      <AddAgentModal
+        onAddSuccessfully={onAddAgent}
+        isOpen={addAgentModalOpen}
+        onClose={() => setAddAgentModalOpen(false)}
       />
       <div className="w-full flex flex-col h-full">
         <div className="flex flex-col">
