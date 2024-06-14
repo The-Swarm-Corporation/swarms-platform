@@ -15,6 +15,7 @@ import { NAV_LINKS } from '../const';
 import NavItem from '../item';
 import NavbarSearch from './components/search';
 import { trpc } from '@/shared/utils/trpc/trpc';
+import Avatar from '@/shared/components/avatar';
 
 export default function PlatformNavBar({ user }: { user: User | null }) {
   const dropdownRef = useRef(null);
@@ -56,21 +57,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
             className="relative ml-5 cursor-pointer max-sm:mt-1"
             onClick={setOn}
           >
-            {user?.user_metadata?.avatar_url ? (
-              <Image
-                src={user?.user_metadata?.avatar_url}
-                alt="profile"
-                height={32}
-                width={32}
-                className="rounded-full"
-              />
-            ) : (
-              profileName && (
-                <div className="bg-secondary flex justify-center items-center h-8 w-8 rounded-full uppercase">
-                  {profileName?.charAt(0)}
-                </div>
-              )
-            )}
+            <Avatar user={user as User} />
             <ul
               ref={dropdownRef}
               className={cn(

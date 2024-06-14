@@ -174,7 +174,9 @@ const explorerRouter = router({
           throw swarm.error;
         }
         return true;
-      } catch (e) { }
+      } catch (e) {
+        console.error(e);
+      }
     }),
   // Validate prompt
   validatePrompt: userProcedure
@@ -417,6 +419,8 @@ const explorerRouter = router({
             name: input.name || null, // Convert `undefined` to `null` if name is optional
             description: input.description || null, // Convert `undefined` to `null`
             user_id: user_id,
+            use_cases: input.useCases,
+            agent: input.agent,
             tags: input.tags || null, // Convert `undefined` to `null`
             status: 'pending', // status as "pending"
           } as Tables<'swarms_cloud_agents'>,
@@ -448,7 +452,6 @@ const explorerRouter = router({
         .single();
       return model.data;
     }),
-
 });
 
 export default explorerRouter;

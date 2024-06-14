@@ -60,6 +60,7 @@ const mainRouter = router({
         email: user_data.data.email,
         id: user_data.data.id,
         username: user_data.data.username,
+        avatar: user_data.data.avatar_url,
       };
     }),
   updateUsername: userProcedure

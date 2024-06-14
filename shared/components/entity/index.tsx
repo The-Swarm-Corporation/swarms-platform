@@ -1,17 +1,18 @@
 'use client';
 
-import React, { PropsWithChildren, useEffect, useState } from 'react';
+import React, { PropsWithChildren, useState } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import Markdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Facebook, Linkedin, Send, Share2, Twitter, User } from 'lucide-react';
+import { Copy, Facebook, Linkedin, Send, Share2, Twitter } from 'lucide-react';
 import { useToast } from '../ui/Toasts/use-toast';
 import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
 import { usePathname } from 'next/navigation';
 import Modal from '../modal';
 import remarkGfm from 'remark-gfm';
-import { trpc } from '@/shared/utils/trpc/trpc';
+import Avatar from '../avatar';
+import { Button } from '../ui/Button';
 
 type UseCasesProps = { title: string; description: string }[];
 interface Entity extends PropsWithChildren {
@@ -21,7 +22,7 @@ interface Entity extends PropsWithChildren {
   description?: string;
   usecases?: UseCasesProps;
   prompt?: string;
-  userId?: string | null
+  userId?: string | null;
 }
 
 function UseCases({ usecases }: { usecases: UseCasesProps }) {
@@ -61,7 +62,7 @@ export default function EntityComponent({
   description,
   usecases,
   children,
-  userId
+  userId,
 }: Entity) {
 
   const toast = useToast();
@@ -69,18 +70,14 @@ export default function EntityComponent({
     // Regular expression to match any string inside angle brackets
     const tagPattern = /(<\/?[^>]+>)/g;
     if (!content) {
-      return
+      return;
     }
     // Add new lines around the tags
     return content.replace(tagPattern, '\n$1\n');
   };
-  const pathName = usePathname()
+  const pathName = usePathname();
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
-  const [userName, setUserName] = useState<string>('')
-
-  const isPrompt = title.toLowerCase() === 'prompt';
-  const { data, error, isLoading } = trpc.main.getUserById.useQuery({ userId: userId ?? '' });
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -93,56 +90,65 @@ export default function EntityComponent({
     }
   }
 
-  useEffect(() => {
-    if (data) {
-      setUserName(data?.username ?? '');
-    }
-  }, [data]);
-
   const handleShowShareModal = () => {
     setIsShowModalOpen(true);
-  }
+  };
 
   const handleCloseModal = () => {
     setIsShowModalOpen(false);
-  }
+  };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`https://swarms.world${pathName}`).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    navigator.clipboard
+      .writeText(`https://swarms.world${pathName}`)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
   };
 
   const shareDetails: ShareDetails = {
-    message: "Check out this cool model/prompt/swarm on the swarms platform!",
+    message: 'Check out this cool model/prompt/swarm on the swarms platform!',
     link: `https://swarms.world${pathName}`,
-    subject: "Check this out!"
+    subject: 'Check this out!',
   };
 
   const handleShareWithTweet = () => openShareWindow('twitter', shareDetails);
-  const handleShareWithLinkedIn = () => openShareWindow('linkedin', shareDetails);
-  const handleShareWithFacebook = () => openShareWindow('facebook', shareDetails);
+  const handleShareWithLinkedIn = () =>
+    openShareWindow('linkedin', shareDetails);
+  const handleShareWithFacebook = () =>
+    openShareWindow('facebook', shareDetails);
   const handleShareWithEmail = () => openShareWindow('email', shareDetails);
 
   return (
     <div className="max-w-6xl px-6 mx-auto">
-      <div className="flex flex-col py-16">
-        <h2>{title}</h2>
-
-        {name && <h1 className='text-6xl'>{name}</h1>}
-        {
-          userName && (<div className='flex items-center justify-start text-sm mt-4'>
-            <User />
-            <span className='ml-1'>
-              {userName}
-            </span>
+      <div className="flex flex-col py-8 md:py-16">
+        <div className="flex flex-col md:flex-row justify-between md:items-center">
+          <div className='max-md:text-center'>
+            <h2>{title}</h2>
+            {name && <h1 className="text-6xl my-4">{name}</h1>}
+            {description && (
+              <div className="text-base text-gray-400">{description}</div>
+            )}
           </div>
-          )
-        }
-        {description && (
-          <div className="text-base mt-4 text-gray-400">{description}</div>
-        )}
+
+          <aside className='max-md:my-8 max-md:flex max-md:flex-col max-md:items-center'>
+            <Avatar
+              userId={userId ?? ''}
+              showUsername
+              showBorder
+              title={`${title} Author`}
+            />
+            <Button
+              onClick={handleShowShareModal}
+              variant="destructive"
+              className="mt-3 w-full"
+            >
+              <span className="mr-1">Share</span>
+              <Share2 />
+            </Button>
+          </aside>
+        </div>
 
         <div className="flex gap-2 mt-4 select-none flex-wrap">
           {tags?.map(
@@ -154,16 +160,9 @@ export default function EntityComponent({
               ),
           )}
         </div>
-
-        <button className="inline-flex mt-4 w-[11%] items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-          onClick={handleShowShareModal}>
-          <span className='mr-1'>Share</span>
-          <Share2 />
-        </button>
-
       </div>
       {usecases && <UseCases usecases={usecases} />}
-      {isPrompt && (
+      {prompt && (
         <div className="relative my-10">
           <Markdown
             className="bg-gray-800 text-white p-5 py-7 rounded-lg leading-normal overflow-hidden white-space-normal whitespace-pre-line"
@@ -188,7 +187,7 @@ export default function EntityComponent({
             }}
           >
             {preprocessMarkdown(prompt) ?? ''}
-          </Markdown >
+          </Markdown>
           <Copy
             size={30}
             className="absolute top-2 right-2 p-1 text-primary cursor-pointer"
@@ -205,29 +204,45 @@ export default function EntityComponent({
           className="flex flex-col items-center justify-center"
         >
           <div className="flex flex-row flex-wrap gap-4 md:gap-8 lg:gap-16">
-            <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithTweet}>
+            <span
+              className="flex flex-col items-center justify-center cursor-pointer"
+              onClick={handleShareWithTweet}
+            >
               <Twitter className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">Tweet</span>
+              <span className="mt-2 text-sm md:text-base lg:text-lg">
+                Tweet
+              </span>
             </span>
-            <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithLinkedIn}>
+            <span
+              className="flex flex-col items-center justify-center cursor-pointer"
+              onClick={handleShareWithLinkedIn}
+            >
               <Linkedin className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
               <span className="mt-2 text-sm md:text-base lg:text-lg">Post</span>
             </span>
-            <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithFacebook}>
+            <span
+              className="flex flex-col items-center justify-center cursor-pointer"
+              onClick={handleShareWithFacebook}
+            >
               <Facebook className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">Share</span>
+              <span className="mt-2 text-sm md:text-base lg:text-lg">
+                Share
+              </span>
             </span>
-            <span className="flex flex-col items-center justify-center cursor-pointer" onClick={handleShareWithEmail}>
+            <span
+              className="flex flex-col items-center justify-center cursor-pointer"
+              onClick={handleShareWithEmail}
+            >
               <Send className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">Email</span>
+              <span className="mt-2 text-sm md:text-base lg:text-lg">
+                Email
+              </span>
             </span>
           </div>
 
-          <div className='w-full h-[1px] bg-white' />
-          <div className='flex items-start justify-start w-full flex-col'>
-            <span>
-              Share the link:
-            </span>
+          <div className="w-full h-[1px] bg-white" />
+          <div className="flex items-start justify-start w-full flex-col">
+            <span>Share the link:</span>
             <div className="flex items-center justify-start w-full mt-2">
               <input
                 type="text"
@@ -246,7 +261,6 @@ export default function EntityComponent({
               </div>
             </div>
           </div>
-
         </Modal>
       )}
     </div>

@@ -16,9 +16,6 @@ export default async function Navbar() {
         Skip to content
       </a>
       <div className="flex relative items-center w-full">
-        <div className='absolute w-1/8 ml-2'>
-          {user && <NavbarSearch />}
-        </div>
         <div className='w-[72rem] m-auto'>
           <Navlinks user={user} />
         </div>

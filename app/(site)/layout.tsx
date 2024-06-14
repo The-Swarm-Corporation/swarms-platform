@@ -1,12 +1,13 @@
 import { Metadata, Viewport } from 'next';
 import Footer from '@/shared/components/ui/Footer';
 import Navbar from '@/shared/components/ui/Navbar';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, use } from 'react';
 import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
 import PanelLayoutSidebar from '@/shared/components/panel-layout/components/sidebar/sidebar';
 import { createClient } from '@/shared/utils/supabase/server';
-import NavbarSearch from '@/shared/components/panel-layout/components/navbar/components/search';
+import PlatformNavBar from '@/shared/components/panel-layout/components/navbar/navbar';
+import { cn } from '@/shared/utils/cn';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -63,12 +64,31 @@ export default async function RootLayout({ children }: PropsWithChildren) {
 
   return (
     <>
-      <Navbar />
-      {user && <PanelLayoutSidebar />}
-      <main className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]">
-        {children}
-      </main>
-      <Footer />
+      {user ? <PlatformNavBar user={user} /> : <Navbar />}
+      <div
+        className={cn(
+          user
+            ? 'mt-16 md:mt-20 flex flex-row w-screen h-screen min-h-screen max-md:flex-col'
+            : '',
+        )}
+      >
+        {user && <PanelLayoutSidebar />}
+        <main
+          className={cn(
+            user
+              ? 'relative container lg:max-w-7xl lg:px-12 h-full mx-auto max-lg:z-10'
+              : 'min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]',
+          )}
+        >
+          {children}
+          {user && (
+            <div className="absolute w-full">
+              <Footer />
+            </div>
+          )}
+        </main>
+      </div>
+      {!user && <Footer />}
     </>
   );
 }

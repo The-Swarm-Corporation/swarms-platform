@@ -20,12 +20,13 @@ const PanelLayoutSidebar = () => {
       {/* desktop */}
       <div
         className={cn(
-          'max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 max-lg:hidden',
+          'max-w-[1px] w-full transition-all duration-150 ease-out translate-x-0 max-lg:hidden',
+          showTitle && 'max-w-[250px]',
         )}
       />
       <div
         className={cn(
-          'flex flex-col fixed flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-300 translate-x-0 min-h-screen border-r border-gray-900 max-lg:hidden',
+          'flex flex-col fixed flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-150 translate-x-0 min-h-screen border-r border-gray-900 max-lg:hidden',
           !showTitle && 'max-w-[90px]',
         )}
       >
@@ -53,7 +54,7 @@ const PanelLayoutSidebar = () => {
                       className={cn(
                         'p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md',
                         (isSubMenuActive || item.link === path) &&
-                        'bg-primary text-white',
+                          'bg-primary text-white',
                       )}
                     />
                     {/* sub items */}
@@ -61,13 +62,12 @@ const PanelLayoutSidebar = () => {
                       <div className="flex flex-col gap-2">
                         {item.items?.map((subItem) => (
                           <NavItem
-
                             {...subItem}
                             className={cn(
                               'pl-10  py-1  hover:bg-primary hover:text-white rounded-md',
                               subItem.link === path &&
-                              // 'border border-gray-400 dark:text-white',
-                              'bg-primary'
+                                // 'border border-gray-400 dark:text-white',
+                                'bg-primary',
                             )}
                             showTitle
                           />
@@ -83,8 +83,15 @@ const PanelLayoutSidebar = () => {
                 onSubmit={(e) => handleRequest(e, SignOut, router)}
                 className="w-full"
               >
-                <input type="hidden" name="pathName" value={usePathname()?.toString()} />
-                <button type="submit" className="flex items-center justify-start  w-full">
+                <input
+                  type="hidden"
+                  name="pathName"
+                  value={usePathname()?.toString()}
+                />
+                <button
+                  type="submit"
+                  className="flex items-center justify-start  w-full"
+                >
                   <LogOut size={24} className="mr-2" />
                   {showTitle && <span>SignOut</span>}
                 </button>
