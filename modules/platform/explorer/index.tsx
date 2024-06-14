@@ -36,7 +36,7 @@ const Explorer = () => {
   const allPrompts = trpc.explorer.getAllPrompts.useQuery();
 
   // Agents
-  const allAgents = trpc.explorer.getAllPrompts.useQuery();
+  const allAgents = trpc.explorer.getAllAgents.useQuery();
 
   const [addSwarModalOpen, setAddSwarmModalOpen] = useState(false);
   const [addPromptModalOpen, setAddPromptModalOpen] = useState(false);
