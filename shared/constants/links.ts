@@ -19,6 +19,7 @@ export const PUBLIC = {
   MODEL: '/model/{slug}',
   SWARM: '/swarm/{name}',
   PROMPT: '/prompt/{id}',
+  AGENT: '/agent/{id}'
 };
 
 const SWARMS_DOCS = 'https://docs.swarms.world/en/latest/';

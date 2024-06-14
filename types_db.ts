@@ -753,6 +753,50 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_agents: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string | null
+          agent: string | null
+          status: Database["public"]["Enums"]["user_agents_status"] | null
+          tags: string | null
+          use_cases: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          agent?: string | null
+          status?: Database["public"]["Enums"]["user_agents_status"] | null
+          tags?: string | null
+          use_cases?: Json | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          agent?: string | null
+          status?: Database["public"]["Enums"]["user_agents_status"] | null
+          tags?: string | null
+          use_cases?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       swarms_cloud_rate_limits: {
         Row: {
           created_at: string
@@ -1115,6 +1159,7 @@ export type Database = {
         | "unpaid"
         | "paused"
       user_prompts_status: "approved" | "pending" | "rejected"
+      user_agents_status: "approved" | "pending" | "rejected"
       user_swarms_status: "approved" | "pending" | "rejected"
       user_tier: "tier1" | "tier2" | "tier3" | "tier4"
       users_wallets_transaction_type: "reduct" | "add"
