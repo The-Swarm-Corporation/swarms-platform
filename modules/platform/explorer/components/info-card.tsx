@@ -1,6 +1,12 @@
-'use client'
+'use client';
 import { cn } from '@/shared/utils/cn';
-import { ShareDetails, formatPrice, getTruncatedString, makeUrl, openShareWindow } from '@/shared/utils/helpers';
+import {
+  ShareDetails,
+  formatPrice,
+  getTruncatedString,
+  makeUrl,
+  openShareWindow,
+} from '@/shared/utils/helpers';
 import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useQueryMutation } from '../../settings/organization/hooks/organizations';
@@ -9,6 +15,7 @@ import { Facebook, Linkedin, Send, Share2, Twitter, User } from 'lucide-react';
 import Modal from '@/shared/components/modal';
 import useToggle from '@/shared/hooks/toggle';
 import { trpc } from '@/shared/utils/trpc/trpc';
+import Avatar from '@/shared/components/avatar';
 
 interface Props {
   title: string;
@@ -21,7 +28,7 @@ interface Props {
   isRating?: boolean;
   promptId?: any;
   link: string;
-  userId?: string
+  userId?: string;
 }
 
 const InfoCard = ({
@@ -35,19 +42,21 @@ const InfoCard = ({
   isRating,
   promptId,
   userId,
-  link
+  link,
 }: Props) => {
   const [isButtonHover, setIsButtonHover] = useState(false);
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
-  const [userName, setUserName] = useState<string>('')
+  const [userName, setUserName] = useState<string>('');
 
   const toast = useToast();
 
   const { isOff, setOn, setOff, toggle } = useToggle();
 
   const { query } = useQueryMutation();
-  const { data, error, isLoading } = trpc.main.getUserById.useQuery({ userId: userId ?? '' });
+  const { data, error, isLoading } = trpc.main.getUserById.useQuery({
+    userId: userId ?? '',
+  });
 
   const handleRatingClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!query.members.data?.length) {
@@ -65,12 +74,12 @@ const InfoCard = ({
   const handleShowShareModal = () => {
     setOn();
     setIsShowModalOpen(true);
-  }
+  };
 
   const handleCloseModal = () => {
     setIsShowModalOpen(false);
-    setOff()
-  }
+    setOff();
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(`https://swarms.world${link}`).then(() => {
@@ -80,14 +89,16 @@ const InfoCard = ({
   };
 
   const shareDetails: ShareDetails = {
-    message: "Check out this cool model/prompt/swarm on the swarms platform!",
+    message: 'Check out this cool model/prompt/swarm on the swarms platform!',
     link: `https://swarms.world${link}`,
-    subject: "Check this out!"
+    subject: 'Check this out!',
   };
 
   const handleShareWithTweet = () => openShareWindow('twitter', shareDetails);
-  const handleShareWithLinkedIn = () => openShareWindow('linkedin', shareDetails);
-  const handleShareWithFacebook = () => openShareWindow('facebook', shareDetails);
+  const handleShareWithLinkedIn = () =>
+    openShareWindow('linkedin', shareDetails);
+  const handleShareWithFacebook = () =>
+    openShareWindow('facebook', shareDetails);
   const handleShareWithEmail = () => openShareWindow('email', shareDetails);
 
   const renderPrice = (label: string, price: number) => (
@@ -110,15 +121,8 @@ const InfoCard = ({
       <div className="h-4/5 flex flex-col overflow-y-auto no-scrollbar">
         <div className="flex flex-col gap-2 flex-grow">
           <h1 className="text-xl sm:text-2xl font-bold">{title}</h1>
-          {
-            userName && (<div className='flex items-center justify-start text-sm'>
-              <User />
-              <span className='ml-1'>
-                {userName}
-              </span>
-            </div>
-            )
-          }
+
+          <Avatar userId={userId} showUsername showBorder />
           <span title={description} className="text-sm">
             {getTruncatedString(description, 100)}
           </span>
@@ -132,7 +136,10 @@ const InfoCard = ({
         )}
       </div>
 
-      <div className='cursor-pointer hover:opacity-70' onClick={handleShowShareModal}>
+      <div
+        className="cursor-pointer hover:opacity-70"
+        onClick={handleShowShareModal}
+      >
         <svg
           width="95"
           height="25"
@@ -140,10 +147,7 @@ const InfoCard = ({
           xmlns="http://www.w3.org/2000/svg"
           className="rating-svg absolute right-[150px] bottom-0 scale-x-[2.5] scale-y-[1.8] fill-[#FB0101]"
         >
-          <path
-            d="M21 0H95V25H0L21 0Z"
-            className="fill-[#b42020]"
-          />
+          <path d="M21 0H95V25H0L21 0Z" className="fill-[#b42020]" />
         </svg>
         <div className="absolute right-[150px] bottom-0 text-white px-4 py-1">
           <div className="relative flex items-center justify-center gap-2 w-[80px]">
@@ -153,12 +157,9 @@ const InfoCard = ({
         </div>
       </div>
 
-      <Link
-        href={link && link}
-        target="_blank"
-      >
+      <Link href={link && link} target="_blank">
         <div>
-          <div className='absolute right-0 bottom-0'>
+          <div className="absolute right-0 bottom-0">
             <svg
               width="95"
               height="25"
@@ -172,7 +173,11 @@ const InfoCard = ({
               />
             </svg>
           </div>
-          <div className="absolute right-0 bottom-0 text-white px-4 py-1" onMouseEnter={() => setIsButtonHover(true)} onMouseLeave={() => setIsButtonHover(false)}>
+          <div
+            className="absolute right-0 bottom-0 text-white px-4 py-1"
+            onMouseEnter={() => setIsButtonHover(true)}
+            onMouseLeave={() => setIsButtonHover(false)}
+          >
             <div className="relative flex items-center justify-center gap-2 w-[110px]">
               <span>{btnLabel || 'Preview'}</span>
               <svg
@@ -200,25 +205,39 @@ const InfoCard = ({
           title="Share the Assets"
           className="flex flex-col items-center justify-center"
         >
-          <div className='flex flex-wrap gap-16'>
-            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithTweet}>
-              <Twitter />Tweet
+          <div className="flex flex-wrap gap-16">
+            <span
+              className="flex flex-col items-center justify-center cursor-pointer"
+              onClick={handleShareWithTweet}
+            >
+              <Twitter />
+              Tweet
             </span>
-            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithLinkedIn}>
-              <Linkedin />Post
+            <span
+              className="flex flex-col items-center justify-center cursor-pointer"
+              onClick={handleShareWithLinkedIn}
+            >
+              <Linkedin />
+              Post
             </span>
-            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithFacebook}>
-              <Facebook />Share
+            <span
+              className="flex flex-col items-center justify-center cursor-pointer"
+              onClick={handleShareWithFacebook}
+            >
+              <Facebook />
+              Share
             </span>
-            <span className='flex flex-col items-center justify-center cursor-pointer' onClick={handleShareWithEmail}>
-              <Send />Email
+            <span
+              className="flex flex-col items-center justify-center cursor-pointer"
+              onClick={handleShareWithEmail}
+            >
+              <Send />
+              Email
             </span>
           </div>
-          <div className='w-full h-[1px] bg-white' />
-          <div className='flex items-start justify-start w-full flex-col'>
-            <span>
-              Share the link:
-            </span>
+          <div className="w-full h-[1px] bg-white" />
+          <div className="flex items-start justify-start w-full flex-col">
+            <span>Share the link:</span>
             <div className="flex items-center justify-start w-full mt-2">
               <input
                 type="text"
@@ -237,10 +256,8 @@ const InfoCard = ({
               </div>
             </div>
           </div>
-
         </Modal>
       )}
-
     </div>
   );
 };
