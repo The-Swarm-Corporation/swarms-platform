@@ -379,6 +379,7 @@ const explorerRouter = router({
         name: z.string().optional(),
         agent: z.string().optional(),
         description: z.string().optional(),
+        requirements: z.string().optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
       }),
@@ -416,13 +417,14 @@ const explorerRouter = router({
       try {
         const agents = await ctx.supabase.from('swarms_cloud_agents').insert([
           {
-            name: input.name || null, // Convert `undefined` to `null` if name is optional
-            description: input.description || null, // Convert `undefined` to `null`
+            name: input.name || null,
+            description: input.description || null,
             user_id: user_id,
             use_cases: input.useCases,
             agent: input.agent,
-            tags: input.tags || null, // Convert `undefined` to `null`
-            status: 'pending', // status as "pending"
+            requirements: input.requirements,
+            tags: input.tags || null,
+            status: 'pending',
           } as Tables<'swarms_cloud_agents'>,
         ]);
         if (agents.error) {
