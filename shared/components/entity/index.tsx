@@ -13,19 +13,22 @@ import Modal from '../modal';
 import remarkGfm from 'remark-gfm';
 import Avatar from '../avatar';
 import { Button } from '../ui/Button';
+import AgentRequirements, { RequirementProps } from './agent-requirements';
 
-type UseCasesProps = { title: string; description: string }[];
+type UseCasesProps = { title: string; description: string };
+
 interface Entity extends PropsWithChildren {
   name?: string;
   tags?: string[];
   title: string;
   description?: string;
-  usecases?: UseCasesProps;
+  usecases?: UseCasesProps[];
   prompt?: string;
+  requirements?: RequirementProps[];
   userId?: string | null;
 }
 
-function UseCases({ usecases }: { usecases: UseCasesProps }) {
+function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-4xl">Use Cases</h2>
@@ -61,10 +64,10 @@ export default function EntityComponent({
   prompt,
   description,
   usecases,
+  requirements,
   children,
   userId,
 }: Entity) {
-
   const toast = useToast();
   const preprocessMarkdown = (content: string | undefined) => {
     // Regular expression to match any string inside angle brackets
@@ -124,15 +127,17 @@ export default function EntityComponent({
     <div className="max-w-6xl px-6 mx-auto">
       <div className="flex flex-col py-8 md:py-16">
         <div className="flex flex-col md:flex-row justify-between md:items-center">
-          <div className='max-md:text-center'>
+          <div className="max-md:text-center">
             <h2>{title}</h2>
-            {name && <h1 className="text-6xl my-4">{name}</h1>}
+            {name && <h1 className="text-4xl md:text-6xl my-4">{name}</h1>}
             {description && (
-              <div className="text-base text-gray-400">{description}</div>
+              <div className=" text-sm md:text-base text-gray-400">
+                {description}
+              </div>
             )}
           </div>
 
-          <aside className='max-md:my-8 max-md:flex max-md:flex-col max-md:items-center'>
+          <aside className="max-md:my-8 max-md:flex max-md:flex-col max-md:items-center">
             <Avatar
               userId={userId ?? ''}
               showUsername
@@ -162,6 +167,9 @@ export default function EntityComponent({
         </div>
       </div>
       {usecases && <UseCases usecases={usecases} />}
+      {title.toLowerCase() === 'agent' && (
+        <AgentRequirements requirements={requirements as RequirementProps[]} />
+      )}
       {prompt && (
         <div className="relative my-10">
           <Markdown

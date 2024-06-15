@@ -127,6 +127,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         agent,
         description,
         useCases,
+        requirements,
         tags: trimTags,
       })
       .then(() => {
@@ -137,9 +138,11 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         onAddSuccessfully();
         // Reset form
         setAgentName('');
+        setAgent('');
         setDescription('');
         setTags('');
         setUseCases([{ title: '', description: '' }]);
+        setRequirements([{ package: '', installation: '' }]);
       });
   };
 

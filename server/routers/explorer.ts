@@ -379,7 +379,7 @@ const explorerRouter = router({
         name: z.string().optional(),
         agent: z.string().optional(),
         description: z.string().optional(),
-        requirements: z.string().optional(),
+        requirements: z.array(z.any()),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
       }),
