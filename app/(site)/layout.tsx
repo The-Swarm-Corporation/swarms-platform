@@ -82,7 +82,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
         >
           {children}
           {user && (
-            <div className="absolute w-full">
+            <div className="absolute lg:w-[93%] xl:w-[95%]">
               <Footer />
             </div>
           )}

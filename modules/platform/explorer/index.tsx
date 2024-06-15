@@ -166,7 +166,7 @@ const Explorer = () => {
           </span>
         </div>
         <div className="mt-8 pb-4 sticky top-20 bg-white dark:bg-black z-10">
-          <ul className="p-0 mb-2 flex items-center gap-3">
+          <ul className="p-0 mb-2 flex items-center flex-wrap gap-3">
             {options.map((option) => {
               const colorSelector =
                 filterOption === option || filterOption === 'all'
@@ -176,7 +176,7 @@ const Explorer = () => {
                 <li
                   key={option}
                   className={cn(
-                    'shadow cursor-pointer capitalize text-center rounded-sm flex items-center justify-center bg-secondary text-foreground w-24 p-1 px-2 text-sm',
+                    'shadow cursor-pointer capitalize text-center rounded-sm flex items-center justify-center bg-secondary text-foreground w-24 p-1 px-2 text-xs md:text-sm',
                     colorSelector,
                   )}
                 >
