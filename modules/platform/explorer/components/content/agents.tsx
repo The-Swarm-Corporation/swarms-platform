@@ -31,7 +31,7 @@ export default function Agents({
 
                             <InfoCard
                                 title={agent.name || ''}
-                                description={agent.agent || ''}
+                                description={agent.description || ''}
                                 icon={<Terminal />}
                                 className="w-full h-full"
                                 link={makeUrl(PUBLIC.AGENT, { id: agent.id })}
