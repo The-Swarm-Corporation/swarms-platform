@@ -70,7 +70,7 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
       className="flex flex-col items-start justify-center max-sm:max-w-[320px]"
     >
       <div className="relative flex items-center pt-0.5 w-full">
-        <div className="grow border-t border-zinc-800" />
+        <div className="grow border-t border-gray-300 dark:border-zinc-800" />
       </div>
       <div className="w-full">
         <span className="mb-2 text-sm text-gray-400">Share the link via</span>
@@ -93,7 +93,7 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
         </ul>
       </div>
       <div className="relative flex items-center pt-0.5 w-full">
-        <div className="grow border-t border-zinc-800" />
+        <div className="grow border-t border-gray-300 dark:border-zinc-800" />
       </div>
       <div className="flex items-start justify-start w-full flex-col">
         <span className="text-sm text-gray-400">Or copy link</span>
