@@ -14,6 +14,7 @@ import remarkGfm from 'remark-gfm';
 import Avatar from '../avatar';
 import { Button } from '../ui/Button';
 import AgentRequirements, { RequirementProps } from './agent-requirements';
+import ShareModal from '@/modules/platform/explorer/components/share-modal';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -80,7 +81,6 @@ export default function EntityComponent({
   };
   const pathName = usePathname();
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
-  const [copied, setCopied] = useState<boolean>(false);
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -93,35 +93,8 @@ export default function EntityComponent({
     }
   }
 
-  const handleShowShareModal = () => {
-    setIsShowModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsShowModalOpen(false);
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard
-      .writeText(`https://swarms.world${pathName}`)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
-  };
-
-  const shareDetails: ShareDetails = {
-    message: 'Check out this cool model/prompt/swarm on the swarms platform!',
-    link: `https://swarms.world${pathName}`,
-    subject: 'Check this out!',
-  };
-
-  const handleShareWithTweet = () => openShareWindow('twitter', shareDetails);
-  const handleShareWithLinkedIn = () =>
-    openShareWindow('linkedin', shareDetails);
-  const handleShareWithFacebook = () =>
-    openShareWindow('facebook', shareDetails);
-  const handleShareWithEmail = () => openShareWindow('email', shareDetails);
+  const handleShowShareModal = () => setIsShowModalOpen(true);
+  const handleCloseModal = () => setIsShowModalOpen(false);
 
   return (
     <div className="max-w-6xl px-6 mx-auto">
@@ -204,73 +177,7 @@ export default function EntityComponent({
         </div>
       )}
       {children}
-      {isShowShareModalOpen && (
-        <Modal
-          isOpen={isShowShareModalOpen}
-          onClose={handleCloseModal}
-          title="Share the Assets"
-          className="flex flex-col items-center justify-center"
-        >
-          <div className="flex flex-row flex-wrap gap-4 md:gap-8 lg:gap-16">
-            <span
-              className="flex flex-col items-center justify-center cursor-pointer"
-              onClick={handleShareWithTweet}
-            >
-              <Twitter className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">
-                Tweet
-              </span>
-            </span>
-            <span
-              className="flex flex-col items-center justify-center cursor-pointer"
-              onClick={handleShareWithLinkedIn}
-            >
-              <Linkedin className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">Post</span>
-            </span>
-            <span
-              className="flex flex-col items-center justify-center cursor-pointer"
-              onClick={handleShareWithFacebook}
-            >
-              <Facebook className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">
-                Share
-              </span>
-            </span>
-            <span
-              className="flex flex-col items-center justify-center cursor-pointer"
-              onClick={handleShareWithEmail}
-            >
-              <Send className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-              <span className="mt-2 text-sm md:text-base lg:text-lg">
-                Email
-              </span>
-            </span>
-          </div>
-
-          <div className="w-full h-[1px] bg-white" />
-          <div className="flex items-start justify-start w-full flex-col">
-            <span>Share the link:</span>
-            <div className="flex items-center justify-start w-full mt-2">
-              <input
-                type="text"
-                readOnly
-                className="luma-input w-full border-[1px] rounded-lg p-2"
-                value={`https://swarms.world${pathName}`}
-              />
-              <div className="ticket-share-url-copy ml-2">
-                <button
-                  className="btn luma-button flex-center medium light solid variant-color-light no-icon"
-                  type="button"
-                  onClick={handleCopy}
-                >
-                  <div className="label">{copied ? 'Copied' : 'Copy'}</div>
-                </button>
-              </div>
-            </div>
-          </div>
-        </Modal>
-      )}
+      <ShareModal isOpen={isShowShareModalOpen} onClose={handleCloseModal} link={pathName ?? ""} />
     </div>
   );
 }

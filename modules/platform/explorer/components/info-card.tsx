@@ -1,21 +1,12 @@
 'use client';
+
 import { cn } from '@/shared/utils/cn';
-import {
-  ShareDetails,
-  formatPrice,
-  getTruncatedString,
-  makeUrl,
-  openShareWindow,
-} from '@/shared/utils/helpers';
-import { ReactNode, useEffect, useState } from 'react';
+import { formatPrice, getTruncatedString } from '@/shared/utils/helpers';
+import { ReactNode, useState } from 'react';
 import Link from 'next/link';
-import { useQueryMutation } from '../../settings/organization/hooks/organizations';
-import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import { Facebook, Linkedin, Send, Share2, Twitter, User } from 'lucide-react';
-import Modal from '@/shared/components/modal';
-import useToggle from '@/shared/hooks/toggle';
-import { trpc } from '@/shared/utils/trpc/trpc';
+import { Share2 } from 'lucide-react';
 import Avatar from '@/shared/components/avatar';
+import ShareModal from './share-modal';
 
 interface Props {
   title: string;
@@ -39,67 +30,15 @@ const InfoCard = ({
   btnLabel,
   input,
   output,
-  isRating,
-  promptId,
   userId,
   link,
 }: Props) => {
   const [isButtonHover, setIsButtonHover] = useState(false);
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
-  const [copied, setCopied] = useState<boolean>(false);
-  const [userName, setUserName] = useState<string>('');
 
-  const toast = useToast();
+  const handleShowShareModal = () => setIsShowModalOpen(true);
 
-  const { isOff, setOn, setOff, toggle } = useToggle();
-
-  const { query } = useQueryMutation();
-  const { data, error, isLoading } = trpc.main.getUserById.useQuery({
-    userId: userId ?? '',
-  });
-
-  const handleRatingClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!query.members.data?.length) {
-      e.preventDefault();
-      toast.toast({ description: 'Organization has no members' });
-    }
-  };
-
-  useEffect(() => {
-    if (data) {
-      setUserName(data?.username ?? '');
-    }
-  }, [data]);
-
-  const handleShowShareModal = () => {
-    setOn();
-    setIsShowModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsShowModalOpen(false);
-    setOff();
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`https://swarms.world${link}`).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  const shareDetails: ShareDetails = {
-    message: 'Check out this cool model/prompt/swarm on the swarms platform!',
-    link: `https://swarms.world${link}`,
-    subject: 'Check this out!',
-  };
-
-  const handleShareWithTweet = () => openShareWindow('twitter', shareDetails);
-  const handleShareWithLinkedIn = () =>
-    openShareWindow('linkedin', shareDetails);
-  const handleShareWithFacebook = () =>
-    openShareWindow('facebook', shareDetails);
-  const handleShareWithEmail = () => openShareWindow('email', shareDetails);
+  const handleCloseModal = () => setIsShowModalOpen(false);
 
   const renderPrice = (label: string, price: number) => (
     <li className="pricing-unit">
@@ -198,66 +137,11 @@ const InfoCard = ({
           </div>
         </div>
       </Link>
-      {isShowShareModalOpen && (
-        <Modal
-          isOpen={isShowShareModalOpen}
-          onClose={handleCloseModal}
-          title="Share the Assets"
-          className="flex flex-col items-center justify-center"
-        >
-          <div className="flex flex-wrap gap-16">
-            <span
-              className="flex flex-col items-center justify-center cursor-pointer"
-              onClick={handleShareWithTweet}
-            >
-              <Twitter />
-              Tweet
-            </span>
-            <span
-              className="flex flex-col items-center justify-center cursor-pointer"
-              onClick={handleShareWithLinkedIn}
-            >
-              <Linkedin />
-              Post
-            </span>
-            <span
-              className="flex flex-col items-center justify-center cursor-pointer"
-              onClick={handleShareWithFacebook}
-            >
-              <Facebook />
-              Share
-            </span>
-            <span
-              className="flex flex-col items-center justify-center cursor-pointer"
-              onClick={handleShareWithEmail}
-            >
-              <Send />
-              Email
-            </span>
-          </div>
-          <div className="w-full h-[1px] bg-white" />
-          <div className="flex items-start justify-start w-full flex-col">
-            <span>Share the link:</span>
-            <div className="flex items-center justify-start w-full mt-2">
-              <input
-                type="text"
-                readOnly
-                className="luma-input w-full border-[1px] rounded-lg p-2"
-                value={`https://swarms.world${link}`}
-              />
-              <div className="ticket-share-url-copy ml-2">
-                <button
-                  className="btn luma-button flex-center medium light solid variant-color-light no-icon"
-                  type="button"
-                  onClick={handleCopy}
-                >
-                  <div className="label">{copied ? 'Copied' : 'Copy'}</div>
-                </button>
-              </div>
-            </div>
-          </div>
-        </Modal>
-      )}
+      <ShareModal
+        isOpen={isShowShareModalOpen}
+        onClose={handleCloseModal}
+        link={link}
+      />
     </div>
   );
 };
