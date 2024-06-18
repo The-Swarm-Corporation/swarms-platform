@@ -1,19 +1,16 @@
 'use client';
 
-import React, { PropsWithChildren, useState } from 'react';
+import React, { PropsWithChildren, useEffect, useState } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
-import Markdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Facebook, Linkedin, Send, Share2, Twitter } from 'lucide-react';
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Copy, Share2 } from 'lucide-react';
 import { useToast } from '../ui/Toasts/use-toast';
-import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
 import { usePathname } from 'next/navigation';
-import Modal from '../modal';
-import remarkGfm from 'remark-gfm';
 import Avatar from '../avatar';
 import { Button } from '../ui/Button';
 import AgentRequirements, { RequirementProps } from './agent-requirements';
+import hljs from 'highlight.js';
 import ShareModal from '@/modules/platform/explorer/components/share-modal';
 
 type UseCasesProps = { title: string; description: string };
@@ -70,17 +67,10 @@ export default function EntityComponent({
   userId,
 }: Entity) {
   const toast = useToast();
-  const preprocessMarkdown = (content: string | undefined) => {
-    // Regular expression to match any string inside angle brackets
-    const tagPattern = /(<\/?[^>]+>)/g;
-    if (!content) {
-      return;
-    }
-    // Add new lines around the tags
-    return content.replace(tagPattern, '\n$1\n');
-  };
+
   const pathName = usePathname();
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
+  const [language, setLanguage] = useState('text');
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -95,6 +85,17 @@ export default function EntityComponent({
 
   const handleShowShareModal = () => setIsShowModalOpen(true);
   const handleCloseModal = () => setIsShowModalOpen(false);
+
+  const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
+    <pre id="customPreTag" {...props} />
+  );
+
+  useEffect(() => {
+    if (prompt) {
+      const detectedLang = hljs.highlightAuto(prompt).language;
+      setLanguage(detectedLang || 'text');
+    }
+  }, [prompt]);
 
   return (
     <div className="max-w-6xl px-6 mx-auto">
@@ -145,30 +146,16 @@ export default function EntityComponent({
       )}
       {prompt && (
         <div className="relative my-10">
-          <Markdown
-            className="bg-gray-800 text-white p-5 py-7 rounded-lg leading-normal overflow-hidden white-space-normal whitespace-pre-line"
-            remarkPlugins={[remarkGfm]}
-            components={{
-              code({ node, className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || '');
-                return match ? (
-                  <SyntaxHighlighter
-                    PreTag="div"
-                    style={darcula}
-                    language={match[1]}
-                    children={String(children).replace(/\n$/, '')}
-                    {...(props as any)}
-                  />
-                ) : (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                );
-              },
-            }}
-          >
-            {preprocessMarkdown(prompt) ?? ''}
-          </Markdown>
+          <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl p-5 py-7 rounded-lg leading-normal overflow-hidden">
+            <SyntaxHighlighter
+              PreTag={CustomPre}
+              style={dracula}
+              language={title.toLowerCase() === 'agent' ? language : 'text'}
+              wrapLongLines
+            >
+              {prompt}
+            </SyntaxHighlighter>
+          </div>
           <Copy
             size={30}
             className="absolute top-2 right-2 p-1 text-primary cursor-pointer"
@@ -177,7 +164,11 @@ export default function EntityComponent({
         </div>
       )}
       {children}
-      <ShareModal isOpen={isShowShareModalOpen} onClose={handleCloseModal} link={pathName ?? ""} />
+      <ShareModal
+        isOpen={isShowShareModalOpen}
+        onClose={handleCloseModal}
+        link={pathName ?? ''}
+      />
     </div>
   );
 }
