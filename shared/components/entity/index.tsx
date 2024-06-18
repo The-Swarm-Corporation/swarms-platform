@@ -10,7 +10,6 @@ import { usePathname } from 'next/navigation';
 import Avatar from '../avatar';
 import { Button } from '../ui/Button';
 import AgentRequirements, { RequirementProps } from './agent-requirements';
-import hljs from 'highlight.js';
 import ShareModal from '@/modules/platform/explorer/components/share-modal';
 
 type UseCasesProps = { title: string; description: string };
@@ -70,7 +69,6 @@ export default function EntityComponent({
 
   const pathName = usePathname();
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
-  const [language, setLanguage] = useState('text');
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -89,13 +87,6 @@ export default function EntityComponent({
   const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
     <pre id="customPreTag" {...props} />
   );
-
-  useEffect(() => {
-    if (prompt) {
-      const detectedLang = hljs.highlightAuto(prompt).language;
-      setLanguage(detectedLang || 'text');
-    }
-  }, [prompt]);
 
   return (
     <div className="max-w-6xl px-6 mx-auto">
@@ -150,7 +141,7 @@ export default function EntityComponent({
             <SyntaxHighlighter
               PreTag={CustomPre}
               style={dracula}
-              language={title.toLowerCase() === 'agent' ? language : 'text'}
+              language={title.toLowerCase() === 'agent' ? 'python' : 'text'}
               wrapLongLines
             >
               {prompt}
