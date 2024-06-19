@@ -346,7 +346,6 @@ const explorerRouter = router({
         .eq('status', 'approved');
       return swarm.data?.[0];
     }),
-
   //agents
   validateAgent: userProcedure
     .input(z.string())
@@ -376,8 +375,9 @@ const explorerRouter = router({
   addAgent: userProcedure
     .input(
       z.object({
-        name: z.string().optional(),
-        agent: z.string().optional(),
+        name: z.string(),
+        agent: z.string(),
+        language: z.string().optional(),
         description: z.string().optional(),
         requirements: z.array(z.any()),
         useCases: z.array(z.any()),
@@ -424,6 +424,7 @@ const explorerRouter = router({
             agent: input.agent,
             requirements: input.requirements,
             tags: input.tags || null,
+            language: input.language,
             status: 'pending',
           } as Tables<'swarms_cloud_agents'>,
         ]);

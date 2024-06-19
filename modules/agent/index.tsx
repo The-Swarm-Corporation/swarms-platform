@@ -25,6 +25,7 @@ const Agent = async ({ id }: { id: string }) => {
       usecases={usecases}
       description={agent.description ?? ''}
       name={agent.name ?? ''}
+      language={agent.language ?? ''}
       requirements={requirements}
       prompt={agent.agent ?? ''}
       userId={agent.user_id ?? ''}

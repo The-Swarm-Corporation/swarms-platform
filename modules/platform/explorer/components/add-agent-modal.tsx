@@ -5,8 +5,16 @@ import Input from '@/shared/components/ui/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { ArrowLeft, ArrowLeftSquare, Plus } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
 import { useMemo, useState } from 'react';
+import { languageOptions } from '@/shared/constants/explorer';
 
 interface Props {
   isOpen: boolean;
@@ -20,6 +28,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
   const [description, setDescription] = useState('');
   const [agent, setAgent] = useState('');
   const [tags, setTags] = useState('');
+  const [language, setLanguage] = useState('python');
   const [useCases, setUseCases] = useState<
     {
       title: string;
@@ -127,6 +136,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         agent,
         description,
         useCases,
+        language,
         requirements,
         tags: trimTags,
       })
@@ -215,6 +225,27 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
                   {validateAgent.data.error}
                 </span>
               )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <span>Language</span>
+            <Select
+              onValueChange={setLanguage}
+              value={language}
+            >
+              <SelectTrigger className="w-1/2 cursor-pointer, capitalize">
+                <SelectValue placeholder={language} />
+              </SelectTrigger>
+              <SelectContent className="capitalize">
+                {languageOptions?.map((option) => (
+                  <SelectItem
+                    key={option}
+                    value={option}
+                  >
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex flex-col gap-1">
             <span>Tags</span>
@@ -358,8 +389,8 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
               <ArrowLeft
                 onClick={() => setStep('info')}
                 size={32}
-                aria-label='Previous Button'
-                className='text-primary cursor-pointer'
+                aria-label="Previous Button"
+                className="text-primary cursor-pointer"
               />
               <Button
                 disabled={addAgent.isPending}

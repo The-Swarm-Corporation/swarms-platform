@@ -284,6 +284,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          language: string | null
           name: string | null
           requirements: Json | null
           status: Database["public"]["Enums"]["user_agents_status"] | null
@@ -296,6 +297,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          language?: string | null
           name?: string | null
           requirements?: Json | null
           status?: Database["public"]["Enums"]["user_agents_status"] | null
@@ -308,6 +310,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          language?: string | null
           name?: string | null
           requirements?: Json | null
           status?: Database["public"]["Enums"]["user_agents_status"] | null

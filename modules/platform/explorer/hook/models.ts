@@ -74,20 +74,6 @@ export default function useModels() {
     [isDataLoading],
   );
 
-  const handleRemoveOption = useCallback(
-    (optionToRemove: string) => {
-      if (isDataLoading) return;
-      const updatedOptionsSet = new Set(options);
-      updatedOptionsSet.delete(optionToRemove);
-      const updatedOptions = Array.from(updatedOptionsSet);
-      setOptions(updatedOptions);
-      setFilterOption(
-        updatedOptions.length ? updatedOptions[0] : 'swarms-models-prompts',
-      );
-    },
-    [options, isDataLoading],
-  );
-
   return {
     filteredModels,
     filteredSwarms,
@@ -99,6 +85,5 @@ export default function useModels() {
     isDataLoading,
     handleSearchChange,
     handleOptionChange,
-    handleRemoveOption,
   };
 }

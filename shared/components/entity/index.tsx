@@ -4,7 +4,7 @@ import React, { PropsWithChildren, useEffect, useState } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Share2 } from 'lucide-react';
+import { Copy, Share } from 'lucide-react';
 import { useToast } from '../ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '../avatar';
@@ -18,6 +18,7 @@ interface Entity extends PropsWithChildren {
   name?: string;
   tags?: string[];
   title: string;
+  language?: string;
   description?: string;
   usecases?: UseCasesProps[];
   prompt?: string;
@@ -61,11 +62,13 @@ export default function EntityComponent({
   prompt,
   description,
   usecases,
+  language,
   requirements,
   children,
   userId,
 }: Entity) {
   const toast = useToast();
+  const lang = title.toLowerCase() === 'agent' && language ? language : 'text';
 
   const pathName = usePathname();
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
@@ -94,25 +97,25 @@ export default function EntityComponent({
         <div className="max-md:text-center">
           <h2>{title}</h2>
           {name && <h1 className="text-4xl md:text-6xl my-4">{name}</h1>}
+          <Avatar
+            userId={userId ?? ''}
+            showUsername
+            showBorder
+            title={`${title} Author`}
+          />
           {description && (
-            <div className=" text-sm md:text-base text-gray-400">
+            <div className="mt-4 text-sm md:text-base text-gray-400">
               {description}
             </div>
           )}
-          <div className="max-md:my-8 my-4 max-md:flex max-md:flex-col max-md:items-center md:w-fit">
-            <Avatar
-              userId={userId ?? ''}
-              showUsername
-              showBorder
-              title={`${title} Author`}
-            />
+          <div className="max-md:my-8 mb-2 max-md:flex max-md:flex-col max-md:items-center md:w-fit">
             <Button
               onClick={handleShowShareModal}
               variant="destructive"
               className="mt-3 w-full"
             >
-              <span className="mr-1">Share</span>
-              <Share2 />
+              <Share size={20} />
+              <span className="ml-2">Share</span>
             </Button>
           </div>
         </div>
@@ -138,7 +141,7 @@ export default function EntityComponent({
             <SyntaxHighlighter
               PreTag={CustomPre}
               style={dracula}
-              language={title.toLowerCase() === 'agent' ? 'python' : 'text'}
+              language={lang}
               wrapLongLines
             >
               {prompt}

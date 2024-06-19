@@ -18,7 +18,7 @@ import AddPromptModal from './components/add-prompt-modal';
 import Models from './components/content/models';
 import Prompts from './components/content/prompts';
 import Swarms from './components/content/swarms';
-import { Activity, Grid2X2 } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import Agents from './components/content/agents';
 import AddAgentModal from './components/add-agent-modal';
@@ -52,8 +52,7 @@ const Explorer = () => {
     filterOption,
     isDataLoading,
     handleSearchChange,
-    handleOptionChange,
-    handleRemoveOption,
+    handleOptionChange
   } = useModels();
 
   const toast = useToast();
