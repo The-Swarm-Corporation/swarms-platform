@@ -65,7 +65,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
   return (
     <>
       {user ? <PlatformNavBar user={user} /> : <Navbar />}
-      <main
+      <div
         className={cn(
           user
             ? 'mt-16 md:mt-20 flex flex-row w-screen h-screen min-h-screen max-md:flex-col'
@@ -73,19 +73,22 @@ export default async function RootLayout({ children }: PropsWithChildren) {
         )}
       >
         {user && <PanelLayoutSidebar />}
-        <div className="relative">
-          <div
-            className={cn(
-              'min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]',
-              user &&
-                'relative container lg:max-w-7xl lg:px-12 mx-auto max-lg:z-10',
-            )}
-          >
-            {children}
-          </div>
-          <Footer />
-        </div>
-      </main>
+        <main
+          className={cn(
+            user
+              ? 'relative container lg:max-w-7xl lg:px-12 h-full mx-auto max-lg:z-10'
+              : 'min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]',
+          )}
+        >
+          {children}
+          {user && (
+            <div className="absolute lg:w-[93%] xl:w-[95%]">
+              <Footer />
+            </div>
+          )}
+        </main>
+      </div>
+      {!user && <Footer />}
     </>
   );
 }
