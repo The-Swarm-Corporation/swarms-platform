@@ -89,20 +89,17 @@ export default function EntityComponent({
   );
 
   return (
-    <div className="max-w-6xl px-6 mx-auto">
+    <div className="max-w-6xl md:px-6 mx-auto">
       <div className="flex flex-col py-8 md:py-16">
-        <div className="flex flex-col md:flex-row justify-between md:items-center">
-          <div className="max-md:text-center">
-            <h2>{title}</h2>
-            {name && <h1 className="text-4xl md:text-6xl my-4">{name}</h1>}
-            {description && (
-              <div className=" text-sm md:text-base text-gray-400">
-                {description}
-              </div>
-            )}
-          </div>
-
-          <aside className="max-md:my-8 max-md:flex max-md:flex-col max-md:items-center">
+        <div className="max-md:text-center">
+          <h2>{title}</h2>
+          {name && <h1 className="text-4xl md:text-6xl my-4">{name}</h1>}
+          {description && (
+            <div className=" text-sm md:text-base text-gray-400">
+              {description}
+            </div>
+          )}
+          <div className="max-md:my-8 my-4 max-md:flex max-md:flex-col max-md:items-center md:w-fit">
             <Avatar
               userId={userId ?? ''}
               showUsername
@@ -117,7 +114,7 @@ export default function EntityComponent({
               <span className="mr-1">Share</span>
               <Share2 />
             </Button>
-          </aside>
+          </div>
         </div>
 
         <div className="flex gap-2 mt-4 select-none flex-wrap">
@@ -137,7 +134,7 @@ export default function EntityComponent({
       )}
       {prompt && (
         <div className="relative my-10">
-          <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl p-5 py-7 rounded-lg leading-normal overflow-hidden">
+          <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar">
             <SyntaxHighlighter
               PreTag={CustomPre}
               style={dracula}
