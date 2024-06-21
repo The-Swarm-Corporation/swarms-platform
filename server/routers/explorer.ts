@@ -266,6 +266,55 @@ const explorerRouter = router({
         throw "Couldn't add prompt";
       }
     }),
+
+  // Update prompt
+  updatePrompt: userProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        prompt: z.string().optional(),
+        description: z.string().optional(),
+        useCases: z.array(z.any()),
+        tags: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      console.log({ description: input.description });
+      if (!input.prompt) {
+        throw 'Prompt is required';
+      }
+
+      // at least 5 characters
+      if (!input.name || input.name.trim()?.length < 2) {
+        throw 'Name should be at least 2 characters';
+      }
+
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+
+      try {
+        const prompt = await ctx.supabase
+          .from('swarms_cloud_prompts')
+          .update({
+            name: input.name,
+            use_cases: input.useCases,
+            prompt: input.prompt,
+            description: input.description,
+            tags: input.tags,
+          } as Tables<'swarms_cloud_prompts'>)
+          .eq('user_id', user_id)
+          .eq('id', input.id)
+          .select('*');
+
+        if (prompt.error) {
+          throw prompt.error;
+        }
+        return true;
+      } catch (e) {
+        console.error(e);
+        throw 'Prompt could not be updated';
+      }
+    }),
   getAllPrompts: publicProcedure.query(async ({ ctx }) => {
     const prompts = await ctx.supabase
       .from('swarms_cloud_prompts')
@@ -431,6 +480,62 @@ const explorerRouter = router({
         if (agents.error) {
           throw agents.error;
         }
+        return true;
+      } catch (e) {
+        console.error(e);
+        throw "Couldn't add agent";
+      }
+    }),
+  // Update agent
+  updateAgent: userProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        agent: z.string().optional(),
+        language: z.string().optional(),
+        description: z.string().optional(),
+        requirements: z.array(z.any()).optional(),
+        useCases: z.array(z.any()),
+        tags: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!input.description) {
+        throw 'Description is required';
+      }
+
+      // at least 5 characters
+      if (!input.name || input.name.trim()?.length < 2) {
+        throw 'Name should be at least 2 characters';
+      }
+
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+
+      try {
+        const agent = await ctx.supabase
+          .from('swarms_cloud_agents')
+          .update({
+            name: input.name,
+            description: input.description,
+            use_cases: input.useCases,
+            agent: input.agent,
+            requirements: input.requirements,
+            tags: input.tags,
+            language: input.language,
+          } as Tables<'swarms_cloud_agents'>)
+          .eq('user_id', user_id)
+          .eq('id', input.id)
+          .select('*');
+
+        if (agent.error) {
+          throw agent.error;
+        }
+
+        if (!agent.data?.length) {
+          throw new Error('Organization not found');
+        }
+
         return true;
       } catch (e) {
         console.error(e);

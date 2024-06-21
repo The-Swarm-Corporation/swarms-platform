@@ -22,6 +22,7 @@ const Agent = async ({ id }: { id: string }) => {
     <EntityComponent
       title="Agent"
       tags={tags}
+      id={id}
       usecases={usecases}
       description={agent.description ?? ''}
       name={agent.name ?? ''}

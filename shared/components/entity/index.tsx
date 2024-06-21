@@ -1,20 +1,26 @@
 'use client';
 
-import React, { PropsWithChildren, useEffect, useState } from 'react';
+import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Share } from 'lucide-react';
+import { Copy, Pencil, Share } from 'lucide-react';
 import { useToast } from '../ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '../avatar';
 import { Button } from '../ui/Button';
 import AgentRequirements, { RequirementProps } from './agent-requirements';
 import ShareModal from '@/modules/platform/explorer/components/share-modal';
+import EditExplorerModal from '@/modules/platform/explorer/components/edit-modal';
+import { trpc } from '@/shared/utils/trpc/trpc';
+import { useRouter } from 'next/navigation';
 
 type UseCasesProps = { title: string; description: string };
 
+type EntityType = 'agent' | 'prompt';
+
 interface Entity extends PropsWithChildren {
+  id?: string;
   name?: string;
   tags?: string[];
   title: string;
@@ -55,7 +61,12 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
   );
 }
 
+const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
+  <pre id="customPreTag" {...props} />
+);
+
 export default function EntityComponent({
+  id,
   title,
   name,
   tags,
@@ -68,10 +79,19 @@ export default function EntityComponent({
   userId,
 }: Entity) {
   const toast = useToast();
-  const lang = title.toLowerCase() === 'agent' && language ? language : 'text';
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const entityTitle = title.toLowerCase();
+  const lang = entityTitle === 'agent' && language ? language : 'text';
+  const user = trpc.main.getUser.useQuery();
+  const showEditButton =
+    (entityTitle === 'agent' || entityTitle === 'prompt') &&
+    user &&
+    user.data?.id === userId;
 
   const pathName = usePathname();
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -87,9 +107,14 @@ export default function EntityComponent({
   const handleShowShareModal = () => setIsShowModalOpen(true);
   const handleCloseModal = () => setIsShowModalOpen(false);
 
-  const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
-    <pre id="customPreTag" {...props} />
-  );
+  const handleShowEditModal = () => setIsEditModalOpen(true);
+  const handleCloseEditModal = () => setIsEditModalOpen(false);
+
+  function onEditSuccessfully() {
+    startTransition(() => {
+      router.refresh();
+    });
+  }
 
   return (
     <div className="max-w-6xl md:px-6 mx-auto">
@@ -108,7 +133,7 @@ export default function EntityComponent({
               {description}
             </div>
           )}
-          <div className="max-md:my-8 mb-2 max-md:flex max-md:flex-col max-md:items-center md:w-fit">
+          <div className="max-md:my-8 mb-2 flex max-md:flex-col max-md:items-center md:w-fit gap-3">
             <Button
               onClick={handleShowShareModal}
               variant="destructive"
@@ -117,8 +142,27 @@ export default function EntityComponent({
               <Share size={20} />
               <span className="ml-2">Share</span>
             </Button>
+            {showEditButton && (
+              <Button
+                onClick={handleShowEditModal}
+                variant="destructive"
+                className="mt-3 w-full"
+              >
+                <Pencil size={20} />
+                <span className="ml-2">Edit</span>
+              </Button>
+            )}
           </div>
         </div>
+
+        <EditExplorerModal
+          entityId={id ?? ''}
+          entityType={entityTitle as EntityType}
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          onEditSuccessfully={onEditSuccessfully}
+          key={id}
+        />
 
         <div className="flex gap-2 mt-4 select-none flex-wrap">
           {tags?.map(

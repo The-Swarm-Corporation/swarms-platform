@@ -5,7 +5,6 @@ import Input from '@/shared/components/ui/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce, launchConfetti } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import confetti from 'canvas-confetti';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -151,7 +150,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter description"
-            className="w-full h-15 p-2 border rounded-md bg-transparent outline-0 resize-none"
+            className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
           />
         </div>
         <div className="flex flex-col gap-1">
