@@ -39,7 +39,7 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
       <div className="flex gap-2 flex-col md:flex-row">
         {usecases?.map((usecase) => (
           <Card3D containerClassName="flex-1 " className="inter-var w-full">
-            <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto h-[180px] rounded-xl p-6 border flex flex-col ">
+            <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto min-h-[255px] md:min-h-[320px] h-fit rounded-xl p-6 border flex flex-col ">
               <CardItem
                 translateZ="50"
                 className="text-xl font-bold text-neutral-600 dark:text-white"
