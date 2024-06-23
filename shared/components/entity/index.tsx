@@ -14,6 +14,7 @@ import ShareModal from '@/modules/platform/explorer/components/share-modal';
 import EditExplorerModal from '@/modules/platform/explorer/components/edit-modal';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/shared/utils/cn';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -37,25 +38,33 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
     <div className="flex flex-col gap-4">
       <h2 className="text-4xl">Use Cases</h2>
       <div className="flex gap-2 flex-col md:flex-row">
-        {usecases?.map((usecase) => (
-          <Card3D containerClassName="flex-1 " className="inter-var w-full">
-            <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto min-h-[255px] md:min-h-[320px] h-fit rounded-xl p-6 border flex flex-col ">
-              <CardItem
-                translateZ="50"
-                className="text-xl font-bold text-neutral-600 dark:text-white"
+        {usecases?.map((usecase) => {
+          const classname = usecases?.length === 1 && 'min-h-fit md:min-h-fit';
+          return (
+            <Card3D containerClassName="flex-1 " className="inter-var w-full">
+              <CardBody
+                className={cn(
+                  'bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto min-h-[255px] md:min-h-[320px] h-fit rounded-xl p-6 border flex flex-col ',
+                  classname,
+                )}
               >
-                {usecase.title}
-              </CardItem>
-              <CardItem
-                as="p"
-                translateZ="60"
-                className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
-              >
-                {usecase.description}
-              </CardItem>
-            </CardBody>
-          </Card3D>
-        ))}
+                <CardItem
+                  translateZ="50"
+                  className="text-xl font-bold text-neutral-600 dark:text-white"
+                >
+                  {usecase.title}
+                </CardItem>
+                <CardItem
+                  as="p"
+                  translateZ="60"
+                  className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
+                >
+                  {usecase.description}
+                </CardItem>
+              </CardBody>
+            </Card3D>
+          );
+        })}
       </div>
     </div>
   );
@@ -79,11 +88,11 @@ export default function EntityComponent({
   userId,
 }: Entity) {
   const toast = useToast();
+  const user = trpc.main.getUser.useQuery();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const entityTitle = title.toLowerCase();
-  const lang = entityTitle === 'agent' && language ? language : 'text';
-  const user = trpc.main.getUser.useQuery();
+
   const showEditButton =
     (entityTitle === 'agent' || entityTitle === 'prompt') &&
     user &&
@@ -185,7 +194,7 @@ export default function EntityComponent({
             <SyntaxHighlighter
               PreTag={CustomPre}
               style={dracula}
-              language={lang}
+              language={language || 'text'}
               wrapLongLines
             >
               {prompt}

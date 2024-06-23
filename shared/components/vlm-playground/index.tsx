@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { Button } from '../ui/Button';
 import LoadingSpinner from '../loading-spinner';

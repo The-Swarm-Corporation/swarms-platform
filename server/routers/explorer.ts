@@ -280,7 +280,6 @@ const explorerRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      console.log({ description: input.description });
       if (!input.prompt) {
         throw 'Prompt is required';
       }

@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from 'react';
+
 export enum EditorType {
   language = 'LANGUAGE',
   theme = 'THEME',
@@ -14,14 +16,15 @@ export interface CodeEditorProps {
   model: string;
   padding: string;
   codeValue?: string;
+  setLanguage?: Dispatch<SetStateAction<LanguageType>>;
+  setCodeValue?: Dispatch<SetStateAction<string>>;
   handleChange?: (type: EditorType, value: LanguageType | string) => void;
   handleCodeValueChange?: (value: string) => void;
 }
 
 export interface DropdownProps {
-    label: string;
-    options: string[] | LanguageProps;
-    type: EditorType;
-    handleChange?: (type: EditorType, value: LanguageType | string) => void;
-  }
-
+  label: string;
+  options: string[] | LanguageProps;
+  type: EditorType;
+  handleChange?: (type: EditorType, value: LanguageType | string) => void;
+}

@@ -91,7 +91,7 @@ function EditExplorerModal({
               </div>
             ) : (
               <div className="absolute right-2.5 top-2.5">
-                {inputState.uniqueField.length > 0 && validateMutation.data && (
+                {inputState?.uniqueField?.length > 0 && validateMutation.data && (
                   <span
                     className={
                       validateMutation.data.valid
@@ -105,7 +105,7 @@ function EditExplorerModal({
               </div>
             )}
           </div>
-          {inputState.uniqueField.length > 0 &&
+          {inputState?.uniqueField?.length > 0 &&
             !validateMutation.isPending &&
             validateMutation.data &&
             !validateMutation.data.valid && (
