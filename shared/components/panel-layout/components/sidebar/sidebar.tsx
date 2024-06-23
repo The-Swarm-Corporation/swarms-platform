@@ -20,7 +20,7 @@ const PanelLayoutSidebar = () => {
       {/* desktop */}
       <div
         className={cn(
-          'max-w-[1px] w-full transition-all duration-150 ease-out translate-x-0 max-lg:hidden',
+          'max-w-[90px] w-full transition-all duration-150 ease-out translate-x-0 max-lg:hidden',
           showTitle && 'max-w-[250px]',
         )}
       />
