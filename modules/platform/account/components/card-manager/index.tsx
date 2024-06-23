@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/shared/components/ui/Button';
 import { getStripe } from '@/shared/utils/stripe/client';
 import {
@@ -15,6 +17,7 @@ import { Trash } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useSearchParams } from 'next/navigation';
 import { isEmpty } from '@/shared/utils/helpers';
+import { useTheme } from 'next-themes';
 
 const CardManagerInside = () => {
   const manager = useCardManager();
@@ -22,6 +25,8 @@ const CardManagerInside = () => {
   const stripe = useStripe();
   const elements = useElements();
   const toast = useToast();
+  const theme = useTheme();
+
   const searchParams = useSearchParams();
   const cardAvailable = searchParams?.get('card_available');
 
@@ -32,7 +37,7 @@ const CardManagerInside = () => {
       cardAvailable === 'false'
     ) {
       setIsAddCardModalOpen(true);
-    }else {
+    } else {
       setIsAddCardModalOpen(false);
     }
   }, [manager.methods.data, cardAvailable]);
@@ -118,9 +123,9 @@ const CardManagerInside = () => {
               style: {
                 base: {
                   fontSize: '16px',
-                  color: '#424770',
+                  color: theme.theme === 'dark' ? '#ffffff' : '#000000',
                   '::placeholder': {
-                    color: '#aab7c4',
+                    color: theme.theme === "dark" ? '#aab7c4' : '#767676',
                   },
                 },
                 invalid: {
@@ -130,7 +135,7 @@ const CardManagerInside = () => {
             }}
           />
           <Button
-            disabled={!stripe || manager.attach.isPending}
+            disabled={!stripe || !elements || manager.attach.isPending}
             className="mt-4"
             type="submit"
           >
