@@ -57,7 +57,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
             className="relative ml-5 cursor-pointer max-sm:mt-1"
             onClick={setOn}
           >
-            <Avatar user={user as User} />
+            <Avatar user={user as User} profileName={profileName} />
             <ul
               ref={dropdownRef}
               className={cn(

@@ -12,6 +12,7 @@ interface AvatarProps {
   showUsername?: boolean;
   showBorder?: boolean;
   title?: string;
+  profileName?: string;
 }
 
 export default function Avatar({
@@ -19,13 +20,15 @@ export default function Avatar({
   user,
   title,
   showBorder,
+  profileName,
   showUsername,
 }: AvatarProps) {
   const { data } = trpc.main.getUserById.useQuery({
     userId: userId,
   });
   const avatar = (user ? user.user_metadata?.avatar_url : data?.avatar) || '';
-  const username = user ? user.user_metadata.user_name : data?.username;
+  const username = user ? (user.user_metadata.user_name || profileName) : data?.username;
+
   return (
     <div title={title} className="flex items-center">
       {avatar ? (

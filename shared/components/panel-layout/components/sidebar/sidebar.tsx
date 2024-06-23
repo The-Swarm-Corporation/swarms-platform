@@ -13,7 +13,7 @@ import NavItem from '../item';
 const PanelLayoutSidebar = () => {
   const path = usePathname();
   const router = useRouter();
-  const [showTitle, setShowTitle] = useState(true);
+  const [showTitle, setShowTitle] = useState(false);
 
   return (
     <>
