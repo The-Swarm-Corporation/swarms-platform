@@ -59,6 +59,8 @@ export default function EditorProvider({
         language,
         padding,
         codeValue,
+        setCodeValue,
+        setLanguage,
         handleChange,
         handleCodeValueChange,
       }}

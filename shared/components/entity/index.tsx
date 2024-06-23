@@ -68,7 +68,6 @@ export default function EntityComponent({
   userId,
 }: Entity) {
   const toast = useToast();
-  const lang = title.toLowerCase() === 'agent' && language ? language : 'text';
 
   const pathName = usePathname();
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
@@ -141,7 +140,7 @@ export default function EntityComponent({
             <SyntaxHighlighter
               PreTag={CustomPre}
               style={dracula}
-              language={lang}
+              language={language || "text"}
               wrapLongLines
             >
               {prompt}
