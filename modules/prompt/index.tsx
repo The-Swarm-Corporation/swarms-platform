@@ -16,6 +16,7 @@ const Prompt = async ({ id }: { id: string }) => {
   return (
     <EntityComponent
       title="Prompt"
+      id={id}
       tags={tags}
       usecases={usecases}
       description={prompt.description ?? ''}
