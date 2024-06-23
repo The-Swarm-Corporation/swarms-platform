@@ -32,7 +32,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
     isUploading,
     handleFileChange,
     uploadImage,
-  } = useUploadFileToStorage();
+  } = useUploadFileToStorage({ isSwitchImage: "no" });
   const [step, setStep] = useState<'info' | 'requirement'>('info');
   const [agentName, setAgentName] = useState('');
   const [description, setDescription] = useState('');

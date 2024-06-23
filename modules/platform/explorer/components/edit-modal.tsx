@@ -12,6 +12,7 @@ import { languageOptions } from '@/shared/constants/explorer';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import useEditModal from '@/shared/hooks/edit-modal';
 import { Plus } from 'lucide-react';
+import { cn } from '@/shared/utils/cn';
 
 interface EditExplorerModalProps {
   isOpen: boolean;
@@ -31,6 +32,8 @@ function EditExplorerModal({
   const {
     inputState,
     setInputState,
+    isSwitchImage,
+    setIsSwitchImage,
     submit,
     validateMutation,
     debouncedCheckUniqueField,
@@ -39,6 +42,7 @@ function EditExplorerModal({
     removeUseCase,
     addRequirement,
     removeRequirement,
+    handleFileChange,
   } = useEditModal({ entityId, entityType, onClose, onEditSuccessfully });
 
   return (
@@ -122,6 +126,50 @@ function EditExplorerModal({
             onChange={(value) => setInputState({ ...inputState, tags: value })}
             placeholder="Tools, Search, etc."
           />
+        </div>
+        <div className="flex flex-col gap-1 my-1">
+          <span>Upload Image</span>
+
+          <div className="flex items-center gap-1 my-1">
+            <div
+              onClick={() => setIsSwitchImage('yes')}
+              className="flex items-center text-sm gap-2 py-2 px-4 cursor-pointer"
+            >
+              <div
+                className={cn(
+                  'w-4 h-4 flex relative items-center justify-center border border-gray-400 rounded-sm',
+                  isSwitchImage === 'yes'
+                    ? "bg-primary before:content-['✔'] before:absolute before:inline-block before:text-xs before:text-white"
+                    : '',
+                )}
+              />
+              <span>Yes</span>
+            </div>
+            <div
+              onClick={() => setIsSwitchImage('no')}
+              className="flex items-center text-sm gap-2 py-2 px-4 cursor-pointer"
+            >
+              <div
+                className={cn(
+                  'w-4 h-4 flex relative items-center justify-center border border-gray-400 rounded-sm',
+                  isSwitchImage === 'no'
+                    ? "bg-primary before:content-['✔'] before:absolute before:inline-block before:text-xs before:text-white"
+                    : '',
+                )}
+              />
+              <span>No</span>
+            </div>
+          </div>
+
+          {isSwitchImage === 'yes' && (
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="bg-transparent py-2 px-3 mb-2 w-full md:w-1/2 appearance-none transition duration-150 ease-in-out border rounded-md focus:outline-none"
+              placeholder="Enter image url"
+            />
+          )}
         </div>
         {/* UseCases */}
         <div className="flex flex-col gap-1">

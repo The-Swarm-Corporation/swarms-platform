@@ -279,6 +279,7 @@ const explorerRouter = router({
         description: z.string().optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        image_url: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -302,6 +303,7 @@ const explorerRouter = router({
             prompt: input.prompt,
             description: input.description,
             tags: input.tags,
+            image_url: input.image_url || null,
           } as Tables<'swarms_cloud_prompts'>)
           .eq('user_id', user_id)
           .eq('id', input.id)
@@ -501,6 +503,7 @@ const explorerRouter = router({
         requirements: z.array(z.any()).optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        image_url: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -526,6 +529,7 @@ const explorerRouter = router({
             requirements: input.requirements,
             tags: input.tags,
             language: input.language,
+            image_url: input.image_url || null,
           } as Tables<'swarms_cloud_agents'>)
           .eq('user_id', user_id)
           .eq('id', input.id)

@@ -2,6 +2,7 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce } from '@/shared/utils/helpers';
 import { useEffect, useMemo, useState } from 'react';
 import { trpc } from '@/shared/utils/trpc/trpc';
+import { useUploadFileToStorage } from './upload-file';
 
 interface EditExplorerModalProps {
   onClose: () => void;
@@ -40,6 +41,7 @@ interface InputState {
   requirements?: { package: string; installation: string }[];
 }
 
+export type SwitchImageProps = 'yes' | 'no';
 export default function useEditModal({
   entityType,
   entityId,
@@ -48,6 +50,7 @@ export default function useEditModal({
 }: EditExplorerModalProps) {
   const toast = useToast();
 
+  const [isSwitchImage, setIsSwitchImage] = useState<SwitchImageProps>('no');
   const [inputState, setInputState] = useState<InputState>({
     name: '',
     description: '',
@@ -58,6 +61,9 @@ export default function useEditModal({
     imageUrl: '',
     requirements: [{ package: '', installation: '' }],
   });
+
+  const { imageFile, isUploading, handleFileChange, setImageFile, uploadImage } =
+    useUploadFileToStorage({ isSwitchImage });
 
   const validateMutation =
     entityType === 'agent'
@@ -208,6 +214,9 @@ export default function useEditModal({
       }
     }
 
+    const imageLink = imageFile ? await uploadImage() : null;
+    const imageUrl = isSwitchImage === 'no' ? entityData.image_url : imageLink;
+
     // Prepare data based on entityType
     const data: AgentEditModal | PromptEditModal =
       entityType === 'agent'
@@ -219,6 +228,7 @@ export default function useEditModal({
             useCases: inputState.useCases,
             agent: inputState.uniqueField,
             language: inputState.language!,
+            image_url: imageUrl || "",
             requirements: inputState.requirements!,
           }
         : {
@@ -227,6 +237,7 @@ export default function useEditModal({
             description: inputState.description,
             tags: trimTags,
             useCases: inputState.useCases,
+            image_url: imageUrl || "",
             prompt: inputState.uniqueField,
           };
 
@@ -237,6 +248,7 @@ export default function useEditModal({
         toast.toast({
           title: `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} edited successfully 🎉`,
         });
+        setImageFile(null);
         onClose();
         onEditSuccessfully();
       })
@@ -246,10 +258,13 @@ export default function useEditModal({
   return {
     inputState,
     setInputState,
+    isSwitchImage,
+    setIsSwitchImage,
     submit,
     debouncedCheckUniqueField,
     validateMutation,
-    isPending: editMutation.isPending,
+    isPending: editMutation.isPending || isUploading,
+    handleFileChange,
     addUseCase,
     removeUseCase,
     addRequirement,

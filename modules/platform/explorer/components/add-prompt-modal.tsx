@@ -23,7 +23,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
     uploadImage,
     isUploading,
     handleFileChange,
-  } = useUploadFileToStorage();
+  } = useUploadFileToStorage({ isSwitchImage: "no" });
   const [promptName, setPromptName] = useState('');
   const [description, setDescription] = useState('');
   const [prompt, setPrompt] = useState('');

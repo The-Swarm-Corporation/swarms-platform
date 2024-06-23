@@ -1,9 +1,14 @@
 import { ChangeEvent, useState } from 'react';
 import { useToast } from '../components/ui/Toasts/use-toast';
 import { createClient } from '../utils/supabase/client';
+import { SwitchImageProps } from './edit-modal';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-export function useUploadFileToStorage() {
+export function useUploadFileToStorage({
+  isSwitchImage,
+}: {
+  isSwitchImage?: SwitchImageProps;
+}) {
   const toast = useToast();
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -24,7 +29,7 @@ export function useUploadFileToStorage() {
   }
 
   async function uploadImage() {
-    if (!imageFile) return;
+    if (!imageFile || isSwitchImage === "no") return;
 
     setIsUploading(true);
     toast.toast({
@@ -40,8 +45,6 @@ export function useUploadFileToStorage() {
     if (error) {
       console.error('Error uploading image:', error);
       toast.toast({
-        variant: 'destructive',
-        title: 'Error uploading image',
         description: error.message,
       });
       return '';
