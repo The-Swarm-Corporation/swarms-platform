@@ -6,13 +6,17 @@ import ThemeSelector from './components/theme';
 import CodeEditor from './components/editor';
 import { cn } from '@/shared/utils/cn';
 
+interface CodePlaygroundProps {
+  height?: number;
+  downloadCtaClassName?: string;
+  readonly?: boolean;
+}
+
 export default function CodePlayground({
   height,
   downloadCtaClassName,
-}: {
-  height?: number;
-  downloadCtaClassName?: string;
-}) {
+  readonly,
+}: CodePlaygroundProps) {
   const editorRef = useRef<any>(null);
 
   async function downloadCodeFile() {
@@ -51,7 +55,7 @@ export default function CodePlayground({
       </header>
 
       <div className="editor mt-[70px]">
-        <CodeEditor ref={editorRef} resHeight={height} />
+        <CodeEditor ref={editorRef} resHeight={height} readonly={readonly} />
       </div>
     </section>
   );

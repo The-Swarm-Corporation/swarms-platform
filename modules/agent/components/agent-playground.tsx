@@ -28,7 +28,7 @@ function Playground({ language, agent }: PlaygroundProps) {
 
   return (
     <div className="my-14 bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal">
-      <CodePlayground height={resHeight} downloadCtaClassName='bg-transparent text-destructive'  />
+      <CodePlayground height={resHeight} downloadCtaClassName='bg-transparent text-destructive' readonly  />
     </div>
   );
 }
