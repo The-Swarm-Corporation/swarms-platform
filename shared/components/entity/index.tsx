@@ -29,6 +29,7 @@ interface Entity extends PropsWithChildren {
   description?: string;
   usecases?: UseCasesProps[];
   prompt?: string;
+  imageUrl?: string;
   requirements?: RequirementProps[];
   userId?: string | null;
 }
@@ -83,6 +84,7 @@ export default function EntityComponent({
   description,
   usecases,
   language,
+  imageUrl,
   requirements,
   children,
   userId,
@@ -128,39 +130,54 @@ export default function EntityComponent({
   return (
     <div className="max-w-6xl md:px-6 mx-auto">
       <div className="flex flex-col py-8 md:py-16">
-        <div className="max-md:text-center">
-          <h2>{title}</h2>
-          {name && <h1 className="text-4xl md:text-6xl my-4">{name}</h1>}
-          <Avatar
-            userId={userId ?? ''}
-            showUsername
-            showBorder
-            title={`${title} Author`}
-          />
-          {description && (
-            <div className="mt-4 text-sm md:text-base text-gray-400">
-              {description}
-            </div>
+        <div
+          className={cn(
+            'relative max-md:text-center',
+            imageUrl && 'h-fit p-4 md:p-8 pl-0 md:pl-0',
           )}
-          <div className="max-md:my-8 mb-2 flex max-md:flex-col max-md:items-center md:w-fit gap-3">
-            <Button
-              onClick={handleShowShareModal}
-              variant="destructive"
-              className="mt-3 w-full"
-            >
-              <Share size={20} />
-              <span className="ml-2">Share</span>
-            </Button>
-            {showEditButton && (
+          style={{
+            backgroundImage: `url(${imageUrl})`,
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+          }}
+        >
+          {imageUrl && (
+            <div className="absolute inset-0 bg-black/70 h-full w-full z-10 shadow-inset-left" />
+          )}
+          <div className="relative z-20">
+            <h2>{title}</h2>
+            {name && <h1 className={cn("text-4xl md:text-6xl my-4", imageUrl && "drop-shadow-sm")}>{name}</h1>}
+            <Avatar
+              userId={userId ?? ''}
+              showUsername
+              showBorder
+              title={`${title} Author`}
+            />
+            {description && (
+              <div className="mt-4 text-sm md:text-base text-gray-500 dark:text-gray-300 drop-shadow-sm">
+                {description}
+              </div>
+            )}
+            <div className="max-md:my-8 mb-2 flex max-md:flex-col max-md:items-center md:w-fit gap-3">
               <Button
-                onClick={handleShowEditModal}
+                onClick={handleShowShareModal}
                 variant="destructive"
                 className="mt-3 w-full"
               >
-                <Pencil size={20} />
-                <span className="ml-2">Edit</span>
+                <Share size={20} />
+                <span className="ml-2">Share</span>
               </Button>
-            )}
+              {showEditButton && (
+                <Button
+                  onClick={handleShowEditModal}
+                  variant="destructive"
+                  className="mt-3 w-full"
+                >
+                  <Pencil size={20} />
+                  <span className="ml-2">Edit</span>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 

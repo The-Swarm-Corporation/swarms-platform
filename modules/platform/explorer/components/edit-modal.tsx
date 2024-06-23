@@ -91,17 +91,18 @@ function EditExplorerModal({
               </div>
             ) : (
               <div className="absolute right-2.5 top-2.5">
-                {inputState?.uniqueField?.length > 0 && validateMutation.data && (
-                  <span
-                    className={
-                      validateMutation.data.valid
-                        ? 'text-green-500'
-                        : 'text-red-500'
-                    }
-                  >
-                    {validateMutation.data.valid ? '✅' : ''}
-                  </span>
-                )}
+                {inputState?.uniqueField?.length > 0 &&
+                  validateMutation.data && (
+                    <span
+                      className={
+                        validateMutation.data.valid
+                          ? 'text-green-500'
+                          : 'text-red-500'
+                      }
+                    >
+                      {validateMutation.data.valid ? '✅' : ''}
+                    </span>
+                  )}
               </div>
             )}
           </div>

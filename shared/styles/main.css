@@ -95,6 +95,10 @@
     @apply transition-custom text-xs overflow-hidden shadow-4xl py-2 px-3 border dark:border-gray-700 rounded-md hover:shadow-5xl flex gap-1 hover:scale-[1.02];
   }
 
+  .shadow-inset-left {
+    box-shadow: inset 20px 0 20px -10px rgba(0, 0, 0, 1);
+  }
+
   @keyframes slideDown {
     from {
       max-height: 0;

@@ -32,6 +32,7 @@ export default function Prompts({
               <InfoCard
                 title={prompt.name || ''}
                 description={prompt.prompt || ''}
+                imageUrl={prompt.image_url}
                 icon={<Terminal />}
                 className="w-full h-full"
                 link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}

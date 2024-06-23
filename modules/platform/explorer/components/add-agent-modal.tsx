@@ -15,6 +15,9 @@ import {
 } from '@/shared/components/ui/select';
 import { useMemo, useState } from 'react';
 import { languageOptions } from '@/shared/constants/explorer';
+import { useUploadFileToStorage } from '@/shared/hooks/upload-file';
+
+// TODO: MARK FOR REFACTORING - (same as other modals including edit modal)
 
 interface Props {
   isOpen: boolean;
@@ -23,6 +26,13 @@ interface Props {
 }
 
 const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
+  const {
+    imageFile,
+    setImageFile,
+    isUploading,
+    handleFileChange,
+    uploadImage,
+  } = useUploadFileToStorage();
   const [step, setStep] = useState<'info' | 'requirement'>('info');
   const [agentName, setAgentName] = useState('');
   const [description, setDescription] = useState('');
@@ -94,7 +104,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
     setStep('requirement');
   };
 
-  const submit = () => {
+  const submit = async () => {
     // Validate use cases
     for (const useCase of useCases) {
       if (
@@ -123,6 +133,8 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
       }
     }
 
+    const imageUrl = imageFile ? await uploadImage() : null;
+
     const trimTags = tags
       .split(',')
       .map((tag) => tag.trim())
@@ -137,6 +149,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         description,
         useCases,
         language,
+        image_url: imageUrl ?? "",
         requirements,
         tags: trimTags,
       })
@@ -150,6 +163,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         setAgentName('');
         setAgent('');
         setDescription('');
+        setImageFile(null);
         setTags('');
         setUseCases([{ title: '', description: '' }]);
         setRequirements([{ package: '', installation: '' }]);
@@ -228,19 +242,13 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
           </div>
           <div className="flex flex-col gap-1">
             <span>Language</span>
-            <Select
-              onValueChange={setLanguage}
-              value={language}
-            >
+            <Select onValueChange={setLanguage} value={language}>
               <SelectTrigger className="w-1/2 cursor-pointer, capitalize">
                 <SelectValue placeholder={language} />
               </SelectTrigger>
               <SelectContent className="capitalize">
                 {languageOptions?.map((option) => (
-                  <SelectItem
-                    key={option}
-                    value={option}
-                  >
+                  <SelectItem key={option} value={option}>
                     {option}
                   </SelectItem>
                 ))}
@@ -253,6 +261,16 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
               value={tags}
               onChange={setTags}
               placeholder="Tools, Search, etc."
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span>Upload Image</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="bg-transparent py-2 px-3 w-full md:w-1/2 appearance-none transition duration-150 ease-in-out border rounded-md focus:outline-none"
+              placeholder="Enter image url"
             />
           </div>
           <div className="flex justify-end mt-4">
@@ -393,7 +411,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
                 className="text-primary cursor-pointer"
               />
               <Button
-                disabled={addAgent.isPending}
+                disabled={addAgent.isPending || isUploading}
                 onClick={submit}
                 className="w-32"
               >

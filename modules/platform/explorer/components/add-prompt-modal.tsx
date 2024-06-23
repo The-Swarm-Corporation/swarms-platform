@@ -3,11 +3,13 @@ import Modal from '@/shared/components/modal';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { useUploadFileToStorage } from '@/shared/hooks/upload-file';
 import { debounce, launchConfetti } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+// TODO: MARK FOR REFACTORING - (same as other modals including edit modal)
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -15,6 +17,13 @@ interface Props {
 }
 
 const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
+  const {
+    imageFile,
+    setImageFile,
+    uploadImage,
+    isUploading,
+    handleFileChange,
+  } = useUploadFileToStorage();
   const [promptName, setPromptName] = useState('');
   const [description, setDescription] = useState('');
   const [prompt, setPrompt] = useState('');
@@ -44,7 +53,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
 
   const addPrompt = trpc.explorer.addPrompt.useMutation();
 
-  const submit = () => {
+  const submit = async () => {
     // Validate prompt
     if (validatePrompt.isPending) {
       toast.toast({
@@ -92,6 +101,8 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
       }
     }
 
+    const imageUrl = imageFile ? await uploadImage() : null;
+
     const trimTags = tags
       .split(',')
       .map((tag) => tag.trim())
@@ -105,6 +116,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         prompt,
         description,
         useCases,
+        image_url: imageUrl ?? '',
         tags: trimTags,
       })
       .then(() => {
@@ -120,6 +132,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         // Reset form
         setPromptName('');
         setDescription('');
+        setImageFile(null);
         setPrompt('');
         setTags('');
         setUseCases([{ title: '', description: '' }]);
@@ -203,6 +216,16 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
             placeholder="Tools, Search, etc."
           />
         </div>
+        <div className="flex flex-col gap-1">
+          <span>Upload Image</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="bg-transparent py-2 px-3 w-full md:w-1/2 appearance-none transition duration-150 ease-in-out border rounded-md focus:outline-none"
+            placeholder="Enter image url"
+          />
+        </div>
         <div className="mt-2 flex flex-col gap-1">
           <span>Use Cases</span>
           <div className="flex flex-col gap-2">
@@ -262,7 +285,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         </div>
         <div className="flex justify-end mt-4">
           <Button
-            disabled={addPrompt.isPending}
+            disabled={addPrompt.isPending || isUploading}
             onClick={submit}
             className="w-32"
           >

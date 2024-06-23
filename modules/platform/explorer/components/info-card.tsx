@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Share2 } from 'lucide-react';
 import Avatar from '@/shared/components/avatar';
 import ShareModal from './share-modal';
+import Image from 'next/image';
 
 interface Props {
   title: string;
@@ -20,6 +21,7 @@ interface Props {
   promptId?: any;
   link: string;
   userId?: string;
+  imageUrl?: string;
 }
 
 const InfoCard = ({
@@ -32,6 +34,7 @@ const InfoCard = ({
   output,
   userId,
   link,
+  imageUrl,
 }: Props) => {
   const [isButtonHover, setIsButtonHover] = useState(false);
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
@@ -54,8 +57,9 @@ const InfoCard = ({
         className,
       )}
     >
-      <div className="flex items-center justify-center h-10 bg-primary text-white rounded-lg aspect-square">
-        {icon}
+      <div className="flex relative items-center justify-center h-10 bg-primary text-white rounded-lg aspect-square">
+        {imageUrl && <div className="absolute inset-0 bg-black/10 rounded-lg z-10" />}
+        {imageUrl ? <Image src={imageUrl} alt={title} fill className='rounded-lg' /> : icon}
       </div>
       <div className="h-4/5 flex flex-col overflow-y-auto no-scrollbar">
         <div className="flex flex-col gap-2 flex-grow">

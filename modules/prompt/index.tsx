@@ -19,6 +19,7 @@ const Prompt = async ({ id }: { id: string }) => {
       id={id}
       tags={tags}
       usecases={usecases}
+      imageUrl={prompt.image_url ?? ''}
       description={prompt.description ?? ''}
       name={prompt.name ?? ''}
       prompt={prompt.prompt ?? ''}

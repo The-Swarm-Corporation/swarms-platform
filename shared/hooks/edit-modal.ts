@@ -2,7 +2,6 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce } from '@/shared/utils/helpers';
 import { useEffect, useMemo, useState } from 'react';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import language from 'react-syntax-highlighter/dist/esm/languages/hljs/1c';
 
 interface EditExplorerModalProps {
   onClose: () => void;
@@ -16,6 +15,7 @@ type EditModal = {
   name: string;
   description?: string;
   tags?: string;
+  image_url?: string;
   useCases: { title: string; description: string }[];
 };
 
@@ -36,6 +36,7 @@ interface InputState {
   useCases: { title: string; description: string }[];
   uniqueField: string;
   language?: string;
+  imageUrl?: string;
   requirements?: { package: string; installation: string }[];
 }
 
@@ -54,6 +55,7 @@ export default function useEditModal({
     useCases: [{ title: '', description: '' }],
     uniqueField: '',
     language: 'python',
+    imageUrl: '',
     requirements: [{ package: '', installation: '' }],
   });
 
@@ -79,6 +81,7 @@ export default function useEditModal({
         name: entityData.name ?? '',
         description: entityData.description ?? '',
         tags: entityData.tags ?? '',
+        imageUrl: entityData.image_url ?? '',
         useCases: entityData.use_cases ?? [{ title: '', description: '' }],
         uniqueField:
           entityType === 'agent' ? entityData.agent : entityData.prompt,
@@ -135,7 +138,7 @@ export default function useEditModal({
     }
   };
 
-  const submit = () => {
+  const submit = async () => {
     // Common validation
     if (validateMutation.isPending) {
       toast.toast({
@@ -228,13 +231,16 @@ export default function useEditModal({
           };
 
     // Edit entity
-    editMutation.mutateAsync(data).then(() => {
-      toast.toast({
-        title: `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} edited successfully 🎉`,
-      });
-      onClose();
-      onEditSuccessfully();
-    });
+    editMutation
+      .mutateAsync(data)
+      .then(() => {
+        toast.toast({
+          title: `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} edited successfully 🎉`,
+        });
+        onClose();
+        onEditSuccessfully();
+      })
+      .catch((err) => console.error(err));
   };
 
   return {

@@ -15,7 +15,7 @@ const explorerRouter = router({
     const models = await ctx.supabase
       .from('swarms_cloud_models')
       .select(
-        'id,name,unique_name,model_type,description,tags,slug,price_million_input,price_million_output',
+        'id,name,unique_name,model_type,description,tags,slug,price_million_input,price_million_output,image_url',
       )
       .eq('enabled', true)
       .order('created_at', { ascending: false });
@@ -27,7 +27,7 @@ const explorerRouter = router({
       const model = await ctx.supabase
         .from('swarms_cloud_models')
         .select(
-          'id,name,unique_name,model_type,description,tags,use_cases,model_card_md,slug,price_million_input,price_million_output',
+          'id,name,unique_name,model_type,description,tags,use_cases,model_card_md,slug,price_million_input,price_million_output,image_url',
         )
         .eq('slug', input)
         .eq('enabled', true)
@@ -213,6 +213,7 @@ const explorerRouter = router({
         description: z.string().optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        image_url: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -254,6 +255,7 @@ const explorerRouter = router({
             description: input.description,
             user_id: user_id,
             tags: input.tags,
+            image_url: input.image_url,
             status: 'pending',
           } as Tables<'swarms_cloud_prompts'>,
         ]);
@@ -430,6 +432,7 @@ const explorerRouter = router({
         requirements: z.array(z.any()),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        image_url: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -473,6 +476,7 @@ const explorerRouter = router({
             requirements: input.requirements,
             tags: input.tags || null,
             language: input.language,
+            image_url: input.image_url,
             status: 'pending',
           } as Tables<'swarms_cloud_agents'>,
         ]);
