@@ -18,9 +18,11 @@ import Image from 'next/image';
 import { getEditorCode, getLangFileName } from '../config';
 import { useEditorContext } from '../../ui/editor.provider';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
+interface CodeEditorProps {
+  resHeight?: number;
+}
 
-const resHeight = 500;
-const CodeEditor = forwardRef((props, ref) => {
+const CodeEditor = forwardRef(({ resHeight = 500 }: CodeEditorProps, ref) => {
   const { language, theme, padding, codeValue, model, handleCodeValueChange } =
     useEditorContext();
   const file = getLangFileName(language?.name);

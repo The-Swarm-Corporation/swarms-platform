@@ -2,6 +2,12 @@ import EntityComponent from '@/shared/components/entity';
 import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
 
+import dynamic from 'next/dynamic';
+
+const AgentPlayground = dynamic(
+  () => import('./components/agent-playground'),
+  { ssr: false })
+  
 const Agent = async ({ id }: { id: string }) => {
   const agent = await trpcApi.explorer.getAgentById.query(id);
   if (!agent) {
@@ -25,11 +31,14 @@ const Agent = async ({ id }: { id: string }) => {
       usecases={usecases}
       description={agent.description ?? ''}
       name={agent.name ?? ''}
-      language={agent.language ?? ''}
       requirements={requirements}
-      prompt={agent.agent ?? ''}
       userId={agent.user_id ?? ''}
-    />
+    >
+      <AgentPlayground
+        language={agent.language ?? ''}
+        agent={agent.agent ?? ''}
+      />
+    </EntityComponent>
   );
 };
 

@@ -4,12 +4,16 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/shared/components/ui/tabs';
-import VlmPlayground from '@/shared/components/vlm-playground';
 import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
 import MarkdownPreview from './components/markdown-preview';
 import EntityComponent from '@/shared/components/entity';
+import dynamic from 'next/dynamic';
 
+const VlmPlayground = dynamic(
+  () => import('@/shared/components/vlm-playground'),
+  { ssr: false },
+);
 const Model = async ({ slug }: { slug: string }) => {
   const model = await trpcApi.explorer.getModelBySlug.query(slug);
   if (!model) {
