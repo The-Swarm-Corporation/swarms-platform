@@ -56,12 +56,14 @@
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.5.1",
     "clsx": "^2.1.0",
+    "cors": "^2.8.5",
     "dayjs": "^1.11.11",
     "decimal.js": "^10.4.3",
     "framer-motion": "^11.0.14",
     "highlight.js": "^11.9.0",
     "install": "^0.13.0",
     "lucide-react": "^0.352.0",
+    "mongodb": "^6.7.0",
     "next": "latest",
     "next-themes": "^0.2.1",
     "node-cache": "latest",
@@ -93,6 +95,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/node": "^20.11.17",
     "@types/prismjs": "^1.26.3",
     "@types/react": "^18.2.55",
