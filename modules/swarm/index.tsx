@@ -1,8 +1,10 @@
 import EntityComponent from '@/shared/components/entity';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
 
 const Swarm = async ({ name }: { name: string }) => {
+  await checkUserSession();
   const swarm = await trpcApi.explorer.getSwarmByName.query(name);
   if (!swarm) {
     redirect('/404');
