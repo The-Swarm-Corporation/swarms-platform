@@ -9,12 +9,14 @@ import { redirect } from 'next/navigation';
 import MarkdownPreview from './components/markdown-preview';
 import EntityComponent from '@/shared/components/entity';
 import dynamic from 'next/dynamic';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 
 const VlmPlayground = dynamic(
   () => import('@/shared/components/vlm-playground'),
   { ssr: false },
 );
 const Model = async ({ slug }: { slug: string }) => {
+  await checkUserSession();
   const model = await trpcApi.explorer.getModelBySlug.query(slug);
   if (!model) {
     redirect('/404');

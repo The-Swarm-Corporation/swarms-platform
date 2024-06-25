@@ -3,12 +3,15 @@ import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
 
 import dynamic from 'next/dynamic';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 
-const AgentPlayground = dynamic(
-  () => import('./components/agent-playground'),
-  { ssr: false })
-  
+const AgentPlayground = dynamic(() => import('./components/agent-playground'), {
+  ssr: false,
+});
+
 const Agent = async ({ id }: { id: string }) => {
+  await checkUserSession();
+
   const agent = await trpcApi.explorer.getAgentById.query(id);
   if (!agent) {
     redirect('/404');
