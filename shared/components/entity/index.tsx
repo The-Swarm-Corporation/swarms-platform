@@ -142,7 +142,19 @@ export default function EntityComponent({
               {description}
             </div>
           )}
-          <div className="max-md:my-8 mb-2 flex max-md:flex-col max-md:items-center md:w-fit gap-3">
+
+          <div className="flex gap-2 mt-4 select-none flex-wrap">
+            {tags?.map(
+              (tag) =>
+                tag.trim() && (
+                  <div className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70">
+                    {tag}
+                  </div>
+                ),
+            )}
+          </div>
+
+          <div className="max-md:my-8 mt-2 flex max-md:flex-col max-md:items-center md:w-fit gap-3">
             <Button
               onClick={handleShowShareModal}
               variant="destructive"
@@ -172,17 +184,6 @@ export default function EntityComponent({
           onEditSuccessfully={onEditSuccessfully}
           key={id}
         />
-
-        <div className="flex gap-2 mt-4 select-none flex-wrap">
-          {tags?.map(
-            (tag) =>
-              tag.trim() && (
-                <div className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70">
-                  {tag}
-                </div>
-              ),
-          )}
-        </div>
       </div>
       {usecases && <UseCases usecases={usecases} />}
       {title.toLowerCase() === 'agent' && (
