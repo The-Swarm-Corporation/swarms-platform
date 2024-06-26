@@ -4,7 +4,8 @@ import {
   userProcedure,
 } from '@/app/api/trpc/trpc-router';
 import { PLATFORM, PUBLIC } from '@/shared/constants/links';
-import { makeUrl } from '@/shared/utils/helpers';
+import { isValidEmail, makeUrl } from '@/shared/utils/helpers';
+import mailer from '@/shared/utils/mailer';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
@@ -36,9 +37,11 @@ const mainRouter = router({
     };
   }),
   getUserById: userProcedure
-    .input(z.object({
-      userId: z.string(),
-    }))
+    .input(
+      z.object({
+        userId: z.string(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       const { userId } = input;
 
@@ -124,7 +127,7 @@ const mainRouter = router({
       if (updatedUsername.error) {
         const message =
           updatedUsername.error.code === '23505'
-            ? "Username already exists. Please try another one."
+            ? 'Username already exists. Please try another one.'
             : updatedUsername.error?.message;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -133,6 +136,94 @@ const mainRouter = router({
       }
       return true;
     }),
+  subscribeNewsletter: userProcedure
+    .input(
+      z.object({
+        email: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user = ctx.session.data.session?.user as User;
+
+      const email = input.email;
+      if (!isValidEmail(email)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Invalid email address',
+        });
+      }
+
+      //check if email already exists
+      const existingEmail = await ctx.supabase
+        .from('swarms_newsletter_subscribers')
+        .select('*')
+        .eq('email', email)
+        .limit(1);
+
+      if (existingEmail.data?.length) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Email already exists',
+        });
+      }
+
+      //check if user is already signed up
+      const existingUser = await ctx.supabase
+        .from('swarms_newsletter_subscribers')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_subscribed', true)
+        .limit(1);
+
+      if (existingUser.data?.length) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'User has already subscribed to newsletter',
+        });
+      }
+
+      const mail = mailer();
+      const html = `Sending you my email(${email}) to show interest in signing up to your newsletter`;
+
+      try {
+        const sendEmail = await mail.sendMail({
+          from: email,
+          to: `kye@apac.ai`,
+          subject: 'Accepted invitation to subscribe to Newsletter',
+          html,
+        });
+        if (!sendEmail) {
+          throw new Error('Failed to send email');
+        }
+
+        await ctx.supabase
+          .from('swarms_newsletter_subscribers')
+          .insert({ email, user_id: user.id, is_subscribed: true });
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: (error as Error).message,
+        });
+      }
+    }),
+  getSubscribedNewsletter: userProcedure.query(async ({ ctx }) => {
+    const user = ctx.session.data.session?.user as User;
+    const subscribed = await ctx.supabase
+      .from('swarms_newsletter_subscribers')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_subscribed', true)
+      .limit(1);
+
+    if (subscribed.error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error while fetching subscribed user',
+      });
+    }
+
+    return subscribed.data?.length ? true : false;
+  }),
   globalSearch: publicProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {

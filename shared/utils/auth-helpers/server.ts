@@ -7,17 +7,13 @@ import {
   getURL,
   getErrorRedirect,
   getStatusRedirect,
+  isValidEmail,
 } from '@/shared/utils/helpers';
 import { getAuthTypes } from '@/shared/utils/auth-helpers/settings';
 import { PLATFORM } from '@/shared/constants/links';
 import { User } from '@supabase/supabase-js';
 import { createOrRetrieveStripeCustomer } from '../supabase/admin';
 import { syncUserEmail, updateFreeCreditsOnSignin } from '../api/user';
-
-function isValidEmail(email: string) {
-  var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-  return regex.test(email);
-}
 
 export async function afterSignin(user: User) {
   const stripeCustomerId = await createOrRetrieveStripeCustomer({
