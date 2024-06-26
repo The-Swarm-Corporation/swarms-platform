@@ -183,13 +183,13 @@ const mainRouter = router({
       }
 
       const mail = mailer();
-      const html = `Sending you my email(${email}) to show interest in signing up to your newsletter`;
+      const html = `Hello (${email}), Welcome to Swarms Newsletter`;
 
       try {
         const sendEmail = await mail.sendMail({
-          from: email,
-          to: `kye@apac.ai`,
-          subject: 'Accepted invitation to subscribe to Newsletter',
+          from: `kye@apac.ai`,
+          to: email,
+          subject: 'Thank you for subscribing',
           html,
         });
         if (!sendEmail) {
@@ -216,10 +216,14 @@ const mainRouter = router({
       .limit(1);
 
     if (subscribed.error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while fetching subscribed user',
-      });
+      if (subscribed.error?.code === 'PGRST116') {
+        return false;
+      } else {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error while fetching subscribed user',
+        });
+      }
     }
 
     return subscribed.data?.length ? true : false;

@@ -15,6 +15,7 @@ import EditExplorerModal from '@/modules/platform/explorer/components/edit-modal
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
+import NewsLetter from '@/modules/platform/newsletter';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -127,7 +128,7 @@ export default function EntityComponent({
 
   return (
     <div className="max-w-6xl md:px-6 mx-auto">
-      <div className="flex flex-col py-8 md:py-16">
+      <div className="flex flex-col md:flex-row py-8 md:py-16 w-full">
         <div className="max-md:text-center">
           <h2>{title}</h2>
           {name && <h1 className="text-4xl md:text-6xl my-4">{name}</h1>}
@@ -175,6 +176,8 @@ export default function EntityComponent({
             )}
           </div>
         </div>
+
+        <NewsLetter />
 
         <EditExplorerModal
           entityId={id ?? ''}
