@@ -27,14 +27,6 @@ const apiKeyRouter = router({
     .input(z.object({ name: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.session?.user as User;
-      // check subscription status
-      // const sub = await getSubscriptionStatus(user);
-      // if (sub.status !== 'active') {
-      //   throw new TRPCError({
-      //     code: 'BAD_REQUEST',
-      //     message: 'Subscription is required'
-      //   });
-      // }
       const name = input.name.trim();
       if (name === '') {
         throw new TRPCError({
@@ -75,17 +67,6 @@ const apiKeyRouter = router({
             'Payment method missing. Add valid card to continue and click on added card to set as default',
         });
       }
-
-      // const customer = (await stripe.customers.retrieve(
-      //   stripeCustomerId,
-      // )) as Stripe.Customer;
-      // if (!customer || !customer.invoice_settings.default_payment_method) {
-      //   throw new TRPCError({
-      //     code: 'NOT_FOUND',
-      //     message:
-      //       'Default payment method not found. Click on added card to set as default',
-      //   });
-      // }
 
       try {
         const key = generateApiKey();

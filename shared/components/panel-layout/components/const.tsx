@@ -92,11 +92,6 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       link: PLATFORM.EXPLORER,
     },
     {
-      icon: <SquareChevronRight size={24} />,
-      title: 'Playground',
-      link: PLATFORM.PLAYGROUND,
-    },
-    {
       icon: <LockKeyhole size={24} />,
       title: 'API Keys',
       link: PLATFORM.API_KEYS,

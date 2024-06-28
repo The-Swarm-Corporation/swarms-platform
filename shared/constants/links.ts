@@ -6,7 +6,6 @@ export const PLATFORM = {
   ACCOUNT_PROFILE: '/platform/account/profile',
   ACCOUNT_BILLING: '/platform/account/billing',
 
-  PLAYGROUND: '/platform/playground',
   EXPLORER: '/platform/explorer',
   SETTINGS: '/platform/organization',
   ORGANIZATION: '/platform/organization',
