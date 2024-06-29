@@ -3,17 +3,20 @@ import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import React from 'react';
 
-const MAX_FREE_CREDITS = 20;
+const FREE_CREDITS = 20;
 export default function CreditsUsage() {
   const { user } = useAuthContext();
   const userFreeCredits = user
     ? trpc.panel.getUserFreeCredits.useQuery()
     : null;
 
-  const usedCredits = MAX_FREE_CREDITS - Number(userFreeCredits?.data);
+  const MAX_FREE_CREDITS =
+    (Number(userFreeCredits?.data?.grant) ?? 0) + FREE_CREDITS;
+  const usedCredits =
+    MAX_FREE_CREDITS - Number(userFreeCredits?.data?.freeCredit);
   const usedPercentage = (usedCredits / MAX_FREE_CREDITS) * 100;
   const remainingPercentage =
-    (Number(userFreeCredits) / MAX_FREE_CREDITS) * 100;
+    (Number(userFreeCredits?.data?.freeCredit) / MAX_FREE_CREDITS) * 100;
 
   return (
     <section className="mt-10 xl:mt-16">
