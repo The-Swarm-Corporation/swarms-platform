@@ -17,8 +17,8 @@ export const viewport: Viewport = {
 };
 
 const meta = {
-  title: 'Swarms',
-  description: '',
+  title: 'Pricing',
+  description: 'Swarms pricing details',
   cardImage: '/og.png',
   robots: 'follow, index',
   favicon: '/favicon.svg',
@@ -30,10 +30,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: meta.title,
     description: meta.description,
     referrer: 'origin-when-cross-origin',
-    // keywords: ['Vercel', 'Supabase', 'Next.js', 'Stripe', 'Subscription'],
-    // authors: [{ name: 'Vercel', url: 'https://vercel.com/' }],
-    // creator: 'Vercel',
-    // publisher: 'Vercel',
     robots: meta.robots,
     icons: { icon: meta.favicon },
     metadataBase: new URL(meta.url),
@@ -47,8 +43,6 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      // site: '@Vercel',
-      // creator: '@Vercel',
       title: meta.title,
       description: meta.description,
       images: [meta.cardImage],
@@ -64,31 +58,11 @@ export default async function RootLayout({ children }: PropsWithChildren) {
 
   return (
     <>
-      {user ? <PlatformNavBar user={user} /> : <Navbar user={user} />}
-      <div
-        className={cn(
-          user
-            ? 'mt-16 md:mt-20 flex flex-row w-screen h-screen min-h-screen max-md:flex-col'
-            : '',
-        )}
-      >
-        {user && <PanelLayoutSidebar user={user} />}
-        <main
-          className={cn(
-            user
-              ? 'relative container lg:max-w-7xl lg:px-12 h-full mx-auto max-lg:z-10'
-              : 'min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]',
-          )}
-        >
-          {children}
-          {user && (
-            <div className="absolute lg:w-[93%] xl:w-[95%]">
-              <Footer />
-            </div>
-          )}
-        </main>
-      </div>
-      {!user && <Footer />}
+      <Navbar user={user} />
+      <main className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]">
+        {children}
+      </main>
+      <Footer />
     </>
   );
 }

@@ -31,9 +31,11 @@ const mainRouter = router({
     };
   }),
   getUserById: userProcedure
-    .input(z.object({
-      userId: z.string(),
-    }))
+    .input(
+      z.object({
+        userId: z.string(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       const { userId } = input;
 
@@ -43,7 +45,7 @@ const mainRouter = router({
         .eq('id', userId)
         .single();
 
-      if(!user_data.data?.email) return null;
+      if (!user_data.data?.email) return null;
 
       return {
         full_name: user_data.data.full_name,
@@ -114,7 +116,7 @@ const mainRouter = router({
       if (updatedUsername.error) {
         const message =
           updatedUsername.error.code === '23505'
-            ? "Username already exists. Please try another one."
+            ? 'Username already exists. Please try another one.'
             : updatedUsername.error?.message;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -153,13 +155,17 @@ const mainRouter = router({
           link: makeUrl(PUBLIC.MODEL, { slug: model.slug }),
         }));
       }
-      // check synthify swarm , equal to like in sql
-      const synthifySwarm = {
-        title: 'Synthify',
-        link: PLATFORM.EXPLORER,
-      };
-      if (synthifySwarm.title.toLowerCase().includes(input.toLowerCase())) {
-        items['Swarms'] = [...(items['Swarms'] || []), synthifySwarm];
+
+      const agents = await ctx.supabase
+        .from('swarms_cloud_agents')
+        .select('*')
+        .ilike('name', `%${input}%`);
+
+      if (agents.data) {
+        items['Agents'] = agents.data.map((agent) => ({
+          title: agent.name || '',
+          link: makeUrl(PUBLIC.AGENT, { id: agent.id }),
+        }));
       }
 
       return items;

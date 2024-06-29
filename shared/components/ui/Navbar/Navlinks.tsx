@@ -95,7 +95,11 @@ export default function Navlinks({ user }: NavlinksProps) {
       <div className="flex justify-end items-center gap-2 w-full">
         {user ? (
           <form onSubmit={(e) => handleRequest(e, SignOut, router)}>
-            <input type="hidden" name="pathName" value={usePathname()?.toString()} />
+            <input
+              type="hidden"
+              name="pathName"
+              value={usePathname()?.toString()}
+            />
             <button type="submit" className={s.link}>
               Sign out
             </button>
@@ -105,9 +109,11 @@ export default function Navlinks({ user }: NavlinksProps) {
             Sign In
           </Link>
         )}
-        <Link href="/signin/signup" className={s.link}>
-          Sign Up
-        </Link>
+        {!user && (
+          <Link href="/signin/signup" className={s.link}>
+            Sign Up
+          </Link>
+        )}
         <Link href="https://calendly.com/swarm-corp/30min" className={s.link}>
           Get Demo
         </Link>

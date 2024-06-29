@@ -17,14 +17,14 @@ export const getURL = (path: string = '') => {
   // Check if NEXT_PUBLIC_SITE_URL is set and non-empty. Set this to your site URL in production env.
   let url =
     process?.env?.NEXT_PUBLIC_SITE_URL &&
-      process.env.NEXT_PUBLIC_SITE_URL.trim() !== ''
+    process.env.NEXT_PUBLIC_SITE_URL.trim() !== ''
       ? process.env.NEXT_PUBLIC_SITE_URL
       : // If not set, check for NEXT_PUBLIC_VERCEL_URL, which is automatically set by Vercel.
-      process?.env?.NEXT_PUBLIC_VERCEL_URL &&
-        process.env.NEXT_PUBLIC_VERCEL_URL.trim() !== ''
+        process?.env?.NEXT_PUBLIC_VERCEL_URL &&
+          process.env.NEXT_PUBLIC_VERCEL_URL.trim() !== ''
         ? process.env.NEXT_PUBLIC_VERCEL_URL
         : // If neither is set, default to localhost for local development.
-        'http://localhost:3000/';
+          'http://localhost:3000/';
 
   // Trim the URL and remove trailing slash if exists.
   url = url.replace(/\/+$/, '');
@@ -220,6 +220,22 @@ export const debounce = (callback: (...args: any[]) => any, wait: number) => {
   };
 };
 
+export function throttle<T extends (...args: any[]) => any>(
+  func: T,
+  limit: number,
+): (...args: Parameters<T>) => void {
+  let inThrottle: boolean;
+
+  return function (this: any, ...args: Parameters<T>) {
+    const context = this;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+}
+
 export function formatPrice(
   price: number | string,
   currencyCode = 'USD',
@@ -311,10 +327,19 @@ export const getMonthStartEndDates = (month: Date) => {
 export const launchConfetti = () => {
   const duration = 4000;
   const interval = 1000;
-  const colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#8b00ff']; // rainbow colors
+  const colors = [
+    '#ff0000',
+    '#ff7f00',
+    '#ffff00',
+    '#00ff00',
+    '#0000ff',
+    '#4b0082',
+    '#8b00ff',
+  ]; // rainbow colors
 
   // Function to get a random number within a range
-  const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+  const randomInRange = (min: number, max: number) =>
+    Math.random() * (max - min) + min;
 
   const animationEnd = Date.now() + duration;
 
@@ -331,7 +356,7 @@ export const launchConfetti = () => {
           startVelocity: randomInRange(45, 65),
           decay: 0.95,
           colors: colors,
-          origin: { x: x / window.innerWidth, y: y / window.innerHeight }
+          origin: { x: x / window.innerWidth, y: y / window.innerHeight },
         });
       }
       setTimeout(fireConfetti, interval);
