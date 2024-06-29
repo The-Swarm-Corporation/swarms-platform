@@ -12,6 +12,7 @@ import { languageOptions } from '@/shared/constants/explorer';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import useEditModal from '@/shared/hooks/edit-modal';
 import { Plus } from 'lucide-react';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 interface EditExplorerModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ function EditExplorerModal({
   entityId,
   onEditSuccessfully,
 }: EditExplorerModalProps) {
+  const { user } = useAuthContext();
   const {
     inputState,
     setInputState,
@@ -40,6 +42,8 @@ function EditExplorerModal({
     addRequirement,
     removeRequirement,
   } = useEditModal({ entityId, entityType, onClose, onEditSuccessfully });
+
+  if (!user) return null;
 
   return (
     <Modal
@@ -91,17 +95,18 @@ function EditExplorerModal({
               </div>
             ) : (
               <div className="absolute right-2.5 top-2.5">
-                {inputState?.uniqueField?.length > 0 && validateMutation.data && (
-                  <span
-                    className={
-                      validateMutation.data.valid
-                        ? 'text-green-500'
-                        : 'text-red-500'
-                    }
-                  >
-                    {validateMutation.data.valid ? '✅' : ''}
-                  </span>
-                )}
+                {inputState?.uniqueField?.length > 0 &&
+                  validateMutation.data && (
+                    <span
+                      className={
+                        validateMutation.data.valid
+                          ? 'text-green-500'
+                          : 'text-red-500'
+                      }
+                    >
+                      {validateMutation.data.valid ? '✅' : ''}
+                    </span>
+                  )}
               </div>
             )}
           </div>

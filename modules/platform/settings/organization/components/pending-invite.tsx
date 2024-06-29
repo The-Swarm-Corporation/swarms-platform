@@ -37,7 +37,7 @@ function PendingInvites({
       });
       if (response) {
         toast.toast({ description: `Invite has been cancelled for ${email}` });
-        query.invites.refetch();
+        query?.invites?.refetch();
       }
     } catch (error) {
       if ((error as any)?.message) {
@@ -92,10 +92,10 @@ function PendingInvites({
 
         <div className="flex flex-col items-center justify-center border rounded-md px-4 py-8 text-card-foreground my-8">
           {isOwnerOrManager && userOrgId ? (
-            query.invites.isLoading ? (
+            query?.invites?.isLoading ? (
               <LoadingSpinner />
-            ) : query.invites.data && !isEmpty(query.invites.data) ? (
-              query.invites.data?.map(renderItem)
+            ) : query?.invites?.data && !isEmpty(query?.invites?.data) ? (
+              query?.invites?.data?.map(renderItem)
             ) : (
               <div className="flex flex-col items-center justify-center gap-1 opacity-80">
                 <h3 className="mb-2 text-xl">Invite Team Members</h3>

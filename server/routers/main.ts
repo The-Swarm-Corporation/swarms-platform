@@ -11,12 +11,7 @@ import { z } from 'zod';
 const mainRouter = router({
   getUser: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user;
-    if (!user) {
-      throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Unauthorized',
-      });
-    }
+    if (!user) return null;
     const user_data = await ctx.supabase
       .from('users')
       .select('*')
@@ -48,12 +43,7 @@ const mainRouter = router({
         .eq('id', userId)
         .single();
 
-      if (user_data.error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while fetching user data',
-        });
-      }
+      if(!user_data.data?.email) return null;
 
       return {
         full_name: user_data.data.full_name,

@@ -5,6 +5,8 @@ import { TrpcProvider } from '@/shared/utils/trpc/trpc-provider';
 import { Viewport } from 'next';
 import { Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { AuthProvider } from '@/shared/components/ui/auth.provider';
+import { createClient } from '@/shared/utils/supabase/server';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -18,6 +20,11 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={helvetica.className}>
@@ -27,7 +34,9 @@ export default async function Layout({
           enableSystem
           disableTransitionOnChange
         >
-          <TrpcProvider>{children}</TrpcProvider>
+          <AuthProvider user={user}>
+            <TrpcProvider>{children}</TrpcProvider>
+          </AuthProvider>
         </ThemeProvider>
         <Suspense>
           <Toaster />

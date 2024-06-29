@@ -12,6 +12,7 @@ import { Highlight, themes } from 'prism-react-renderer';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
 import { useTheme } from 'next-themes';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 interface Props {
   isOpen: boolean;
@@ -20,6 +21,9 @@ interface Props {
 }
 
 const AddSwarmModal = ({ isOpen, onClose, onAddSuccessfuly }: Props) => {
+  const { user } = useAuthContext();
+  const theme = useTheme();
+
   const [step, setStep] = useState<'info' | 'code'>('info');
   const [swarmName, setSwarmName] = useState('');
   const [description, setDescription] = useState('');
@@ -126,7 +130,8 @@ const AddSwarmModal = ({ isOpen, onClose, onAddSuccessfuly }: Props) => {
       });
   };
 
-  const theme = useTheme();
+  if(!user) return null;
+
   const pythonRenderer: Renderer = (value) => {
     return (
       <Highlight

@@ -51,8 +51,8 @@ const panelRouter = router({
     }
 
     if (!data?.had_free_credits) {
-      console.log('User already has no free credits yet');
-      return; // User already has no free credits yet
+      console.log('User has no free credits yet');
+      return;
     }
 
     const { data: credits, error: creditError } = await ctx.supabase

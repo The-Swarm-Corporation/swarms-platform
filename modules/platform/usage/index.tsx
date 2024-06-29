@@ -17,6 +17,7 @@ import ModelUsage from './components/charts/costs/models-cost';
 import CreditsUsage from './components/credits';
 import ModelActivity from './components/charts/activity/models-activity';
 import OrganizationUsage from './components/organization-usage';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 type UsageTab = 'cost' | 'activity';
 type UsageData = UserUsage | null;
@@ -29,6 +30,7 @@ export default function Usage() {
   const [organizationUsageData, setOrganizationUsageData] =
     useState<OrgUsageData>(null);
   const toast = useToast();
+  const { user } = useAuthContext();
 
   const isCost = activeTab === 'cost';
   const isActivity = activeTab === 'activity';
@@ -42,23 +44,25 @@ export default function Usage() {
     trpc.panel.getOrganizationUsage.useMutation();
 
   useEffect(() => {
-    Promise.all([
-      usageMutation.mutateAsync({ month }),
-      organizationUsageMutation.mutateAsync({ month }),
-    ])
-      .then(([usageData, organizationUsageData]) => {
-        setUsageData(usageData as UserUsage);
-        setOrganizationUsageData(organizationUsageData);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.toast({
-          description: err?.message || 'Error fetching usage data',
-          variant: 'destructive',
-          duration: 5000,
+    if (user) {
+      Promise.all([
+        usageMutation.mutateAsync({ month }),
+        organizationUsageMutation.mutateAsync({ month }),
+      ])
+        .then(([usageData, organizationUsageData]) => {
+          setUsageData(usageData as UserUsage);
+          setOrganizationUsageData(organizationUsageData);
+        })
+        .catch((err) => {
+          console.error(err);
+          toast.toast({
+            description: err?.message || 'Error fetching usage data',
+            variant: 'destructive',
+            duration: 5000,
+          });
         });
-      });
-  }, [month]);
+    }
+  }, [month, user]);
 
   return (
     <article className="flex flex-col w-full">

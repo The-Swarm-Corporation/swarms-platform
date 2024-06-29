@@ -1,8 +1,10 @@
 'use client';
 import LoadingSpinner from '@/shared/components/loading-spinner';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { Button } from '@/shared/components/ui/Button';
 import { DISCORD, PLATFORM, SWARM_CALENDLY } from '@/shared/constants/links';
 import useSubscription from '@/shared/hooks/subscription';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { commaSeparated, formatSpentTime } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { Check } from 'lucide-react';
@@ -12,9 +14,12 @@ import { useMemo } from 'react';
 const TIME_IN_MIN = 10;
 const Dashboard = () => {
   const subscription = useSubscription();
+  const { user } = useAuthContext();
 
-  const userRequests = trpc.dashboard.getUserRequestCount.useQuery();
-  const requestCount = userRequests.data ?? 0;
+  const userRequests = user
+    ? trpc.dashboard.getUserRequestCount.useQuery()
+    : null;
+  const requestCount = userRequests?.data ?? 0;
   const timeSaved = useMemo(() => {
     const timeInSecs = TIME_IN_MIN * 60;
     const estimatedTimeSaved = requestCount * timeInSecs;
@@ -23,14 +28,19 @@ const Dashboard = () => {
       // seconds
       estimatedTimeSaved,
     ).split(' ');
-  }, [userRequests.data]);
+  }, [userRequests?.data]);
+
+  async function subscribe() {
+    await checkUserSession();
+    subscription.createSubscriptionPortal();
+  }
 
   return (
     <div className="w-full flex flex-col">
       <h1 className="text-3xl font-extrabold sm:text-4xl">Home</h1>
       <div className="mt-4 flex gap-4 max-md:flex-col">
         <div className="w-1/3 flex flex-col gap-4 border p-4 rounded-md max-md:w-full">
-          {userRequests.isLoading ? (
+          {userRequests?.isLoading ? (
             <LoadingSpinner />
           ) : (
             <span className="text-primary text-4xl font-bold">
@@ -47,7 +57,7 @@ const Dashboard = () => {
         </div>
 
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">
-          {userRequests.isLoading ? (
+          {userRequests?.isLoading ? (
             <LoadingSpinner />
           ) : (
             <span className="flex items-end text-primary text-4xl gap-2 font-bold">
@@ -98,7 +108,7 @@ const Dashboard = () => {
             className="mt-4 hover:bg-red-900"
             variant={'default'}
             disabled={subscription.createSubscriptionPortalLoading}
-            onClick={subscription.createSubscriptionPortal}
+            onClick={subscribe}
           >
             Subscribe
           </Button>

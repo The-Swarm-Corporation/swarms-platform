@@ -8,8 +8,7 @@ export function useOrganizationList({
 }: {
   userOrgsData: UserOrganizationsProps[];
 }) {
-  const { query, mutation } = useQueryMutation();
-  const userQuery = query.organization;
+  const { mutation } = useQueryMutation();
   const createMutation = mutation.create;
   const updateMutation = mutation.update;
 

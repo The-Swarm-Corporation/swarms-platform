@@ -1,5 +1,6 @@
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import Modal from '@/shared/components/modal';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { Button } from '@/shared/components/ui/Button';
 import Input from '@/shared/components/ui/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
@@ -15,6 +16,8 @@ interface Props {
 }
 
 const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
+  const { user } = useAuthContext();
+
   const [promptName, setPromptName] = useState('');
   const [description, setDescription] = useState('');
   const [prompt, setPrompt] = useState('');
@@ -125,6 +128,8 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         setUseCases([{ title: '', description: '' }]);
       });
   };
+
+  if(!user) return null;
 
   return (
     <Modal

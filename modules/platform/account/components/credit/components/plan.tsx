@@ -13,6 +13,7 @@ import { cn } from '@/shared/utils/cn';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { Plan } from '..';
 import { Dispatch, SetStateAction } from 'react';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 interface PlanSwitchDialogProps {
   plan: Plan;
@@ -31,8 +32,10 @@ export default function PlanSwitchDialog({
   setOpenModal,
   handleConfirm,
 }: PlanSwitchDialogProps) {
+  const { user } = useAuthContext();
+
   return (
-    <Dialog open={openModal} onOpenChange={setOpenModal}>
+    <Dialog open={openModal && !!user} onOpenChange={setOpenModal}>
       <DialogTrigger asChild>
         <Button
           className={cn(

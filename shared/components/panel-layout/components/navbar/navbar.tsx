@@ -3,7 +3,6 @@
 import { LogIn } from 'lucide-react';
 import { useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import Image from 'next/image';
 import Logo from '@/shared/components/icons/Logo';
 import { cn } from '@/shared/utils/cn';
 import { User } from '@supabase/supabase-js';

@@ -72,7 +72,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
             : '',
         )}
       >
-        {user && <PanelLayoutSidebar />}
+        {user && <PanelLayoutSidebar user={user} />}
         <main
           className={cn(
             user

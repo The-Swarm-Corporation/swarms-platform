@@ -68,7 +68,7 @@ export function useInviteModal({
           style: { color: 'green' },
         });
         setOpenDialog(false);
-        query.invites.refetch();
+        query?.invites?.refetch();
       }
     } catch (error) {
       console.log(error);

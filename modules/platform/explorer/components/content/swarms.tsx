@@ -6,6 +6,8 @@ import InfoCard from '../info-card';
 import { Bot, PencilRuler } from 'lucide-react';
 import { makeUrl } from '@/shared/utils/helpers';
 import { PUBLIC } from '@/shared/constants/links';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
+import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 
 // TODO: Add types
 export default function Swarms({
@@ -13,58 +15,57 @@ export default function Swarms({
   pendingSwarms,
   filteredSwarms,
   setAddSwarmModalOpen,
-  trySynthify,
 }: any) {
+  async function handleSwarmsModal() {
+    await checkUserSession();
+    setAddSwarmModalOpen(true);
+  }
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold pb-2">Swarms</h1>
-        <Button onClick={() => setAddSwarmModalOpen(true)}>Add Swarm</Button>
+        <Button onClick={handleSwarmsModal} disabled={isLoading}>
+          Add Swarm
+        </Button>
       </div>
+      {isLoading && <ExplorerSkeletonLoaders />}
       <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
-        {isLoading && (
+        {pendingSwarms.data?.data?.length > 0 || filteredSwarms?.length > 0 ? (
           <div>
-            <LoadingSpinner size={24} />
+            {!isLoading &&
+              pendingSwarms.data?.data?.map((swarm: any) => (
+                <div className=" w-full h-[220px] sm:w-full" key={swarm.id}>
+                  <InfoCard
+                    title={`${swarm.name} [PENDING]`}
+                    description={swarm.description || ''}
+                    icon={<Bot />}
+                    className="w-full h-full"
+                    link={swarm.pr_link || '#'}
+                  />
+                </div>
+              ))}
+            {!isLoading &&
+              filteredSwarms?.map((swarm: any) => (
+                <div className=" w-full h-[220px] sm:w-full" key={swarm.id}>
+                  <InfoCard
+                    title={swarm.name || ''}
+                    description={swarm.description || ''}
+                    icon={<Bot />}
+                    className="w-full h-full"
+                    btnLabel="Get Started"
+                    userId={swarm.user_id}
+                    link={makeUrl(PUBLIC.SWARM, { name: swarm.name })}
+                  />
+                </div>
+              ))}
           </div>
+        ) : (
+          !isLoading && (
+            <div className="border p-4 rounded-md text-center">
+              No swarms found
+            </div>
+          )
         )}
-        {!isLoading &&
-          pendingSwarms.data?.data?.map((swarm: any) => (
-       
-            <div className=' w-full h-[220px] sm:w-full' key={swarm.id}>
-              <InfoCard
-                title={`${swarm.name} [PENDING]`}
-                description={swarm.description || ''}
-                icon={<Bot />}
-                className="w-full h-full"
-                link={swarm.pr_link || '#'}
-              />
-            </div>
-          ))}
-        {!isLoading &&
-          filteredSwarms?.map((swarm: any) => (
-           
-            <div className=' w-full h-[220px] sm:w-full' key={swarm.id}>
-              <InfoCard
-                title={swarm.name || ''}
-                description={swarm.description || ''}
-                icon={<Bot />}
-                className="w-full h-full"
-                btnLabel="Get Started"
-                userId={swarm.user_id}
-                link={makeUrl(PUBLIC.SWARM, { name: swarm.name })}
-              />
-            </div>
-          ))}
-        <div className="w-full h-[200px] sm:w-full" onClick={trySynthify}>
-          <InfoCard
-            title="Synthify"
-            description="Synthify is a platform that allows you to create dataset for llms,vlms ."
-            icon={<PencilRuler />}
-            btnLabel="Get Started"
-            className="w-full h-full"
-            link=''
-          />
-        </div>
       </div>
     </div>
   );

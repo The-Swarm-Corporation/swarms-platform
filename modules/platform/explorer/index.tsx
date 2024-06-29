@@ -16,17 +16,23 @@ import useModels from './hook/models';
 import { explorerOptions } from '@/shared/constants/explorer';
 import AddPromptModal from './components/add-prompt-modal';
 import Models from './components/content/models';
-import Prompts from './components/content/prompts';
-import Swarms from './components/content/swarms';
 import { Activity } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
-import Agents from './components/content/agents';
 import AddAgentModal from './components/add-agent-modal';
+import dynamic from 'next/dynamic';
 
+const Prompts = dynamic(() => import('./components/content/prompts'), {
+  ssr: false,
+});
+const Agents = dynamic(() => import('./components/content/agents'), {
+  ssr: false,
+});
+const Swarms = dynamic(() => import('./components/content/swarms'), {
+  ssr: false,
+});
 const Explorer = () => {
   const models = trpc.explorer.getModels.useQuery();
   const allSwarms = trpc.explorer.getAllApprovedSwarms.useQuery();
-  const synthifyMagicLink = trpc.explorer.synthifyMagicLink.useMutation();
   const pendingSwarms = trpc.explorer.getMyPendingSwarms.useQuery();
 
   const isLoading = allSwarms.isLoading || pendingSwarms.isLoading;
@@ -40,7 +46,7 @@ const Explorer = () => {
 
   const [addSwarModalOpen, setAddSwarmModalOpen] = useState(false);
   const [addPromptModalOpen, setAddPromptModalOpen] = useState(false);
-  const [addAgentModalOpen, setAddAgentModalOpen] = useState(false)
+  const [addAgentModalOpen, setAddAgentModalOpen] = useState(false);
 
   const {
     filteredModels,
@@ -52,36 +58,13 @@ const Explorer = () => {
     filterOption,
     isDataLoading,
     handleSearchChange,
-    handleOptionChange
+    handleOptionChange,
   } = useModels();
 
   const toast = useToast();
-  const trySynthify = async () => {
-    if (synthifyMagicLink.isPending) {
-      return;
-    }
-    const t = toast.toast({
-      title: 'wait a moment...',
-      duration: 10000,
-    });
-    synthifyMagicLink
-      .mutateAsync()
-      .then((res) => {
-        window.open(res as string, '_blank');
-      })
-      .catch((err) => {
-        t.update({
-          id: t.id,
-          title: 'Something went wrong',
-          variant: 'destructive',
-          duration: 3000,
-        });
-      })
-      .finally(() => { });
-  };
   useEffect(() => {
     if (!pendingSwarms.isLoading && pendingSwarms.data) {
-      pendingSwarms.data.data?.forEach((swarm) => {
+      pendingSwarms.data?.data?.forEach((swarm) => {
         reloadSwarmStatus.mutateAsync(swarm.id).then((res) => {
           if (res != swarm.status) {
             pendingSwarms.refetch();
@@ -99,8 +82,8 @@ const Explorer = () => {
   };
 
   const onAddAgent = () => {
-    allAgents.refetch()
-  }
+    allAgents.refetch();
+  };
 
   const elements = [
     { key: 'models', content: <Models {...{ models, filteredModels }} /> },
@@ -125,7 +108,6 @@ const Explorer = () => {
             pendingSwarms,
             filteredSwarms,
             setAddSwarmModalOpen,
-            trySynthify,
           }}
         />
       ),
@@ -167,8 +149,9 @@ const Explorer = () => {
         <div className="mt-8 pb-4 sticky top-20 bg-white dark:bg-black z-10">
           <ul className="p-0 mb-2 flex items-center flex-wrap gap-3">
             {options.map((option) => {
-              const colorSelector =
-                filterOption === option || filterOption === 'all'
+              const colorSelector = isDataLoading
+                ? 'text-primary'
+                : filterOption === option || filterOption === 'all'
                   ? 'text-green-500'
                   : 'text-primary';
               return (
