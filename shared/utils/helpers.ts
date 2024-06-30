@@ -287,6 +287,12 @@ export const openShareWindow = (platform: string, details: ShareDetails) => {
     case 'facebook':
       url = `https://www.facebook.com/sharer/sharer.php?u=${encodedLink}`;
       break;
+    case 'reddit':
+      url = `https://www.reddit.com/submit?url=${encodedLink}&title=${encodeURIComponent(message)}`;
+      break;
+    case 'hackernews':
+      url = `https://news.ycombinator.com/submitlink?u=${encodedLink}&t=${encodeURIComponent(message)}`;
+      break;
     case 'email':
       if (subject) {
         const encodedSubject = encodeURIComponent(subject);
