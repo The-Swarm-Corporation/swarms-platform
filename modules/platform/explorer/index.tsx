@@ -31,32 +31,40 @@ const Swarms = dynamic(() => import('./components/content/swarms'), {
   ssr: false,
 });
 const Explorer = () => {
-  const models = trpc.explorer.getModels.useQuery();
-  const allSwarms = trpc.explorer.getAllApprovedSwarms.useQuery();
-  const pendingSwarms = trpc.explorer.getMyPendingSwarms.useQuery();
-
-  const isLoading = allSwarms.isLoading || pendingSwarms.isLoading;
   const reloadSwarmStatus = trpc.explorer.reloadSwarmStatus.useMutation();
-
-  // Prompts
-  const allPrompts = trpc.explorer.getAllPrompts.useQuery();
-
-  // Agents
-  const allAgents = trpc.explorer.getAllAgents.useQuery();
 
   const [addSwarModalOpen, setAddSwarmModalOpen] = useState(false);
   const [addPromptModalOpen, setAddPromptModalOpen] = useState(false);
   const [addAgentModalOpen, setAddAgentModalOpen] = useState(false);
+  const [isFixed, setIsFixed] = useState(false);
+
+  const handleStateChange = (status: { status: number }) => {
+    if (status.status === Sticky.STATUS_FIXED) {
+      setIsFixed(true);
+    } else {
+      setIsFixed(false);
+    }
+  };
 
   const {
+    allAgents,
+    allPrompts,
+    pendingSwarms,
     filteredModels,
     filteredSwarms,
     filteredPrompts,
     filteredAgents,
+    loadMorePrompts,
+    isFetchingPrompts,
+    hasMorePrompts,
     search,
     options,
     filterOption,
     isDataLoading,
+    isPromptLoading,
+    isModelsLoading,
+    isAgentsLoading,
+    isSwarmsLoading,
     handleSearchChange,
     handleOptionChange,
   } = useModels();
@@ -85,17 +93,34 @@ const Explorer = () => {
   };
 
   const elements = [
-    { key: 'models', content: <Models {...{ models, filteredModels }} /> },
+    {
+      key: 'models',
+      content: (
+        <Models filteredModels={filteredModels} isLoading={isModelsLoading} />
+      ),
+    },
     {
       key: 'prompts',
       content: (
-        <Prompts {...{ allPrompts, filteredPrompts, setAddPromptModalOpen }} />
+        <Prompts
+          {...{
+            filteredPrompts,
+            setAddPromptModalOpen,
+            loadMorePrompts,
+            isFetchingPrompts,
+            hasMorePrompts,
+          }}
+          isLoading={isPromptLoading}
+        />
       ),
     },
     {
       key: 'agents',
       content: (
-        <Agents {...{ allAgents, filteredAgents, setAddAgentModalOpen }} />
+        <Agents
+          {...{ filteredAgents, setAddAgentModalOpen }}
+          isLoading={isAgentsLoading}
+        />
       ),
     },
     {
@@ -103,7 +128,7 @@ const Explorer = () => {
       content: (
         <Swarms
           {...{
-            isLoading,
+            isLoading: isSwarmsLoading,
             pendingSwarms,
             filteredSwarms,
             setAddSwarmModalOpen,
@@ -145,7 +170,7 @@ const Explorer = () => {
             marketing, etc.
           </span>
         </div>
-        <Sticky enabled top={48} className='z-10'>
+        <Sticky enabled top={48} innerZ={10} onStateChange={handleStateChange}>
           <div className="mt-8 pb-4 bg-white dark:bg-black">
             <ul className="p-0 mb-2 flex items-center flex-wrap gap-3">
               {options.map((option) => {
@@ -201,7 +226,12 @@ const Explorer = () => {
             </div>
           </div>
         </Sticky>
-        <div className="flex flex-col h-full">
+        <div
+          className={cn(
+            'flex flex-col h-full',
+            isFixed ? 'translate-y-[120px]' : 'translate-y-0',
+          )}
+        >
           {reorderedElements.map(({ content }) => content)}
         </div>
       </div>

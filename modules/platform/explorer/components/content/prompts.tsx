@@ -11,8 +11,11 @@ import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skele
 
 // TODO: Add types
 export default function Prompts({
-  allPrompts,
+  isLoading,
   filteredPrompts,
+  isFetchingPrompts,
+  loadMorePrompts,
+  hasMorePrompts,
   setAddPromptModalOpen,
 }: any) {
   async function handlePromptModal() {
@@ -24,12 +27,12 @@ export default function Prompts({
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold pb-2">Prompts</h1>
-        <Button onClick={handlePromptModal} disabled={allPrompts.isLoading}>
+        <Button onClick={handlePromptModal} disabled={isLoading}>
           Add Prompt
         </Button>
       </div>
       <div>
-        {allPrompts.isLoading ? (
+        {isLoading && !isFetchingPrompts ? (
           <ExplorerSkeletonLoaders />
         ) : (
           <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
@@ -54,6 +57,25 @@ export default function Prompts({
                 No prompts found
               </div>
             )}
+          </div>
+        )}
+
+        {isFetchingPrompts && (
+          <div className="mt-4">
+            <ExplorerSkeletonLoaders />
+          </div>
+        )}
+
+        {(hasMorePrompts || isFetchingPrompts) && (
+          <div className="flex justify-center mt-3 w-full">
+            <Button
+              variant="destructive"
+              className="w-36 md:w-40"
+              onClick={loadMorePrompts}
+              disabled={isFetchingPrompts}
+            >
+              Get more
+            </Button>
           </div>
         )}
       </div>

@@ -12,7 +12,7 @@ import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skele
 
 // TODO: Add types
 export default function Agents({
-  allAgents,
+  isLoading,
   filteredAgents,
   setAddAgentModalOpen,
 }: any) {
@@ -24,12 +24,12 @@ export default function Agents({
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold pb-2">Agents</h1>
-        <Button onClick={handlePromptModal} disabled={allAgents.isLoading}>
+        <Button onClick={handlePromptModal} disabled={isLoading}>
           Add Agent
         </Button>
       </div>
       <div>
-        {allAgents.isLoading ? (
+        {isLoading ? (
           <ExplorerSkeletonLoaders />
         ) : (
           <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">

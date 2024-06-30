@@ -279,14 +279,28 @@ const explorerRouter = router({
         throw 'Prompt could not be updated';
       }
     }),
-  getAllPrompts: publicProcedure.query(async ({ ctx }) => {
-    const prompts = await ctx.supabase
-      .from('swarms_cloud_prompts')
-      .select('*')
-      .order('created_at', { ascending: false });
+  getAllPrompts: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().default(6),
+        offset: z.number().default(1),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { limit, offset } = input;
+      const prompts = await ctx.supabase
+        .from('swarms_cloud_prompts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
 
-    return prompts;
-  }),
+      if (prompts.error) {
+        console.error(prompts.error);
+        throw prompts.error.message;
+      }
+
+      return prompts;
+    }),
   getPromptById: publicProcedure
     .input(z.string())
     .query(async ({ input, ctx }) => {

@@ -7,6 +7,7 @@ import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { Button } from '@/shared/components/ui/Button';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { cn } from '@/shared/utils/cn';
 
 const pathnames = ['/signin', '/signup', '/pricing'];
 function AuthModal() {
@@ -23,7 +24,7 @@ function AuthModal() {
 
   return (
     <Dialog open={isAuthModalOpen} onOpenChange={setIsAuthModalOpen}>
-      <DialogContent className="max-w-sm ">
+      <DialogContent className={cn('max-w-sm', isAuthModalOpen && '!block')}>
         <div className="flex justify-center height-screen-helper">
           <div className="flex flex-col justify-between p-3 m-auto w-80 text-center ">
             <div className="flex justify-center pb-8 ">

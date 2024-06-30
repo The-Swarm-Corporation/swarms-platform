@@ -6,12 +6,12 @@ import { ScanEye, TextQuote } from 'lucide-react';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 
 // TODO: Add types
-export default function Models({ models, filteredModels }: any) {
+export default function Models({ isLoading, filteredModels }: any) {
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <h1 className="text-3xl font-bold pb-2">Models</h1>
       <div>
-        {models.isLoading ? (
+        {isLoading ? (
           <ExplorerSkeletonLoaders />
         ) : (
           <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">

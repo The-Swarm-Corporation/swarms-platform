@@ -1,22 +1,46 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { defaultOptions, explorerOptions } from '@/shared/constants/explorer';
 
+const promptLimit = 6;
 export default function useModels() {
+  const [promptOffset, setPromptOffset] = useState(0);
+  const [prompts, setPrompts] = useState<any[]>([]);
+  const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
+
   const modelsQuery = trpc.explorer.getModels.useQuery();
   const swarmsQuery = trpc.explorer.getAllApprovedSwarms.useQuery();
-  const promptsQuery = trpc.explorer.getAllPrompts.useQuery();
+  const promptsQuery = trpc.explorer.getAllPrompts.useQuery({
+    limit: promptLimit,
+    offset: promptOffset,
+  });
   const agentsQuery = trpc.explorer.getAllAgents.useQuery();
+  const pendingSwarms = trpc.explorer.getMyPendingSwarms.useQuery();
 
   const isDataLoading =
-    modelsQuery.isLoading && swarmsQuery.isLoading && promptsQuery.isLoading && agentsQuery.isLoading;
+    modelsQuery.isLoading &&
+    swarmsQuery.isLoading &&
+    promptsQuery.isLoading &&
+    agentsQuery.isLoading;
 
   const [options, setOptions] = useState(defaultOptions);
   const [search, setSearch] = useState('');
   const [filterOption, setFilterOption] = useState<string>(
     explorerOptions[0].value,
   );
+
+  useEffect(() => {
+    if (promptsQuery.data?.data) {
+      setPrompts((prev) => [...prev, ...promptsQuery.data?.data]);
+      setIsFetchingPrompts(false);
+    }
+  }, [promptsQuery.data?.data, promptOffset]);
+
+  const loadMorePrompts = useCallback(() => {
+    setPromptOffset((prevOffset) => prevOffset + promptLimit);
+    setIsFetchingPrompts(true);
+  }, [promptLimit]);
 
   const debouncedSearch = useMemo(() => debounce(setSearch, 100), []);
 
@@ -57,8 +81,8 @@ export default function useModels() {
     [swarmsQuery.data, filterData],
   );
   const filteredPrompts = useMemo(
-    () => filterData(promptsQuery.data?.data, 'prompts'),
-    [promptsQuery.data, filterData],
+    () => filterData(prompts, 'prompts'),
+    [prompts, filterData],
   );
   const filteredAgents = useMemo(
     () => filterData(agentsQuery.data?.data, 'agents'),
@@ -79,10 +103,20 @@ export default function useModels() {
     filteredSwarms,
     filteredPrompts,
     filteredAgents,
+    pendingSwarms,
+    allPrompts: promptsQuery,
+    allAgents: agentsQuery,
+    isPromptLoading: promptsQuery.isLoading,
+    isModelsLoading: modelsQuery.isLoading,
+    isAgentsLoading: agentsQuery.isLoading,
+    isSwarmsLoading: swarmsQuery.isLoading || pendingSwarms.isLoading,
     search,
     options,
+    hasMorePrompts: prompts.length > promptOffset,
     filterOption,
     isDataLoading,
+    isFetchingPrompts,
+    loadMorePrompts,
     handleSearchChange,
     handleOptionChange,
   };
