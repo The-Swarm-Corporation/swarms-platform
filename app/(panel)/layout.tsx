@@ -1,6 +1,5 @@
 import PanelLayout from '@/shared/components/panel-layout';
 import '@/shared/styles/main.css';
-import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { getURL } from '@/shared/utils/helpers';
 import { Metadata, Viewport } from 'next';
 
@@ -34,7 +33,5 @@ export default async function Panel({
 }: {
   children: React.ReactNode;
 }) {
-  // await checkUserSession();
-
   return <PanelLayout>{children}</PanelLayout>;
 }
