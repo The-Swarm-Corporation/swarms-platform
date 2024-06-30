@@ -1,7 +1,7 @@
 'use client';
 
 import { LogIn } from 'lucide-react';
-import { useRef } from 'react';
+import { FormEvent, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Logo from '@/shared/components/icons/Logo';
 import { cn } from '@/shared/utils/cn';
@@ -23,6 +23,18 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
   const { isOn, setOn, setOff } = useToggle();
   const username = trpc.main.getUser.useQuery().data?.username;
   const profileName = username ? username : user?.user_metadata?.email;
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleSignOut(e: FormEvent<HTMLFormElement>) {
+    setIsLoading(true);
+    try {
+      await handleRequest(e, SignOut, router);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   useOnClickOutside(dropdownRef, setOff);
   return (
@@ -95,7 +107,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                           as="form"
                           isIcon
                           className="w-full p-4"
-                          onSubmit={(e) => handleRequest(e, SignOut, router)}
+                          onSubmit={handleSignOut}
                         >
                           <input
                             type="hidden"
@@ -106,7 +118,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                             type="submit"
                             className="flex items-center w-full"
                           >
-                            Sign out
+                            {isLoading ? "Signin out..." : "Sign out"}
                           </button>
                         </NavItem>
                       ) : (

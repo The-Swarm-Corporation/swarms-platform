@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/shared/components/ui/auth.provider';
 import { createClient } from '@/shared/utils/supabase/server';
+import AuthModal from '@/shared/components/modal/auth';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -35,7 +36,10 @@ export default async function Layout({
           disableTransitionOnChange
         >
           <AuthProvider user={user}>
-            <TrpcProvider>{children}</TrpcProvider>
+            <TrpcProvider>
+              <AuthModal />
+              {children}
+            </TrpcProvider>
           </AuthProvider>
         </ThemeProvider>
         <Suspense>

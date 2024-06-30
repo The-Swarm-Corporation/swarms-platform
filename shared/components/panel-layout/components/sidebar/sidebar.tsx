@@ -3,18 +3,31 @@
 import { cn } from '@/shared/utils/cn';
 import { LogIn, LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
 import { SIDE_BAR_MENU } from '../const';
 import SidebarMobile from './components/sidebar-mobile';
 import NavItem from '../item';
 import { User } from '@supabase/supabase-js';
+import LoadingSpinner from '@/shared/components/loading-spinner';
 
 const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
   const path = usePathname();
   const router = useRouter();
   const [showTitle, setShowTitle] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleSignOut(e: FormEvent<HTMLFormElement>) {
+    setIsLoading(true);
+    try {
+      await handleRequest(e, SignOut, router);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <>
@@ -81,10 +94,7 @@ const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
             </div>
             <div className="p-2 py-3 hover:bg-destructive hover:text-white rounded-md">
               {user ? (
-                <form
-                  onSubmit={(e) => handleRequest(e, SignOut, router)}
-                  className="w-full"
-                >
+                <form onSubmit={handleSignOut} className="w-full">
                   <input
                     type="hidden"
                     name="pathName"
@@ -94,8 +104,17 @@ const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
                     type="submit"
                     className="flex items-center justify-start  w-full"
                   >
-                    <LogOut size={24} className="mr-2" />
-                    {showTitle && <span>SignOut</span>}
+                    {isLoading ? (
+                      <p className="flex items-center justify-start">
+                        {showTitle && <span className="mr-2">Signing Out...</span>}{' '}
+                        <LoadingSpinner />
+                      </p>
+                    ) : (
+                      <p className="flex items-center justify-start">
+                        <LogOut size={24} className="mr-2" />
+                        {showTitle && <span>SignOut</span>}
+                      </p>
+                    )}
                   </button>
                 </form>
               ) : (
