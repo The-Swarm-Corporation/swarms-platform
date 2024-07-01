@@ -52,14 +52,14 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
                   translateZ="50"
                   className="text-xl font-bold text-neutral-600 dark:text-white"
                 >
-                  {usecase.title}
+                  {usecase?.title}
                 </CardItem>
                 <CardItem
                   as="p"
                   translateZ="60"
                   className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
                 >
-                  {usecase.description}
+                  {usecase?.description}
                 </CardItem>
               </CardBody>
             </Card3D>
@@ -96,7 +96,7 @@ export default function EntityComponent({
   const showEditButton =
     (entityTitle === 'agent' || entityTitle === 'prompt') &&
     user &&
-    user.data?.id === userId;
+    user?.data?.id === userId;
 
   const pathName = usePathname();
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
@@ -129,13 +129,13 @@ export default function EntityComponent({
     <div className="max-w-6xl md:px-6 mx-auto">
       <div className="flex flex-col py-8 md:py-16">
         <div className="max-md:text-center">
-          <h2>{title}</h2>
+          {title && <h2>{title}</h2>}
           {name && <h1 className="text-4xl md:text-6xl my-4">{name}</h1>}
           <Avatar
             userId={userId ?? ''}
             showUsername
             showBorder
-            title={`${title} Author`}
+            title={`${title ?? ''} Author`}
           />
           {description && (
             <div className="mt-4 text-sm md:text-base text-gray-400">
@@ -144,14 +144,16 @@ export default function EntityComponent({
           )}
 
           <div className="flex gap-2 mt-4 select-none flex-wrap">
-            {tags?.map(
-              (tag) =>
-                tag.trim() && (
-                  <div className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70">
-                    {tag}
-                  </div>
-                ),
-            )}
+            {tags &&
+              tags.length > 0 &&
+              tags?.map(
+                (tag) =>
+                  tag.trim() && (
+                    <div className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70">
+                      {tag}
+                    </div>
+                  ),
+              )}
           </div>
 
           <div className="max-md:my-8 mt-2 flex max-md:flex-col max-md:items-center md:w-fit gap-3">
