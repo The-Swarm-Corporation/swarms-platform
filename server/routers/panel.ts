@@ -51,13 +51,13 @@ const panelRouter = router({
     }
 
     if (!data?.had_free_credits) {
-      console.log('User already has no free credits yet');
-      return; // User already has no free credits yet
+      console.log('User has no free credits yet');
+      return;
     }
 
     const { data: credits, error: creditError } = await ctx.supabase
       .from('swarms_cloud_users_credits')
-      .select('free_credit')
+      .select('free_credit,credit_grant')
       .eq('user_id', user.id)
       .single();
 
@@ -68,7 +68,7 @@ const panelRouter = router({
       });
     }
 
-    return credits.free_credit;
+    return { freeCredit: credits.free_credit, grant: credits.credit_grant };
   }),
   updateUserCreditPlan: userProcedure
     .input(z.object({ credit_plan: z.string() }))
@@ -203,7 +203,7 @@ const panelRouter = router({
 
       return cluster.user;
     }),
-    getOrganizationUsage: userProcedure
+  getOrganizationUsage: userProcedure
     .input(
       z.object({
         month: z.date(),

@@ -92,7 +92,7 @@ export default function NavbarSearch() {
           globalMutation.isPending && 'invisible',
         )}
       >
-        <ul className="py-2 px-3 mt-1 h-full w-full bg-secondary text-foreground border dark:bg-black dark:text-white rounded-md shadow-lg">
+        <ul className="py-2 px-3 mt-1 h-[60vh] md:h-[65vh] no-scrollbar w-full overflow-y-auto bg-secondary text-foreground border dark:bg-black dark:text-white rounded-md shadow-lg">
           {allData.length > 0 ? (
             Object.keys(data).map(
               (key) =>

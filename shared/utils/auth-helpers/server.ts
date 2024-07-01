@@ -13,6 +13,7 @@ import { PLATFORM } from '@/shared/constants/links';
 import { User } from '@supabase/supabase-js';
 import { createOrRetrieveStripeCustomer } from '../supabase/admin';
 import { syncUserEmail, updateFreeCreditsOnSignin } from '../api/user';
+import toast from 'react-hot-toast';
 
 function isValidEmail(email: string) {
   var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -30,7 +31,7 @@ export async function afterSignin(user: User) {
       updateFreeCreditsOnSignin(user.id),
     ]);
   }
-  return PLATFORM.DASHBOARD;
+  return PLATFORM.EXPLORER;
 }
 export async function checkUserSession() {
   const supabase = createClient();
@@ -60,8 +61,8 @@ export async function SignOut(formData: FormData) {
       'You could not be signed out.',
     );
   }
-
-  return '/signin';
+  toast.success("Logged out successfully");
+  return "/";
 }
 
 export async function signInWithEmail(formData: FormData) {

@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/shared/components/ui/Button';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import useSubscription from '@/shared/hooks/subscription';
@@ -5,11 +7,12 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import PlanSwitchDialog from './components/plan';
 import { useState } from 'react';
+import { User } from '@supabase/supabase-js';
 
 export type Plan = 'default' | 'invoice';
 const plans: Plan[] = ['default', 'invoice'];
 
-const Credit = () => {
+const Credit = ({ user }: { user: User | null }) => {
   const subscription = useSubscription();
   const toast = useToast();
   const [openModals, setOpenModals] = useState<{ [key in Plan]: boolean }>({
@@ -17,14 +20,22 @@ const Credit = () => {
     invoice: false,
   });
 
-  const creditPlanQuery = trpc.panel.getUserCreditPlan.useQuery();
+  const creditPlanQuery = user ? trpc.panel.getUserCreditPlan.useQuery() : null;
   const creditPlanMutation = trpc.panel.updateUserCreditPlan.useMutation();
 
   const isLoading = creditPlanMutation.isPending;
-  const isQueryLoading = creditPlanQuery.isLoading;
-  const currentPlan = creditPlanQuery.data?.credit_plan;
+  const isQueryLoading = creditPlanQuery?.isLoading;
+  const currentPlan = creditPlanQuery?.data?.credit_plan;
 
   async function handleCreditPlanChange(plan: 'default' | 'invoice') {
+    if (!user) {
+      toast.toast({
+        description: 'You must be logged in to change your plan',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!plan) {
       toast.toast({
         description: 'No plan selected',
@@ -60,7 +71,7 @@ const Credit = () => {
           description: 'Plan successfully changed',
           style: { color: 'green' },
         });
-        creditPlanQuery.refetch();
+        creditPlanQuery?.refetch();
         setOpenModals((prev) => ({ ...prev, [plan]: false }));
       }
     } catch (error) {
@@ -74,6 +85,14 @@ const Credit = () => {
   }
 
   function handleCreditCharge() {
+    if (!user) {
+      toast.toast({
+        description: 'You must be logged in to charge your account',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (currentPlan === 'invoice')
       return toast.toast({
         description: 'You are on invoice plan. Cannot charge account.',
@@ -115,11 +134,15 @@ const Credit = () => {
       <div className="flex flex-col gap-4 border rounded-md p-4 w-full">
         <div className="flex gap-2">
           <span className="text-lg font-bold">Credits Available:</span>
-          <span className="text-primary text-lg">
-            {subscription.creditLoading
-              ? 'Loading...'
-              : `$ ${(subscription.credit ?? 0).toFixed(2)}`}
-          </span>
+          {user ? (
+            <span className="text-primary text-lg">
+              {subscription.creditLoading
+                ? 'Loading...'
+                : `$ ${(subscription.credit ?? 0).toFixed(2)}`}
+            </span>
+          ) : (
+            <span className="text-primary text-lg">$ 0.00</span>
+          )}
         </div>
         <Button
           onClick={handleCreditCharge}

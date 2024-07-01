@@ -8,9 +8,9 @@ import React from 'react';
 export default function LayoutModals() {
   const { data, isLoading } = trpc.main.getUser.useQuery();
 
-  if (isLoading) {
-    return null;
-  }
+  if (!data) return null;
+
+  if (isLoading) return null;
 
   const username = data?.username;
 

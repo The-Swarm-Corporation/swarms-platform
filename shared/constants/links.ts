@@ -6,7 +6,7 @@ export const PLATFORM = {
   ACCOUNT_PROFILE: '/platform/account/profile',
   ACCOUNT_BILLING: '/platform/account/billing',
 
-  EXPLORER: '/platform/explorer',
+  EXPLORER: '/',
   SETTINGS: '/platform/organization',
   ORGANIZATION: '/platform/organization',
 };

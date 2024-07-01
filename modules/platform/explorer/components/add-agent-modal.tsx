@@ -15,6 +15,7 @@ import {
 } from '@/shared/components/ui/select';
 import { useMemo, useState } from 'react';
 import { languageOptions } from '@/shared/constants/explorer';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 interface Props {
   isOpen: boolean;
@@ -23,6 +24,7 @@ interface Props {
 }
 
 const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
+  const { user } = useAuthContext();
   const [step, setStep] = useState<'info' | 'requirement'>('info');
   const [agentName, setAgentName] = useState('');
   const [description, setDescription] = useState('');
@@ -155,6 +157,8 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         setRequirements([{ package: '', installation: '' }]);
       });
   };
+
+  if(!user) return null;
 
   return (
     <Modal

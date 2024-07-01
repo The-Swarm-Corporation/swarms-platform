@@ -50,7 +50,7 @@ function OrganizationTeam({
               </span>
             )}
           </h3>
-          <span className="text-muted-foreground text-sm gap-1.5">
+          <span className="text-muted-foreground text-xs md:text-sm gap-1.5">
             <span>Manage team members and invitations for</span>{' '}
             {currentOrganization?.organization?.name && (
               <span className="text-primary translate-y-1">

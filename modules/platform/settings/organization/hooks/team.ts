@@ -24,10 +24,10 @@ export function useOrganizationTeam() {
     return debouncedFn;
   }, []);
 
-  const isTeamMembers = query.members.data && query.members.data?.length >= 1;
+  const isTeamMembers = query?.members?.data && query.members.data?.length >= 1;
 
   const teamMembersToDisplay = useMemo(() => {
-    if (!query.members.data) return [];
+    if (!query?.members?.data) return [];
     return query.members.data
       .filter((member) =>
         filterRole === 'Team roles' ? true : member.role === filterRole,
@@ -36,7 +36,7 @@ export function useOrganizationTeam() {
         (member) =>
           !search || member.name?.toLowerCase().includes(search.toLowerCase()),
       );
-  }, [query.members.data, filterRole, search]);
+  }, [query?.members?.data, filterRole, search]);
 
   const handleSearchChange = useCallback(
     (value: string) => {
@@ -69,7 +69,7 @@ export function useOrganizationTeam() {
     utils.organization.members.reset();
     useOrganizationStore
       .getState()
-      .setCurrentOrgId(query.organizations.data?.[0].organization.id ?? '');
+      .setCurrentOrgId(query?.organizations?.data?.[0].organization.id ?? '');
   }
 
   async function handleDeleteMember(user_id: string) {
@@ -92,7 +92,7 @@ export function useOrganizationTeam() {
     filterRole,
     isTeamMembers,
     teamMembersToDisplay,
-    isLoading: query.members.isLoading,
+    isLoading: query?.members?.isLoading,
     setFilterRole,
     handleSearchChange,
     handleRoleChange,

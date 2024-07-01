@@ -106,9 +106,9 @@ function OrganizationList({ userOrgData, userOrgsData }: ListProps) {
         <h4 className="mb-3 text-muted-foreground">Personal organization</h4>
 
         <div className="flex flex-col items-center justify-center w-full">
-          {query.organization.isLoading ? (
+          {query?.organization?.isLoading ? (
             <LoadingSpinner />
-          ) : userOrgData?.owner_user_id && !query.organization.isLoading ? (
+          ) : userOrgData?.owner_user_id && !query?.organization?.isLoading ? (
             <div className="w-full">
               <OrganizationListItem
                 {...userOrgData}
@@ -146,9 +146,9 @@ function OrganizationList({ userOrgData, userOrgsData }: ListProps) {
         </div>
 
         <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 text-card-foreground mb-8 gap-2">
-          {query.organizations.isLoading ? (
+          {query?.organizations?.isLoading ? (
             <LoadingSpinner />
-          ) : !isEmpty(filteredOrg) && !query.organizations.isLoading ? (
+          ) : !isEmpty(filteredOrg) && !query?.organizations?.isLoading ? (
             <OrganizationListItem
               role={filteredOrg?.role}
               name={filteredOrg?.organization?.name}

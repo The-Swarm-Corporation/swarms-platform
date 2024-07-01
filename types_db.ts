@@ -284,6 +284,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_url: string | null
           language: string | null
           name: string | null
           requirements: Json | null
@@ -297,6 +298,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           language?: string | null
           name?: string | null
           requirements?: Json | null
@@ -310,6 +312,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           language?: string | null
           name?: string | null
           requirements?: Json | null
@@ -488,6 +491,7 @@ export type Database = {
           docs: Json | null
           enabled: boolean | null
           id: string
+          image_url: string | null
           model_card_md: string | null
           model_parameter: string | null
           model_type: Database["public"]["Enums"]["model_type"] | null
@@ -514,6 +518,7 @@ export type Database = {
           docs?: Json | null
           enabled?: boolean | null
           id?: string
+          image_url?: string | null
           model_card_md?: string | null
           model_parameter?: string | null
           model_type?: Database["public"]["Enums"]["model_type"] | null
@@ -540,6 +545,7 @@ export type Database = {
           docs?: Json | null
           enabled?: boolean | null
           id?: string
+          image_url?: string | null
           model_card_md?: string | null
           model_parameter?: string | null
           model_type?: Database["public"]["Enums"]["model_type"] | null
@@ -756,6 +762,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_url: string | null
           name: string | null
           prompt: string | null
           status: Database["public"]["Enums"]["user_prompts_status"] | null
@@ -767,6 +774,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           name?: string | null
           prompt?: string | null
           status?: Database["public"]["Enums"]["user_prompts_status"] | null
@@ -778,6 +786,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           name?: string | null
           prompt?: string | null
           status?: Database["public"]["Enums"]["user_prompts_status"] | null
@@ -833,6 +842,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_url: string | null
           name: string | null
           pr_id: string | null
           pr_link: string | null
@@ -846,6 +856,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           name?: string | null
           pr_id?: string | null
           pr_link?: string | null
@@ -859,6 +870,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           name?: string | null
           pr_id?: string | null
           pr_link?: string | null
@@ -882,6 +894,7 @@ export type Database = {
           created_at: string
           credit: number
           credit_count: number
+          credit_grant: number | null
           credit_limit: number
           free_credit: number
           free_credit_expire_date: string | null
@@ -892,6 +905,7 @@ export type Database = {
           created_at?: string
           credit?: number
           credit_count?: number
+          credit_grant?: number | null
           credit_limit?: number
           free_credit?: number
           free_credit_expire_date?: string | null
@@ -902,6 +916,7 @@ export type Database = {
           created_at?: string
           credit?: number
           credit_count?: number
+          credit_grant?: number | null
           credit_limit?: number
           free_credit?: number
           free_credit_expire_date?: string | null
@@ -1050,6 +1065,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      swarms_newsletter_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: number
+          is_subscribed: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: number
+          is_subscribed?: boolean | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: number
+          is_subscribed?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
       }
       users: {
         Row: {

@@ -1,19 +1,33 @@
 'use client';
 
 import { cn } from '@/shared/utils/cn';
-import { LogOut } from 'lucide-react';
+import { LogIn, LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
 import { SIDE_BAR_MENU } from '../const';
 import SidebarMobile from './components/sidebar-mobile';
 import NavItem from '../item';
+import { User } from '@supabase/supabase-js';
+import LoadingSpinner from '@/shared/components/loading-spinner';
 
-const PanelLayoutSidebar = () => {
+const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
   const path = usePathname();
   const router = useRouter();
   const [showTitle, setShowTitle] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleSignOut(e: FormEvent<HTMLFormElement>) {
+    setIsLoading(true);
+    try {
+      await handleRequest(e, SignOut, router);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <>
@@ -79,23 +93,39 @@ const PanelLayoutSidebar = () => {
               })}
             </div>
             <div className="p-2 py-3 hover:bg-destructive hover:text-white rounded-md">
-              <form
-                onSubmit={(e) => handleRequest(e, SignOut, router)}
-                className="w-full"
-              >
-                <input
-                  type="hidden"
-                  name="pathName"
-                  value={usePathname()?.toString()}
-                />
+              {user ? (
+                <form onSubmit={handleSignOut} className="w-full">
+                  <input
+                    type="hidden"
+                    name="pathName"
+                    value={usePathname()?.toString()}
+                  />
+                  <button
+                    type="submit"
+                    className="flex items-center justify-start  w-full"
+                  >
+                    {isLoading ? (
+                      <p className="flex items-center justify-start">
+                        {showTitle && <span className="mr-2">Signing Out...</span>}{' '}
+                        <LoadingSpinner />
+                      </p>
+                    ) : (
+                      <p className="flex items-center justify-start">
+                        <LogOut size={24} className="mr-2" />
+                        {showTitle && <span>SignOut</span>}
+                      </p>
+                    )}
+                  </button>
+                </form>
+              ) : (
                 <button
                   type="submit"
                   className="flex items-center justify-start  w-full"
                 >
-                  <LogOut size={24} className="mr-2" />
-                  {showTitle && <span>SignOut</span>}
+                  <LogIn size={24} className="mr-2" />
+                  {showTitle && <span>Log in</span>}
                 </button>
-              </form>
+              )}
             </div>
           </div>
         </div>

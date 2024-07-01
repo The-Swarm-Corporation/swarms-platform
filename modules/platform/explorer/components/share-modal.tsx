@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import Modal from '@/shared/components/modal';
 import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
@@ -28,36 +28,41 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
       .catch((e) => console.error(e));
   };
 
-  const handleShareWithTweet = () => openShareWindow('twitter', shareDetails);
-  const handleShareWithLinkedIn = () =>
-    openShareWindow('linkedin', shareDetails);
-  const handleShareWithFacebook = () =>
-    openShareWindow('facebook', shareDetails);
-  const handleShareWithEmail = () => openShareWindow('email', shareDetails);
-
   const data = [
     {
       icon: '/twitter.svg',
       text: 'Tweet',
-      func: handleShareWithTweet,
+      func: () => openShareWindow('twitter', shareDetails),
       bgColor: 'aliceblue',
     },
     {
       icon: '/linkedin.svg',
       text: 'Post',
-      func: handleShareWithLinkedIn,
+      func: () => openShareWindow('linkedin', shareDetails),
       bgColor: '#d8d8d8',
     },
     {
       icon: '/facebook.svg',
       text: 'Share',
-      func: handleShareWithFacebook,
+      func: () => openShareWindow('facebook', shareDetails),
       bgColor: '#eceff5',
+    },
+    {
+      icon: '/reddit.svg',
+      text: 'Submit',
+      func: () => openShareWindow('reddit', shareDetails),
+      bgColor: '#fdd9ce',
+    },
+    {
+      icon: '/hackernews.svg',
+      text: 'Post',
+      func: () => openShareWindow('hackernews', shareDetails),
+      bgColor: '#f5f5f5',
     },
     {
       icon: '/email.svg',
       text: 'Email',
-      func: handleShareWithEmail,
+      func: () => openShareWindow('email', shareDetails),
       bgColor: '#fdd9ce',
     },
   ];
@@ -74,7 +79,7 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
       </div>
       <div className="w-full">
         <span className="mb-2 text-sm text-gray-400">Share the link via</span>
-        <ul className="flex flex-wrap gap-12 justify-center w-full my-4 p-0">
+        <ul className="flex flex-wrap gap-6 md:gap-10 justify-start w-full my-4 p-0">
           {data.map((item, index) => (
             <li
               key={index}
@@ -83,7 +88,7 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
             >
               <div
                 style={{ backgroundColor: item.bgColor }}
-                className="rounded-full p-1.5 h-[61px] w-[61px] flex items-center justify-center"
+                className="rounded-full p-1.5 h-[41px] md:h-[61px] w-[41px] md:w-[61px] flex items-center justify-center"
               >
                 <Image src={item.icon} alt={item.text} width={25} height={25} />
               </div>
