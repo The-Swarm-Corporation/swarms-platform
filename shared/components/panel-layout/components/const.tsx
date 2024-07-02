@@ -3,7 +3,6 @@ import {
   CircleGauge,
   LayoutDashboard,
   LockKeyhole,
-  SquareChevronRight,
   Settings,
   User,
   Building2,
@@ -90,6 +89,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <Blocks size={24} />,
       title: 'Explorer',
       link: PLATFORM.EXPLORER,
+    },
+    {
+      icon: <Building2 size={24} />,
+      title: 'Agent Builder',
+      link: PLATFORM.AGENTBUILDER,
     },
     {
       icon: <LockKeyhole size={24} />,
