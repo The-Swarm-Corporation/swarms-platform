@@ -7,6 +7,7 @@ export const PLATFORM = {
   ACCOUNT_BILLING: '/platform/account/billing',
 
   PLAYGROUND: '/platform/playground',
+  AGENTBUILDER: '/platform/agentbuilder',
   EXPLORER: '/platform/explorer',
   SETTINGS: '/platform/organization',
   ORGANIZATION: '/platform/organization',

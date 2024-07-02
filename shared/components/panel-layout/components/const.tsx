@@ -97,10 +97,15 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       link: PLATFORM.PLAYGROUND,
     },
     {
+      icon: <Building2 size={24} />,
+      title: 'Agent Builder',
+      link: PLATFORM.AGENTBUILDER,
+    },
+    {
       icon: <LockKeyhole size={24} />,
       title: 'API Keys',
       link: PLATFORM.API_KEYS,
-  },
+    },
     {
       icon: <CircleGauge size={24} />,
       title: 'Usage',
