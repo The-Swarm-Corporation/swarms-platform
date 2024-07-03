@@ -1,170 +1,308 @@
+/**
+ * v0 by Vercel.
+ * @see https://v0.dev/t/LCRL38Cq152
+ * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
+ */
+"use client"
+
+import { useState } from "react"
 import { Label } from "./components/label"
 import { Input } from "./components/input"
 import { Textarea } from "./components/textarea"
-import { Switch } from "./components/switch"
-import { Card, CardHeader, CardTitle, CardContent } from "./components/card"
-import { Avatar, AvatarImage, AvatarFallback } from "./components/avatar"
+import { Checkbox } from "./components/checkbox"
+import { Button } from "./components/button"
 
-export default function AgentBuilder() {
+interface ChatMessage {
+    role: string
+    content: string
+}
+
+interface ApiRequest {
+    request: string
+    response: string
+}
+
+export default function Component() {
+    const [agentName, setAgentName] = useState<string>("")
+    const [systemPrompt, setSystemPrompt] = useState<string>("")
+    const [agentDescription, setAgentDescription] = useState<string>("")
+    const [modelName, setModelName] = useState<string>("")
+    const [maxLoops, setMaxLoops] = useState<number>(10)
+    const [autosave, setAutosave] = useState<boolean>(true)
+    const [dynamicTemperatureEnabled, setDynamicTemperatureEnabled] = useState<boolean>(true)
+    const [dashboard, setDashboard] = useState<boolean>(false)
+    const [verbose, setVerbose] = useState<boolean>(false)
+    const [streamingOn, setStreamingOn] = useState<boolean>(true)
+    const [savedStatePath, setSavedStatePath] = useState<string>("")
+    const [sop, setSop] = useState<string>("")
+    const [sopList, setSopList] = useState<string[]>([])
+    const [userName, setUserName] = useState("")
+    const [retryAttempts, setRetryAttempts] = useState(3)
+    const [contextLength, setContextLength] = useState(1024)
+    const [task, setTask] = useState("")
+    const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
+    const [apiRequests, setApiRequests] = useState<ApiRequest[]>([])
+    const handleSubmit = (e: any) => {
+        e.preventDefault()
+        const newChatMessage = {
+            role: "user",
+            content: task,
+        }
+        setChatHistory([...chatHistory, newChatMessage])
+        const response = {
+            role: "assistant",
+            content: "This is a sample response from the AI agent.",
+        }
+        setChatHistory([...chatHistory, response])
+        setApiRequests([...apiRequests, { request: task, response: response.content }])
+    }
     return (
-        <div className="flex min-h-screen w-full bg-background">
-            <div className="flex-1 p-6 sm:p-8 md:p-10">
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="agentName">Agent Name</Label>
-                        <Input id="agentName" placeholder="Enter agent name" />
+        <div className="flex h-screen bg-black w-full">
+            <div className="w-1/3 bg-black p-6 border rounded-md border-white h-fit">
+                <h2 className="text-2xl font-bold mb-4 text-red-500">Agent Configuration</h2>
+                <form onSubmit={handleSubmit} className="grid gap-4">
+                    <div>
+                        <Label htmlFor="agentName" className="text-red-500">
+                            Agent Name
+                        </Label>
+                        <Input
+                            id="agentName"
+                            value={agentName}
+                            onChange={(e) => setAgentName(e.target.value)}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="systemPrompt">System Prompt</Label>
-                        <Textarea id="systemPrompt" placeholder="Enter system prompt" rows={3} />
+                    <div>
+                        <Label htmlFor="systemPrompt" className="text-red-500">
+                            System Prompt
+                        </Label>
+                        <Textarea
+                            id="systemPrompt"
+                            value={systemPrompt}
+                            onChange={(e) => setSystemPrompt(e.target.value)}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="agentDescription">Agent Description</Label>
-                        <Textarea id="agentDescription" placeholder="Enter agent description" rows={3} />
+                    <div>
+                        <Label htmlFor="agentDescription" className="text-red-500">
+                            Agent Description
+                        </Label>
+                        <Input
+                            id="agentDescription"
+                            value={agentDescription}
+                            onChange={(e) => setAgentDescription(e.target.value)}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="modelName">Model Name</Label>
-                        <Input id="modelName" placeholder="Enter model name" />
+                    <div>
+                        <Label htmlFor="modelName" className="text-red-500">
+                            Model Name
+                        </Label>
+                        <Input
+                            id="modelName"
+                            value={modelName}
+                            onChange={(e) => setModelName(e.target.value)}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="maxLoops">Max Loops</Label>
-                        <Input id="maxLoops" type="number" placeholder="Enter max loops" />
+                    <div>
+                        <Label htmlFor="maxLoops" className="text-red-500">
+                            Max Loops
+                        </Label>
+                        <Input
+                            id="maxLoops"
+                            type="number"
+                            value={maxLoops}
+                            onChange={(e) => setMaxLoops(Number(e.target.value))}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="autosave">Autosave</Label>
-                        <Switch id="autosave" aria-label="Autosave" />
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id="autosave"
+                            checked={autosave}
+                            className="accent-red-500"
+                            onCheckedChange={(checked) => {
+                                if (typeof checked === 'boolean') {
+                                    setAutosave(checked);
+                                }
+                            }}
+                        />
+                        <Label htmlFor="autosave" className="text-red-500">
+                            Autosave
+                        </Label>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="dynamicTemperatureEnabled">Dynamic Temperature Enabled</Label>
-                        <Switch id="dynamicTemperatureEnabled" aria-label="Dynamic Temperature Enabled" />
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id="dynamicTemperatureEnabled"
+                            checked={dynamicTemperatureEnabled}
+                            className="accent-red-500"
+                            onCheckedChange={(checked) => {
+                                if (typeof checked === 'boolean') {
+                                    setDynamicTemperatureEnabled(checked);
+                                }
+                            }}
+                        />
+                        <Label htmlFor="dynamicTemperatureEnabled" className="text-red-500">
+                            Dynamic Temperature Enabled
+                        </Label>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="dashboard">Dashboard</Label>
-                        <Switch id="dashboard" aria-label="Dashboard" />
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id="dashboard"
+                            checked={dashboard}
+                            className="accent-red-500"
+                            onCheckedChange={(checked) => {
+                                if (typeof checked === 'boolean') {
+                                    setDashboard(checked);
+                                }
+                            }}
+                        />
+                        <Label htmlFor="dashboard" className="text-red-500">
+                            Dashboard
+                        </Label>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="verbose">Verbose</Label>
-                        <Switch id="verbose" aria-label="Verbose" />
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id="verbose"
+                            checked={verbose}
+                            className="accent-red-500"
+                            onCheckedChange={(checked) => {
+                                if (typeof checked === 'boolean') {
+                                    setVerbose(checked);
+                                }
+                            }}
+                        />
+                        <Label htmlFor="verbose" className="text-red-500">
+                            Verbose
+                        </Label>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="streamingOn">Streaming On</Label>
-                        <Switch id="streamingOn" aria-label="Streaming On" />
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id="streamingOn"
+                            checked={streamingOn}
+                            className="accent-red-500"
+                            onCheckedChange={(checked) => {
+                                if (typeof checked === 'boolean') {
+                                    setStreamingOn(checked);
+                                }
+                            }}
+                        />
+                        <Label htmlFor="streamingOn" className="text-red-500">
+                            Streaming On
+                        </Label>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="savedStatePath">Saved State Path</Label>
-                        <Input id="savedStatePath" placeholder="Enter saved state path" />
+                    <div>
+                        <Label htmlFor="savedStatePath" className="text-red-500">
+                            Saved State Path
+                        </Label>
+                        <Input
+                            id="savedStatePath"
+                            value={savedStatePath}
+                            onChange={(e) => setSavedStatePath(e.target.value)}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="sop">SOP</Label>
-                        <Textarea id="sop" placeholder="Enter SOP" rows={3} />
+                    <div>
+                        <Label htmlFor="sop" className="text-red-500">
+                            SOP
+                        </Label>
+                        <Input
+                            id="sop"
+                            value={sop}
+                            onChange={(e) => setSop(e.target.value)}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="sopList">SOP List</Label>
-                        <Textarea id="sopList" placeholder="Enter SOP list" rows={3} />
+                    <div>
+                        <Label htmlFor="sopList" className="text-red-500">
+                            SOP List
+                        </Label>
+                        <Textarea
+                            id="sopList"
+                            value={sopList.join("\n")}
+                            onChange={(e) => setSopList(e.target.value.split("\n"))}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="userName">User Name</Label>
-                        <Input id="userName" placeholder="Enter user name" />
+                    <div>
+                        <Label htmlFor="userName" className="text-red-500">
+                            User Name
+                        </Label>
+                        <Input
+                            id="userName"
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="retryAttempts">Retry Attempts</Label>
-                        <Input id="retryAttempts" type="number" placeholder="Enter retry attempts" />
+                    <div>
+                        <Label htmlFor="retryAttempts" className="text-red-500">
+                            Retry Attempts
+                        </Label>
+                        <Input
+                            id="retryAttempts"
+                            type="number"
+                            value={retryAttempts}
+                            onChange={(e) => setRetryAttempts(Number(e.target.value))}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="contextLength">Context Length</Label>
-                        <Input id="contextLength" type="number" placeholder="Enter context length" />
+                    <div>
+                        <Label htmlFor="contextLength" className="text-red-500">
+                            Context Length
+                        </Label>
+                        <Input
+                            id="contextLength"
+                            type="number"
+                            value={contextLength}
+                            onChange={(e) => setContextLength(Number(e.target.value))}
+                            className="bg-black border-white text-red-500"
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="task">Task</Label>
-                        <Textarea id="task" placeholder="Enter task" rows={3} />
+                    <div>
+                        <Label htmlFor="task" className="text-red-500">
+                            Task
+                        </Label>
+                        <Textarea
+                            id="task"
+                            value={task}
+                            onChange={(e) => setTask(e.target.value)}
+                            className="bg-black border-white text-red-500"
+                        />
+                    </div>
+                    <Button type="submit" className="bg-red-500 text-black hover:bg-red-600">
+                        Submit
+                    </Button>
+                </form>
+            </div>
+            <div className="flex-1 grid grid-cols-2 gap-4 p-6">
+                <div className="border rounded-lg p-4 border-white">
+                    <h3 className="text-xl font-bold mb-4 text-red-500">API Requests</h3>
+                    <div className="space-y-4">
+                        {apiRequests.map((request, index) => (
+                            <div key={index}>
+                                <div className="font-medium text-red-500">Request:</div>
+                                <pre className="bg-black p-2 rounded-md border border-white text-red-500">{request.request}</pre>
+                                <div className="font-medium mt-2 text-red-500">Response:</div>
+                                <pre className="bg-black p-2 rounded-md border border-white text-red-500">{request.response}</pre>
+                            </div>
+                        ))}
                     </div>
                 </div>
-            </div>
-            <div className="flex-1 border-l bg-muted/40 p-6 sm:p-8 md:p-10 h-fit">
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="border rounded-lg p-4 border-white">
+                    <h3 className="text-xl font-bold mb-4 text-red-500">Chat Interface</h3>
                     <div className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>API Request</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <pre className="whitespace-pre-wrap break-all">{`{
-  "agent_name": "My Agent",
-  "system_prompt": "You are a helpful AI assistant.",
-  "agent_description": "A friendly and knowledgeable AI agent.",
-  "model_name": "gpt-3.5-turbo",
-  "max_loops": 5,
-  "autosave": true,
-  "dynamic_temperature_enabled": true,
-  "dashboard": true,
-  "verbose": false,
-  "streaming_on": true,
-  "saved_state_path": "/path/to/saved/state",
-  "sop": "Follow these steps...",
-  "sop_list": [
-    "Step 1",
-    "Step 2",
-    "Step 3"
-  ],
-  "user_name": "John Doe",
-  "retry_attempts": 3,
-  "context_length": 1024,
-  "task": "Explain the concept of machine learning in simple terms."
-}`}</pre>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    <div className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Chat</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex items-start gap-4">
-                                        <Avatar className="w-10 h-10 border">
-                                            <AvatarImage src="/placeholder-user.jpg" />
-                                            <AvatarFallback>JD</AvatarFallback>
-                                        </Avatar>
-                                        <div className="grid gap-1">
-                                            <div className="font-bold">User</div>
-                                            <div className="prose text-muted-foreground">
-                                                <p>Explain the concept of machine learning in simple terms.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start gap-4">
-                                        <Avatar className="w-10 h-10 border">
-                                            <AvatarImage src="/placeholder-user.jpg" />
-                                            <AvatarFallback>AI</AvatarFallback>
-                                        </Avatar>
-                                        <div className="grid gap-1">
-                                            <div className="font-bold">Agent</div>
-                                            <div className="prose text-muted-foreground">
-                                                <p>
-                                                    Machine learning is a type of artificial intelligence that allows computers to learn and
-                                                    improve from experience without being explicitly programmed. It involves using algorithms and
-                                                    statistical models to analyze data and make predictions or decisions without relying on
-                                                    rule-based programming.
-                                                </p>
-                                                <p>
-                                                    The key idea behind machine learning is that the computer can identify patterns in data and
-                                                    use those patterns to make predictions or decisions. For example, a machine learning algorithm
-                                                    could be trained on a large dataset of images of different types of animals, and then it could
-                                                    be used to identify the type of animal in a new image.
-                                                </p>
-                                                <p>
-                                                    Machine learning is used in a wide variety of applications, such as image recognition, natural
-                                                    language processing, and predictive analytics. It has become an increasingly important tool in
-                                                    fields like healthcare, finance, and transportation, where it can be used to make more
-                                                    accurate and informed decisions.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        {chatHistory.map((message, index) => (
+                            <div
+                                key={index}
+                                className={`${message.role === "user" ? "bg-black border-white" : "bg-red-500/10 border-white"
+                                    } p-4 rounded-md border`}
+                            >
+                                <div className="font-medium text-red-500">{message.role === "user" ? "You" : "Agent"}:</div>
+                                <div className="text-red-500">{message.content}</div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
