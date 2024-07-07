@@ -4,6 +4,7 @@ import { Button } from '@/shared/components/ui/Button';
 import Checkbox from '@/shared/components/ui/checkbox';
 import Input from '@/shared/components/ui/Input';
 import { Textarea } from '@/shared/components/ui/textarea';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { ChangeEvent, FormEvent, useState } from 'react';
 
 interface ApiRequest {
@@ -35,6 +36,7 @@ const initialStates = {
 type StateKeys = keyof typeof initialStates;
 
 export default function AgentBuilder() {
+  const toast = useToast();
   const [states, setStates] = useState(initialStates);
 
   const handleChange = (
@@ -60,6 +62,7 @@ export default function AgentBuilder() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    return toast.toast({description: "Feature to be added soon!"})
     const newApiRequest: ApiRequest = {
       request: states.task,
       response: 'This is a sample response from the AI agent.',
@@ -139,7 +142,7 @@ export default function AgentBuilder() {
                   );
                 }
               })}
-            <Button type="submit">Submit</Button>
+            <Button disabled type="submit">Submit</Button>
           </form>
         </div>
         <div className="flex-1 grid grid-cols-1 gap-4 p-6">
