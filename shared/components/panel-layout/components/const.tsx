@@ -3,7 +3,6 @@ import {
   CircleGauge,
   LayoutDashboard,
   LockKeyhole,
-  SquareChevronRight,
   Settings,
   User,
   Building2,
@@ -11,6 +10,7 @@ import {
   CandlestickChart,
   BookOpenText,
   FileText,
+  Building,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/constants/links';
 import Discord from '@/shared/components/icons/Discord';
@@ -90,6 +90,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <Blocks size={24} />,
       title: 'Explorer',
       link: PLATFORM.EXPLORER,
+    },
+    {
+      icon: <Building size={24} />,
+      title: 'Agent Builder',
+      link: PLATFORM.AGENT_BUILDER,
     },
     {
       icon: <LockKeyhole size={24} />,

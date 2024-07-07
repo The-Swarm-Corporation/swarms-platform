@@ -5,16 +5,21 @@ import s from './Input.module.css';
 
 interface Props extends Omit<InputHTMLAttributes<any>, 'onChange'> {
   className?: string;
-  onChange?: (value: string) => void;
+  onChange?: (value: string | ChangeEvent<HTMLInputElement> | any) => void;
+  isEvent?: boolean;
 }
 const Input = (props: Props) => {
-  const { className, children, onChange, ...rest } = props;
+  const { className, children, isEvent, onChange, ...rest } = props;
 
   const rootClassName = cn(s.root, {}, className);
 
   const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (onChange) {
-      onChange(e.target.value);
+      if (isEvent) {
+        onChange(e);
+      } else {
+        onChange(e.target.value);
+      }
     }
     return null;
   };
