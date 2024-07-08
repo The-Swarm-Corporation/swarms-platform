@@ -1,7 +1,7 @@
 
 <div align="center">
   <a href="https://swarms.world">
-    <h1>Swarms Marketplace</h1>
+    <h1>Swarms Platform Marketplace</h1>
   </a>
 </div>
 <p align="center">
