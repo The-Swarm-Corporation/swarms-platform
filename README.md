@@ -34,19 +34,58 @@
 
 ![Swarms Banner](swarms_platform.png)
 
-# Install
+## Install
+```bash
+git clone https://github.com/kyegomez/swarms-platform.git
 
-`yarn install`
+cd swarms-platform
 
-`yarn run dev`
+yarn install
 
-## Benefits
+yarn run dev
 
-👉 Access to SOTA Multi-Modal Models like XCompose, LLava3, Qwen VL, CogVLM
+```
 
-👉 Reliable & Affordable Pricing at Scale
+## Envs
+Environment variables can be found in the `.env.example` file
 
-👉 Bleeding-Edge Speed: We're using a multi-cloud strategy!
+```env
+
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+# Github
+SUPABASE_AUTH_EXTERNAL_GITHUB_REDIRECT_URI="http://localhost:3000/auth/callback"
+SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID=
+SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET=
+
+# Google
+SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=
+SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=
+
+# These environment variables are used for Supabase Local Dev
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Get these from Stripe dashboard
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+NEXT_PUBLIC_STRIPE_PAYMENT_PRODUCT_ID=
+NEXT_PUBLIC_STRIPE_SUBSCRIPTION_PRODUCT_ID=
+
+# SMTP Provider
+SMTP_HOST=""
+SMTP_PORT=465
+SMTP_USER=""
+SMTP_PASS=""
+
+# Swarm publisher github
+SWARM_PUBLISHER_GITHUB_ACCESS_TOKEN="xxx"
+SWARM_REPO_OWNER="kyegomez"
+SWARM_REPO_NAME="swarms"
+```
+
+
 
 ## Technologies
 
