@@ -20,7 +20,7 @@ const promptSchema = z.object({
       }),
     )
     .min(1, { message: 'At least one use case is required' }),
-  tags: z.string().optional(),
+  tags: z.string().min(2, { message: "Tags should be at least 1 characters and separated by commas" }),
 });
 
 const addPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
