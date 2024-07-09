@@ -4,7 +4,7 @@ import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Pencil, Share } from 'lucide-react';
+import { Copy, Pencil, Share, Star } from 'lucide-react';
 import { useToast } from '../ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '../avatar';
@@ -15,6 +15,10 @@ import EditExplorerModal from '@/modules/platform/explorer/components/edit-modal
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
+import AddRatingModal from '../rating/add-rating';
+import ListReview, { ReviewProps } from '../rating/list-rating';
+import ReactStars from 'react-rating-star-with-type';
+import { getReviewRating } from '../rating/helper';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -89,6 +93,10 @@ export default function EntityComponent({
 }: Entity) {
   const toast = useToast();
   const user = trpc.main.getUser.useQuery();
+  const reviewQuery = user
+    ? trpc.explorer.checkReview.useQuery({ modelId: id ?? '' })
+    : null;
+  const reviews = trpc.explorer.getReviews.useQuery(id ?? '');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const entityTitle = title.toLowerCase();
@@ -101,6 +109,8 @@ export default function EntityComponent({
   const pathName = usePathname();
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [isReviewModal, setIsReviewModal] = useState(false);
+  const [isReviewListModal, setIsReviewListModal] = useState(false);
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -119,11 +129,25 @@ export default function EntityComponent({
   const handleShowEditModal = () => setIsEditModalOpen(true);
   const handleCloseEditModal = () => setIsEditModalOpen(false);
 
+  const handleShowReviewModal = () => setIsReviewModal(true);
+
+  const handleShowReviewListModal = () => setIsReviewListModal(true);
+  const handleCloseReviewListModal = () => setIsReviewListModal(false);
+
   function onEditSuccessfully() {
     startTransition(() => {
       router.refresh();
     });
   }
+
+  const { modelRating, reviewLength, reviewTextEnd } = getReviewRating(
+    (reviews.data as ReviewProps[]) || [],
+  );
+
+  const handleRefetch = () => {
+    reviewQuery?.refetch();
+    reviews?.refetch();
+  };
 
   return (
     <div className="max-w-6xl md:px-6 mx-auto">
@@ -175,9 +199,52 @@ export default function EntityComponent({
                 <span className="ml-2">Edit</span>
               </Button>
             )}
+            {id && user.data?.id && !reviewQuery?.data?.hasReviewed && (
+              <Button
+                onClick={handleShowReviewModal}
+                variant="outline"
+                className="mt-3 w-full"
+              >
+                <Star size={20} className="text-yellow-500" />
+                <span className="ml-2">Add review</span>
+              </Button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 w-full">
+            <div className="flex items-center gap-2 my-4 separator">
+              <ReactStars value={modelRating} isEdit={false} />
+              <div className="flex">
+                <span>{reviewLength}</span> <span>review{reviewTextEnd}</span>
+              </div>
+            </div>
+            {reviews?.data && reviews.data?.length > 0 && (
+              <Button
+                variant="ghost"
+                className="underline w-fit p-0 hover:bg-transparent"
+                onClick={handleShowReviewListModal}
+              >
+                See reviews
+              </Button>
+            )}
           </div>
         </div>
 
+        <ListReview
+          reviews={reviews.data as ReviewProps[]}
+          isOpen={isReviewListModal}
+          onClose={handleCloseReviewListModal}
+        />
+
+        {!reviewQuery?.data?.hasReviewed && (
+          <AddRatingModal
+            id={id ?? ''}
+            handleRefetch={handleRefetch}
+            open={isReviewModal}
+            setOpen={setIsReviewModal}
+            modelType={entityTitle}
+          />
+        )}
         <EditExplorerModal
           entityId={id ?? ''}
           entityType={entityTitle as EntityType}
