@@ -40,6 +40,7 @@ export default function Agents({
                   key={agent.id}
                 >
                   <InfoCard
+                    id={agent.id || ''}
                     title={agent.name || ''}
                     description={agent.description || ''}
                     icon={<Terminal />}

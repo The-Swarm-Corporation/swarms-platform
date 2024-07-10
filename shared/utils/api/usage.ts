@@ -199,6 +199,45 @@ export async function userAPICluster(
   }
 }
 
+export async function getReviews(modelId: string) {
+  try {
+    const { data: reviews, error: reviewsError } = await supabaseAdmin
+      .from('swarms_cloud_reviews')
+      .select(
+        `
+          id,
+          comment,
+          model_id,
+          user_id,
+          model_type,
+          created_at,
+          rating,
+          users (
+            email,
+          )
+        `,
+      )
+      .eq('model_id', modelId)
+      .order('created_at', { ascending: false });
+
+    if (reviewsError) {
+      console.log({ reviewsError });
+      return {
+        status: 500,
+        message: 'Internal server error',
+      };
+    }
+
+    return reviews;
+  } catch (error) {
+    console.error(error);
+    return {
+      status: 500,
+      message: 'Internal server error',
+    };
+  }
+}
+
 export async function getOrganizationUsage(
   userId: string,
   month: Date,

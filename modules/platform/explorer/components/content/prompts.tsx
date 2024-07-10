@@ -43,6 +43,7 @@ export default function Prompts({
                   key={prompt.id}
                 >
                   <InfoCard
+                    id={prompt.id ?? ''}
                     title={prompt.name || ''}
                     description={prompt.prompt || ''}
                     icon={<Terminal />}

@@ -7,6 +7,10 @@ import Link from 'next/link';
 import { Share2 } from 'lucide-react';
 import Avatar from '@/shared/components/avatar';
 import ShareModal from './share-modal';
+import { trpc } from '@/shared/utils/trpc/trpc';
+import { ReviewProps } from '@/shared/components/rating/list-rating';
+import { getReviewRating } from '@/shared/components/rating/helper';
+import ReactStars from 'react-rating-star-with-type';
 
 interface Props {
   title: string;
@@ -20,6 +24,7 @@ interface Props {
   promptId?: any;
   link: string;
   userId?: string;
+  id?: string;
 }
 
 const InfoCard = ({
@@ -31,8 +36,14 @@ const InfoCard = ({
   input,
   output,
   userId,
+  id,
   link,
 }: Props) => {
+  const reviews = id ? trpc.explorer.getReviews.useQuery(id ?? '') : null;
+  const { modelRating } = getReviewRating(
+    (reviews?.data as ReviewProps[]) || [],
+  );
+
   const [isButtonHover, setIsButtonHover] = useState(false);
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
 
@@ -74,6 +85,30 @@ const InfoCard = ({
           </ul>
         )}
       </div>
+
+      {id && (
+        <div className="hover:opacity-70">
+          <svg
+            width="95"
+            height="25"
+            viewBox="0 0 95 25"
+            xmlns="http://www.w3.org/2000/svg"
+            className="rating-svg absolute left-0 bottom-0 scale-x-[2.5] scale-y-[1.8]"
+          >
+            <path d="M21 0H95V25H0L21 0Z" />
+          </svg>
+          <div className="absolute -left-4 bottom-0.5 text-white px-4 py-1">
+            <div className="relative flex items-center justify-center gap-1 w-[80px]">
+              <div className="mb-0.5">
+                <ReactStars value={modelRating} isEdit={false} count={1} />
+              </div>
+              <span className="text-sm font-semibold">
+                {modelRating || 0}/5
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div
         className="cursor-pointer hover:opacity-70"
