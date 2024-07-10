@@ -635,7 +635,7 @@ const explorerRouter = router({
         });
       }
     }),
-  getReviews: userProcedure.input(z.string()).query(async ({ input, ctx }) => {
+  getReviews: publicProcedure.input(z.string()).query(async ({ input, ctx }) => {
     const modelId = input;
 
     try {
