@@ -214,7 +214,7 @@ export default function EntityComponent({
           <div
             className={cn(
               'flex items-center gap-3 w-full invisible',
-              reviewLength && id && user.data?.id && 'visible',
+              reviews?.data && reviews.data?.length > 0 && 'visible',
             )}
           >
             <div className="flex items-center gap-2 my-4 separator">
@@ -223,15 +223,13 @@ export default function EntityComponent({
                 <span>{reviewLength}</span> <span>review{reviewTextEnd}</span>
               </div>
             </div>
-            {reviews?.data && reviews.data?.length > 0 && (
-              <Button
-                variant="ghost"
-                className="underline w-fit p-0 hover:bg-transparent"
-                onClick={handleShowReviewListModal}
-              >
-                See reviews
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              className="underline w-fit p-0 hover:bg-transparent"
+              onClick={handleShowReviewListModal}
+            >
+              See reviews
+            </Button>
           </div>
         </div>
 
