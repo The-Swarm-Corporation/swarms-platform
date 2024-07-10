@@ -211,7 +211,12 @@ export default function EntityComponent({
             )}
           </div>
 
-          <div className="flex items-center gap-3 w-full">
+          <div
+            className={cn(
+              'flex items-center gap-3 w-full invisible',
+              reviewLength && id && user.data?.id && 'visible',
+            )}
+          >
             <div className="flex items-center gap-2 my-4 separator">
               <ReactStars value={modelRating} isEdit={false} />
               <div className="flex">
