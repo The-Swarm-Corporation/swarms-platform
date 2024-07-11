@@ -72,6 +72,10 @@
   .grid-columns-double {
     grid-template-columns: 49px 1fr;
   }
+
+  .sticky-inner-list .sticky-inner-wrapper {
+    @apply bg-white dark:bg-black;
+  }
 }
 
 @layer utilities {

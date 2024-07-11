@@ -170,7 +170,13 @@ const Explorer = () => {
             marketing, etc.
           </span>
         </div>
-        <Sticky enabled top={48} innerZ={10} onStateChange={handleStateChange}>
+        <Sticky
+          enabled
+          top={48}
+          innerZ={10}
+          onStateChange={handleStateChange}
+          className="sticky-inner-list"
+        >
           <div className="mt-8 pb-4 bg-white dark:bg-black">
             <ul className="p-0 mb-2 flex items-center flex-wrap gap-3">
               {options.map((option) => {
@@ -229,7 +235,9 @@ const Explorer = () => {
         <div
           className={cn(
             'flex flex-col h-full',
-            isFixed ? 'translate-y-[120px]' : 'translate-y-0',
+            isFixed
+              ? 'translate-y-[155px] md:translate-y-[125px] xl:translate-y-[120px]'
+              : 'translate-y-0',
           )}
         >
           {reorderedElements.map(({ content }) => content)}
