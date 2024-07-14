@@ -8,6 +8,7 @@ import {
   publishSwarmToGithub,
 } from '@/shared/utils/api/swarm-publisher-github';
 import { Tables } from '@/types_db';
+import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 const explorerRouter = router({
@@ -538,6 +539,145 @@ const explorerRouter = router({
         .single();
       return model.data;
     }),
+  checkReview: userProcedure
+    .input(
+      z.object({
+        modelId: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { modelId } = input;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+
+      try {
+        const { data, error } = await ctx.supabase
+          .from('swarms_cloud_reviews')
+          .select('id')
+          .eq('user_id', user_id)
+          .eq('model_id', modelId)
+          .single();
+
+        if (error && error.code === 'PGRST116') {
+          return { hasReviewed: false };
+        }
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while checking review',
+          });
+        }
+
+        return { hasReviewed: !!data.id };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to check review`,
+        });
+      }
+    }),
+
+  addReview: userProcedure
+    .input(
+      z.object({
+        model_type: z.string(),
+        model_id: z.string(),
+        rating: z.number(),
+        comment: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { model_id, model_type, rating, comment } = input;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+
+      try {
+        const { data: existingReview, error: existingReviewError } =
+          await ctx.supabase
+            .from('swarms_cloud_reviews')
+            .select('id')
+            .eq('user_id', user_id)
+            .eq('model_id', model_id)
+            .single();
+
+        if (existingReview?.id) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'User has already reviewed this model',
+          });
+        }
+
+        // Insert new review
+        const newReview = await ctx.supabase
+          .from('swarms_cloud_reviews')
+          .insert([
+            {
+              user_id,
+              model_id,
+              model_type,
+              rating,
+              comment,
+            },
+          ]);
+
+        if (newReview.error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to insert review',
+          });
+        }
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to insert review`,
+        });
+      }
+    }),
+  getReviews: publicProcedure.input(z.string()).query(async ({ input, ctx }) => {
+    const modelId = input;
+
+    try {
+      const { data: reviews, error: reviewsError } = await ctx.supabase
+        .from('swarms_cloud_reviews')
+        .select(
+          `
+            id,
+            comment,
+            model_id,
+            user_id,
+            model_type,
+            created_at,
+            rating,
+            users (
+            full_name,
+            username,
+            email,
+            avatar_url
+            )
+          `,
+        )
+        .eq('model_id', modelId)
+        .order('created_at', { ascending: false });
+
+      if (reviewsError) {
+        console.log({ reviewsError });
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error while fetching reviews',
+        });
+      }
+
+      return reviews;
+    } catch (error) {
+      console.error(error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: `Failed to fetch reviews`,
+      });
+    }
+  }),
 });
 
 export default explorerRouter;

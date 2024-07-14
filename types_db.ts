@@ -836,6 +836,36 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          model_id: string | null
+          model_type: string | null
+          rating: number | null
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          model_id?: string | null
+          model_type?: string | null
+          rating?: number | null
+          user_id?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          model_id?: string | null
+          model_type?: string | null
+          rating?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       swarms_cloud_user_swarms: {
         Row: {
           code: string | null
