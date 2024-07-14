@@ -22,7 +22,7 @@ const explorerOptionsRouter = router({
 
       const user_id = ctx.session.data.session?.user?.id;
       const lastSubmites = await ctx.supabase
-        .from('swarms')
+        .from('swarms_cloud_comments')
         .select('*')
         .eq('user_id', user_id)
         .order('created_at', { ascending: false })
@@ -40,7 +40,7 @@ const explorerOptionsRouter = router({
       }
 
       try {
-        const { data, error } = await ctx.supabase
+        const { error } = await ctx.supabase
           .from('swarms_cloud_comments')
           .insert([
             {
@@ -64,6 +64,42 @@ const explorerOptionsRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to add comment',
+        });
+      }
+    }),
+
+  editComment: userProcedure
+    .input(
+      z.object({
+        commentId: z.string(),
+        content: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { commentId, content } = input;
+
+      const user_id = ctx.session.data.session?.user?.id;
+      try {
+        const comment = await ctx.supabase
+          .from('swarms_cloud_comments')
+          .update({ content })
+          .eq('user_id', user_id)
+          .eq('id', commentId)
+          .select('*');
+
+        if (comment.error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while editing comment',
+          });
+        }
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to edit comment',
         });
       }
     }),
