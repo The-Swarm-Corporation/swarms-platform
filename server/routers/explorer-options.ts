@@ -209,6 +209,39 @@ const explorerOptionsRouter = router({
         });
       }
     }),
+
+  addReply: userProcedure
+    .input(
+      z.object({
+        commentId: z.string(),
+        content: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { commentId, content } = input;
+
+      const user_id = ctx.session.data.session?.user?.id;
+      try {
+        const { data, error } = await ctx.supabase
+          .from('swarms_cloud_comments_replies')
+          .insert([{ comment_id: commentId, content, user_id }]);
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while adding reply',
+          });
+        }
+
+        return data;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to add reply',
+        });
+      }
+    }),
 });
 
 export default explorerOptionsRouter;
