@@ -210,6 +210,40 @@ const explorerOptionsRouter = router({
       }
     }),
 
+  unlikeComment: userProcedure
+    .input(
+      z.object({
+        commentId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { commentId } = input;
+
+      const user_id = ctx.session.data.session?.user?.id;
+      try {
+        const { error } = await ctx.supabase
+          .from('swarms_cloud_comments_likes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', user_id);
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while unliking comment',
+          });
+        }
+
+        return { success: true };
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to unlike comment',
+        });
+      }
+    }),
+
   addReply: userProcedure
     .input(
       z.object({
@@ -239,6 +273,50 @@ const explorerOptionsRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to add reply',
+        });
+      }
+    }),
+
+  getReplies: publicProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      const commentId = input;
+
+      try {
+        const { data: replies, error } = await ctx.supabase
+          .from('replies')
+          .select(
+            `
+              id,
+              comment_id,
+              user_id,
+              content,
+              created_at,
+              updated_at,
+              users (
+                full_name,
+                username,
+                email,
+                avatar_url
+              )
+            `,
+          )
+          .eq('comment_id', commentId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while fetching replies',
+          });
+        }
+
+        return replies;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch replies',
         });
       }
     }),
