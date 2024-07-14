@@ -277,6 +277,73 @@ const explorerOptionsRouter = router({
       }
     }),
 
+  likeReply: userProcedure
+    .input(
+      z.object({
+        replyId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { replyId } = input;
+
+      const user_id = ctx.session.data.session?.user?.id;
+      try {
+        const { error } = await ctx.supabase
+          .from('swarms_cloud_comments_reply_likes')
+          .insert([{ reply_id: replyId, user_id }]);
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while liking reply',
+          });
+        }
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to like reply',
+        });
+      }
+    }),
+
+  unlikeReply: publicProcedure
+    .input(
+      z.object({
+        replyId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { replyId } = input;
+
+      const user_id = ctx.session.data.session?.user?.id;
+
+      try {
+        const { error } = await ctx.supabase
+          .from('swarms_cloud_comments_reply_likes')
+          .delete()
+          .eq('reply_id', replyId)
+          .eq('user_id', user_id);
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while unliking reply',
+          });
+        }
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to unlike reply',
+        });
+      }
+    }),
+
   getReplies: publicProcedure
     .input(z.string())
     .query(async ({ input, ctx }) => {
