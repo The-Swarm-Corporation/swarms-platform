@@ -11,6 +11,7 @@ import SidebarMobile from './components/sidebar-mobile';
 import NavItem from '../item';
 import { User } from '@supabase/supabase-js';
 import LoadingSpinner from '@/shared/components/loading-spinner';
+import Link from 'next/link';
 
 const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
   const path = usePathname();
@@ -102,29 +103,30 @@ const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
                   />
                   <button
                     type="submit"
-                    className="flex items-center justify-start  w-full"
+                    className="flex items-center justify-start cursor-pointer w-full"
                   >
                     {isLoading ? (
                       <p className="flex items-center justify-start">
-                        {showTitle && <span className="mr-2">Signing Out...</span>}{' '}
+                        {showTitle && (
+                          <span className="mr-2">Signing Out...</span>
+                        )}{' '}
                         <LoadingSpinner />
                       </p>
                     ) : (
                       <p className="flex items-center justify-start">
                         <LogOut size={24} className="mr-2" />
-                        {showTitle && <span>SignOut</span>}
+                        {showTitle && <span>Sign out</span>}
                       </p>
                     )}
                   </button>
                 </form>
               ) : (
-                <button
-                  type="submit"
-                  className="flex items-center justify-start  w-full"
-                >
-                  <LogIn size={24} className="mr-2" />
-                  {showTitle && <span>Log in</span>}
-                </button>
+                <Link href="/signin" className='cursor-pointer'>
+                  <button className="flex items-center justify-start  w-full">
+                    <LogIn size={24} className="mr-2" />
+                    {showTitle && <span>Log in</span>}
+                  </button>
+                </Link>
               )}
             </div>
           </div>
