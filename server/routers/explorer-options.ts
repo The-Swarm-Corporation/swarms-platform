@@ -103,6 +103,50 @@ const explorerOptionsRouter = router({
         });
       }
     }),
+
+  getComments: publicProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      const modelId = input;
+
+      try {
+        const { data: comments, error } = await ctx.supabase
+          .from('swarms_cloud_comments')
+          .select(
+            `
+              id,
+              user_id,
+              model_id,
+              model_type,
+              content,
+              created_at,
+              users (
+                full_name,
+                username,
+                email,
+                avatar_url
+              )
+            `,
+          )
+          .eq('model_id', modelId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while fetching comments',
+          });
+        }
+
+        return comments;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch comments',
+        });
+      }
+    }),
 });
 
 export default explorerOptionsRouter;
