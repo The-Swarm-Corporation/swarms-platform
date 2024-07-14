@@ -3,9 +3,6 @@ import {
   router,
   userProcedure,
 } from '@/app/api/trpc/trpc-router';
-import { PLATFORM, PUBLIC } from '@/shared/constants/links';
-import { makeUrl } from '@/shared/utils/helpers';
-import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 const explorerOptionsRouter = router({
@@ -273,6 +270,37 @@ const explorerOptionsRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to add reply',
+        });
+      }
+    }),
+
+  deleteReply: publicProcedure
+    .input(z.string())
+    .mutation(async ({ input, ctx }) => {
+      const replyId = input;
+
+      const user_id = ctx.session.data.session?.user?.id;
+
+      try {
+        const { error } = await ctx.supabase
+          .from('swarms_cloud_comments_replies')
+          .delete()
+          .eq('id', replyId)
+          .eq('user_id', user_id);
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while deleting reply',
+          });
+        }
+
+        return { success: true };
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete reply',
         });
       }
     }),
