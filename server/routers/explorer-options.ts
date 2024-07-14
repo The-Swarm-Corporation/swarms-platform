@@ -147,6 +147,68 @@ const explorerOptionsRouter = router({
         });
       }
     }),
+
+  deleteComment: userProcedure
+    .input(z.string())
+    .mutation(async ({ input, ctx }) => {
+      const commentId = input;
+      const user_id = ctx.session.data.session?.user?.id;
+
+      try {
+        const { error } = await ctx.supabase
+          .from('swarms_cloud_comments')
+          .delete()
+          .eq('user_id', user_id)
+          .eq('id', commentId);
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while deleting comment',
+          });
+        }
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete comment',
+        });
+      }
+    }),
+
+  likeComment: userProcedure
+    .input(
+      z.object({
+        commentId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { commentId } = input;
+
+      const user_id = ctx.session.data.session?.user?.id;
+      try {
+        const { data, error } = await ctx.supabase
+          .from('swarms_cloud_comments_likes')
+          .insert([{ comment_id: commentId, user_id }]);
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while liking comment',
+          });
+        }
+
+        return data;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to like comment',
+        });
+      }
+    }),
 });
 
 export default explorerOptionsRouter;
