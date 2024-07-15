@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Dispatch, SetStateAction, useState } from 'react';
-import ReactStars from 'react-rating-star-with-type';
+import ReactStarsRating from 'react-awesome-stars-rating';
 
 import { Dialog, DialogContent } from '@/shared/components/ui/dialog';
 import Input from '@/shared/components/ui/Input';
@@ -11,18 +11,6 @@ import { useAuthContext } from '../ui/auth.provider';
 import { useToast } from '../ui/Toasts/use-toast';
 import LoadingSpinner from '../loading-spinner';
 
-const fillColorArray = [
-  '#f17a45',
-  '#f17a45',
-  '#f19745',
-  '#f19745',
-  '#f1a545',
-  '#f1a545',
-  '#f1b345',
-  '#f1b345',
-  '#f1d045',
-  '#f1d045',
-];
 export default function AddRatingModal({
   modelType = 'model',
   open,
@@ -89,13 +77,13 @@ export default function AddRatingModal({
           Rate this {modelType}
         </h1>
         <div className="rating">
-          <ReactStars
+          <ReactStarsRating
             value={rating}
             onChange={handleRating}
-            isEdit={true}
-            isHalf={true}
-            activeColors={fillColorArray}
-            classNames=""
+            isHalf
+            size={30}
+            starGap={4}
+            count={5}
           />
         </div>
         <label htmlFor="comment" hidden>
