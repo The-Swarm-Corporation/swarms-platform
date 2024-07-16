@@ -8,6 +8,8 @@ import { debounce, launchConfetti } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { saveAs } from 'file-saver';  // Add file-saver for downloading files
+import Markdown from 'react-markdown';  // Add react-markdown for rendering markdown
 
 interface Props {
   isOpen: boolean;
@@ -33,6 +35,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
       description: '',
     },
   ]);
+  const [showPreview, setShowPreview] = useState(false);  // State to manage preview modal
 
   const validatePrompt = trpc.explorer.validatePrompt.useMutation();
 
@@ -116,7 +119,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         });
         onClose();
 
-        //celeberate the confetti
+        //celebrate with confetti
         launchConfetti();
 
         onAddSuccessfully();
@@ -129,153 +132,206 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
       });
   };
 
+  const downloadFile = (content: string, fileName: string, fileType: string) => {
+    const blob = new Blob([content], { type: fileType });
+    saveAs(blob, fileName);
+  };
+
+  const copyToClipboard = (content: string) => {
+    navigator.clipboard.writeText(content);
+    toast.toast({
+      title: 'Copied to clipboard',
+    });
+  };
+
   if(!user) return null;
 
   return (
-    <Modal
-      className="max-w-2xl"
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Add Prompt"
-    >
-      <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
-        <div className="flex flex-col gap-1">
-          <span>Name</span>
-          <div className="relative">
-            <Input
-              value={promptName}
-              onChange={setPromptName}
-              placeholder="Enter name"
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span>Description</span>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter description"
-            className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <span>Prompt</span>
-          <div className="relatvie">
-            <textarea
-              value={prompt}
-              onChange={(v) => {
-                setPrompt(v.target.value);
-                debouncedCheckPrompt(v.target.value);
-              }}
-              required
-              placeholder="Enter prompt here..."
-              className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
-            />
-            {validatePrompt.isPending ? (
-              <div className="absolute right-2 top-2">
-                <LoadingSpinner />
-              </div>
-            ) : (
-              <div className="absolute right-2.5 top-2.5">
-                {prompt.length > 0 && validatePrompt.data && (
-                  <span
-                    className={
-                      validatePrompt.data.valid
-                        ? 'text-green-500'
-                        : 'text-red-500'
-                    }
-                  >
-                    {validatePrompt.data.valid ? '✅' : ''}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          {prompt.length > 0 &&
-            !validatePrompt.isPending &&
-            validatePrompt.data &&
-            !validatePrompt.data.valid && (
-              <span className="text-red-500 text-sm">
-                {validatePrompt.data.error}
-              </span>
-            )}
-        </div>
-        <div className="flex flex-col gap-1">
-          <span>Tags</span>
-          <Input
-            value={tags}
-            onChange={setTags}
-            placeholder="Tools, Search, etc."
-          />
-        </div>
-        <div className="mt-2 flex flex-col gap-1">
-          <span>Use Cases</span>
-          <div className="flex flex-col gap-2">
-            {useCases.map((useCase, i) => (
-              <div key={i} className="flex gap-4 items-center">
-                <span className="w-8">
-                  <span># {i + 1}</span>
-                </span>
-                <div className="w-full flex flex-col gap-1 py-2">
-                  <Input
-                    value={useCase.title}
-                    onChange={(v) => {
-                      const newUseCases = [...useCases];
-                      newUseCases[i].title = v;
-                      setUseCases(newUseCases);
-                    }}
-                    placeholder="Title"
-                  />
-                  <textarea
-                    value={useCase.description}
-                    onChange={(e) => {
-                      const newUseCases = [...useCases];
-                      newUseCases[i].description = e.target.value;
-                      setUseCases(newUseCases);
-                    }}
-                    placeholder="Description"
-                    className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
-                  />
-                </div>
-                <div className="w-4">
-                  {i > 0 && (
-                    <button
-                      onClick={() => {
-                        const newUseCases = [...useCases];
-                        newUseCases.splice(i, 1);
-                        setUseCases(newUseCases);
-                      }}
-                      className="text-red-500"
-                    >
-                      ❌
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-            <div className="flex justify-center">
-              <button
-                onClick={() =>
-                  setUseCases([...useCases, { title: '', description: '' }])
-                }
-                className="text-blue-500"
-              >
-                <Plus />
-              </button>
+    <>
+      <Modal
+        className="max-w-2xl"
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Add Prompt"
+      >
+        <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
+          <div className="flex flex-col gap-1">
+            <span>Name</span>
+            <div className="relative">
+              <Input
+                value={promptName}
+                onChange={setPromptName}
+                placeholder="Enter name"
+              />
             </div>
           </div>
+          <div className="flex flex-col gap-1">
+            <span>Description</span>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter description"
+              className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span>Prompt</span>
+            <div className="relative">
+              <textarea
+                value={prompt}
+                onChange={(v) => {
+                  setPrompt(v.target.value);
+                  debouncedCheckPrompt(v.target.value);
+                }}
+                required
+                placeholder="Enter prompt here..."
+                className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+              />
+              {validatePrompt.isPending ? (
+                <div className="absolute right-2 top-2">
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <div className="absolute right-2.5 top-2.5">
+                  {prompt.length > 0 && validatePrompt.data && (
+                    <span
+                      className={
+                        validatePrompt.data.valid
+                          ? 'text-green-500'
+                          : 'text-red-500'
+                      }
+                    >
+                      {validatePrompt.data.valid ? '✅' : ''}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            {prompt.length > 0 &&
+              !validatePrompt.isPending &&
+              validatePrompt.data &&
+              !validatePrompt.data.valid && (
+                <span className="text-red-500 text-sm">
+                  {validatePrompt.data.error}
+                </span>
+              )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <span>Tags</span>
+            <Input
+              value={tags}
+              onChange={setTags}
+              placeholder="Tools, Search, etc."
+            />
+          </div>
+          <div className="mt-2 flex flex-col gap-1">
+            <span>Use Cases</span>
+            <div className="flex flex-col gap-2">
+              {useCases.map((useCase, i) => (
+                <div key={i} className="flex gap-4 items-center">
+                  <span className="w-8">
+                    <span># {i + 1}</span>
+                  </span>
+                  <div className="w-full flex flex-col gap-1 py-2">
+                    <Input
+                      value={useCase.title}
+                      onChange={(v) => {
+                        const newUseCases = [...useCases];
+                        newUseCases[i].title = v;
+                        setUseCases(newUseCases);
+                      }}
+                      placeholder="Title"
+                    />
+                    <textarea
+                      value={useCase.description}
+                      onChange={(e) => {
+                        const newUseCases = [...useCases];
+                        newUseCases[i].description = e.target.value;
+                        setUseCases(newUseCases);
+                      }}
+                      placeholder="Description"
+                      className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+                    />
+                  </div>
+                  <div className="w-4">
+                    {i > 0 && (
+                      <button
+                        onClick={() => {
+                          const newUseCases = [...useCases];
+                          newUseCases.splice(i, 1);
+                          setUseCases(newUseCases);
+                        }}
+                        className="text-red-500"
+                      >
+                        ❌
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <div className="flex justify-center">
+                <button
+                  onClick={() =>
+                    setUseCases([...useCases, { title: '', description: '' }])
+                  }
+                  className="text-blue-500"
+                >
+                  <Plus />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-between mt-4">
+            <Button
+              disabled={addPrompt.isPending}
+              onClick={() => setShowPreview(true)}
+              className="w-32"
+            >
+              Preview
+            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => downloadFile(prompt, `${promptName}.md`, 'text/markdown')}
+                className="w-32"
+              >
+                Download .md
+              </Button>
+              <Button
+                onClick={() => downloadFile(prompt, `${promptName}.txt`, 'text/plain')}
+                className="w-32"
+              >
+                Download .txt
+              </Button>
+              <Button
+                onClick={() => copyToClipboard(prompt)}
+                className="w-32"
+              >
+                Copy as .txt
+              </Button>
+            </div>
+            <Button
+              disabled={addPrompt.isPending}
+              onClick={submit}
+              className="w-32"
+            >
+              Submit
+            </Button>
+          </div>
         </div>
-        <div className="flex justify-end mt-4">
-          <Button
-            disabled={addPrompt.isPending}
-            onClick={submit}
-            className="w-32"
-          >
-            Submit
-          </Button>
-        </div>
-      </div>
-    </Modal>
+      </Modal>
+      {showPreview && (
+        <Modal
+          className="max-w-2xl"
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          title="Prompt Preview"
+        >
+          <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
+            <Markdown className="prose" children={prompt} />
+          </div>
+        </Modal>
+      )}
+    </>
   );
 };
 

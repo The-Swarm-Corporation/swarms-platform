@@ -57,6 +57,7 @@
     "clsx": "^2.1.0",
     "dayjs": "^1.11.11",
     "decimal.js": "^10.4.3",
+    "file-saver": "^2.0.5",
     "framer-motion": "^11.0.14",
     "highlight.js": "^11.9.0",
     "install": "^0.13.0",
