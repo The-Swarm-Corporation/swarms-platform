@@ -32,7 +32,7 @@ function AuthModal() {
             </div>
             <h2 className="text-lg md:text-2xl">Welcome back</h2>
             <p className="mt-2 text-sm md:text-lg text-gray-400">
-              Log in or Sign up to get access to the best multi-modal agents.
+              Sign in or Sign Up to get access to enterprise-grade prompts, agents, and swarms of agents!
             </p>
 
             <div className="flex flex-col w-full mt-8">
