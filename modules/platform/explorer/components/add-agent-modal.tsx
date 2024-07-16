@@ -189,7 +189,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <span>Agent</span>
+            <span>Agent Code in Python</span>
             <div className="relative">
               <textarea
                 value={agent}
@@ -198,7 +198,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
                   debouncedCheckPrompt(v.target.value);
                 }}
                 required
-                placeholder="Enter agent here..."
+                placeholder="Enter agent code here..."
                 className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
               />
               {validateAgent.isPending ? (
