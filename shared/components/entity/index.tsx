@@ -19,6 +19,7 @@ import AddRatingModal from '../rating/add-rating';
 import ListReview, { ReviewProps } from '../rating/list-rating';
 import ReactStars from 'react-rating-star-with-type';
 import { getReviewRating } from '../rating/helper';
+import { useEditorContext } from '../ui/editor.provider';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -36,6 +37,12 @@ interface Entity extends PropsWithChildren {
   requirements?: RequirementProps[];
   userId?: string | null;
 }
+
+const sampleModes = [
+  { name: 'md', label: 'Markdown' },
+  { name: 'txt', label: 'Text' },
+  { name: 'other', label: 'Other' },
+];
 
 function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
   return (
@@ -92,6 +99,7 @@ export default function EntityComponent({
   userId,
 }: Entity) {
   const toast = useToast();
+  const { handleChange } = useEditorContext();
   const user = trpc.main.getUser.useQuery();
   const reviewQuery = user
     ? trpc.explorer.checkReview.useQuery({ modelId: id ?? '' })
@@ -111,6 +119,9 @@ export default function EntityComponent({
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [isReviewModal, setIsReviewModal] = useState(false);
   const [isReviewListModal, setIsReviewListModal] = useState(false);
+  const [selectedSampleMode, setSelectedSampleMode] = useState<
+    (typeof sampleModes)[number]
+  >(sampleModes[0]);
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -147,6 +158,10 @@ export default function EntityComponent({
   const handleRefetch = () => {
     reviewQuery?.refetch();
     reviews?.refetch();
+  };
+
+  const handleModeChange = (mode: any) => {
+    setSelectedSampleMode(mode);
   };
 
   return (
@@ -261,25 +276,46 @@ export default function EntityComponent({
       {title.toLowerCase() === 'agent' && (
         <AgentRequirements requirements={requirements as RequirementProps[]} />
       )}
-      {prompt && (
-        <div className="relative my-10">
-          <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar">
-            <SyntaxHighlighter
-              PreTag={CustomPre}
-              style={dracula}
-              language={language || 'text'}
-              wrapLongLines
-            >
-              {prompt}
-            </SyntaxHighlighter>
+      {
+        prompt && (
+          <div className="relative my-10">
+
+            <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar">
+              <div className="flex gap-1">
+                {sampleModes.map((mode) => {
+                  return (
+                    <button
+                      key={mode.name}
+                      onClick={() => handleModeChange(mode)}
+                      className={cn(
+                        `px-3 py-1 text-sm rounded-xl text-muted-foreground border border-transparent`,
+                        selectedSampleMode.name === mode.name
+                          ? 'border bg-gray-700 text-white'
+                          : '',
+                      )}
+                    >
+                      {mode.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <SyntaxHighlighter
+                PreTag={CustomPre}
+                style={dracula}
+                language={language || 'text'}
+                wrapLongLines
+              >
+                {prompt}
+              </SyntaxHighlighter>
+            </div>
+            <Copy
+              size={30}
+              className="absolute top-2 right-2 p-1 text-primary cursor-pointer"
+              onClick={() => copyToClipboard(prompt ?? '')}
+            />
           </div>
-          <Copy
-            size={30}
-            className="absolute top-2 right-2 p-1 text-primary cursor-pointer"
-            onClick={() => copyToClipboard(prompt ?? '')}
-          />
-        </div>
-      )}
+        )
+      }
       {children}
       <ShareModal
         isOpen={isShowShareModalOpen}
