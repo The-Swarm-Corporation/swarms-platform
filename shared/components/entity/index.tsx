@@ -48,7 +48,11 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
         {usecases?.map((usecase, index) => {
           const classname = usecases?.length === 1 && 'min-h-fit md:min-h-fit';
           return (
-            <Card3D key={index} containerClassName="flex-1 " className="inter-var w-full">
+            <Card3D
+              key={index}
+              containerClassName="flex-1 "
+              className="inter-var w-full"
+            >
               <CardBody
                 className={cn(
                   'bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto min-h-[255px] md:min-h-[320px] h-fit rounded-xl p-6 border flex flex-col ',
@@ -115,6 +119,7 @@ export default function EntityComponent({
   const [isReviewModal, setIsReviewModal] = useState(false);
   const [isReviewListModal, setIsReviewListModal] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
+  const [previewType, setPreviewType] = useState<'md' | 'txt'>('md');
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -141,6 +146,8 @@ export default function EntityComponent({
   const handleShowPreviewModal = () => setIsPreviewModalOpen(true);
   const handleClosePreviewModal = () => setIsPreviewModalOpen(false);
 
+  const handlePreviewTypeChange = (type: 'md' | 'txt') => setPreviewType(type);
+
   function onEditSuccessfully() {
     startTransition(() => {
       router.refresh();
@@ -156,7 +163,11 @@ export default function EntityComponent({
     reviews?.refetch();
   };
 
-  const downloadFile = (content: string, fileName: string, fileType: string) => {
+  const downloadFile = (
+    content: string,
+    fileName: string,
+    fileType: string,
+  ) => {
     const blob = new Blob([content], { type: fileType });
     saveAs(blob, fileName);
   };
@@ -185,7 +196,10 @@ export default function EntityComponent({
               tags?.map(
                 (tag) =>
                   tag.trim() && (
-                    <div key={tag} className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70">
+                    <div
+                      key={tag}
+                      className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70"
+                    >
                       {tag}
                     </div>
                   ),
@@ -294,12 +308,24 @@ export default function EntityComponent({
             <FileText
               size={30}
               className="p-1 text-primary cursor-pointer"
-              onClick={() => downloadFile(prompt ?? '', `${name ?? 'prompt'}.txt`, 'text/plain')}
+              onClick={() =>
+                downloadFile(
+                  prompt ?? '',
+                  `${name ?? 'prompt'}.txt`,
+                  'text/plain',
+                )
+              }
             />
             <FileDown
               size={30}
               className="p-1 text-primary cursor-pointer"
-              onClick={() => downloadFile(prompt ?? '', `${name ?? 'prompt'}.md`, 'text/markdown')}
+              onClick={() =>
+                downloadFile(
+                  prompt ?? '',
+                  `${name ?? 'prompt'}.md`,
+                  'text/markdown',
+                )
+              }
             />
             <Button
               onClick={handleShowPreviewModal}
@@ -322,8 +348,26 @@ export default function EntityComponent({
         onClose={handleClosePreviewModal}
         title="Prompt Preview"
       >
+        <div className="flex justify-between p-4">
+          <Button
+            onClick={() => handlePreviewTypeChange('md')}
+            className={previewType === 'md' ? 'font-bold' : ''}
+          >
+            Markdown
+          </Button>
+          <Button
+            onClick={() => handlePreviewTypeChange('txt')}
+            className={previewType === 'txt' ? 'font-bold' : ''}
+          >
+            Text
+          </Button>
+        </div>
         <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
-          <Markdown className="prose" children={prompt ?? ''} />
+          {previewType === 'md' ? (
+            <Markdown className="prose" children={prompt ?? ''} />
+          ) : (
+            <pre className="whitespace-pre-wrap">{prompt}</pre>
+          )}
         </div>
       </Modal>
     </div>
