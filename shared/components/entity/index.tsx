@@ -1,5 +1,5 @@
 'use client';
-
+// Todo: Add the ability to hover over buttons and get copy from text, markdown, and more!
 import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -254,7 +254,7 @@ export default function EntityComponent({
               className="underline w-fit p-0 hover:bg-transparent"
               onClick={handleShowReviewListModal}
             >
-              See reviews
+              Click to See Reviews
             </Button>
           </div>
         </div>
@@ -293,7 +293,7 @@ export default function EntityComponent({
             <SyntaxHighlighter
               PreTag={CustomPre}
               style={dracula}
-              language={language || 'text'}
+              language={language || 'markdown'}
               wrapLongLines
             >
               {prompt}
