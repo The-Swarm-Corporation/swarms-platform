@@ -290,14 +290,15 @@ export default function EntityComponent({
       {prompt && (
         <div className="relative my-10">
           <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar">
-            <SyntaxHighlighter
+            {/* <SyntaxHighlighter
               PreTag={CustomPre}
               style={dracula}
               language={language || 'markdown'}
               wrapLongLines
             >
               {prompt}
-            </SyntaxHighlighter>
+            </SyntaxHighlighter> */}
+            <Markdown className="prose" children={prompt} />
           </div>
           <div className="absolute top-2 right-2 flex gap-2">
             <Copy
