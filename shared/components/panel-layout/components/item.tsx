@@ -11,16 +11,16 @@ interface NavItemProps extends PropsWithChildren {
   className?: string;
   isIcon?: boolean;
   isShowSidebarItems?: boolean;
-  showTitle?:boolean;
+  showTitle?: boolean;
   onSubmit?: (e: React.FormEvent<HTMLFormElement>) => Promise<boolean | void>;
 }
 
 const NavItem = React.forwardRef(function <
   T extends
-  | keyof JSX.IntrinsicElements
-  | React.ComponentType<
-    HTMLAnchorElement | HTMLSpanElement | HTMLFormElement
-  >,
+    | keyof JSX.IntrinsicElements
+    | React.ComponentType<
+        HTMLAnchorElement | HTMLSpanElement | HTMLFormElement
+      >,
 >(
   {
     title,
@@ -62,7 +62,7 @@ const NavItem = React.forwardRef(function <
             {icon}
           </span>
         )}
-        {showTitle&&<span className='whitespace-nowrap'>{title}</span>}
+        {showTitle && <span className="whitespace-nowrap">{title}</span>}
       </Link>
     );
   }

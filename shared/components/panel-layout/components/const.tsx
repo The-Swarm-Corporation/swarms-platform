@@ -68,7 +68,7 @@ export const NAV_LINKS: NavMenuProps = {
     {
       icon: <CircleGauge size={20} />,
       title: 'Billing & Usage',
-      link: PLATFORM.USAGE
+      link: PLATFORM.USAGE,
     },
     {
       icon: <LogOut size={20} />,
@@ -100,11 +100,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <LockKeyhole size={24} />,
       title: 'API Keys',
       link: PLATFORM.API_KEYS,
-  },
+    },
     {
       icon: <CircleGauge size={24} />,
       title: 'Usage',
-      link: PLATFORM.USAGE
+      link: PLATFORM.USAGE,
     },
     {
       icon: <Settings size={24} />,

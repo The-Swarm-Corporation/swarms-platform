@@ -17,5 +17,8 @@ export const getColorForModel = (
   const index = Object.keys(usageData?.dailyCosts[0]?.model || {}).indexOf(
     modelName,
   );
-  return modelColors[index % modelColors.length] || modelColors[modelColors.length - 1];
+  return (
+    modelColors[index % modelColors.length] ||
+    modelColors[modelColors.length - 1]
+  );
 };

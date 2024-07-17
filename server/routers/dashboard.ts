@@ -34,7 +34,10 @@ const dashboardRouter = router({
       .eq('swarms_cloud_organizations.owner_user_id', user.id);
 
     if (orgRequestCount.error) {
-      console.error('Error fetching org request count:', orgRequestCount.error.details);
+      console.error(
+        'Error fetching org request count:',
+        orgRequestCount.error.details,
+      );
       return 0;
     }
 

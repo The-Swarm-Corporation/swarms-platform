@@ -54,11 +54,9 @@ const editPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
     const { id, name, prompt, description, useCases, tags } = input;
 
     if (!id) {
-      return res
-        .status(404)
-        .json({
-          error: 'Prompt ID not found',
-        });
+      return res.status(404).json({
+        error: 'Prompt ID not found',
+      });
     }
 
     //check that prompt is for the authenticated user
@@ -72,11 +70,9 @@ const editPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (existingPromptError) throw existingPromptError;
     if (!existingPrompt) {
-      return res
-        .status(404)
-        .json({
-          error: 'Prompt not found or you do not have permission to edit',
-        });
+      return res.status(404).json({
+        error: 'Prompt not found or you do not have permission to edit',
+      });
     }
 
     //update the prompt

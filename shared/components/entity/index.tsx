@@ -4,7 +4,7 @@ import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Pencil, Share, Star } from 'lucide-react';
+import { Copy, Pencil, Share, Star, FileText, FileDown } from 'lucide-react'; // Use available icons
 import { useToast } from '../ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '../avatar';
@@ -19,6 +19,9 @@ import AddRatingModal from '../rating/add-rating';
 import ListReview, { ReviewProps } from '../rating/list-rating';
 import ReactStars from 'react-rating-star-with-type';
 import { getReviewRating } from '../rating/helper';
+import { saveAs } from 'file-saver';
+import Markdown from 'react-markdown';
+import Modal from '@/shared/components/modal';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -42,10 +45,10 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
     <div className="flex flex-col gap-4">
       <h2 className="text-4xl">Use Cases</h2>
       <div className="flex gap-2 flex-col md:flex-row">
-        {usecases?.map((usecase) => {
+        {usecases?.map((usecase, index) => {
           const classname = usecases?.length === 1 && 'min-h-fit md:min-h-fit';
           return (
-            <Card3D containerClassName="flex-1 " className="inter-var w-full">
+            <Card3D key={index} containerClassName="flex-1 " className="inter-var w-full">
               <CardBody
                 className={cn(
                   'bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto min-h-[255px] md:min-h-[320px] h-fit rounded-xl p-6 border flex flex-col ',
@@ -111,6 +114,7 @@ export default function EntityComponent({
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [isReviewModal, setIsReviewModal] = useState(false);
   const [isReviewListModal, setIsReviewListModal] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -134,6 +138,9 @@ export default function EntityComponent({
   const handleShowReviewListModal = () => setIsReviewListModal(true);
   const handleCloseReviewListModal = () => setIsReviewListModal(false);
 
+  const handleShowPreviewModal = () => setIsPreviewModalOpen(true);
+  const handleClosePreviewModal = () => setIsPreviewModalOpen(false);
+
   function onEditSuccessfully() {
     startTransition(() => {
       router.refresh();
@@ -147,6 +154,11 @@ export default function EntityComponent({
   const handleRefetch = () => {
     reviewQuery?.refetch();
     reviews?.refetch();
+  };
+
+  const downloadFile = (content: string, fileName: string, fileType: string) => {
+    const blob = new Blob([content], { type: fileType });
+    saveAs(blob, fileName);
   };
 
   return (
@@ -173,7 +185,7 @@ export default function EntityComponent({
               tags?.map(
                 (tag) =>
                   tag.trim() && (
-                    <div className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70">
+                    <div key={tag} className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70">
                       {tag}
                     </div>
                   ),
@@ -273,11 +285,29 @@ export default function EntityComponent({
               {prompt}
             </SyntaxHighlighter>
           </div>
-          <Copy
-            size={30}
-            className="absolute top-2 right-2 p-1 text-primary cursor-pointer"
-            onClick={() => copyToClipboard(prompt ?? '')}
-          />
+          <div className="absolute top-2 right-2 flex gap-2">
+            <Copy
+              size={30}
+              className="p-1 text-primary cursor-pointer"
+              onClick={() => copyToClipboard(prompt ?? '')}
+            />
+            <FileText
+              size={30}
+              className="p-1 text-primary cursor-pointer"
+              onClick={() => downloadFile(prompt ?? '', `${name ?? 'prompt'}.txt`, 'text/plain')}
+            />
+            <FileDown
+              size={30}
+              className="p-1 text-primary cursor-pointer"
+              onClick={() => downloadFile(prompt ?? '', `${name ?? 'prompt'}.md`, 'text/markdown')}
+            />
+            <Button
+              onClick={handleShowPreviewModal}
+              className="p-1 text-primary cursor-pointer"
+            >
+              Preview
+            </Button>
+          </div>
         </div>
       )}
       {children}
@@ -286,6 +316,16 @@ export default function EntityComponent({
         onClose={handleCloseModal}
         link={pathName ?? ''}
       />
+      <Modal
+        className="max-w-2xl"
+        isOpen={isPreviewModalOpen}
+        onClose={handleClosePreviewModal}
+        title="Prompt Preview"
+      >
+        <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
+          <Markdown className="prose" children={prompt ?? ''} />
+        </div>
+      </Modal>
     </div>
   );
 }

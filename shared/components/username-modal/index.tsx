@@ -80,7 +80,9 @@ export default function UsernameModal() {
             maxLength={16}
             className="mt-1"
           />
-          <small className={cn('text-primary invisible mt-0.5', error && 'visible')}>
+          <small
+            className={cn('text-primary invisible mt-0.5', error && 'visible')}
+          >
             {error}
           </small>
         </div>

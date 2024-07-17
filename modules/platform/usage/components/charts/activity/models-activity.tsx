@@ -31,7 +31,9 @@ export default function ModelActivity({ usageData }: ModelUsageProps) {
   if (!usageData || !usageData?.dailyCosts?.length) {
     return (
       <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground mt-5 mb-8 gap-2 w-full">
-        <h3 className="opacity-60">No activities available for the current month</h3>
+        <h3 className="opacity-60">
+          No activities available for the current month
+        </h3>
       </div>
     );
   }
@@ -52,7 +54,7 @@ export default function ModelActivity({ usageData }: ModelUsageProps) {
 
     usageData.dailyCosts.forEach((dailyCost) => {
       if (dailyCost.date === dateString) {
-        Object.entries(dailyCost.model ?? "").forEach(
+        Object.entries(dailyCost.model ?? '').forEach(
           ([model, { tokens, requests }]) => {
             if (!modelData[model]) {
               modelData[model] = {
@@ -81,7 +83,7 @@ export default function ModelActivity({ usageData }: ModelUsageProps) {
           },
         );
       } else {
-        Object.keys(dailyCost.model ?? "").forEach((model) => {
+        Object.keys(dailyCost.model ?? '').forEach((model) => {
           if (!modelData[model]) {
             modelData[model] = {
               requests: [],
@@ -111,11 +113,16 @@ export default function ModelActivity({ usageData }: ModelUsageProps) {
             {/* API requests */}
             <div className="chart-section">
               <h5 className="mb-2">
-                API requests {modelData[modelName].totalRequests.toLocaleString()}
+                API requests{' '}
+                {modelData[modelName].totalRequests.toLocaleString()}
               </h5>
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={modelData[modelName].requests}>
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} minTickGap={50} />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 12 }}
+                    minTickGap={50}
+                  />
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip
                     cursor={{ opacity: 0.1, fill: 'white' }}
@@ -153,7 +160,11 @@ export default function ModelActivity({ usageData }: ModelUsageProps) {
               </h5>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={modelData[modelName].tokens} barSize={15}>
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} minTickGap={50} />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 12 }}
+                    minTickGap={50}
+                  />
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip
                     cursor={{ opacity: 0.1, fill: 'white' }}

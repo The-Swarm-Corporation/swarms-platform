@@ -62,7 +62,7 @@ export default function AgentBuilder() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    return toast.toast({description: "Feature to be added soon!"})
+    return toast.toast({ description: 'Feature to be added soon!' });
     const newApiRequest: ApiRequest = {
       request: states.task,
       response: 'This is a sample response from the AI agent.',
@@ -142,7 +142,9 @@ export default function AgentBuilder() {
                   );
                 }
               })}
-            <Button disabled type="submit">Submit</Button>
+            <Button disabled type="submit">
+              Submit
+            </Button>
           </form>
         </div>
         <div className="flex-1 grid grid-cols-1 gap-4 p-6">

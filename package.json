@@ -61,7 +61,7 @@
     "framer-motion": "^11.0.14",
     "highlight.js": "^11.9.0",
     "install": "^0.13.0",
-    "lucide-react": "^0.352.0",
+    "lucide-react": "^0.408.0",
     "next": "latest",
     "next-themes": "^0.2.1",
     "node-cache": "latest",

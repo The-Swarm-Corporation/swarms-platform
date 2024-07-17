@@ -51,7 +51,6 @@ export const updateFreeCreditsOnSignin = async (id: string): Promise<void> => {
 
     if (creditError) {
       if (creditError.code === 'PGRST116') {
-
         // Insert a new entry with initial credit values
         await supabaseAdmin.from('swarms_cloud_users_credits').insert([
           {
@@ -71,7 +70,6 @@ export const updateFreeCreditsOnSignin = async (id: string): Promise<void> => {
       .from('users')
       .update({ had_free_credits: true })
       .eq('id', id);
-
   } catch (error) {
     console.error('Error updating free credits:', error);
   }

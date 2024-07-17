@@ -11,7 +11,7 @@ export default function MonthlyChart({ data }: { data: UserUsage | null }) {
   return (
     <div>
       <div className="flex flex-col sm:items-center sm:flex-row gap-2">
-        <h2 className='max-md:text-sm'>Monthly Usage:</h2>
+        <h2 className="max-md:text-sm">Monthly Usage:</h2>
         <div className="flex items-center justify-center p-0 max-sm:px-2 bg-secondary rounded-md w-fit">
           <p className="px-3 py-0 h-8 w-28 lg:w-32 flex items-center text-sm font-medium capitalize focus:outline-none focus-visible:outline-black bg-transparent text-primary">
             ${totalCost}{' '}

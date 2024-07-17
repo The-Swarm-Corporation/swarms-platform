@@ -48,30 +48,37 @@ export default function AgentRequirements({
       <h2 className="text-4xl mb-2">Requirements</h2>
       <Table>
         <TableHeader>
-          {table?.getHeaderGroups()?.map((headerGroup) => (
-            <TableRow key={headerGroup?.id}>
-              {headerGroup?.headers?.map((header) => (
-                <TableHead key={header.id}>
-                  {header?.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header?.column?.columnDef?.header,
-                        header?.getContext(),
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
+          {table
+            ?.getHeaderGroups()
+            ?.map((headerGroup) => (
+              <TableRow key={headerGroup?.id}>
+                {headerGroup?.headers?.map((header) => (
+                  <TableHead key={header.id}>
+                    {header?.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header?.column?.columnDef?.header,
+                          header?.getContext(),
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
         </TableHeader>
         <TableBody>
           {table?.getRowModel()?.rows?.length ? (
             table.getRowModel().rows?.map((row, i) => (
               <TableRow key={i} data-state={row?.getIsSelected() && 'selected'}>
-                {row?.getVisibleCells()?.map((cell, i) => (
-                  <TableCell key={i}>
-                    {flexRender(cell?.column?.columnDef?.cell, cell?.getContext())}
-                  </TableCell>
-                ))}
+                {row
+                  ?.getVisibleCells()
+                  ?.map((cell, i) => (
+                    <TableCell key={i}>
+                      {flexRender(
+                        cell?.column?.columnDef?.cell,
+                        cell?.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
               </TableRow>
             ))
           ) : (

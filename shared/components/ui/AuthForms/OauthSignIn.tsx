@@ -28,39 +28,42 @@ export default function OauthSignIn() {
     /* Add desired OAuth providers here */
   ];
 
-  const [isSubmitting, setIsSubmitting] = useState<{ [key: string]: boolean }>({});
+  const [isSubmitting, setIsSubmitting] = useState<{ [key: string]: boolean }>(
+    {},
+  );
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, providerName: string) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+    providerName: string,
+  ) => {
     e.preventDefault();
-    setIsSubmitting(prevState => ({ ...prevState, [providerName]: true })); // Disable the button while the request is being handled
+    setIsSubmitting((prevState) => ({ ...prevState, [providerName]: true })); // Disable the button while the request is being handled
 
     await signInWithOAuth(e);
 
-    setIsSubmitting(prevState => ({ ...prevState, [providerName]: false }));
+    setIsSubmitting((prevState) => ({ ...prevState, [providerName]: false }));
   };
 
   return (
     <div className="mt-8">
-      {
-        oAuthProviders.map((provider) => (
-          <form
-            key={provider.name}
-            className="pb-2"
-            onSubmit={(e) => handleSubmit(e, provider.name)}
+      {oAuthProviders.map((provider) => (
+        <form
+          key={provider.name}
+          className="pb-2"
+          onSubmit={(e) => handleSubmit(e, provider.name)}
+        >
+          <input type="hidden" name="provider" value={provider.name} />
+          <Button
+            variant="outline"
+            type="submit"
+            className="w-full p-4"
+            loading={isSubmitting[provider.name] || false}
           >
-            <input type="hidden" name="provider" value={provider.name} />
-            <Button
-              variant="outline"
-              type="submit"
-              className="w-full p-4"
-              loading={isSubmitting[provider.name] || false}
-            >
-              <span className="mr-2">{provider.icon}</span>
-              <span>{provider.displayName}</span>
-            </Button>
-          </form>
-        ))
-      }
+            <span className="mr-2">{provider.icon}</span>
+            <span>{provider.displayName}</span>
+          </Button>
+        </form>
+      ))}
     </div>
   );
 }

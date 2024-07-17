@@ -118,7 +118,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                             type="submit"
                             className="flex items-center w-full"
                           >
-                            {isLoading ? "Signin out..." : "Sign out"}
+                            {isLoading ? 'Signin out...' : 'Sign out'}
                           </button>
                         </NavItem>
                       ) : (
