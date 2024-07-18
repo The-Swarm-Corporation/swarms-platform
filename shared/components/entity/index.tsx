@@ -4,7 +4,7 @@ import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Pencil, Share, Star, FileText, FileDown } from 'lucide-react'; // Use available icons
+import { Copy, Pencil, Share, Star, FileDown } from 'lucide-react'; // Use available icons
 import { useToast } from '../ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '../avatar';
@@ -198,11 +198,17 @@ export default function EntityComponent({
       filename = `${name ?? 'prompt'}.txt`;
       filetype = 'text/plain';
     } else {
-      contentToDownload = prompt;
-      filename = `${name ?? 'prompt'}.txt`;
-      filetype = 'text/plain';
+      contentToDownload =  stripMarkdown(prompt ?? '');
+      filename = `${name ?? 'prompt'}.csv`;
+      filetype = 'text/csv';
     }
+    const toastText = filetype.includes('markdown')
+      ? 'Downloaded as markdown'
+      : filetype.includes('csv')
+        ? 'Downloaded as csv'
+        : 'Download as plain text';
     downloadFile(contentToDownload ?? '', filename, filetype);
+    toast.toast({ description: toastText });
   };
   return (
     <div className="max-w-6xl md:px-6 mx-auto">
