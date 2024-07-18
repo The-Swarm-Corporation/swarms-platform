@@ -28,7 +28,7 @@ import {
   TabsTrigger,
 } from '@/shared/components/ui/tabs';
 import remarkGfm from 'remark-gfm';
-import { sanitizePrompt, stripMarkdown } from './helper';
+import { stripMarkdown } from './helper';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -125,6 +125,7 @@ export default function EntityComponent({
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [isReviewModal, setIsReviewModal] = useState(false);
   const [isReviewListModal, setIsReviewListModal] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('preview');
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -172,6 +173,37 @@ export default function EntityComponent({
     saveAs(blob, fileName);
   };
 
+  const handleCopy = () => {
+    let contentToCopy;
+    if (selectedTab === 'md') {
+      contentToCopy = prompt;
+    } else if (selectedTab === 'txt') {
+      contentToCopy = stripMarkdown(prompt ?? '');
+    } else {
+      contentToCopy = prompt;
+    }
+    copyToClipboard(contentToCopy ?? '');
+  };
+
+  const handleDownload = () => {
+    let contentToDownload;
+    let filename;
+    let filetype;
+    if (selectedTab === 'md') {
+      contentToDownload = prompt;
+      filename = `${name ?? 'prompt'}.md`;
+      filetype = 'text/markdown';
+    } else if (selectedTab === 'txt') {
+      contentToDownload = stripMarkdown(prompt ?? '');
+      filename = `${name ?? 'prompt'}.txt`;
+      filetype = 'text/plain';
+    } else {
+      contentToDownload = prompt;
+      filename = `${name ?? 'prompt'}.txt`;
+      filetype = 'text/plain';
+    }
+    downloadFile(contentToDownload ?? '', filename, filetype);
+  };
   return (
     <div className="max-w-6xl md:px-6 mx-auto">
       <div className="flex flex-col py-8 md:py-16">
@@ -294,6 +326,7 @@ export default function EntityComponent({
               <Tabs
                 className="flex  flex-col gap-4 w-auto"
                 defaultValue="preview"
+                onValueChange={(value) => setSelectedTab(value)}
               >
                 <TabsList className="flex justify-start w-auto">
                   <TabsTrigger value={'preview'}>Preview</TabsTrigger>
@@ -313,7 +346,7 @@ export default function EntityComponent({
                   </TabsContent>
                   <TabsContent className="m-0" value={'md'}>
                     <Markdown className="prose" remarkPlugins={[remarkGfm]}>
-                      {sanitizePrompt(prompt)}
+                      {prompt}
                     </Markdown>
                   </TabsContent>
                   <TabsContent className="m-0" value={'txt'}>
@@ -329,29 +362,12 @@ export default function EntityComponent({
             <Copy
               size={30}
               className="p-1 text-primary cursor-pointer"
-              onClick={() => copyToClipboard(prompt ?? '')}
-            />
-            <FileText
-              size={30}
-              className="p-1 text-primary cursor-pointer"
-              onClick={() =>
-                downloadFile(
-                  prompt ?? '',
-                  `${name ?? 'prompt'}.txt`,
-                  'text/plain',
-                )
-              }
+              onClick={handleCopy}
             />
             <FileDown
               size={30}
               className="p-1 text-primary cursor-pointer"
-              onClick={() =>
-                downloadFile(
-                  prompt ?? '',
-                  `${name ?? 'prompt'}.md`,
-                  'text/markdown',
-                )
-              }
+              onClick={handleDownload}
             />
           </div>
         </div>
