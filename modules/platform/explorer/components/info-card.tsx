@@ -127,7 +127,7 @@ const InfoCard = ({
         </div>
       </div>
 
-      <Link href={link && link} target="_blank">
+      <Link href={link && link}>
         <div>
           <div className="absolute right-0 bottom-0">
             <svg

@@ -21,7 +21,14 @@ import ReactStars from 'react-rating-star-with-type';
 import { getReviewRating } from '../rating/helper';
 import { saveAs } from 'file-saver';
 import Markdown from 'react-markdown';
-import Modal from '@/shared/components/modal';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/shared/components/ui/tabs';
+import remarkGfm from 'remark-gfm';
+import { sanitizePrompt, stripMarkdown } from './helper';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -118,8 +125,6 @@ export default function EntityComponent({
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [isReviewModal, setIsReviewModal] = useState(false);
   const [isReviewListModal, setIsReviewListModal] = useState(false);
-  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
-  const [previewType, setPreviewType] = useState<'md' | 'txt'>('md');
 
   async function copyToClipboard(text: string) {
     if (!text) return;
@@ -142,11 +147,6 @@ export default function EntityComponent({
 
   const handleShowReviewListModal = () => setIsReviewListModal(true);
   const handleCloseReviewListModal = () => setIsReviewListModal(false);
-
-  const handleShowPreviewModal = () => setIsPreviewModalOpen(true);
-  const handleClosePreviewModal = () => setIsPreviewModalOpen(false);
-
-  const handlePreviewTypeChange = (type: 'md' | 'txt') => setPreviewType(type);
 
   function onEditSuccessfully() {
     startTransition(() => {
@@ -290,15 +290,40 @@ export default function EntityComponent({
       {prompt && (
         <div className="relative my-10">
           <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar">
-            <SyntaxHighlighter
-              PreTag={CustomPre}
-              style={dracula}
-              language={language || 'markdown'}
-              wrapLongLines
-            >
-              {prompt}
-            </SyntaxHighlighter>
-            {/* <Markdown className="prose" children={prompt} /> */}
+            <div className="mt-7">
+              <Tabs
+                className="flex  flex-col gap-4 w-auto"
+                defaultValue="preview"
+              >
+                <TabsList className="flex justify-start w-auto">
+                  <TabsTrigger value={'preview'}>Preview</TabsTrigger>
+                  <TabsTrigger value={'md'}>Markdown</TabsTrigger>
+                  <TabsTrigger value={'txt'}>Text</TabsTrigger>
+                </TabsList>
+                <div className="p-4 rounded-xl overflow-hidden !bg-gray-500/10">
+                  <TabsContent className="m-0" value={'preview'}>
+                    <SyntaxHighlighter
+                      PreTag={CustomPre}
+                      style={dracula}
+                      language={language || 'markdown'}
+                      wrapLongLines
+                    >
+                      {prompt}
+                    </SyntaxHighlighter>
+                  </TabsContent>
+                  <TabsContent className="m-0" value={'md'}>
+                    <Markdown className="prose" remarkPlugins={[remarkGfm]}>
+                      {sanitizePrompt(prompt)}
+                    </Markdown>
+                  </TabsContent>
+                  <TabsContent className="m-0" value={'txt'}>
+                    <pre className="whitespace-pre-wrap">
+                      {stripMarkdown(prompt)}
+                    </pre>
+                  </TabsContent>
+                </div>
+              </Tabs>
+            </div>
           </div>
           <div className="absolute top-2 right-2 flex gap-2">
             <Copy
@@ -328,12 +353,6 @@ export default function EntityComponent({
                 )
               }
             />
-            <Button
-              onClick={handleShowPreviewModal}
-              className="p-1 text-primary cursor-pointer"
-            >
-              Preview
-            </Button>
           </div>
         </div>
       )}
@@ -343,34 +362,6 @@ export default function EntityComponent({
         onClose={handleCloseModal}
         link={pathName ?? ''}
       />
-      <Modal
-        className="max-w-2xl"
-        isOpen={isPreviewModalOpen}
-        onClose={handleClosePreviewModal}
-        title="Prompt Preview"
-      >
-        <div className="flex justify-between p-4">
-          <Button
-            onClick={() => handlePreviewTypeChange('md')}
-            className={previewType === 'md' ? 'font-bold' : ''}
-          >
-            Markdown
-          </Button>
-          <Button
-            onClick={() => handlePreviewTypeChange('txt')}
-            className={previewType === 'txt' ? 'font-bold' : ''}
-          >
-            Text
-          </Button>
-        </div>
-        <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
-          {previewType === 'md' ? (
-            <Markdown className="prose" children={prompt ?? ''} />
-          ) : (
-            <pre className="whitespace-pre-wrap">{prompt}</pre>
-          )}
-        </div>
-      </Modal>
     </div>
   );
 }
