@@ -103,13 +103,13 @@ const explorerOptionsRouter = router({
     }),
 
   getComments: publicProcedure
-  .input(
-    z.object({
-      limit: z.number().default(20),
-      offset: z.number().default(1),
-      modelId: z.string(),
-    }),
-  )
+    .input(
+      z.object({
+        limit: z.number().default(20),
+        offset: z.number().default(1),
+        modelId: z.string(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       const { limit, offset, modelId } = input;
 
@@ -143,7 +143,10 @@ const explorerOptionsRouter = router({
           });
         }
 
-        return comments;
+        return {
+          comments,
+          count: comments.length ? comments.length : 0,
+        };
       } catch (error) {
         console.error(error);
         throw new TRPCError({
