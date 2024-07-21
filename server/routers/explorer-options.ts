@@ -30,7 +30,7 @@ const explorerOptionsRouter = router({
         const lastSubmitTime = new Date(lastSubmit.created_at);
         const currentTime = new Date();
         const diff = currentTime.getTime() - lastSubmitTime.getTime();
-        const diffHours = diff / (1000 * 60); // 1 minute
+        const diffHours = diff / (1000 * 10); // 10 seconds
         if (diffHours < 1) {
           throw 'You can only submit one comment per minute';
         }
@@ -49,6 +49,7 @@ const explorerOptionsRouter = router({
           ]);
 
         if (error) {
+          console.log(error.message);
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Error while adding comment',
@@ -102,9 +103,15 @@ const explorerOptionsRouter = router({
     }),
 
   getComments: publicProcedure
-    .input(z.string())
+  .input(
+    z.object({
+      limit: z.number().default(20),
+      offset: z.number().default(1),
+      modelId: z.string(),
+    }),
+  )
     .query(async ({ input, ctx }) => {
-      const modelId = input;
+      const { limit, offset, modelId } = input;
 
       try {
         const { data: comments, error } = await ctx.supabase
@@ -126,7 +133,8 @@ const explorerOptionsRouter = router({
             `,
           )
           .eq('model_id', modelId)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .range(offset, offset + limit - 1);
 
         if (error) {
           throw new TRPCError({

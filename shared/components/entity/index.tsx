@@ -5,10 +5,10 @@ import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Pencil, Share, Star, FileDown } from 'lucide-react'; // Use available icons
-import { useToast } from '../ui/Toasts/use-toast';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
-import Avatar from '../avatar';
-import { Button } from '../ui/Button';
+import Avatar from '@/shared/components/avatar';
+import { Button } from '@/shared/components/ui/Button';
 import AgentRequirements, { RequirementProps } from './agent-requirements';
 import ShareModal from '@/modules/platform/explorer/components/share-modal';
 import EditExplorerModal from '@/modules/platform/explorer/components/edit-modal';
@@ -29,6 +29,7 @@ import {
 } from '@/shared/components/ui/tabs';
 import remarkGfm from 'remark-gfm';
 import { stripMarkdown } from './helper';
+import CommentList from '@/shared/components/comments';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -198,7 +199,7 @@ export default function EntityComponent({
       filename = `${name ?? 'prompt'}.txt`;
       filetype = 'text/plain';
     } else {
-      contentToDownload =  stripMarkdown(prompt ?? '');
+      contentToDownload = stripMarkdown(prompt ?? '');
       filename = `${name ?? 'prompt'}.csv`;
       filetype = 'text/csv';
     }
@@ -384,6 +385,8 @@ export default function EntityComponent({
         onClose={handleCloseModal}
         link={pathName ?? ''}
       />
+
+      {id && <CommentList modelId={id} title={title} />}
     </div>
   );
 }
