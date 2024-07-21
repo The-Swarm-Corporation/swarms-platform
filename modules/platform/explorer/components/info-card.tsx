@@ -98,13 +98,13 @@ const InfoCard = ({
       </div>
 
       {id && (
-          <div className="bottom-2 left-4 absolute items-center justify-center gap-1 hidden xl:flex">
-            <div className="mb-0.5">
-              <ReactStars value={modelRating} isEdit={false} count={1} />
-            </div>
-            <span className="text-sm font-semibold">{modelRating || 0}/5</span>
+        <div className="bottom-2 left-4 absolute items-center justify-center gap-1 hidden xl:flex">
+          <div className="mb-0.5">
+            <ReactStars value={modelRating} isEdit={false} count={1} />
           </div>
-        )}
+          <span className="text-sm font-semibold">{modelRating || 0}/5</span>
+        </div>
+      )}
 
       <div
         className="cursor-pointer hover:opacity-70"
@@ -127,7 +127,7 @@ const InfoCard = ({
         </div>
       </div>
 
-      <Link href={link && link} target="_blank">
+      <Link href={link && link}>
         <div>
           <div className="absolute right-0 bottom-0">
             <svg

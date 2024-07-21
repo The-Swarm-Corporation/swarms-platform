@@ -9,7 +9,7 @@ export default async function Navbar({ user }: { user: User | null }) {
         Skip to content
       </a>
       <div className="flex relative items-center w-full">
-        <div className='w-[72rem] m-auto'>
+        <div className="w-[72rem] m-auto">
           <Navlinks user={user} />
         </div>
       </div>

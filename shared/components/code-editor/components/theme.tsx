@@ -1,8 +1,8 @@
-import { useRef } from "react";
-import Dropdown from "./dropdown";
-import { EditorType } from "../type";
-import { themes } from "../config";
-import { useEditorContext } from "@/shared/components/ui/editor.provider";
+import { useRef } from 'react';
+import Dropdown from './dropdown';
+import { EditorType } from '../type';
+import { themes } from '../config';
+import { useEditorContext } from '@/shared/components/ui/editor.provider';
 
 export default function ThemeSelector() {
   const { theme } = useEditorContext();

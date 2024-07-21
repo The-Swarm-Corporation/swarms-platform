@@ -61,12 +61,12 @@
     @apply invisible;
   }
 
-  .rating svg {
-    @apply stroke-none h-10 w-10 cursor-pointer;
+  .rating > span[role='button'] {
+    @apply flex;
   }
 
-  .rating input {
-    @apply !outline-none !shadow-none;
+  .rating svg {
+    @apply h-9 w-9;
   }
 
   .grid-columns-double {
@@ -75,6 +75,10 @@
 
   .sticky-inner-list .sticky-inner-wrapper {
     @apply bg-white dark:bg-black;
+  }
+
+  span[data-testid='react-awesome-stars-rating'] {
+    @apply flex;
   }
 }
 

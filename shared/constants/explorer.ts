@@ -16,11 +16,11 @@ export const languageOptions = [
   'java',
   'c++',
   'c#',
-  "c",
+  'c',
   'php',
   'sql',
   'swift',
   'ruby',
-  "shell",
-  "typescript"
+  'shell',
+  'typescript',
 ];

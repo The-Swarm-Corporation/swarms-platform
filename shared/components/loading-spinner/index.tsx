@@ -8,7 +8,7 @@ const LoadingSpinner = ({
   size?: number;
   className?: string;
 }) => {
-  return <LoaderCircle className={cn("animate-spin", className)} size={size} />;
+  return <LoaderCircle className={cn('animate-spin', className)} size={size} />;
 };
 
 export default LoadingSpinner;

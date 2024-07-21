@@ -1,24 +1,20 @@
-"use client";
+'use client';
 
 import { createContext, useContext, useState } from 'react';
 import { CodeEditorProps, EditorType, LanguageType } from '../code-editor/type';
-import {
-  languages,
-  paddings,
-  themes,
-} from '../code-editor/config';
+import { languages, paddings, themes } from '../code-editor/config';
 
 export const EditorContext = createContext<CodeEditorProps>({
   theme: '',
   language: { name: '', icon: '' },
   padding: '',
-  model: "",
+  model: '',
   codeValue: '',
 });
 
 export default function EditorProvider({
   children,
-  model
+  model,
 }: {
   children: React.ReactNode;
   model: string;
@@ -26,7 +22,7 @@ export default function EditorProvider({
   const [language, setLanguage] = useState<LanguageType>(languages[0]);
   const [theme, setTheme] = useState<string>(themes[0]);
   const [padding, setPadding] = useState(paddings[2]);
-  const [codeValue, setCodeValue] = useState<string>("");
+  const [codeValue, setCodeValue] = useState<string>('');
 
   function handleCodeValueChange(newCode: string) {
     setCodeValue(newCode);

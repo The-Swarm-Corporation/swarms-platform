@@ -69,9 +69,10 @@ const MonthlySpendPieChart = ({
   ];
 
   return (
-    <div className='max-xl:mb-6'>
+    <div className="max-xl:mb-6">
       <div className="flex items-center gap-3 text-sm mb-4">
-        <span className='text-gray-400'>Monthly Usage</span> <span>{monthlyRange}</span>
+        <span className="text-gray-400">Monthly Usage</span>{' '}
+        <span>{monthlyRange}</span>
       </div>
       <div className="flex items-center w-full">
         <ResponsiveContainer width="50%" height={150}>

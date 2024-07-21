@@ -166,8 +166,8 @@ const Explorer = () => {
         <div className="flex flex-col">
           <h1 className="text-3xl font-extrabold sm:text-4xl">Explorer</h1>
           <span className="mt-4 text-muted-foreground">
-            Find which one that suits your task such as accounting, finance,
-            marketing, etc.
+            Share and Discover Models, Prompts, Agents, and Swarms Within Your
+            Organization or With The World.
           </span>
         </div>
         <Sticky

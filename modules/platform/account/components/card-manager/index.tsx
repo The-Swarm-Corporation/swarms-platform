@@ -125,7 +125,7 @@ const CardManagerInside = () => {
                   fontSize: '16px',
                   color: theme.theme === 'dark' ? '#ffffff' : '#000000',
                   '::placeholder': {
-                    color: theme.theme === "dark" ? '#aab7c4' : '#767676',
+                    color: theme.theme === 'dark' ? '#aab7c4' : '#767676',
                   },
                 },
                 invalid: {

@@ -16,8 +16,8 @@ const Dropdown = forwardRef(function Dropdown(
   return (
     <div ref={ref as ForwardedRef<HTMLDivElement>} onClick={toggle}>
       <div className="dropdown-title capitalize w-[120px] text-secondary dark:text-foreground border border-slate-600 dark:border-[#f9f9f914] hover:text-slate-50 transition-all duration-300 ease-in-out">
-        {label} <ChevronDown className='text-primary' />
-      </div> 
+        {label} <ChevronDown className="text-primary" />
+      </div>
       {isOn && (
         <div className="dropdown-menu top-[94px] w-[120px] flex flex-col">
           {options.map((option, i) => {

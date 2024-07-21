@@ -121,7 +121,7 @@ const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
                   </button>
                 </form>
               ) : (
-                <Link href="/signin" className='cursor-pointer'>
+                <Link href="/signin" className="cursor-pointer">
                   <button className="flex items-center justify-start  w-full">
                     <LogIn size={24} className="mr-2" />
                     {showTitle && <span>Log in</span>}

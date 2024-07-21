@@ -635,14 +635,16 @@ const explorerRouter = router({
         });
       }
     }),
-  getReviews: publicProcedure.input(z.string()).query(async ({ input, ctx }) => {
-    const modelId = input;
+  getReviews: publicProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      const modelId = input;
 
-    try {
-      const { data: reviews, error: reviewsError } = await ctx.supabase
-        .from('swarms_cloud_reviews')
-        .select(
-          `
+      try {
+        const { data: reviews, error: reviewsError } = await ctx.supabase
+          .from('swarms_cloud_reviews')
+          .select(
+            `
             id,
             comment,
             model_id,
@@ -657,27 +659,27 @@ const explorerRouter = router({
             avatar_url
             )
           `,
-        )
-        .eq('model_id', modelId)
-        .order('created_at', { ascending: false });
+          )
+          .eq('model_id', modelId)
+          .order('created_at', { ascending: false });
 
-      if (reviewsError) {
-        console.log({ reviewsError });
+        if (reviewsError) {
+          console.log({ reviewsError });
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while fetching reviews',
+          });
+        }
+
+        return reviews;
+      } catch (error) {
+        console.error(error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while fetching reviews',
+          message: `Failed to fetch reviews`,
         });
       }
-
-      return reviews;
-    } catch (error) {
-      console.error(error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: `Failed to fetch reviews`,
-      });
-    }
-  }),
+    }),
 });
 
 export default explorerRouter;

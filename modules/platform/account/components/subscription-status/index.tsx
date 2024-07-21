@@ -17,7 +17,7 @@ const SubscriptionStatus = () => {
     <div className="flex flex-col gap-4 w-full border rounded-md p-4 text-card-foreground">
       <h1 className="text-base font-bold">Subscription Status</h1>
       <div className="flex flex-row justify-around">
-        {tiers.map(tier => (
+        {tiers.map((tier) => (
           <div
             key={tier}
             className={`p-3 border ${userTier === tier ? 'bg-primary text-white' : 'bg-secondary text-black'}`}
@@ -34,7 +34,9 @@ const SubscriptionStatus = () => {
             {status && (
               <h2>
                 Your subscription status :{' '}
-                <span className={`text-${status === 'active' ? 'success' : 'error'}`}>
+                <span
+                  className={`text-${status === 'active' ? 'success' : 'error'}`}
+                >
                   {status.charAt(0).toUpperCase() + status.slice(1)}
                 </span>
               </h2>
@@ -47,9 +49,11 @@ const SubscriptionStatus = () => {
                   {subscriptionData?.renewAt
                     ? formatDate(subscriptionData?.renewAt)
                     : 'end of the current period'}
-                </span>.
+                </span>
+                .
                 <br />
-                If you would like to reactivate your subscription, please click the button below.
+                If you would like to reactivate your subscription, please click
+                the button below.
                 <br />
               </p>
             )}

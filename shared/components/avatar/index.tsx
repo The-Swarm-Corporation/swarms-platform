@@ -27,12 +27,19 @@ export default function Avatar({
     userId: userId,
   });
   const avatar = (user ? user.user_metadata?.avatar_url : data?.avatar) || '';
-  const username = user ? (user.user_metadata.user_name || profileName) : data?.username;
+  const username = user
+    ? user.user_metadata.user_name || profileName
+    : data?.username;
 
   return (
     <div title={title} className="flex items-center">
       {avatar ? (
-        <div className={cn("relative h-8 w-8 rounded-full", showBorder && "border border-destructive p-1")}>
+        <div
+          className={cn(
+            'relative h-8 w-8 rounded-full',
+            showBorder && 'border border-destructive p-1',
+          )}
+        >
           <Image
             src={avatar}
             alt={username || 'user'}
@@ -48,7 +55,9 @@ export default function Avatar({
         )
       )}
       {showUsername && username && (
-        <p className="ml-1 md:ml-2 text-primary text-xs md:text-sm font-semibold">{username}</p>
+        <p className="ml-1 md:ml-2 text-primary text-xs md:text-sm font-semibold">
+          {username}
+        </p>
       )}
     </div>
   );

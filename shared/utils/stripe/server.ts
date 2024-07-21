@@ -207,7 +207,7 @@ export async function addPaymentMethodIfNotExists(
   const existingPaymentMethod = paymentMethods.data.find(
     (method) => method.card?.fingerprint === paymentMethod.card?.fingerprint,
   );
-  
+
   if (existingPaymentMethod) {
     throw new Error('Payment method already exists');
   }
@@ -222,7 +222,7 @@ export async function addPaymentMethodIfNotExists(
       return_url: getURL(redirectPath),
     });
 
-    if (setupIntent.status === "succeeded") {
+    if (setupIntent.status === 'succeeded') {
       console.log('Card validated successfully');
       const attachedPaymentMethod = await stripe.paymentMethods.attach(
         paymentMethod.id,

@@ -130,7 +130,7 @@ const AddSwarmModal = ({ isOpen, onClose, onAddSuccessfuly }: Props) => {
       });
   };
 
-  if(!user) return null;
+  if (!user) return null;
 
   const pythonRenderer: Renderer = (value) => {
     return (

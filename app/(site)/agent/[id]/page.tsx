@@ -2,13 +2,13 @@ import AgentModule from '@/modules/agent';
 export const dynamic = 'force-dynamic';
 
 const Agent = ({
-    params,
+  params,
 }: {
-    params: {
-        id: string;
-    };
+  params: {
+    id: string;
+  };
 }) => {
-    return <AgentModule id={params.id} />;
+  return <AgentModule id={params.id} />;
 };
 
 export default Agent;

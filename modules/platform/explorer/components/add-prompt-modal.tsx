@@ -129,7 +129,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
       });
   };
 
-  if(!user) return null;
+  if (!user) return null;
 
   return (
     <Modal
