@@ -14,7 +14,7 @@ export default function Comment({ comment, modelType }: CommentProps) {
   return (
     <Message comment={comment} modelType={modelType}>
       {replies.map((reply) => (
-        <ReplyComponent key={reply.id} reply={reply} />
+        <ReplyComponent key={reply.id} reply={reply} modelType={modelType} />
       ))}
     </Message>
   );

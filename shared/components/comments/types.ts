@@ -1,7 +1,5 @@
-export interface Comment {
+export type CommentProps = {
   id: string;
-  model_id: string;
-  model_type: string;
   content: string;
   user_id: string;
   created_at: string;
@@ -12,21 +10,15 @@ export interface Comment {
     email: string | null;
     avatar_url: string | null;
   } | null;
+};
+
+export interface Comment extends CommentProps {
+  model_id: string;
+  model_type: string;
 }
 
-export interface Reply {
-  id: string;
+export interface Reply extends CommentProps {
   comment_id: string;
-  content: string;
-  user_id: string;
-  created_at: string;
-  like_count: number;
-  user: {
-    full_name: string;
-    username: string;
-    email: string;
-    avatar_url: string;
-  };
 }
 
 export interface CommentResponse {

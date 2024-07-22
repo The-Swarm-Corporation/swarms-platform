@@ -1,16 +1,18 @@
 import React from 'react';
 import LikeButton from './like-button';
-import { Reply as ReplyType } from '../types';
+import { Reply as ReplyType, Comment } from '../types';
+import Message from './message';
 
 interface ReplyProps {
   reply: ReplyType;
+  modelType: string;
 }
 
-export default function ReplyComponent({ reply }: ReplyProps) {
+export default function ReplyComponent({ reply, modelType }: ReplyProps) {
   return (
-    <div>
-      <p>{reply.content}</p>
-      <LikeButton itemId={reply.id} type="reply" />
-    </div>
+    <Message
+      comment={reply as unknown as Comment}
+      modelType={modelType}
+    ></Message>
   );
 }

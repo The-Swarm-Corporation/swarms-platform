@@ -186,25 +186,26 @@ const explorerOptionsRouter = router({
       }
     }),
 
-  likeComment: userProcedure
+  likeItem: userProcedure
     .input(
       z.object({
-        commentId: z.string(),
+        itemId: z.string(),
+        itemType: z.enum(['comment', 'reply']),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { commentId } = input;
+      const { itemId, itemType } = input;
 
       const user_id = ctx.session.data.session?.user?.id;
       try {
         const { data, error } = await ctx.supabase
-          .from('swarms_cloud_comments_likes')
-          .insert([{ comment_id: commentId, user_id }]);
+          .from('swarms_cloud_likes')
+          .insert([{ item_id: itemId, item_type: itemType, user_id }]);
 
         if (error) {
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error while liking comment',
+            message: 'Error while liking item',
           });
         }
 
@@ -213,43 +214,101 @@ const explorerOptionsRouter = router({
         console.error(error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to like comment',
+          message: 'Failed to like item',
         });
       }
     }),
 
-  unlikeComment: userProcedure
+  unlikeItem: userProcedure
     .input(
       z.object({
-        commentId: z.string(),
+        itemId: z.string(),
+        itemType: z.enum(['comment', 'reply']),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { commentId } = input;
+      const { itemId, itemType } = input;
 
       const user_id = ctx.session.data.session?.user?.id;
       try {
         const { error } = await ctx.supabase
-          .from('swarms_cloud_comments_likes')
+          .from('swarms_cloud_likes')
           .delete()
-          .eq('comment_id', commentId)
+          .eq('item_id', itemId)
+          .eq('item_type', itemType)
           .eq('user_id', user_id);
 
         if (error) {
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error while unliking comment',
+            message: 'Error while unliking item',
           });
         }
 
-        return { success: true };
+        return true;
       } catch (error) {
         console.error(error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to unlike comment',
+          message: 'Failed to unlike item',
         });
       }
+    }),
+
+  isLikedItem: userProcedure
+    .input(
+      z.object({
+        itemId: z.string(),
+        itemType: z.enum(['comment', 'reply']),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { itemId, itemType } = input;
+
+      const user_id = ctx.session.data.session?.user?.id;
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_likes')
+        .select('*')
+        .eq('item_id', itemId)
+        .eq('item_type', itemType)
+        .eq('user_id', user_id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Error while checking like status for ${itemType}`,
+        });
+      }
+
+      return { isLiked: !!data };
+    }),
+
+  likeItemCount: publicProcedure
+    .input(
+      z.object({
+        itemId: z.string(),
+        itemType: z.enum(['comment', 'reply']),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { itemId, itemType } = input;
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_likes')
+        .select('*', { count: 'exact' })
+        .eq('item_id', itemId)
+        .eq('item_type', itemType);
+
+      if (error && error.code !== 'PGRST116') {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Error while fetching like count for ${itemType}`,
+        });
+      }
+
+      return { count: data?.length ?? 0 };
     }),
 
   addReply: userProcedure
@@ -312,73 +371,6 @@ const explorerOptionsRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to delete reply',
-        });
-      }
-    }),
-
-  likeReply: userProcedure
-    .input(
-      z.object({
-        replyId: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const { replyId } = input;
-
-      const user_id = ctx.session.data.session?.user?.id;
-      try {
-        const { error } = await ctx.supabase
-          .from('swarms_cloud_comments_reply_likes')
-          .insert([{ reply_id: replyId, user_id }]);
-
-        if (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error while liking reply',
-          });
-        }
-
-        return true;
-      } catch (error) {
-        console.error(error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to like reply',
-        });
-      }
-    }),
-
-  unlikeReply: publicProcedure
-    .input(
-      z.object({
-        replyId: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const { replyId } = input;
-
-      const user_id = ctx.session.data.session?.user?.id;
-
-      try {
-        const { error } = await ctx.supabase
-          .from('swarms_cloud_comments_reply_likes')
-          .delete()
-          .eq('reply_id', replyId)
-          .eq('user_id', user_id);
-
-        if (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error while unliking reply',
-          });
-        }
-
-        return true;
-      } catch (error) {
-        console.error(error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to unlike reply',
         });
       }
     }),

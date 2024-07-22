@@ -50,7 +50,7 @@ export default function Message({
 
             <p className="mt-6 font-normal">{comment.content}</p>
           </div>
-          <div className="flex gap-12 mt-3">
+          <div className="flex gap-12 mt-4">
             <LikeButton itemId={comment.id} type="comment" />
             <button
               onClick={handleOpenReply}
