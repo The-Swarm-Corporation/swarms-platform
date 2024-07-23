@@ -3,7 +3,7 @@ import React, { Dispatch, SetStateAction, useState } from 'react';
 import Message from './components/message';
 import Comment from './components/comment';
 import EditCommentForm from './components/form/edit-comment';
-import { Comment as CommentType } from './types';
+import { Comment as CommentType, Reply as ReplyType } from './types';
 import { cn } from '@/shared/utils/cn';
 
 interface CommentItemsProps {
@@ -12,6 +12,7 @@ interface CommentItemsProps {
   repliesCount: number;
   title: string;
   openEditComment: boolean;
+  allReplies: ReplyType[];
   handleCommentId: (id: string) => void;
   refetchComments: () => void;
   handleDeleteComment: () => void;
@@ -23,6 +24,7 @@ interface CommentItemsProps {
 export default function CommentItem({
   comment,
   isComment,
+  allReplies,
   repliesCount,
   title,
   openEditComment,
@@ -42,6 +44,7 @@ export default function CommentItem({
   function handleCloseExpanded() {
     setExpandComment(false);
   }
+  
   return (
     <li key={comment.id} onClick={() => handleCommentId(comment.id)}>
       {!expandComment && (
@@ -71,7 +74,7 @@ export default function CommentItem({
           handleEdit={handleEditOpenComment}
           handleOpenReply={handleOpenReply}
         >
-          <Comment comment={comment} modelType={title} refetchComments={refetchComments} />
+          <Comment comment={comment} allReplies={allReplies} modelType={title} refetchComments={refetchComments} />
         </Message>
       </div>
       {isComment && openEditComment && (

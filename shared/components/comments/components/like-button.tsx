@@ -78,7 +78,7 @@ export default function LikeButton({ itemId, type }: LikeButtonProps) {
     <button
       onClick={handleLike}
       className={cn(
-        'outline-none border-none shadow-none flex group items-center gap-2.5 cursor-pointer rounded-sm px-2 hover:bg-red-300',
+        'outline-none border-none shadow-none flex group items-center gap-1 md:gap-2.5 cursor-pointer rounded-sm px-2 hover:bg-red-300',
         isLoading ? 'opacity-50 pointer-events-none bg-red-300' : '',
       )}
     >

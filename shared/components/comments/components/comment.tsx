@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useTransition } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Comment as CommentType, Reply as ReplyType } from '../types';
 import Message from './message';
 import { trpc } from '@/shared/utils/trpc/trpc';
@@ -7,6 +7,7 @@ import EditReplyForm from './form/edit-reply';
 import DeleteContent from './form/delete';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { Button } from '../../ui/Button';
 
 interface CommentProps {
   comment: CommentType;
@@ -16,24 +17,21 @@ interface CommentProps {
 }
 
 const repliesLimit = 6;
-export default function Comment({ comment, modelType, allReplies, refetchComments }: CommentProps) {
+export default function Comment({
+  comment,
+  modelType,
+  allReplies,
+  refetchComments,
+}: CommentProps) {
   const { user } = useAuthContext();
   const toast = useToast();
 
-  const [replies, setReplies] = useState<ReplyType[]>([]);
   const [replyOffset, setReplyOffset] = useState(0);
-  const [isFetchingReplies, setIsFetchingReplies] = useState(false);
   const [openReply, setOpenReply] = useState(false);
   const [openEditReply, setOpenEditReply] = useState(false);
   const [openDeleteReply, setOpenDeleteReply] = useState(false);
   const [replyId, setReplyId] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const repliesQuery = trpc.explorerOptions.getReplies.useQuery({
-    commentId: comment.id,
-    limit: repliesLimit,
-    offset: replyOffset,
-  });
 
   const deleteReplyMutation = trpc.explorerOptions.deleteReply.useMutation();
 
@@ -51,11 +49,6 @@ export default function Comment({ comment, modelType, allReplies, refetchComment
 
   function handleReplyId(id: string) {
     setReplyId(id);
-  }
-
-  function refetchReplies() {
-    repliesQuery.refetch();
-    refetchComments();
   }
 
   function handleRemoveReply() {
@@ -80,7 +73,7 @@ export default function Comment({ comment, modelType, allReplies, refetchComment
             style: { color: 'green' },
           });
           setOpenDeleteReply(false);
-          refetchReplies();
+          refetchComments();
         }
       })
       .catch((err) => {
@@ -94,21 +87,20 @@ export default function Comment({ comment, modelType, allReplies, refetchComment
       .finally(() => setIsDeleting(false));
   }
 
-  useEffect(() => {
-    if (repliesQuery.data) {
-      if (replyOffset === 0) {
-        setReplies(repliesQuery.data.replies);
-      } else {
-        setReplies((prev) => [...prev, ...repliesQuery.data.replies]);
-      }
-      setIsFetchingReplies(false);
-    }
-  }, [repliesQuery.data, replyOffset]);
+  const replies = useMemo(() => {
+    return allReplies
+      .sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      )
+      .slice(0, replyOffset + repliesLimit);
+  }, [allReplies, replyOffset]);
 
   const loadMoreReplies = () => {
     setReplyOffset((prevOffset) => prevOffset + repliesLimit);
-    setIsFetchingReplies(true);
   };
+
+  const diffReplies = allReplies.length - replies.length;
 
   return (
     <div className="my-5 flex justify-end w-full">
@@ -133,18 +125,30 @@ export default function Comment({ comment, modelType, allReplies, refetchComment
                 editableContent={reply?.content}
                 setOpen={setOpenEditReply}
                 replyId={reply.id}
-                refetchReplies={refetchReplies}
+                refetchReplies={refetchComments}
               />
             )}
           </li>
         ))}
+        {replies.length < allReplies.length && (
+          <div className="flex justify-end mb-6">
+            <Button
+              onClick={loadMoreReplies}
+              variant="outline"
+              className="h-8 rounded-sm"
+            >
+              Load more{' '}
+              <span className="ml-2 italic">+ {diffReplies} replies</span>
+            </Button>
+          </div>
+        )}
       </ul>
       <ReplyForm
         commentId={comment.id}
         modelType={modelType}
         open={openReply}
         setOpen={setOpenReply}
-        refetchReplies={refetchReplies}
+        refetchReplies={refetchComments}
       />
       <DeleteContent
         type="reply"

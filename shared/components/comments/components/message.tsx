@@ -41,10 +41,12 @@ export default function Message({
 
   useOnClickOutside(dropdownRef, setOff);
   return (
-    <div className="w-full">
-      <div className={cn("grid grid-columns-double gap-2 w-full mb-4", className)}>
+    <div className="w-full max-sm:text-xs">
+      <div
+        className={cn('grid grid-columns-double gap-1 md:gap-2 w-full mb-4', className)}
+      >
         <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 relative border border-slate-800 mt-2 rounded-full p-1">
+          <div className="h-8 w-8 md:h-10 md:w-10 relative border border-slate-800 mt-2 rounded-full p-1">
             <Image
               src={comment?.users?.avatar_url || '/profile.png'}
               alt={comment?.users?.full_name || 'profile'}
@@ -53,64 +55,74 @@ export default function Message({
             />
           </div>
           {type === 'comment' && (
-            <AArrowUp size={20} onClick={handleCloseExpanded} className="cursor-pointer" />
+            <AArrowUp
+              size={20}
+              onClick={handleCloseExpanded}
+              className="cursor-pointer"
+            />
           )}
         </div>
         <div>
-          <div className="border border-slate-800 shadow-sm rounded-md px-4 py-6">
+          <div className="border border-slate-800 shadow-sm relative rounded-md px-4 py-6">
             <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0.5 md:gap-2">
                 <div className="font-semibold">
                   {comment?.users?.full_name || comment?.users?.username}
                 </div>
-                <span className="text-slate-400 px-2" role="presentation">
+                <span className="text-slate-400 px-1 md:px-2" role="presentation">
                   •
                 </span>
                 <div className="font-normal">
                   {dayjs(comment?.created_at).fromNow()}
                 </div>
               </div>
-              <div className="relative cursor-pointer" onClick={setOn}>
-                <Button variant="outline" className="!p-3 h-5 rounded-sm">
-                  •••
-                </Button>
+              {comment?.user_id === user?.id && (
+                <div className="absolute max-md:right-2 md:relative cursor-pointer" onClick={setOn}>
+                  <Button variant="outline" className="!p-3 h-5 rounded-sm">
+                    •••
+                  </Button>
 
-                {isOn && comment?.user_id === user?.id && (
-                  <ul
-                    ref={dropdownRef}
-                    className={cn(
-                      'w-36 absolute z-10 p-0 right-0 mt-4 transition duration-150 bg-black text-white border border-secondary bg-opacity-75 rounded-md shadow-lg',
-                    )}
-                  >
-                    <li
-                      onClick={handleEdit}
-                      className="p-2 text-sm rounded-t-md border-b-zinc-800 border-b hover:bg-destructive hover:text-white"
+                  {isOn && (
+                    <ul
+                      ref={dropdownRef}
+                      className={cn(
+                        'w-36 absolute z-10 p-0 right-0 mt-4 transition duration-150 bg-black text-white border border-secondary bg-opacity-75 rounded-md shadow-lg',
+                      )}
                     >
-                      Edit {type}
-                    </li>
-                    <li
-                      onClick={handleDelete}
-                      className="p-2 text-sm rounded-b-md hover:bg-destructive hover:text-white"
-                    >
-                      Delete {type}
-                    </li>
-                  </ul>
-                )}
-              </div>
+                      <li
+                        onClick={handleEdit}
+                        className="p-2 text-sm rounded-t-md border-b-zinc-800 border-b hover:bg-destructive hover:text-white"
+                      >
+                        Edit {type}
+                      </li>
+                      <li
+                        onClick={handleDelete}
+                        className="p-2 text-sm rounded-b-md hover:bg-destructive hover:text-white"
+                      >
+                        Delete {type}
+                      </li>
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
 
             <p className="mt-6 font-normal">{comment?.content}</p>
           </div>
-          <div className="flex gap-6 mt-3">
+          <div className="flex gap-2 md:gap-6 mt-2 md:mt-3">
             <LikeButton itemId={comment?.id} type={type} />
             <button
               onClick={handleOpenReply}
-              className="outline-none border-none shadow-none flex items-center gap-2.5"
+              className="outline-none border-none shadow-none flex items-center gap-1 md:gap-2.5"
             >
               <MessageSquare size={18} /> <span>Reply</span>
             </button>
             {comment?.is_edited && (
-              <div className="text-slate-400 mt-0.5">Edited</div>
+              <div className="text-slate-400 mt-0.5">
+                Edited on{' '}
+                {comment?.updated_at &&
+                  dayjs(comment.updated_at).format('MMMM, DD')}
+              </div>
             )}
           </div>
         </div>

@@ -107,7 +107,7 @@ const explorerOptionsRouter = router({
     .input(
       z.object({
         limit: z.number().default(20),
-        offset: z.number().default(1),
+        offset: z.number().default(0),
         modelId: z.string(),
       }),
     )
@@ -115,6 +115,19 @@ const explorerOptionsRouter = router({
       const { limit, offset, modelId } = input;
 
       try {
+        const { count: totalCommentsCount, error: countError } =
+          await ctx.supabase
+            .from('swarms_cloud_comments')
+            .select('id', { count: 'exact' })
+            .eq('model_id', modelId);
+
+        if (countError) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while fetching comments count',
+          });
+        }
+
         const { data: comments, error } = await ctx.supabase
           .from('swarms_cloud_comments')
           .select(
@@ -125,8 +138,9 @@ const explorerOptionsRouter = router({
               model_type,
               is_edited,
               content,
+              updated_at,
               created_at,
-              swarms_cloud_comments_replies(id, content, user_id, is_edited, created_at, comment_id, users(full_name, username, avatar_url)),
+              swarms_cloud_comments_replies(id, content, user_id, updated_at, is_edited, created_at, comment_id, users(full_name, username, avatar_url)),
               users (
                 full_name,
                 username,
@@ -147,7 +161,7 @@ const explorerOptionsRouter = router({
 
         return {
           comments,
-          count: comments.length ? comments.length : 0,
+          count: totalCommentsCount || 0,
         };
       } catch (error) {
         console.error(error);

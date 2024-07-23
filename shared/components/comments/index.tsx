@@ -1,27 +1,23 @@
-import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import React, { useState, useEffect } from 'react';
 import CommentForm from './components/form/comment';
 import { Comment as CommentType } from './types';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import dynamic from 'next/dynamic';
-import Message from './components/message';
-import EditCommentForm from './components/form/edit-comment';
 import DeleteContent from './components/form/delete';
 import ReplyForm from './components/form/reply';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import CommentsSkeleton from '@/shared/components/loaders/comments-skeleton';
-import { AArrowDown } from 'lucide-react';
-import { cn } from '@/shared/utils/cn';
+import CommentsSkeleton, {
+  CommentsItemSkeleton,
+} from '@/shared/components/loaders/comments-skeleton';
 import CommentItem from './item';
+import { Button } from '../ui/Button';
+import LoadingSpinner from '../loading-spinner';
 
 interface CommentListProps {
   modelId: string;
   title: string;
 }
 
-const Comment = dynamic(() => import('./components/comment'), {
-  ssr: false,
-});
 const commentsLimit = 20;
 export default function CommentList({ modelId, title }: CommentListProps) {
   const { user } = useAuthContext();
@@ -35,7 +31,6 @@ export default function CommentList({ modelId, title }: CommentListProps) {
   const [commentId, setCommentId] = useState('');
   const [openReply, setOpenReply] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [expandComment, setExpandComment] = useState(true);
 
   const commentsQuery = trpc.explorerOptions.getComments.useQuery({
     modelId,
@@ -45,14 +40,6 @@ export default function CommentList({ modelId, title }: CommentListProps) {
 
   const deleteCommentMutation =
     trpc.explorerOptions.deleteComment.useMutation();
-
-  function handleExpandComment() {
-    setExpandComment(true);
-  }
-
-  function handleCloseExpanded() {
-    setExpandComment(false);
-  }
 
   function handleOpenReply() {
     setOpenReply(true);
@@ -69,8 +56,6 @@ export default function CommentList({ modelId, title }: CommentListProps) {
   function handleCommentId(id: string) {
     setCommentId(id);
   }
-
-  console.log({ comments });
 
   useEffect(() => {
     if (commentsQuery.data) {
@@ -126,9 +111,14 @@ export default function CommentList({ modelId, title }: CommentListProps) {
       .finally(() => setIsDeleting(false));
   }
 
+  const totalCount = commentsQuery.data?.count || 0;
+  const remainingComments = totalCount - comments.length;
+
   return (
     <div className="max-w-[800px] w-full">
-      <h3 className="my-3">{title} comments</h3>
+      <h3 className="my-3 text-2xl">
+        {title} comments {totalCount > 0 && `(${totalCount})`}
+      </h3>
 
       <CommentForm
         modelId={modelId}
@@ -136,7 +126,7 @@ export default function CommentList({ modelId, title }: CommentListProps) {
         title={title}
       />
 
-      {commentsQuery.isLoading ? (
+      {commentsQuery.isLoading && !isFetchingComments ? (
         <CommentsSkeleton />
       ) : (
         <ul className="p-0 my-8">
@@ -146,8 +136,9 @@ export default function CommentList({ modelId, title }: CommentListProps) {
             const isComment = commentId === comment.id;
             return (
               <CommentItem
-                key={comment.id}
+                key={comment?.id}
                 comment={comment}
+                allReplies={comment?.swarms_cloud_comments_replies}
                 isComment={isComment}
                 title={title}
                 repliesCount={repliesCount}
@@ -162,6 +153,32 @@ export default function CommentList({ modelId, title }: CommentListProps) {
             );
           })}
         </ul>
+      )}
+      {isFetchingComments && (
+        <div className="mt-4">
+          <CommentsItemSkeleton />
+        </div>
+      )}
+      {(comments.length < totalCount || isFetchingComments) && (
+        <div className="flex justify-end mb-6">
+          <Button
+            onClick={loadMoreComments}
+            variant="outline"
+            disabled={isFetchingComments}
+            className="h-8 rounded-sm"
+          >
+            <span className="italic flex items-center">
+              <span>Load more</span>{' '}
+              <span className="ml-2 italic">
+                {isFetchingComments ? (
+                  <LoadingSpinner />
+                ) : (
+                  `+ ${remainingComments} comments`
+                )}
+              </span>
+            </span>
+          </Button>
+        </div>
       )}
       <ReplyForm
         commentId={commentId}
