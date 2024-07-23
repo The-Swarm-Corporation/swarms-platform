@@ -15,6 +15,7 @@ interface CommentItemsProps {
   allReplies: ReplyType[];
   handleCommentId: (id: string) => void;
   refetchComments: () => void;
+  refetchLikes: () => void;
   handleDeleteComment: () => void;
   handleEditOpenComment: () => void;
   handleOpenReply: () => void;
@@ -33,6 +34,7 @@ export default function CommentItem({
   handleOpenReply,
   setOpenEditComment,
   refetchComments,
+  refetchLikes,
   handleCommentId,
 }: CommentItemsProps) {
   const [expandComment, setExpandComment] = useState(true);
@@ -48,13 +50,13 @@ export default function CommentItem({
   return (
     <li key={comment.id} onClick={() => handleCommentId(comment.id)}>
       {!expandComment && (
-        <div className="flex items-center gap-4 w-full mb-3 p-4 bg-secondary rounded-md">
+        <div className="flex items-center gap-4 w-full mb-2 md:mb-3 py-3 px-4 md:p-4 bg-secondary rounded-md">
           <AArrowDown
             onClick={handleExpandComment}
             size={20}
             className="cursor-pointer"
           />
-          <div className="italic">
+          <div className="italic max-md:text-xs">
             {comment?.users?.full_name}{' '}
             {repliesCount && `+ ${repliesCount} replies`}
           </div>
@@ -73,6 +75,7 @@ export default function CommentItem({
           handleDelete={handleDeleteComment}
           handleEdit={handleEditOpenComment}
           handleOpenReply={handleOpenReply}
+          refetchLikes={refetchLikes}
         >
           <Comment comment={comment} allReplies={allReplies} modelType={title} refetchComments={refetchComments} />
         </Message>

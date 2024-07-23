@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import CommentForm from './components/form/comment';
 import { Comment as CommentType } from './types';
 import { trpc } from '@/shared/utils/trpc/trpc';
@@ -10,8 +10,9 @@ import CommentsSkeleton, {
   CommentsItemSkeleton,
 } from '@/shared/components/loaders/comments-skeleton';
 import CommentItem from './item';
-import { Button } from '../ui/Button';
-import LoadingSpinner from '../loading-spinner';
+import { Button } from '@/shared/components/ui/Button';
+import LoadingSpinner from '@/shared/components/loading-spinner';
+import usefetchCommentsWithLikes from './hook';
 
 interface CommentListProps {
   modelId: string;
@@ -22,6 +23,7 @@ const commentsLimit = 20;
 export default function CommentList({ modelId, title }: CommentListProps) {
   const { user } = useAuthContext();
   const toast = useToast();
+  const commentsEndRef = useRef<HTMLDivElement>(null);
 
   const [comments, setComments] = useState<CommentType[]>([]);
   const [offset, setOffset] = useState(0);
@@ -32,11 +34,12 @@ export default function CommentList({ modelId, title }: CommentListProps) {
   const [openReply, setOpenReply] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const commentsQuery = trpc.explorerOptions.getComments.useQuery({
-    modelId,
-    limit: commentsLimit,
-    offset,
-  });
+  const {
+    commentsData,
+    commentsResponse,
+    commentLikesResponse,
+    replyLikesResponse,
+  } = usefetchCommentsWithLikes(modelId, commentsLimit, offset, user?.id || '');
 
   const deleteCommentMutation =
     trpc.explorerOptions.deleteComment.useMutation();
@@ -58,15 +61,13 @@ export default function CommentList({ modelId, title }: CommentListProps) {
   }
 
   useEffect(() => {
-    if (commentsQuery.data) {
-      if (offset === 0) {
-        setComments(commentsQuery.data?.comments);
-      } else {
-        setComments((prev) => [...prev, ...commentsQuery.data?.comments]);
-      }
+    if (commentsResponse.data) {
+      setComments((prev) =>
+        offset === 0 ? commentsData || [] : [...prev, ...(commentsData || [])],
+      );
       setIsFetchingComments(false);
     }
-  }, [commentsQuery.data, offset]);
+  }, [commentsResponse.data, offset]);
 
   const loadMoreComments = () => {
     setOffset((prevOffset) => prevOffset + commentsLimit);
@@ -74,7 +75,13 @@ export default function CommentList({ modelId, title }: CommentListProps) {
   };
 
   function refetchComments() {
-    return commentsQuery.refetch();
+    return commentsResponse.refetch();
+  }
+
+  function refetchLikes() {
+    commentsResponse.refetch();
+    commentLikesResponse.refetch();
+    replyLikesResponse.refetch();
   }
 
   function handleRemoveComment() {
@@ -111,8 +118,8 @@ export default function CommentList({ modelId, title }: CommentListProps) {
       .finally(() => setIsDeleting(false));
   }
 
-  const totalCount = commentsQuery.data?.count || 0;
-  const remainingComments = totalCount - comments.length;
+  const totalCount = commentsResponse.data?.count || 0;
+  const remainingComments = totalCount - comments?.length;
 
   return (
     <div className="max-w-[800px] w-full">
@@ -122,11 +129,12 @@ export default function CommentList({ modelId, title }: CommentListProps) {
 
       <CommentForm
         modelId={modelId}
-        refetchComments={refetchComments}
         title={title}
+        commentsEndRef={commentsEndRef}
+        refetchComments={refetchComments}
       />
 
-      {commentsQuery.isLoading && !isFetchingComments ? (
+      {commentsResponse.isLoading && !isFetchingComments ? (
         <CommentsSkeleton />
       ) : (
         <ul className="p-0 my-8">
@@ -145,6 +153,7 @@ export default function CommentList({ modelId, title }: CommentListProps) {
                 openEditComment={openEditComment}
                 setOpenEditComment={setOpenEditComment}
                 refetchComments={refetchComments}
+                refetchLikes={refetchLikes}
                 handleCommentId={handleCommentId}
                 handleDeleteComment={handleDeleteComment}
                 handleEditOpenComment={handleEditOpenComment}
@@ -152,6 +161,7 @@ export default function CommentList({ modelId, title }: CommentListProps) {
               />
             );
           })}
+          <div ref={commentsEndRef} />
         </ul>
       )}
       {isFetchingComments && (

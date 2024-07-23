@@ -14,6 +14,7 @@ interface CommentProps {
   modelType: string;
   allReplies: ReplyType[];
   refetchComments: () => void;
+  refetchLikes?: () => void;
 }
 
 const repliesLimit = 6;
@@ -21,6 +22,7 @@ export default function Comment({
   comment,
   modelType,
   allReplies,
+  refetchLikes,
   refetchComments,
 }: CommentProps) {
   const { user } = useAuthContext();
@@ -117,6 +119,7 @@ export default function Comment({
               handleDelete={handleDeleteReply}
               handleEdit={handleEditOpenReply}
               handleOpenReply={handleOpenReply}
+              refetchLikes={refetchLikes}
             />
             {reply.id === replyId && openEditReply && (
               <EditReplyForm

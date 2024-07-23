@@ -8,27 +8,27 @@ import { cn } from '@/shared/utils/cn';
 interface LikeButtonProps {
   itemId: string;
   type: 'comment' | 'reply';
+  isLiked: boolean;
+  likesCount: number;
+  refetchLikes?: () => void;
 }
 
-export default function LikeButton({ itemId, type }: LikeButtonProps) {
-  const [liked, setLiked] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+export default function LikeButton({
+  itemId,
+  type,
+  isLiked,
+  likesCount,
+  refetchLikes,
+}: LikeButtonProps) {
   const { user } = useAuthContext();
   const toast = useToast();
 
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
   const likesMutation = trpc.explorerOptions.likeItem.useMutation();
   const unlikesMutation = trpc.explorerOptions.unlikeItem.useMutation();
-  const isLikedQuery = trpc.explorerOptions.isLikedItem.useQuery({
-    itemId,
-    itemType: type,
-  });
-  const likesCountQuery = trpc.explorerOptions.likeItemCount.useQuery({
-    itemId,
-    itemType: type,
-  });
-
-  const likesCount = likesCountQuery.data?.count || 0;
-  const isLiked = isLikedQuery.data?.isLiked || false;
 
   const handleLike = async () => {
     if (!user) {
@@ -48,8 +48,8 @@ export default function LikeButton({ itemId, type }: LikeButtonProps) {
         .mutateAsync({ itemId, itemType: type })
         .then(() => {
           setLiked(false);
-          likesCountQuery.refetch();
-          isLikedQuery.refetch();
+          setLikeCount((prev) => prev - 1);
+          refetchLikes?.();
         })
         .catch((err) => {
           console.error(err);
@@ -60,8 +60,8 @@ export default function LikeButton({ itemId, type }: LikeButtonProps) {
         .mutateAsync({ itemId, itemType: type })
         .then(() => {
           setLiked(true);
-          likesCountQuery.refetch();
-          isLikedQuery.refetch();
+          setLikeCount((prev) => prev + 1);
+          refetchLikes?.();
         })
         .catch((err) => {
           console.error(err);
@@ -72,7 +72,8 @@ export default function LikeButton({ itemId, type }: LikeButtonProps) {
 
   useEffect(() => {
     setLiked(isLiked);
-  }, [isLiked]);
+    setLikeCount(likesCount);
+  }, [isLiked, likesCount]);
 
   return (
     <button
@@ -88,7 +89,7 @@ export default function LikeButton({ itemId, type }: LikeButtonProps) {
         size={18}
       />{' '}
       <span className="group-hover:text-black">
-        {likesCount} like{likesCount !== 1 && 's'}
+        {likeCount} like{likeCount !== 1 && 's'}
       </span>
     </button>
   );

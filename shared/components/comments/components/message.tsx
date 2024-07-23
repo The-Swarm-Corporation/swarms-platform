@@ -22,6 +22,7 @@ interface MessageProps extends PropsWithChildren {
   handleDelete?: () => void;
   type: 'comment' | 'reply';
   className?: string;
+  refetchLikes?: () => void;
   handleCloseExpanded?: () => void;
 }
 
@@ -30,6 +31,7 @@ export default function Message({
   children,
   type,
   className,
+  refetchLikes,
   handleCloseExpanded,
   handleEdit,
   handleDelete,
@@ -43,7 +45,10 @@ export default function Message({
   return (
     <div className="w-full max-sm:text-xs">
       <div
-        className={cn('grid grid-columns-double gap-1 md:gap-2 w-full mb-4', className)}
+        className={cn(
+          'grid grid-columns-double gap-1 md:gap-2 w-full mb-4',
+          className,
+        )}
       >
         <div className="flex flex-col items-center gap-4">
           <div className="h-8 w-8 md:h-10 md:w-10 relative border border-slate-800 mt-2 rounded-full p-1">
@@ -69,7 +74,10 @@ export default function Message({
                 <div className="font-semibold">
                   {comment?.users?.full_name || comment?.users?.username}
                 </div>
-                <span className="text-slate-400 px-1 md:px-2" role="presentation">
+                <span
+                  className="text-slate-400 px-1 md:px-2"
+                  role="presentation"
+                >
                   •
                 </span>
                 <div className="font-normal">
@@ -77,7 +85,10 @@ export default function Message({
                 </div>
               </div>
               {comment?.user_id === user?.id && (
-                <div className="absolute max-md:right-2 md:relative cursor-pointer" onClick={setOn}>
+                <div
+                  className="absolute max-md:right-2 md:relative cursor-pointer"
+                  onClick={setOn}
+                >
                   <Button variant="outline" className="!p-3 h-5 rounded-sm">
                     •••
                   </Button>
@@ -110,7 +121,13 @@ export default function Message({
             <p className="mt-6 font-normal">{comment?.content}</p>
           </div>
           <div className="flex gap-2 md:gap-6 mt-2 md:mt-3">
-            <LikeButton itemId={comment?.id} type={type} />
+            <LikeButton
+              itemId={comment?.id}
+              type={type}
+              isLiked={comment?.user_has_liked}
+              likesCount={comment?.like_count}
+              refetchLikes={refetchLikes}
+            />
             <button
               onClick={handleOpenReply}
               className="outline-none border-none shadow-none flex items-center gap-1 md:gap-2.5"

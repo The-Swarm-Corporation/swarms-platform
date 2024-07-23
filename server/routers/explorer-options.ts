@@ -4,7 +4,6 @@ import {
   userProcedure,
 } from '@/app/api/trpc/trpc-router';
 import { TRPCError } from '@trpc/server';
-import dayjs from 'dayjs';
 import { z } from 'zod';
 const explorerOptionsRouter = router({
   addComment: userProcedure
@@ -50,7 +49,6 @@ const explorerOptionsRouter = router({
           ]);
 
         if (error) {
-          console.log(error.message);
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Error while adding comment',
@@ -59,7 +57,6 @@ const explorerOptionsRouter = router({
 
         return true;
       } catch (error) {
-        console.error(error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to add comment',
@@ -219,7 +216,13 @@ const explorerOptionsRouter = router({
           .insert([{ item_id: itemId, item_type: itemType, user_id }]);
 
         if (error) {
-          console.log({ error });
+          if (error.code === '23505') {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Careful there, too many requests at once',
+            });
+          }
+
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Error while liking item',
@@ -256,6 +259,13 @@ const explorerOptionsRouter = router({
           .eq('user_id', user_id);
 
         if (error) {
+          if (error.code === '23505') {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Careful there, too many requests at once',
+            });
+          }
+
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Error while unliking item',
@@ -272,60 +282,66 @@ const explorerOptionsRouter = router({
       }
     }),
 
-  isLikedItem: userProcedure
+  getLikes: publicProcedure
     .input(
       z.object({
-        itemId: z.string(),
+        itemIds: z.array(z.string()),
         itemType: z.enum(['comment', 'reply']),
+        userId: z.string().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { itemId, itemType } = input;
+      const { itemIds, itemType, userId } = input;
 
-      const user_id = ctx.session.data.session?.user?.id;
+      try {
+        // Fetch all likes for the given item IDs and type
+        const { data: likes, error } = await ctx.supabase
+          .from('swarms_cloud_likes')
+          .select('item_id')
+          .in('item_id', itemIds)
+          .eq('item_type', itemType);
 
-      const { data, error } = await ctx.supabase
-        .from('swarms_cloud_likes')
-        .select('*')
-        .eq('item_id', itemId)
-        .eq('item_type', itemType)
-        .eq('user_id', user_id)
-        .single();
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Error while fetching ${itemType} likes`,
+          });
+        }
 
-      if (error && error.code !== 'PGRST116') {
+        // Count likes for each item ID
+        const likeCounts = likes.reduce((acc: Record<string, number>, like) => {
+          acc[like.item_id] = (acc[like.item_id] || 0) + 1;
+          return acc;
+        }, {});
+
+        // Fetch likes for the specific user
+        const { data: userLikes, error: userLikesError } = userId
+          ? await ctx.supabase
+              .from('swarms_cloud_likes')
+              .select('item_id')
+              .in('item_id', itemIds)
+              .eq('item_type', itemType)
+              .eq('user_id', userId)
+          : { data: [] };
+
+        if (userLikesError) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Error while fetching user ${itemType} likes`,
+          });
+        }
+
+        return {
+          likeCounts,
+          userLikes: userLikes.map((like) => like.item_id),
+        };
+      } catch (error) {
+        console.error(error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: `Error while checking like status for ${itemType}`,
+          message: `Failed to fetch ${itemType} likes`,
         });
       }
-
-      return { isLiked: !!data };
-    }),
-
-  likeItemCount: publicProcedure
-    .input(
-      z.object({
-        itemId: z.string(),
-        itemType: z.enum(['comment', 'reply']),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      const { itemId, itemType } = input;
-
-      const { data, error } = await ctx.supabase
-        .from('swarms_cloud_likes')
-        .select('*')
-        .eq('item_id', itemId)
-        .eq('item_type', itemType);
-
-      if (error && error.code !== 'PGRST116') {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: `Error while fetching like count for ${itemType}`,
-        });
-      }
-
-      return { count: data?.length ?? 0 };
     }),
 
   addReply: userProcedure
@@ -345,7 +361,6 @@ const explorerOptionsRouter = router({
           .insert([{ comment_id: commentId, content, user_id }]);
 
         if (error) {
-          console.log({ error });
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Error while adding reply',
@@ -465,7 +480,6 @@ const explorerOptionsRouter = router({
           .range(offset, offset + limit - 1);
 
         if (error) {
-          console.log({ error });
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Error while fetching replies',

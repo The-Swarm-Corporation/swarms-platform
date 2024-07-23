@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FormEvent, useState } from 'react';
+import React, { ChangeEvent, FormEvent, RefObject, useState } from 'react';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Button } from '@/shared/components/ui/Button';
 import { trpc } from '@/shared/utils/trpc/trpc';
@@ -10,12 +10,14 @@ import { cn } from '@/shared/utils/cn';
 interface CommentFormProps {
   modelId: string;
   title: string;
+  commentsEndRef: RefObject<HTMLDivElement>;
   refetchComments: () => void;
 }
 
 export default function CommentForm({
   modelId,
   title,
+  commentsEndRef,
   refetchComments,
 }: CommentFormProps) {
   const { user } = useAuthContext();
@@ -67,6 +69,10 @@ export default function CommentForm({
         });
         setContent('');
         refetchComments();
+
+        setTimeout(() => {
+          commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 1000);
       })
       .catch((err) => {
         console.error(err);
@@ -84,7 +90,7 @@ export default function CommentForm({
       <Textarea
         value={content}
         onChange={handleChange}
-        placeholder='Be a part of the discussions'
+        placeholder="Be a part of the discussions"
         className={error ? 'border-primary border-2' : ''}
       />
       <small className={cn('invisible mt-1', error ? 'visible' : '')}>
