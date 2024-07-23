@@ -1,6 +1,11 @@
 'use client';
 // Todo: Add the ability to hover over buttons and get copy from text, markdown, and more!
-import React, { PropsWithChildren, useState, useTransition } from 'react';
+import React, {
+  PropsWithChildren,
+  Suspense,
+  useState,
+  useTransition,
+} from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -29,6 +34,8 @@ import {
 } from '@/shared/components/ui/tabs';
 import remarkGfm from 'remark-gfm';
 import { stripMarkdown } from './helper';
+import dynamic from 'next/dynamic';
+import LoadingSpinner from '../loading-spinner';
 import CommentList from '@/shared/components/comments';
 
 type UseCasesProps = { title: string; description: string };
@@ -47,6 +54,10 @@ interface Entity extends PropsWithChildren {
   requirements?: RequirementProps[];
   userId?: string | null;
 }
+
+// const CommentList = dynamic(() => import('@/shared/components/comments'), {
+//   ssr: false,
+// });
 
 function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
   return (
@@ -386,7 +397,13 @@ export default function EntityComponent({
         link={pathName ?? ''}
       />
 
-      {id && <CommentList modelId={id} title={title} />}
+      <div className='mt-20'>
+        {/* {id && (
+          <Suspense fallback={<LoadingSpinner />}>
+          </Suspense>
+        )} */}
+        {id && <CommentList modelId={id} title={title} />}
+      </div>
     </div>
   );
 }

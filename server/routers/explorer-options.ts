@@ -4,6 +4,7 @@ import {
   userProcedure,
 } from '@/app/api/trpc/trpc-router';
 import { TRPCError } from '@trpc/server';
+import dayjs from 'dayjs';
 import { z } from 'zod';
 const explorerOptionsRouter = router({
   addComment: userProcedure
@@ -30,7 +31,7 @@ const explorerOptionsRouter = router({
         const lastSubmitTime = new Date(lastSubmit.created_at);
         const currentTime = new Date();
         const diff = currentTime.getTime() - lastSubmitTime.getTime();
-        const diffHours = diff / (1000 * 10); // 10 seconds
+        const diffHours = diff / (1000 * 20); // 20 seconds
         if (diffHours < 1) {
           throw 'You can only submit one comment per minute';
         }
@@ -80,7 +81,7 @@ const explorerOptionsRouter = router({
       try {
         const comment = await ctx.supabase
           .from('swarms_cloud_comments')
-          .update({ content })
+          .update({ content, is_edited: true, updated_at: new Date() })
           .eq('user_id', user_id)
           .eq('id', commentId)
           .select('*');
@@ -122,18 +123,19 @@ const explorerOptionsRouter = router({
               user_id,
               model_id,
               model_type,
+              is_edited,
               content,
               created_at,
+              swarms_cloud_comments_replies(id, content, user_id, is_edited, created_at, comment_id, users(full_name, username, avatar_url)),
               users (
                 full_name,
                 username,
-                email,
                 avatar_url
               )
             `,
           )
           .eq('model_id', modelId)
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: true })
           .range(offset, offset + limit - 1);
 
         if (error) {
@@ -203,6 +205,7 @@ const explorerOptionsRouter = router({
           .insert([{ item_id: itemId, item_type: itemType, user_id }]);
 
         if (error) {
+          console.log({ error });
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Error while liking item',
@@ -297,7 +300,7 @@ const explorerOptionsRouter = router({
 
       const { data, error } = await ctx.supabase
         .from('swarms_cloud_likes')
-        .select('*', { count: 'exact' })
+        .select('*')
         .eq('item_id', itemId)
         .eq('item_type', itemType);
 
@@ -328,6 +331,7 @@ const explorerOptionsRouter = router({
           .insert([{ comment_id: commentId, content, user_id }]);
 
         if (error) {
+          console.log({ error });
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Error while adding reply',
@@ -340,6 +344,42 @@ const explorerOptionsRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to add reply',
+        });
+      }
+    }),
+
+  editReply: userProcedure
+    .input(
+      z.object({
+        replyId: z.string(),
+        content: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { replyId, content } = input;
+
+      const user_id = ctx.session.data.session?.user?.id;
+      try {
+        const reply = await ctx.supabase
+          .from('swarms_cloud_comments_replies')
+          .update({ content, is_edited: true, updated_at: new Date() })
+          .eq('user_id', user_id)
+          .eq('id', replyId)
+          .select('*');
+
+        if (reply.error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while editing reply',
+          });
+        }
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to edit reply',
         });
       }
     }),
@@ -376,19 +416,26 @@ const explorerOptionsRouter = router({
     }),
 
   getReplies: publicProcedure
-    .input(z.string())
+    .input(
+      z.object({
+        limit: z.number().default(6),
+        offset: z.number().default(1),
+        commentId: z.string(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      const commentId = input;
+      const { commentId, limit, offset } = input;
 
       try {
         const { data: replies, error } = await ctx.supabase
-          .from('replies')
+          .from('swarms_cloud_comments_replies')
           .select(
             `
               id,
               comment_id,
               user_id,
               content,
+              is_edited,
               created_at,
               updated_at,
               users (
@@ -400,16 +447,21 @@ const explorerOptionsRouter = router({
             `,
           )
           .eq('comment_id', commentId)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: true })
+          .range(offset, offset + limit - 1);
 
         if (error) {
+          console.log({ error });
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Error while fetching replies',
           });
         }
 
-        return replies;
+        return {
+          replies,
+          count: replies?.length ? replies.length : 0,
+        };
       } catch (error) {
         console.error(error);
         throw new TRPCError({

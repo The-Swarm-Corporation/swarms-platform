@@ -84,6 +84,7 @@ export default function CommentForm({
       <Textarea
         value={content}
         onChange={handleChange}
+        placeholder='Be a part of the discussions'
         className={error ? 'border-primary border-2' : ''}
       />
       <small className={cn('invisible mt-1', error ? 'visible' : '')}>
