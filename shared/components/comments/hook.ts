@@ -1,5 +1,9 @@
 import { trpc } from '@/shared/utils/trpc/trpc';
 
+type UserLikes = {
+  [key: string]: boolean;
+};
+
 export default function usefetchCommentsWithLikes(
   modelId: string,
   limit: number,
@@ -14,6 +18,7 @@ export default function usefetchCommentsWithLikes(
   const commentIds = commentsResponse.data?.comments?.map(
     (comment) => comment.id,
   );
+
   const replyIds = commentsResponse.data?.comments?.flatMap((comment) =>
     comment.swarms_cloud_comments_replies?.map((reply: any) => reply?.id),
   );
@@ -23,6 +28,7 @@ export default function usefetchCommentsWithLikes(
     itemType: 'comment',
     userId,
   });
+
   const replyLikesResponse = trpc.explorerOptions.getLikes.useQuery({
     itemIds: replyIds || [],
     itemType: 'reply',
@@ -33,7 +39,7 @@ export default function usefetchCommentsWithLikes(
   const replyLikeMap = replyLikesResponse.data?.likeCounts;
 
   const userCommentLikeMap = commentLikesResponse.data?.userLikes?.reduce(
-    (acc, itemId) => {
+    (acc: UserLikes, itemId) => {
       acc[itemId] = true;
       return acc;
     },
@@ -41,7 +47,7 @@ export default function usefetchCommentsWithLikes(
   );
 
   const userReplyLikeMap = replyLikesResponse.data?.userLikes?.reduce(
-    (acc, itemId) => {
+    (acc: UserLikes, itemId) => {
       acc[itemId] = true;
       return acc;
     },
