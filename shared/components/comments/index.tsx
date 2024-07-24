@@ -34,8 +34,6 @@ export default function CommentList({ modelId, title }: CommentListProps) {
   const [openReply, setOpenReply] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const swarmsQuery = trpc.explorer.getAllApprovedSwarms.useQuery();
-
   const {
     commentsData,
     commentsResponse,
@@ -50,7 +48,7 @@ export default function CommentList({ modelId, title }: CommentListProps) {
       );
       setIsFetchingComments(false);
     }
-  }, [commentsResponse.data, offset, swarmsQuery.isLoading]);
+  }, [commentsResponse.data, offset, replyLikesResponse.isLoading]);
 
   const loadMoreComments = () => {
     setOffset((prevOffset) => prevOffset + commentsLimit);
