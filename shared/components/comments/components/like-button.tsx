@@ -23,8 +23,6 @@ export default function LikeButton({
   const { user } = useAuthContext();
   const toast = useToast();
 
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const likesMutation = trpc.explorerOptions.likeItem.useMutation();
@@ -39,7 +37,7 @@ export default function LikeButton({
       return;
     }
 
-    if (!itemId || !type) return;
+    if (!itemId || !type || isLoading) return;
 
     setIsLoading(true);
 
@@ -47,8 +45,6 @@ export default function LikeButton({
       unlikesMutation
         .mutateAsync({ itemId, itemType: type })
         .then(() => {
-          setLiked(false);
-          setLikeCount((prev) => prev - 1);
           refetchLikes?.();
         })
         .catch((err) => {
@@ -59,8 +55,6 @@ export default function LikeButton({
       likesMutation
         .mutateAsync({ itemId, itemType: type })
         .then(() => {
-          setLiked(true);
-          setLikeCount((prev) => prev + 1);
           refetchLikes?.();
         })
         .catch((err) => {
@@ -69,11 +63,6 @@ export default function LikeButton({
         .finally(() => setIsLoading(false));
     }
   };
-
-  useEffect(() => {
-    setLiked(isLiked);
-    setLikeCount(likesCount);
-  }, [isLiked, likesCount]);
 
   return (
     <button
@@ -84,12 +73,12 @@ export default function LikeButton({
       )}
     >
       <Heart
-        fill={liked ? '#ab2f33' : 'none'}
-        className={liked ? 'stroke-[#ab2f33]' : 'group-hover:stroke-black'}
+        fill={isLiked ? '#ab2f33' : 'none'}
+        className={isLiked ? 'stroke-[#ab2f33]' : 'group-hover:stroke-black'}
         size={18}
       />{' '}
       <span className="group-hover:text-black">
-        {likeCount} like{likeCount !== 1 && 's'}
+        {likesCount} like{likesCount !== 1 && 's'}
       </span>
     </button>
   );

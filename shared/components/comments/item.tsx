@@ -46,7 +46,7 @@ export default function CommentItem({
   function handleCloseExpanded() {
     setExpandComment(false);
   }
-  
+
   return (
     <li key={comment.id} onClick={() => handleCommentId(comment.id)}>
       {!expandComment && (
@@ -62,12 +62,7 @@ export default function CommentItem({
           </div>
         </div>
       )}
-      <div
-        className={cn(
-          'w-full',
-          !expandComment ? 'hidden' : 'block',
-        )}
-      >
+      <div className={cn('w-full', !expandComment ? 'hidden' : 'block')}>
         <Message
           comment={comment}
           type="comment"
@@ -77,7 +72,13 @@ export default function CommentItem({
           handleOpenReply={handleOpenReply}
           refetchLikes={refetchLikes}
         >
-          <Comment comment={comment} allReplies={allReplies} modelType={title} refetchComments={refetchComments} />
+          <Comment
+            comment={comment}
+            allReplies={allReplies}
+            modelType={title}
+            refetchComments={refetchComments}
+            refetchLikes={refetchLikes}
+          />
         </Message>
       </div>
       {isComment && openEditComment && (

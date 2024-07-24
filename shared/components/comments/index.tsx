@@ -1,17 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import CommentForm from './components/form/comment';
-import { Comment as CommentType } from './types';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import DeleteContent from './components/form/delete';
 import ReplyForm from './components/form/reply';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import CommentsSkeleton, {
-  CommentsItemSkeleton,
-} from '@/shared/components/loaders/comments-skeleton';
+import CommentsSkeleton from '@/shared/components/loaders/comments-skeleton';
 import CommentItem from './item';
-import { Button } from '@/shared/components/ui/Button';
-import LoadingSpinner from '@/shared/components/loading-spinner';
 import usefetchCommentsWithLikes from './hook';
 
 interface CommentListProps {
@@ -19,15 +14,13 @@ interface CommentListProps {
   title: string;
 }
 
-const commentsLimit = 20;
+const commentsLimit = 200;
 export default function CommentList({ modelId, title }: CommentListProps) {
   const { user } = useAuthContext();
   const toast = useToast();
   const commentsEndRef = useRef<HTMLDivElement>(null);
 
-  const [comments, setComments] = useState<CommentType[]>([]);
   const [offset, setOffset] = useState(0);
-  const [isFetchingComments, setIsFetchingComments] = useState(false);
   const [openEditComment, setOpenEditComment] = useState(false);
   const [openDeleteComment, setOpenDeleteComment] = useState(false);
   const [commentId, setCommentId] = useState('');
@@ -59,20 +52,6 @@ export default function CommentList({ modelId, title }: CommentListProps) {
   function handleCommentId(id: string) {
     setCommentId(id);
   }
-
-  useEffect(() => {
-    if (commentsResponse.data) {
-      setComments((prev) =>
-        offset === 0 ? commentsData || [] : [...prev, ...(commentsData || [])],
-      );
-      setIsFetchingComments(false);
-    }
-  }, [commentsResponse.data, offset]);
-
-  const loadMoreComments = () => {
-    setOffset((prevOffset) => prevOffset + commentsLimit);
-    setIsFetchingComments(true);
-  };
 
   function refetchComments() {
     return commentsResponse.refetch();
@@ -119,7 +98,6 @@ export default function CommentList({ modelId, title }: CommentListProps) {
   }
 
   const totalCount = commentsResponse.data?.count || 0;
-  const remainingComments = totalCount - comments?.length;
 
   return (
     <div className="max-w-[800px] w-full">
@@ -134,11 +112,11 @@ export default function CommentList({ modelId, title }: CommentListProps) {
         refetchComments={refetchComments}
       />
 
-      {commentsResponse.isLoading && !isFetchingComments ? (
+      {commentsResponse.isLoading ? (
         <CommentsSkeleton />
       ) : (
         <ul className="p-0 my-8">
-          {comments?.map((comment) => {
+          {commentsData?.map((comment) => {
             const repliesCount =
               comment?.swarms_cloud_comments_replies?.length || 0;
             const isComment = commentId === comment.id;
@@ -163,32 +141,6 @@ export default function CommentList({ modelId, title }: CommentListProps) {
           })}
           <div ref={commentsEndRef} />
         </ul>
-      )}
-      {isFetchingComments && (
-        <div className="mt-4">
-          <CommentsItemSkeleton />
-        </div>
-      )}
-      {(comments.length < totalCount || isFetchingComments) && (
-        <div className="flex justify-end mb-6">
-          <Button
-            onClick={loadMoreComments}
-            variant="outline"
-            disabled={isFetchingComments}
-            className="h-8 rounded-sm"
-          >
-            <span className="italic flex items-center">
-              <span>Load more</span>{' '}
-              <span className="ml-2 italic">
-                {isFetchingComments ? (
-                  <LoadingSpinner />
-                ) : (
-                  `+ ${remainingComments} comments`
-                )}
-              </span>
-            </span>
-          </Button>
-        </div>
       )}
       <ReplyForm
         commentId={commentId}

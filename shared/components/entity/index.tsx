@@ -398,10 +398,6 @@ export default function EntityComponent({
       />
 
       <div className='mt-20'>
-        {/* {id && (
-          <Suspense fallback={<LoadingSpinner />}>
-          </Suspense>
-        )} */}
         {id && <CommentList modelId={id} title={title} />}
       </div>
     </div>

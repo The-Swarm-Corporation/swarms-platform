@@ -14,6 +14,8 @@ import useToggle from '@/shared/hooks/toggle';
 import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 import { cn } from '@/shared/utils/cn';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import { usePathname } from 'next/navigation';
+import { useToast } from '../../ui/Toasts/use-toast';
 
 interface MessageProps extends PropsWithChildren {
   comment: CommentType | ReplyType;
@@ -40,10 +42,20 @@ export default function Message({
   const { user } = useAuthContext();
   const dropdownRef = useRef(null);
   const { isOn, setOn, setOff } = useToggle();
-
   useOnClickOutside(dropdownRef, setOff);
+
+  const pathname = usePathname();
+  const toast = useToast();
+
+  const handleCopyLink = () => {
+    const commentUrl = `${window.location.origin}${pathname}#${comment.id}`;
+    navigator.clipboard.writeText(commentUrl);
+    toast.toast({ description: 'Link copied to clipboard!' });
+  };
+
   return (
-    <div className="w-full max-sm:text-xs">
+    <div id={comment.id} className="w-full max-sm:text-xs">
+      <a href={`${pathname}#${comment.id}`}></a>
       <div
         className={cn(
           'grid grid-columns-double gap-1 md:gap-2 w-full mb-4',
@@ -84,38 +96,46 @@ export default function Message({
                   {dayjs(comment?.created_at).fromNow()}
                 </div>
               </div>
-              {comment?.user_id === user?.id && (
-                <div
-                  className="absolute max-md:right-2 md:relative cursor-pointer"
-                  onClick={setOn}
-                >
-                  <Button variant="outline" className="!p-3 h-5 rounded-sm">
-                    •••
-                  </Button>
+              <div
+                className="absolute max-md:right-2 md:relative cursor-pointer"
+                onClick={setOn}
+              >
+                <Button variant="outline" className="!p-3 h-5 rounded-sm">
+                  •••
+                </Button>
 
-                  {isOn && (
-                    <ul
-                      ref={dropdownRef}
-                      className={cn(
-                        'w-36 absolute z-10 p-0 right-0 mt-4 transition duration-150 bg-black text-white border border-secondary bg-opacity-75 rounded-md shadow-lg',
-                      )}
-                    >
+                {isOn && (
+                  <ul
+                    ref={dropdownRef}
+                    className={cn(
+                      'w-36 absolute z-10 p-0 right-0 mt-1 transition duration-150 bg-black text-white border border-secondary bg-opacity-75 rounded-md shadow-lg',
+                    )}
+                  >
+                    {comment?.user_id === user?.id && (
                       <li
                         onClick={handleEdit}
                         className="p-2 text-sm rounded-t-md border-b-zinc-800 border-b hover:bg-destructive hover:text-white"
                       >
                         Edit {type}
                       </li>
+                    )}
+                    {comment?.user_id === user?.id && (
                       <li
                         onClick={handleDelete}
-                        className="p-2 text-sm rounded-b-md hover:bg-destructive hover:text-white"
+                        className="p-2 text-sm rounded-b-md border-b-zinc-800 border-b hover:bg-destructive hover:text-white"
                       >
                         Delete {type}
                       </li>
-                    </ul>
-                  )}
-                </div>
-              )}
+                    )}
+                    <li
+                      onClick={handleCopyLink}
+                      className="p-2 text-sm rounded-b-md hover:bg-destructive hover:text-white"
+                    >
+                      Copy link
+                    </li>
+                  </ul>
+                )}
+              </div>
             </div>
 
             <p className="mt-6 font-normal">{comment?.content}</p>
