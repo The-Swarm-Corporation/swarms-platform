@@ -103,7 +103,7 @@ const explorerOptionsRouter = router({
   getComments: publicProcedure
     .input(
       z.object({
-        limit: z.number().default(20),
+        limit: z.number().default(2),
         offset: z.number().default(0),
         modelId: z.string(),
       }),
@@ -316,14 +316,20 @@ const explorerOptionsRouter = router({
         }, {});
 
         // Fetch likes for the specific user
-        const { data: userLikes, error: userLikesError } = userId
-          ? await ctx.supabase
-              .from('swarms_cloud_likes')
-              .select('item_id')
-              .in('item_id', itemIds)
-              .eq('item_type', itemType)
-              .eq('user_id', userId)
-          : { data: [] };
+        let userLikes: { item_id: string }[] = [];
+        let userLikesError: any;
+
+        if (userId) {
+          const response = await ctx.supabase
+            .from('swarms_cloud_likes')
+            .select('item_id')
+            .in('item_id', itemIds)
+            .eq('item_type', itemType)
+            .eq('user_id', userId);
+
+          userLikes = response.data || [];
+          userLikesError = response.error;
+        }
 
         if (userLikesError) {
           throw new TRPCError({
