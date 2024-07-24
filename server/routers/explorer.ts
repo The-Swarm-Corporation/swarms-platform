@@ -664,7 +664,6 @@ const explorerRouter = router({
           .order('created_at', { ascending: false });
 
         if (reviewsError) {
-          console.log({ reviewsError });
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Error while fetching reviews',

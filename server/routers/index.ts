@@ -7,6 +7,7 @@ import explorerRouter from './explorer';
 import apiKeyRouter from './api-key';
 import { organizationRouter } from './organization';
 import dashboardRouter from './dashboard';
+import explorerOptionsRouter from './explorer-options';
 
 export const appRouter = router({
   main: mainRouter,
@@ -15,6 +16,7 @@ export const appRouter = router({
   payment: paymentRouter,
   publicPlayground: publicPlaygroundRouter,
   explorer: explorerRouter,
+  explorerOptions: explorerOptionsRouter,
   organization: organizationRouter,
   dashboard: dashboardRouter,
 });

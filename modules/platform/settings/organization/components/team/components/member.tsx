@@ -109,6 +109,7 @@ function TeamMember({ member, user, currentOrganization }: TeamMemberProps) {
           >
             {allMemberRoles?.map((role) => (
               <li
+                key={role}
                 onClick={() => handleMemberRole(role as ExcludeOwner)}
                 className="hover:text-secondary hover:bg-foreground capitalize w-full py-2 text-center"
               >

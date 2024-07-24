@@ -221,7 +221,6 @@ export async function getReviews(modelId: string) {
       .order('created_at', { ascending: false });
 
     if (reviewsError) {
-      console.log({ reviewsError });
       return {
         status: 500,
         message: 'Internal server error',
