@@ -480,6 +480,130 @@ export type Database = {
         }
         Relationships: []
       }
+      swarms_cloud_comments: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          is_edited: boolean
+          like_count: number
+          model_id: string | null
+          model_type: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_edited?: boolean
+          like_count?: number
+          model_id?: string | null
+          model_type?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_edited?: boolean
+          like_count?: number
+          model_id?: string | null
+          model_type?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_comments_replies: {
+        Row: {
+          comment_id: string
+          content: string | null
+          created_at: string
+          id: string
+          is_edited: boolean
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment_id?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_edited?: boolean
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_edited?: boolean
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_comments_replies_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_comments_replies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_likes: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       swarms_cloud_models: {
         Row: {
           api_endpoint: string | null
@@ -853,7 +977,7 @@ export type Database = {
           model_id?: string | null
           model_type?: string | null
           rating?: number | null
-          user_id?: string
+          user_id: string
         }
         Update: {
           comment?: string | null
@@ -864,7 +988,15 @@ export type Database = {
           rating?: number | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       swarms_cloud_user_swarms: {
         Row: {
@@ -1139,6 +1271,7 @@ export type Database = {
           payment_method: Json | null
           referral: string | null
           signup_reason: string | null
+          twenty_crm_id: string | null
           username: string | null
         }
         Insert: {
@@ -1159,6 +1292,7 @@ export type Database = {
           payment_method?: Json | null
           referral?: string | null
           signup_reason?: string | null
+          twenty_crm_id?: string | null
           username?: string | null
         }
         Update: {
@@ -1179,6 +1313,7 @@ export type Database = {
           payment_method?: Json | null
           referral?: string | null
           signup_reason?: string | null
+          twenty_crm_id?: string | null
           username?: string | null
         }
         Relationships: [
