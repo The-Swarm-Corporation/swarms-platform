@@ -2,11 +2,10 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce } from '@/shared/utils/helpers';
 import { useEffect, useMemo, useState } from 'react';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import language from 'react-syntax-highlighter/dist/esm/languages/hljs/1c';
 
 interface EditExplorerModalProps {
   onClose: () => void;
-  entityType: 'agent' | 'prompt';
+  entityType: 'agent' | 'prompt' | 'tool';
   entityId: string;
   onEditSuccessfully: () => void;
 }
@@ -27,6 +26,10 @@ interface AgentEditModal extends EditModal {
 
 interface PromptEditModal extends EditModal {
   prompt: string;
+}
+
+interface ToolEditModal extends Omit<AgentEditModal, 'agent'> {
+  tool: string;
 }
 
 interface InputState {
@@ -60,16 +63,22 @@ export default function useEditModal({
   const validateMutation =
     entityType === 'agent'
       ? trpc.explorer.validateAgent.useMutation()
-      : trpc.explorer.validatePrompt.useMutation();
+      : entityType === 'tool'
+        ? trpc.explorer.validateTool.useMutation()
+        : trpc.explorer.validatePrompt.useMutation();
   const editMutation =
     entityType === 'agent'
       ? trpc.explorer.updateAgent.useMutation()
-      : trpc.explorer.updatePrompt.useMutation();
+      : entityType === 'tool'
+        ? trpc.explorer.updateTool.useMutation()
+        : trpc.explorer.updatePrompt.useMutation();
 
   const fetchEntityData =
     entityType === 'agent'
       ? trpc.explorer.getAgentById.useQuery(entityId)
-      : trpc.explorer.getPromptById.useQuery(entityId);
+      : entityType === 'tool'
+        ? trpc.explorer.getToolById.useQuery(entityId)
+        : trpc.explorer.getPromptById.useQuery(entityId);
 
   const entityData: any = fetchEntityData.data;
 
@@ -81,10 +90,17 @@ export default function useEditModal({
         tags: entityData.tags ?? '',
         useCases: entityData.use_cases ?? [{ title: '', description: '' }],
         uniqueField:
-          entityType === 'agent' ? entityData.agent : entityData.prompt,
-        language: entityType === 'agent' ? entityData.language : 'python',
-        requirements:
           entityType === 'agent'
+            ? entityData.agent
+            : entityType === 'tool'
+              ? entityData.tool
+              : entityData.prompt,
+        language:
+          entityType === 'agent' || entityType === 'tool'
+            ? entityData.language
+            : 'python',
+        requirements:
+          entityType === 'agent' || entityType === 'tool'
             ? entityData.requirements
             : [{ package: '', installation: '' }],
       });
@@ -114,7 +130,7 @@ export default function useEditModal({
   };
 
   const addRequirement = () => {
-    if (entityType === 'agent') {
+    if (entityType === 'agent' || entityType === 'tool') {
       setInputState((prev) => ({
         ...prev,
         requirements: [
@@ -126,7 +142,7 @@ export default function useEditModal({
   };
 
   const removeRequirement = (index: number) => {
-    if (entityType === 'agent') {
+    if (entityType === 'agent' || entityType === 'tool') {
       setInputState((prev) => {
         const newRequirements = [...(prev.requirements ?? [])];
         newRequirements.splice(index, 1);
@@ -154,7 +170,7 @@ export default function useEditModal({
 
     if (inputState.uniqueField.trim().length === 0) {
       toast.toast({
-        title: `${entityType === 'agent' ? 'Agent' : 'Prompt'} is required`,
+        title: `${entityType === 'agent' ? 'Agent' : entityType === 'tool' ? 'Tool' : 'Prompt'} is required`,
         variant: 'destructive',
       });
       return;
@@ -190,7 +206,10 @@ export default function useEditModal({
       .join(',');
 
     // Unique validation for agent requirements
-    if (entityType === 'agent' && inputState.requirements) {
+    if (
+      (entityType === 'agent' || entityType === 'tool') &&
+      inputState.requirements
+    ) {
       for (const requirement of inputState.requirements) {
         if (
           requirement.package.trim().length === 0 ||
@@ -206,7 +225,7 @@ export default function useEditModal({
     }
 
     // Prepare data based on entityType
-    const data: AgentEditModal | PromptEditModal =
+    const data: AgentEditModal | PromptEditModal | ToolEditModal =
       entityType === 'agent'
         ? {
             id: entityId,
@@ -218,14 +237,24 @@ export default function useEditModal({
             language: inputState.language!,
             requirements: inputState.requirements!,
           }
-        : {
-            id: entityId,
-            name: inputState.name,
-            description: inputState.description,
-            tags: trimTags,
-            useCases: inputState.useCases,
-            prompt: inputState.uniqueField,
-          };
+        : entityType === 'tool'
+          ? {
+              id: entityId,
+              name: inputState.name,
+              description: inputState.description,
+              tags: trimTags,
+              useCases: inputState.useCases,
+              tool: inputState.uniqueField,
+              requirements: inputState.requirements!,
+            }
+          : {
+              id: entityId,
+              name: inputState.name,
+              description: inputState.description,
+              tags: trimTags,
+              useCases: inputState.useCases,
+              prompt: inputState.uniqueField,
+            };
 
     // Edit entity
     editMutation.mutateAsync(data).then(() => {

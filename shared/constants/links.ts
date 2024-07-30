@@ -19,6 +19,7 @@ export const PUBLIC = {
   MODEL: '/model/{slug}',
   SWARM: '/swarm/{name}',
   PROMPT: '/prompt/{id}',
+  TOOL: '/tool/{id}',
   AGENT: '/agent/{id}',
 };
 

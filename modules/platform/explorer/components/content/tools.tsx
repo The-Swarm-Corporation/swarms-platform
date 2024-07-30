@@ -1,6 +1,5 @@
 'use client';
 
-import LoadingSpinner from '@/shared/components/loading-spinner';
 import { Button } from '@/shared/components/ui/Button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
@@ -11,21 +10,21 @@ import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 
 // TODO: Add types
-export default function Agents({
+export default function Tools({
   isLoading,
-  filteredAgents,
-  setAddAgentModalOpen,
+  filteredTools,
+  setAddToolModalOpen,
 }: any) {
-  async function handleAgentModal() {
+  async function handleToolModal() {
     await checkUserSession();
-    return setAddAgentModalOpen(true);
+    return setAddToolModalOpen(true);
   }
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold pb-2">Agents</h1>
-        <Button onClick={handleAgentModal} disabled={isLoading}>
-          Add Agent
+        <h1 className="text-3xl font-bold pb-2">Tools</h1>
+        <Button onClick={handleToolModal} disabled={isLoading}>
+          Add tool
         </Button>
       </div>
       <div>
@@ -33,26 +32,26 @@ export default function Agents({
           <ExplorerSkeletonLoaders />
         ) : (
           <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
-            {filteredAgents.length > 0 ? (
-              filteredAgents?.map((agent: any) => (
+            {filteredTools.length > 0 ? (
+              filteredTools?.map((tool: any) => (
                 <div
                   className="flex flex-col w-full h-[220px] sm:w-full mb-11"
-                  key={agent.id}
+                  key={tool.id}
                 >
                   <InfoCard
-                    id={agent.id || ''}
-                    title={agent.name || ''}
-                    description={agent.description || ''}
+                    id={tool.id || ''}
+                    title={tool.name || ''}
+                    description={tool.description || ''}
                     icon={<Terminal />}
                     className="w-full h-full"
-                    link={makeUrl(PUBLIC.AGENT, { id: agent.id })}
-                    userId={agent.user_id}
+                    link={makeUrl(PUBLIC.TOOL, { id: tool.id })}
+                    userId={tool.user_id}
                   />
                 </div>
               ))
             ) : (
               <div className="border p-4 rounded-md text-center">
-                No agents found
+                No tools found
               </div>
             )}
           </div>

@@ -512,7 +512,7 @@ const explorerRouter = router({
         }
 
         if (!agent.data?.length) {
-          throw new Error('Organization not found');
+          throw new Error('Agent not found');
         }
 
         return true;
@@ -532,12 +532,175 @@ const explorerRouter = router({
   getAgentById: publicProcedure
     .input(z.string())
     .query(async ({ input, ctx }) => {
-      const model = await ctx.supabase
+      const agents = await ctx.supabase
         .from('swarms_cloud_agents')
         .select('*')
         .eq('id', input)
         .single();
-      return model.data;
+      return agents.data;
+    }),
+  //tools
+  validateTool: userProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const tool = input;
+      if (tool.length < 3) {
+        return {
+          error: 'Tool should be at least 3 characters',
+          valid: false,
+        };
+      }
+
+      const user_id = ctx.session.data.session?.user?.id || '';
+      const toolData = await ctx.supabase
+        .from('swarms_cloud_tools')
+        .select('*')
+        .eq('tool', tool)
+        .eq('user_id', user_id);
+      const exists = (toolData.data ?? [])?.length > 0;
+      return {
+        valid: !exists,
+        error: exists ? 'Tool already exists' : '',
+      };
+    }),
+  // Add tool
+  addTool: userProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        tool: z.string(),
+        language: z.string().optional(),
+        description: z.string().optional(),
+        requirements: z.array(z.any()),
+        useCases: z.array(z.any()),
+        tags: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!input.description) {
+        throw 'Description is required';
+      }
+
+      if (!input.name || input.name.trim()?.length < 2) {
+        throw 'Name should be at least 2 characters';
+      }
+
+      // rate limiter - 1 tool per 30 secs
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const lastSubmits = await ctx.supabase
+        .from('swarms_cloud_tools')
+        .select('*')
+        .eq('user_id', user_id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if ((lastSubmits?.data ?? [])?.length > 0) {
+        const lastSubmit = lastSubmits.data?.[0] || { created_at: new Date() };
+        const lastSubmitTime = new Date(lastSubmit.created_at);
+        const currentTime = new Date();
+        const diff = currentTime.getTime() - lastSubmitTime.getTime();
+        const diffMinutes = diff / (1000 * 30); // 30 secs
+        if (diffMinutes < 1) {
+          throw 'You can only submit one tool per 30 secs';
+        }
+      }
+
+      try {
+        const tools = await ctx.supabase.from('swarms_cloud_tools').insert([
+          {
+            name: input.name || null,
+            description: input.description || null,
+            user_id: user_id,
+            use_cases: input.useCases,
+            tool: input.tool,
+            requirements: input.requirements,
+            tags: input.tags || null,
+            language: input.language,
+            status: 'pending',
+          } as Tables<'swarms_cloud_tools'>,
+        ]);
+        if (tools.error) {
+          throw tools.error;
+        }
+        return true;
+      } catch (e) {
+        console.error(e);
+        throw "Couldn't add tool";
+      }
+    }),
+  // Update tool
+  updateTool: userProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        tool: z.string().optional(),
+        language: z.string().optional(),
+        description: z.string().optional(),
+        requirements: z.array(z.any()).optional(),
+        useCases: z.array(z.any()),
+        tags: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!input.description) {
+        throw 'Description is required';
+      }
+
+      // at least 5 characters
+      if (!input.name || input.name.trim()?.length < 2) {
+        throw 'Name should be at least 2 characters';
+      }
+
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+
+      try {
+        const tool = await ctx.supabase
+          .from('swarms_cloud_tools')
+          .update({
+            name: input.name,
+            description: input.description,
+            use_cases: input.useCases,
+            tool: input.tool,
+            requirements: input.requirements,
+            tags: input.tags,
+            language: input.language,
+          } as Tables<'swarms_cloud_tools'>)
+          .eq('user_id', user_id)
+          .eq('id', input.id)
+          .select('*');
+
+        if (tool.error) {
+          throw tool.error;
+        }
+
+        if (!tool.data?.length) {
+          throw new Error('Tool not found');
+        }
+
+        return true;
+      } catch (e) {
+        console.error(e);
+        throw "Couldn't add tool";
+      }
+    }),
+  getAllTools: publicProcedure.query(async ({ ctx }) => {
+    const tools = await ctx.supabase
+      .from('swarms_cloud_tools')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    return tools;
+  }),
+  getToolById: publicProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      const tool = await ctx.supabase
+        .from('swarms_cloud_tools')
+        .select('*')
+        .eq('id', input)
+        .single();
+      return tool.data;
     }),
   checkReview: userProcedure
     .input(
