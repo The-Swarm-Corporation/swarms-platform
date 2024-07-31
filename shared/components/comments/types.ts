@@ -1,7 +1,7 @@
 export type CommentProps = {
   id: string;
-  content: string;
-  user_id: string;
+  content: string | null;
+  user_id: string | null;
   created_at: string;
   is_edited?: boolean;
   updated_at: string;
@@ -19,8 +19,8 @@ export interface Reply extends CommentProps {
 }
 
 export interface Comment extends CommentProps {
-  model_id: string;
-  model_type: string;
+  model_id: string | null;
+  model_type: string | null;
   swarms_cloud_comments_replies: Reply[] | any;
 }
 

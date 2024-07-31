@@ -85,7 +85,7 @@ export default function CommentItem({
         <EditCommentForm
           key={comment.id}
           open={openEditComment}
-          editableContent={comment?.content}
+          editableContent={comment?.content || ""}
           setOpen={setOpenEditComment}
           commentId={comment.id}
           refetchReplies={refetchComments}
