@@ -189,7 +189,7 @@ const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <span>Tool Code</span>
+            <span>Tool Code - (Add types and docstrings)</span>
             <div className="relative">
               <textarea
                 value={tool}
