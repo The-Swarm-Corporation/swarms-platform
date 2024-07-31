@@ -3,10 +3,11 @@ export const explorerOptions = [
   { label: 'Agents', value: 'agents' },
   { label: 'Models', value: 'models' },
   { label: 'Prompts', value: 'prompts' },
+  { label: 'Tools', value: 'tools' },
   { label: 'Swarms', value: 'swarms' },
 ];
 
-export const defaultOptions = ['agents', 'models', 'prompts', 'swarms'];
+export const defaultOptions = ['agents', 'models', 'prompts', 'tools', 'swarms'];
 
 export const languageOptions = [
   'python',

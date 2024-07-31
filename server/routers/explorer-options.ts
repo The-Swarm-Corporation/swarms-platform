@@ -17,22 +17,22 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { modelId, modelType, content } = input;
 
-      const user_id = ctx.session.data.session?.user?.id;
-      const lastSubmites = await ctx.supabase
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const lastSubmits = await ctx.supabase
         .from('swarms_cloud_comments')
         .select('*')
         .eq('user_id', user_id)
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if ((lastSubmites?.data ?? [])?.length > 0) {
-        const lastSubmit = lastSubmites.data?.[0];
+      if ((lastSubmits?.data ?? [])?.length > 0) {
+        const lastSubmit = lastSubmits.data?.[0] || { created_at: new Date() };
         const lastSubmitTime = new Date(lastSubmit.created_at);
         const currentTime = new Date();
         const diff = currentTime.getTime() - lastSubmitTime.getTime();
-        const diffHours = diff / (1000 * 20); // 20 seconds
-        if (diffHours < 1) {
-          throw 'You can only submit one comment per minute';
+        const diffMinutes = diff / (1000 * 20); // 20 secs
+        if (diffMinutes < 1) {
+          throw 'You can only submit one comment per 20 secs';
         }
       }
 
@@ -74,11 +74,11 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { commentId, content } = input;
 
-      const user_id = ctx.session.data.session?.user?.id;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
       try {
         const comment = await ctx.supabase
           .from('swarms_cloud_comments')
-          .update({ content, is_edited: true, updated_at: new Date() })
+          .update({ content, is_edited: true, updated_at: new Date() as unknown as string })
           .eq('user_id', user_id)
           .eq('id', commentId)
           .select('*');
@@ -173,7 +173,7 @@ const explorerOptionsRouter = router({
     .input(z.string())
     .mutation(async ({ input, ctx }) => {
       const commentId = input;
-      const user_id = ctx.session.data.session?.user?.id;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
 
       try {
         const { error } = await ctx.supabase
@@ -209,7 +209,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { itemId, itemType } = input;
 
-      const user_id = ctx.session.data.session?.user?.id;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
       try {
         const { data, error } = await ctx.supabase
           .from('swarms_cloud_likes')
@@ -250,7 +250,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { itemId, itemType } = input;
 
-      const user_id = ctx.session.data.session?.user?.id;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
       try {
         const { error } = await ctx.supabase
           .from('swarms_cloud_likes')
@@ -361,7 +361,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { commentId, content } = input;
 
-      const user_id = ctx.session.data.session?.user?.id;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
       try {
         const { data, error } = await ctx.supabase
           .from('swarms_cloud_comments_replies')
@@ -394,11 +394,11 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { replyId, content } = input;
 
-      const user_id = ctx.session.data.session?.user?.id;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
       try {
         const reply = await ctx.supabase
           .from('swarms_cloud_comments_replies')
-          .update({ content, is_edited: true, updated_at: new Date() })
+          .update({ content, is_edited: true, updated_at: new Date() as unknown as string })
           .eq('user_id', user_id)
           .eq('id', replyId)
           .select('*');
@@ -425,7 +425,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const replyId = input;
 
-      const user_id = ctx.session.data.session?.user?.id;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
 
       try {
         const { error } = await ctx.supabase

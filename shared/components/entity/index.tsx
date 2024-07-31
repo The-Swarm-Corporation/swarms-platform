@@ -2,7 +2,6 @@
 // Todo: Add the ability to hover over buttons and get copy from text, markdown, and more!
 import React, {
   PropsWithChildren,
-  Suspense,
   useState,
   useTransition,
 } from 'react';
@@ -34,13 +33,11 @@ import {
 } from '@/shared/components/ui/tabs';
 import remarkGfm from 'remark-gfm';
 import { stripMarkdown } from './helper';
-import dynamic from 'next/dynamic';
-import LoadingSpinner from '../loading-spinner';
 import CommentList from '@/shared/components/comments';
 
 type UseCasesProps = { title: string; description: string };
 
-type EntityType = 'agent' | 'prompt';
+type EntityType = 'agent' | 'prompt' | 'tool';
 
 interface Entity extends PropsWithChildren {
   id?: string;
@@ -128,7 +125,7 @@ export default function EntityComponent({
   const entityTitle = title.toLowerCase();
 
   const showEditButton =
-    (entityTitle === 'agent' || entityTitle === 'prompt') &&
+    (entityTitle === 'agent' || entityTitle === 'prompt' || entityTitle === "tool") &&
     user &&
     user?.data?.id === userId;
 
@@ -334,7 +331,7 @@ export default function EntityComponent({
         />
       </div>
       {usecases && <UseCases usecases={usecases} />}
-      {title.toLowerCase() === 'agent' && (
+      {title.toLowerCase() === 'agent' || title.toLowerCase() === 'tool' && (
         <AgentRequirements requirements={requirements as RequirementProps[]} />
       )}
       {prompt && (

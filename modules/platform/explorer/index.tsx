@@ -20,11 +20,15 @@ import { cn } from '@/shared/utils/cn';
 import AddAgentModal from './components/add-agent-modal';
 import dynamic from 'next/dynamic';
 import Sticky from 'react-stickynode';
+import AddToolModal from './components/add-tool-modal';
 
 const Prompts = dynamic(() => import('./components/content/prompts'), {
   ssr: false,
 });
 const Agents = dynamic(() => import('./components/content/agents'), {
+  ssr: false,
+});
+const Tools = dynamic(() => import('./components/content/tools'), {
   ssr: false,
 });
 const Swarms = dynamic(() => import('./components/content/swarms'), {
@@ -36,6 +40,7 @@ const Explorer = () => {
   const [addSwarModalOpen, setAddSwarmModalOpen] = useState(false);
   const [addPromptModalOpen, setAddPromptModalOpen] = useState(false);
   const [addAgentModalOpen, setAddAgentModalOpen] = useState(false);
+  const [addToolModalOpen, setAddToolModalOpen] = useState(false);
   const [isFixed, setIsFixed] = useState(false);
 
   const handleStateChange = (status: { status: number }) => {
@@ -49,11 +54,13 @@ const Explorer = () => {
   const {
     allAgents,
     allPrompts,
+    allTools,
     pendingSwarms,
     filteredModels,
     filteredSwarms,
     filteredPrompts,
     filteredAgents,
+    filteredTools,
     loadMorePrompts,
     isFetchingPrompts,
     hasMorePrompts,
@@ -65,6 +72,7 @@ const Explorer = () => {
     isModelsLoading,
     isAgentsLoading,
     isSwarmsLoading,
+    isToolsLoading,
     handleSearchChange,
     handleOptionChange,
   } = useModels();
@@ -90,6 +98,10 @@ const Explorer = () => {
 
   const onAddAgent = () => {
     allAgents.refetch();
+  };
+
+  const onAddTool = () => {
+    allTools.refetch();
   };
 
   const elements = [
@@ -120,6 +132,15 @@ const Explorer = () => {
         <Agents
           {...{ filteredAgents, setAddAgentModalOpen }}
           isLoading={isAgentsLoading}
+        />
+      ),
+    },
+    {
+      key: 'tools',
+      content: (
+        <Tools
+          {...{ filteredTools, setAddToolModalOpen }}
+          isLoading={isToolsLoading}
         />
       ),
     },
@@ -161,6 +182,11 @@ const Explorer = () => {
         onAddSuccessfully={onAddAgent}
         isOpen={addAgentModalOpen}
         onClose={() => setAddAgentModalOpen(false)}
+      />
+      <AddToolModal
+        onAddSuccessfully={onAddTool}
+        isOpen={addToolModalOpen}
+        onClose={() => setAddToolModalOpen(false)}
       />
       <div className="w-full flex flex-col h-full">
         <div className="flex flex-col">

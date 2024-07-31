@@ -17,7 +17,7 @@ import { useAuthContext } from '@/shared/components/ui/auth.provider';
 interface EditExplorerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  entityType: 'agent' | 'prompt';
+  entityType: 'agent' | 'prompt' | 'tool';
   entityId: string;
   onEditSuccessfully: () => void;
 }
@@ -77,7 +77,7 @@ function EditExplorerModal({
           />
         </div>
         <div className="flex flex-col gap-1">
-          <span>{entityType === 'agent' ? 'Agent' : 'Prompt'}</span>
+          <span className='capitalize'>{entityType}</span>
           <div className="relative">
             <textarea
               value={inputState.uniqueField}
@@ -180,7 +180,7 @@ function EditExplorerModal({
             </div>
           </div>
         </div>
-        {entityType === 'agent' && (
+        {entityType === 'agent' || entityType === 'tool' && (
           <>
             <div className="flex flex-col gap-1">
               <span>Language</span>

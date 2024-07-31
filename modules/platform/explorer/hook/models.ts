@@ -10,6 +10,7 @@ export default function useModels() {
   const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
 
   const modelsQuery = trpc.explorer.getModels.useQuery();
+  const toolsQuery = trpc.explorer.getAllTools.useQuery();
   const swarmsQuery = trpc.explorer.getAllApprovedSwarms.useQuery();
   const promptsQuery = trpc.explorer.getAllPrompts.useQuery({
     limit: promptLimit,
@@ -88,6 +89,10 @@ export default function useModels() {
     () => filterData(agentsQuery.data?.data, 'agents'),
     [agentsQuery.data, filterData],
   );
+  const filteredTools = useMemo(
+    () => filterData(toolsQuery.data?.data, 'tools'),
+    [toolsQuery.data, filterData],
+  );
 
   const handleOptionChange = useCallback(
     (value: string) => {
@@ -103,13 +108,16 @@ export default function useModels() {
     filteredSwarms,
     filteredPrompts,
     filteredAgents,
+    filteredTools,
     pendingSwarms,
     allPrompts: promptsQuery,
     allAgents: agentsQuery,
+    allTools: toolsQuery,
     isPromptLoading: promptsQuery.isLoading,
     isModelsLoading: modelsQuery.isLoading,
     isAgentsLoading: agentsQuery.isLoading,
     isSwarmsLoading: swarmsQuery.isLoading || pendingSwarms.isLoading,
+    isToolsLoading: toolsQuery.isLoading,
     search,
     options,
     hasMorePrompts: prompts.length > promptOffset,
