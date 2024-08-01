@@ -1,123 +1,132 @@
+import { AuthApiGuard } from '@/shared/utils/api/auth-guard';
+import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
-// Define types
-type Agent = {
-  id: string;
-  name: string;
-  description: string;
-  agent: string;
-  language: string;
-  user_id: string;
-  use_cases: { title: string; description: string }[];
-  requirements: { package: string; installation: string }[];
-  tags: string[];
-  status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
-  updated_at: string;
-};
 
 // Input validation schema
 const createAgentSchema = z.object({
   name: z.string().min(2, 'Name should be at least 2 characters'),
-  agent: z.string(),
+  agent: z
+    .string()
+    .min(5, { message: 'Agent should be at least 5 characters' }),
   language: z.string().optional(),
   description: z.string().min(1, 'Description is required'),
   requirements: z.array(
     z.object({
       package: z.string(),
       installation: z.string(),
-    })
+    }),
   ),
   useCases: z.array(
     z.object({
       title: z.string(),
       description: z.string(),
-    })
+    }),
   ),
-  tags: z.string().optional(),
+  tags: z.string().min(2, {
+    message: 'Tags should be at least 1 characters and separated by commas',
+  }),
 });
 
-// Initialize Supabase client
-const supabase: SupabaseClient = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const addAgent = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
   try {
-    // Check authentication using Supabase
-    const { data: { user }, error: authError } = await supabase.auth.getUser(req.headers.authorization!);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    const apiKey = req.headers.authorization?.split(' ')[1];
+    if (!apiKey) {
+      return res
+        .status(401)
+        .json({
+          error: 'API Key is missing, go to link to create one',
+          link: 'https://swarms.world/platform/api-keys',
+        });
     }
 
-    // Validate input
-    const validatedData = createAgentSchema.parse(req.body);
-
-    // Check if agent already exists
-    const { data: existingAgent } = await supabase
-      .from('swarms_cloud_agents')
-      .select('id')
-      .eq('agent', validatedData.agent)
-      .eq('user_id', user.id)
-      .single();
-
-    if (existingAgent) {
-      return res.status(409).json({ error: 'Agent already exists' });
+    const guard = new AuthApiGuard({ apiKey });
+    const isAuthenticated = await guard.isAuthenticated();
+    if (isAuthenticated.status !== 200) {
+      return res
+        .status(isAuthenticated.status)
+        .json({ error: isAuthenticated.message });
     }
 
-    // Rate limiting: 1 agent per minute
-    const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
-    const { data: recentAgents } = await supabase
-      .from('swarms_cloud_agents')
-      .select('created_at')
-      .eq('user_id', user.id)
-      .gte('created_at', oneMinuteAgo)
-      .order('created_at', { ascending: false });
-
-    if (recentAgents && recentAgents.length > 0) {
-      return res.status(429).json({ error: 'Rate limit exceeded. Please wait before creating another agent.' });
+    const user_id = guard.getUserId();
+    if (!user_id) {
+      return res.status(404).json({ error: 'User is missing' });
     }
 
-    // Insert new agent
-    const { data: newAgent, error } = await supabase
+    const input = createAgentSchema.parse(req.body);
+    const { name, agent, description, useCases, tags, requirements, language } =
+      input;
+
+    // Rate limiting logic
+    const { data: lastSubmits, error: lastSubmitsError } = await supabaseAdmin
       .from('swarms_cloud_agents')
-      .insert({
-        name: validatedData.name,
-        description: validatedData.description,
-        user_id: user.id,
-        use_cases: validatedData.useCases,
-        agent: validatedData.agent,
-        requirements: validatedData.requirements,
-        tags: validatedData.tags ? validatedData.tags.split(',').map(tag => tag.trim()) : [],
-        language: validatedData.language,
+      .select('*')
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (lastSubmitsError) throw lastSubmitsError;
+
+    if (lastSubmits.length > 0) {
+      const lastSubmit = lastSubmits[0];
+      const lastSubmitTime = new Date(lastSubmit.created_at);
+      const currentTime = new Date();
+      const diffMinutes =
+        (currentTime.getTime() - lastSubmitTime.getTime()) / (1000 * 60);
+      if (diffMinutes < 1) {
+        return res
+          .status(429)
+          .json({ error: 'You can only submit one agent per minute' });
+      }
+    }
+
+    const { data: recentAgents, error: recentAgentsError } = await supabaseAdmin
+      .from('swarms_cloud_agents')
+      .select('*')
+      .eq('agent', agent)
+      .eq('user_id', user_id);
+
+    if (recentAgentsError) throw recentAgentsError;
+
+    if (recentAgents.length > 0) {
+      return res.status(400).json({ error: 'Agent already exists' });
+    }
+
+    const trimTags = tags
+      ?.split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .join(',');
+
+    const { error } = await supabaseAdmin.from('swarms_cloud_agents').insert([
+      {
+        name,
+        use_cases: useCases,
+        agent,
+        description,
+        user_id,
+        requirements,
+        language,
+        tags: trimTags,
         status: 'pending',
-      } as Partial<Agent>)
-      .select()
-      .single();
+      },
+    ]);
 
     if (error) throw error;
 
-    res.status(201).json(newAgent);
-  } catch (error) {
-    console.error('Error creating agent:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+    return res.status(200).json({ success: true });
+  } catch (e) {
+    console.error(e);
+    if (e instanceof z.ZodError) {
+      return res.status(400).json({ error: e.errors });
     }
-    res.status(500).json({ error: 'An unexpected error occurred' });
+    return res.status(500).json({ error: 'Could not add agent' });
   }
-}
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '1mb',
-    },
-  },
 };
+
+export default addAgent;
