@@ -4,9 +4,12 @@ import { redirect } from 'next/navigation';
 
 import dynamic from 'next/dynamic';
 
-const ToolPlayground = dynamic(() => import('../agent/components/agent-playground'), {
-  ssr: false,
-});
+const ToolPlayground = dynamic(
+  () => import('../agent/components/agent-playground'),
+  {
+    ssr: false,
+  },
+);
 
 const Tool = async ({ id }: { id: string }) => {
   const tool = await trpcApi.explorer.getToolById.query(id);
@@ -35,10 +38,7 @@ const Tool = async ({ id }: { id: string }) => {
       requirements={requirements}
       userId={tool.user_id ?? ''}
     >
-      <ToolPlayground
-        language={tool.language ?? ''}
-        agent={tool.tool ?? ''}
-      />
+      <ToolPlayground language={tool.language ?? ''} agent={tool.tool ?? ''} />
     </EntityComponent>
   );
 };

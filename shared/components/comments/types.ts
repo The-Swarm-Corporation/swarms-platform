@@ -24,7 +24,6 @@ export interface Comment extends CommentProps {
   swarms_cloud_comments_replies: Reply[] | any;
 }
 
-
 export interface CommentResponse {
   comments: Comment[];
   count: number;

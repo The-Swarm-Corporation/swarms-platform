@@ -78,7 +78,11 @@ const explorerOptionsRouter = router({
       try {
         const comment = await ctx.supabase
           .from('swarms_cloud_comments')
-          .update({ content, is_edited: true, updated_at: new Date() as unknown as string })
+          .update({
+            content,
+            is_edited: true,
+            updated_at: new Date() as unknown as string,
+          })
           .eq('user_id', user_id)
           .eq('id', commentId)
           .select('*');
@@ -398,7 +402,11 @@ const explorerOptionsRouter = router({
       try {
         const reply = await ctx.supabase
           .from('swarms_cloud_comments_replies')
-          .update({ content, is_edited: true, updated_at: new Date() as unknown as string })
+          .update({
+            content,
+            is_edited: true,
+            updated_at: new Date() as unknown as string,
+          })
           .eq('user_id', user_id)
           .eq('id', replyId)
           .select('*');

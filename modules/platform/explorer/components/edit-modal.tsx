@@ -77,7 +77,7 @@ function EditExplorerModal({
           />
         </div>
         <div className="flex flex-col gap-1">
-          <span className='capitalize'>{entityType}</span>
+          <span className="capitalize">{entityType}</span>
           <div className="relative">
             <textarea
               value={inputState.uniqueField}
@@ -180,86 +180,87 @@ function EditExplorerModal({
             </div>
           </div>
         </div>
-        {entityType === 'agent' || entityType === 'tool' && (
-          <>
-            <div className="flex flex-col gap-1">
-              <span>Language</span>
-              <Select
-                value={inputState.language}
-                onValueChange={(value) =>
-                  setInputState({ ...inputState, language: value })
-                }
-              >
-                <SelectTrigger className="w-1/2 cursor-pointer capitalize">
-                  <SelectValue placeholder={inputState.language} />
-                </SelectTrigger>
-                <SelectContent className="capitalize">
-                  {languageOptions.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
+        {entityType === 'agent' ||
+          (entityType === 'tool' && (
+            <>
+              <div className="flex flex-col gap-1">
+                <span>Language</span>
+                <Select
+                  value={inputState.language}
+                  onValueChange={(value) =>
+                    setInputState({ ...inputState, language: value })
+                  }
+                >
+                  <SelectTrigger className="w-1/2 cursor-pointer capitalize">
+                    <SelectValue placeholder={inputState.language} />
+                  </SelectTrigger>
+                  <SelectContent className="capitalize">
+                    {languageOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1 mt-2">
+                <span>Requirements</span>
+                <div className="flex flex-col gap-2">
+                  {inputState.requirements?.map((requirement, index) => (
+                    <div key={index} className="flex gap-4 items-center">
+                      <span className="w-10">📦 {index + 1}</span>
+                      <div className="w-full flex flex-col md:flex-row gap-1 py-2">
+                        <Input
+                          value={requirement.package}
+                          onChange={(value) =>
+                            setInputState((prev) => {
+                              const newRequirements = [
+                                ...(prev.requirements ?? []),
+                              ];
+                              newRequirements[index].package = value;
+                              return { ...prev, requirements: newRequirements };
+                            })
+                          }
+                          placeholder="Enter package name"
+                        />
+                        <Input
+                          value={requirement.installation}
+                          onChange={(value) =>
+                            setInputState((prev) => {
+                              const newRequirements = [
+                                ...(prev.requirements ?? []),
+                              ];
+                              newRequirements[index].installation = value;
+                              return { ...prev, requirements: newRequirements };
+                            })
+                          }
+                          placeholder="pip install package"
+                        />
+                      </div>
+                      <div className="w-4">
+                        {index > 0 && (
+                          <button
+                            onClick={() => removeRequirement(index)}
+                            className="text-red-500 text-sm"
+                          >
+                            ❌
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1 mt-2">
-              <span>Requirements</span>
-              <div className="flex flex-col gap-2">
-                {inputState.requirements?.map((requirement, index) => (
-                  <div key={index} className="flex gap-4 items-center">
-                    <span className="w-10">📦 {index + 1}</span>
-                    <div className="w-full flex flex-col md:flex-row gap-1 py-2">
-                      <Input
-                        value={requirement.package}
-                        onChange={(value) =>
-                          setInputState((prev) => {
-                            const newRequirements = [
-                              ...(prev.requirements ?? []),
-                            ];
-                            newRequirements[index].package = value;
-                            return { ...prev, requirements: newRequirements };
-                          })
-                        }
-                        placeholder="Enter package name"
-                      />
-                      <Input
-                        value={requirement.installation}
-                        onChange={(value) =>
-                          setInputState((prev) => {
-                            const newRequirements = [
-                              ...(prev.requirements ?? []),
-                            ];
-                            newRequirements[index].installation = value;
-                            return { ...prev, requirements: newRequirements };
-                          })
-                        }
-                        placeholder="pip install package"
-                      />
-                    </div>
-                    <div className="w-4">
-                      {index > 0 && (
-                        <button
-                          onClick={() => removeRequirement(index)}
-                          className="text-red-500 text-sm"
-                        >
-                          ❌
-                        </button>
-                      )}
-                    </div>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={addRequirement}
+                      className="text-blue-500 text-sm"
+                    >
+                      <Plus />
+                    </button>
                   </div>
-                ))}
-                <div className="flex justify-center">
-                  <button
-                    onClick={addRequirement}
-                    className="text-blue-500 text-sm"
-                  >
-                    <Plus />
-                  </button>
                 </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          ))}
       </div>
       <div className="flex justify-end gap-2">
         <Button disabled={isPending} onClick={submit}>

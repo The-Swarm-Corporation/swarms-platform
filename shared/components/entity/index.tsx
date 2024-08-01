@@ -1,10 +1,6 @@
 'use client';
 // Todo: Add the ability to hover over buttons and get copy from text, markdown, and more!
-import React, {
-  PropsWithChildren,
-  useState,
-  useTransition,
-} from 'react';
+import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -125,7 +121,9 @@ export default function EntityComponent({
   const entityTitle = title.toLowerCase();
 
   const showEditButton =
-    (entityTitle === 'agent' || entityTitle === 'prompt' || entityTitle === "tool") &&
+    (entityTitle === 'agent' ||
+      entityTitle === 'prompt' ||
+      entityTitle === 'tool') &&
     user &&
     user?.data?.id === userId;
 
@@ -331,9 +329,12 @@ export default function EntityComponent({
         />
       </div>
       {usecases && <UseCases usecases={usecases} />}
-      {title.toLowerCase() === 'agent' || title.toLowerCase() === 'tool' && (
-        <AgentRequirements requirements={requirements as RequirementProps[]} />
-      )}
+      {title.toLowerCase() === 'agent' ||
+        (title.toLowerCase() === 'tool' && (
+          <AgentRequirements
+            requirements={requirements as RequirementProps[]}
+          />
+        ))}
       {prompt && (
         <div className="relative my-10">
           <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar">
@@ -394,7 +395,7 @@ export default function EntityComponent({
         link={pathName ?? ''}
       />
 
-      <div className='mt-20'>
+      <div className="mt-20">
         {id && <CommentList modelId={id} title={title} />}
       </div>
     </div>

@@ -8,6 +8,7 @@ import { makeUrl } from '@/shared/utils/helpers';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+
 const mainRouter = router({
   getUser: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user;

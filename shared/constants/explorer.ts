@@ -7,7 +7,13 @@ export const explorerOptions = [
   { label: 'Swarms', value: 'swarms' },
 ];
 
-export const defaultOptions = ['agents', 'models', 'prompts', 'tools', 'swarms'];
+export const defaultOptions = [
+  'agents',
+  'models',
+  'prompts',
+  'tools',
+  'swarms',
+];
 
 export const languageOptions = [
   'python',

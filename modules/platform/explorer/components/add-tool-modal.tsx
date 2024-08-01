@@ -58,7 +58,7 @@ const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
 
   const debouncedCheckPrompt = useMemo(() => {
     const debouncedFn = debounce((value: string) => {
-        validateTool.mutateAsync(value);
+      validateTool.mutateAsync(value);
     }, 400);
     return debouncedFn;
   }, []);

@@ -125,7 +125,7 @@ export default function Comment({
               <EditReplyForm
                 key={reply.id}
                 open={openEditReply}
-                editableContent={reply?.content || ""}
+                editableContent={reply?.content || ''}
                 setOpen={setOpenEditReply}
                 replyId={reply.id}
                 refetchReplies={refetchComments}

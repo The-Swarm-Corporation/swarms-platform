@@ -24,9 +24,9 @@ export default function Swarms({
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold pb-2">Swarms</h1>
-        {/* <Button onClick={handleSwarmsModal} disabled={isLoading}>
+        <Button onClick={handleSwarmsModal} disabled={isLoading}>
           Add Swarm
-        </Button> */}
+        </Button>
       </div>
       {isLoading && <ExplorerSkeletonLoaders />}
       <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
