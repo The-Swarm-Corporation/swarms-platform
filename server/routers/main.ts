@@ -3,7 +3,7 @@ import {
   router,
   userProcedure,
 } from '@/app/api/trpc/trpc-router';
-import { PLATFORM, PUBLIC } from '@/shared/constants/links';
+import { PUBLIC } from '@/shared/constants/links';
 import { makeUrl } from '@/shared/utils/helpers';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
@@ -130,20 +130,6 @@ const mainRouter = router({
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
       const items: Record<string, { title: string; link: string }[]> = {};
-      // swarms
-      //TODO: Setup should be for *Accepted Swarms* only
-      const swarms = await ctx.supabase
-        .from('swarms_cloud_user_swarms')
-        .select('*')
-        .ilike('name', `%${input}%`);
-
-      if (swarms.data) {
-        items['Swarms'] = swarms.data.map((swarm) => ({
-          title: swarm.name || '',
-          link: makeUrl(PUBLIC.SWARM, { name: swarm.name }),
-        }));
-      }
-
       // models
       const models = await ctx.supabase
         .from('swarms_cloud_models')
@@ -157,16 +143,74 @@ const mainRouter = router({
         }));
       }
 
-      const agents = await ctx.supabase
-        .from('swarms_cloud_agents')
-        .select('*')
-        .ilike('name', `%${input}%`);
+      //reviews - get agents & prompts with best reviews
+      const reviews = await ctx.supabase
+        .from('swarms_cloud_reviews')
+        .select('model_id, model_type, rating')
+        .in('model_type', ['agent', 'prompt'])
+        .order('created_at', { ascending: false });
 
-      if (agents.data) {
-        items['Agents'] = agents.data.map((agent) => ({
-          title: agent.name || '',
-          link: makeUrl(PUBLIC.AGENT, { id: agent.id }),
-        }));
+      if (reviews.data) {
+        const modelRatings: Record<
+          string,
+          { modelRating: number; reviewLength: number }
+        > = {};
+
+        reviews.data?.forEach((review) => {
+          const key = `${review?.model_id}-${review?.model_type}`;
+          if (!modelRatings[key]) {
+            modelRatings[key] = { modelRating: 0, reviewLength: 0 };
+          }
+          modelRatings[key].modelRating += review?.rating || 0;
+          modelRatings[key].reviewLength += 1;
+        });
+
+        const averageRatings = Object.keys(modelRatings).map((key) => {
+          const lastHyphenIndex = key.lastIndexOf('-');
+          const id = key.substring(0, lastHyphenIndex);
+          const type = key.substring(lastHyphenIndex + 1);
+
+          const { modelRating, reviewLength } = modelRatings[key];
+
+          return {
+            id,
+            type,
+            modelRating: modelRating / reviewLength,
+          };
+        });
+
+        const topRatedModels = averageRatings
+          ?.sort((a, b) => b?.modelRating - a?.modelRating)
+          ?.slice(0, 10);
+
+        //Agents || Prompts
+        const modelDetails = await Promise.all(
+          topRatedModels.map((model) =>
+            ctx.supabase
+              .from(
+                model.type === 'agent'
+                  ? 'swarms_cloud_agents'
+                  : 'swarms_cloud_prompts',
+              )
+              .select('id, name, search_type')
+              .eq('id', model.id)
+              .single(),
+          ),
+        );
+
+        modelDetails.forEach((modelDetail) => {
+          if (modelDetail?.data) {
+            const type =
+              modelDetail.data?.search_type === 'agent' ? 'Agents' : 'Prompts';
+            if (!items[type]) items[type] = [];
+            items[type].push({
+              title: modelDetail.data?.name || '',
+              link: makeUrl(type === 'Agents' ? PUBLIC.AGENT : PUBLIC.PROMPT, {
+                id: modelDetail.data?.id,
+              }),
+            });
+          }
+        });
       }
 
       return items;

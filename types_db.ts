@@ -288,6 +288,7 @@ export type Database = {
           language: string | null
           name: string | null
           requirements: Json | null
+          search_type: string
           status: Database["public"]["Enums"]["user_agents_status"] | null
           tags: string | null
           use_cases: Json | null
@@ -302,6 +303,7 @@ export type Database = {
           language?: string | null
           name?: string | null
           requirements?: Json | null
+          search_type?: string
           status?: Database["public"]["Enums"]["user_agents_status"] | null
           tags?: string | null
           use_cases?: Json | null
@@ -316,6 +318,7 @@ export type Database = {
           language?: string | null
           name?: string | null
           requirements?: Json | null
+          search_type?: string
           status?: Database["public"]["Enums"]["user_agents_status"] | null
           tags?: string | null
           use_cases?: Json | null
@@ -889,6 +892,7 @@ export type Database = {
           image_url: string | null
           name: string | null
           prompt: string | null
+          search_type: string
           status: Database["public"]["Enums"]["user_prompts_status"] | null
           tags: string | null
           use_cases: Json | null
@@ -901,6 +905,7 @@ export type Database = {
           image_url?: string | null
           name?: string | null
           prompt?: string | null
+          search_type?: string
           status?: Database["public"]["Enums"]["user_prompts_status"] | null
           tags?: string | null
           use_cases?: Json | null
@@ -913,6 +918,7 @@ export type Database = {
           image_url?: string | null
           name?: string | null
           prompt?: string | null
+          search_type?: string
           status?: Database["public"]["Enums"]["user_prompts_status"] | null
           tags?: string | null
           use_cases?: Json | null
