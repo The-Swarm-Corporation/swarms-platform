@@ -43,7 +43,7 @@ export default function useModels() {
     setIsFetchingPrompts(true);
   }, [promptLimit]);
 
-  const debouncedSearch = useMemo(() => debounce(setSearch, 100), []);
+  const debouncedSearch = useMemo(() => debounce(setSearch, 0), []);
 
   const handleSearchChange = useCallback(
     (value: string) => {
