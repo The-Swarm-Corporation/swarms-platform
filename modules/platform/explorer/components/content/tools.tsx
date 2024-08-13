@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { Terminal } from 'lucide-react';
+import { Hammer } from 'lucide-react';
 import { PUBLIC } from '@/shared/constants/links';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
@@ -42,7 +42,7 @@ export default function Tools({
                     id={tool.id || ''}
                     title={tool.name || ''}
                     description={tool.description || ''}
-                    icon={<Terminal />}
+                    icon={<Hammer />}
                     className="w-full h-full"
                     link={makeUrl(PUBLIC.TOOL, { id: tool.id })}
                     userId={tool.user_id}
