@@ -30,10 +30,9 @@ function AuthModal() {
             <div className="flex justify-center pb-8 ">
               <Logo width={50} height={50} />
             </div>
-            <h2 className="text-lg md:text-2xl">Welcome Back</h2>
+            <h2 className="text-lg md:text-2xl">Welcome To The Agent Marketplace</h2>
             <p className="mt-2 text-sm md:text-lg text-gray-400">
-              Sign in or Sign Up to get access to enterprise-grade prompts,
-              agents, and swarms of agents!
+              Sign in or Sign Up to enter The Agent Marketplace.
             </p>
 
             <div className="flex flex-col w-full mt-8">

@@ -35,6 +35,8 @@ const Dashboard = () => {
     subscription.createSubscriptionPortal();
   }
 
+  
+
   return (
     <div className="w-full flex flex-col">
       <h1 className="text-3xl font-extrabold sm:text-4xl">Home</h1>

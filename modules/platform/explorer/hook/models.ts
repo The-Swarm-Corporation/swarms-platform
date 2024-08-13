@@ -4,6 +4,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { defaultOptions, explorerOptions } from '@/shared/constants/explorer';
 
 const promptLimit = 6;
+
 export default function useModels() {
   const [promptOffset, setPromptOffset] = useState(0);
   const [prompts, setPrompts] = useState<any[]>([]);
