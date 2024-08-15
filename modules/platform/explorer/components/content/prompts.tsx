@@ -45,7 +45,7 @@ export default function Prompts({
                   <InfoCard
                     id={prompt.id ?? ''}
                     title={prompt.name || ''}
-                    description={prompt.prompt || ''}
+                    description={prompt.description || ''}
                     icon={<NotepadText />}
                     className="w-full h-full"
                     link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
