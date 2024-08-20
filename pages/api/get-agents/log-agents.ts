@@ -40,11 +40,7 @@ const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const telemetryData = TelemetryDataSchema.parse(req.body);
 
-    const {
-      data,
-      swarms_api_key,
-      processing_time,
-    } = telemetryData;
+    const { data, swarms_api_key, processing_time } = telemetryData;
 
     const sourceIp =
       req.headers['x-forwarded-for'] || req.connection.remoteAddress || null;
@@ -57,7 +53,7 @@ const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
           data: data || null,
           swarms_api_key: swarms_api_key || null,
           source_ip: '',
-          status: "received",
+          status: 'received',
           processing_time: processing_time || null,
         },
       ]);
