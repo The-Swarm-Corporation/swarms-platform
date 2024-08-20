@@ -12,8 +12,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const TelemetryDataSchema = z.object({
     data: z.any().optional(),
     swarms_api_key: z.string().optional(),
-    status: z.string().optional(),
-    processing_time: z.string().optional(),
 });
 
 /**
@@ -40,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ error: 'Invalid data format', details: telemetryData.error.errors });
         }
 
-        const { data, swarms_api_key, status = 'received', processing_time } = telemetryData.data;
+        const { data, swarms_api_key } = telemetryData.data;
 
         const sourceIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         console.log('Source IP:', sourceIp);
@@ -55,8 +53,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             data: data || null,
                             swarms_api_key: swarms_api_key || null,
                             source_ip: sourceIp || null,
-                            status,
-                            processing_time: processing_time || null,
                         },
                     ]);
 
