@@ -67,13 +67,6 @@ const addPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
       const lastSubmit = lastSubmits[0];
       const lastSubmitTime = new Date(lastSubmit.created_at);
       const currentTime = new Date();
-      const diffMinutes =
-        (currentTime.getTime() - lastSubmitTime.getTime()) / (1000 * 60);
-      if (diffMinutes < 1) {
-        return res
-          .status(429)
-          .json({ error: 'You can only submit one prompt per minute' });
-      }
     }
 
     //check for existing prompt

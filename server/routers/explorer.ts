@@ -206,9 +206,6 @@ const explorerRouter = router({
         const currentTime = new Date();
         const diff = currentTime.getTime() - lastSubmitTime.getTime();
         const diffMinutes = diff / (1000 * 60); // 1 minute
-        if (diffMinutes < 1) {
-          throw 'You can only submit one prompt per minute';
-        }
       }
 
       try {
