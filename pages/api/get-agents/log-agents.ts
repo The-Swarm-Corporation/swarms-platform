@@ -5,8 +5,7 @@ import { z } from 'zod';
 
 // Define a schema using Zod for validation
 const TelemetryDataSchema = z.object({
-  data: z.any().optional(),
-  swarms_api_key: z.string().optional(),
+  data: z.any(), // We only validate the data field as required
 });
 
 const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -16,10 +15,18 @@ const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    const apiKey = req.headers.authorization?.split(' ')[1];
+    const authorizationHeader = req.headers.authorization;
+    if (!authorizationHeader) {
+      return res.status(401).json({
+        error: 'Authorization header is missing',
+        link: 'https://swarms.world/platform/api-keys',
+      });
+    }
+
+    const apiKey = authorizationHeader.split(' ')[1];
     if (!apiKey) {
       return res.status(401).json({
-        error: 'API Key is missing, go to link to create one',
+        error: 'API Key is missing in Authorization header',
         link: 'https://swarms.world/platform/api-keys',
       });
     }
@@ -39,7 +46,7 @@ const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const telemetryData = TelemetryDataSchema.parse(req.body);
 
-    const { data, swarms_api_key, processing_time } = telemetryData;
+    const { data } = telemetryData;
 
     const sourceIp =
       req.headers['x-forwarded-for'] || req.connection.remoteAddress || null;
@@ -50,7 +57,7 @@ const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
       .insert([
         {
           data: data || null,
-          swarms_api_key: swarms_api_key || null,
+          swarms_api_key: apiKey, // Use the API key from the Authorization header
         },
       ]);
 
