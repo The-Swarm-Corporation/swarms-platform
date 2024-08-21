@@ -7,7 +7,6 @@ import { z } from 'zod';
 const TelemetryDataSchema = z.object({
   data: z.any().optional(),
   swarms_api_key: z.string().optional(),
-  processing_time: z.string().optional(),
 });
 
 const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -52,9 +51,6 @@ const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
         {
           data: data || null,
           swarms_api_key: swarms_api_key || null,
-          source_ip: '',
-          status: 'received',
-          processing_time: processing_time || null,
         },
       ]);
 
