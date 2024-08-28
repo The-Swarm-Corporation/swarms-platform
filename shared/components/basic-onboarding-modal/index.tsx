@@ -311,7 +311,7 @@ const BasicOnboardingModal = () => {
                 <Button>Book a call</Button>
               </Link>
               <Link
-                href="https://swarms.world/platform/explorer"
+                href="https://swarms.world/"
                 target="_blank"
               >
                 <Button>Explore Models & Swarms</Button>
