@@ -42,13 +42,12 @@ export default function NavbarSearch() {
       });
   }, [search]);
 
-const debouncedSearch = useMemo(() => {
-  const debouncedFn = debounce((value: string) => {
-    setSearch(value);
-  }, 300); // Set delay to 300ms or adjust as needed
-  return debouncedFn;
-}, []);
-
+  const debouncedSearch = useMemo(() => {
+    const debouncedFn = debounce((value: string) => {
+      setSearch(value);
+    }, 0);
+    return debouncedFn;
+  }, []);
 
   const handleSearchChange = useCallback(
     (value: string) => {
