@@ -1,12 +1,6 @@
 'use client';
 import Link from 'next/link';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import Input from '@/shared/components/ui/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
@@ -26,52 +20,50 @@ export default function NavbarSearch() {
   const globalMutation = trpc.main.globalSearch.useMutation();
   const { isOn, setOn, setOff } = useToggle();
 
-  useOnClickOutside(searchRef, setOff);
-
-  useEffect(() => {
-    globalMutation
-      .mutateAsync(search)
-      .then((res) => {
-        setData(res);
-      })
-      .catch((err: any) => {
-        console.log(err);
-        toast.toast({
-          description: 'Something went wrong',
-        });
-      });
-  }, [search]);
-
-  const debouncedSearch = useMemo(() => {
-    const debouncedFn = debounce((value: string) => {
+  // Prevents API calls for empty or short search terms
+  const handleSearchChange = useCallback((value: string) => {
+    if (value.length < 3) {
+      // Clear the search results if the search term is too short
       setSearch(value);
-    }, 0);
-    return debouncedFn;
+      setData({});
+      return;
+    }
+    debouncedSearch(value);
   }, []);
 
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      debouncedSearch(value);
-    },
-    [debouncedSearch],
-  );
+  const debouncedSearch = useMemo(() => {
+    return debounce((value: string) => {
+      setSearch(value);
+      globalMutation
+        .mutateAsync(value)
+        .then((res) => {
+          setData(res);
+        })
+        .catch((err: any) => {
+          console.log(err);
+          toast.toast({
+            description: 'Something went wrong',
+          });
+        });
+    }, 300); // Debounce with 300ms delay
+  }, []);
 
-  const allData = useMemo(() => {
-    return Object.values(data).flat();
-  }, [data]);
+  // Combined allData calculation in useMemo to minimize re-renders
+  const allData = useMemo(() => Object.values(data).flat(), [data]);
+
+  // Avoid unnecessary useEffect by handling everything in debounced search
+  useOnClickOutside(searchRef, setOff);
 
   return (
     <div ref={searchRef} className="w-full relative ml-10 mt-2 sm:mt-0 lg:ml-0">
-      <label hidden htmlFor="search">
-        Search
-      </label>
+      <label hidden htmlFor="search">Search</label>
       <div className="relative">
         <Input
           placeholder="Search swarms and more..."
           id="search"
           aria-label="Search"
           onFocus={setOn}
-          onChange={handleSearchChange}
+          onChange={(e) => handleSearchChange(e.target.value)}
           value={search}
           className="w-full disabled:cursor-not-allowed disabled:opacity-50 text-white max-sm:text-xs pr-11"
         />
@@ -85,6 +77,7 @@ export default function NavbarSearch() {
         </div>
       </div>
 
+      {/* Render search results */}
       <div
         className={cn(
           'absolute z-40 w-full h-[calc(100vh - 100px)] invisible',
@@ -97,9 +90,8 @@ export default function NavbarSearch() {
             Object.keys(data).map(
               (key) =>
                 data[key].length > 0 && (
-                  <>
+                  <React.Fragment key={key}>
                     <li
-                      key={key}
                       className="p-2 py-5 h-7 flex mt-2 mb-3 first:mt-0 items-center text-base text-primary border-b-slate-900 border-b font-bold bg-black/90 rounded-md shadow-4xl"
                     >
                       {key}
@@ -118,7 +110,7 @@ export default function NavbarSearch() {
                         )}
                       </li>
                     ))}
-                  </>
+                  </React.Fragment>
                 ),
             )
           ) : (
