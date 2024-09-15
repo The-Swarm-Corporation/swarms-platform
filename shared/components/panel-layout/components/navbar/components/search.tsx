@@ -17,41 +17,49 @@ export default function NavbarSearch() {
   const [data, setData] = useState<
     Record<string, { title: string; link: string }[]>
   >({});
+  const [loading, setLoading] = useState(false);
   const globalMutation = trpc.main.globalSearch.useMutation();
   const { isOn, setOn, setOff } = useToggle();
 
-  // Prevents API calls for empty or short search terms
-  const handleSearchChange = useCallback((value: string) => {
-    if (value.length < 3) {
-      // Clear the search results if the search term is too short
-      setSearch(value);
-      setData({});
-      return;
-    }
-    debouncedSearch(value);
-  }, []);
-
+  // Ensure we don't fire API requests for empty or too-short search terms
   const debouncedSearch = useMemo(() => {
     return debounce((value: string) => {
-      setSearch(value);
+      if (value.length < 3) {
+        // Clear the search results and stop the spinner for short input
+        setData({});
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true); // Set loading spinner when starting the request
       globalMutation
         .mutateAsync(value)
         .then((res) => {
           setData(res);
+          setLoading(false); // Stop spinner when the data is returned
         })
         .catch((err: any) => {
           console.log(err);
+          setLoading(false);
           toast.toast({
             description: 'Something went wrong',
           });
         });
-    }, 300); // Debounce with 300ms delay
-  }, []);
+    }, 300); // Adjust debounce delay
+  }, [globalMutation, toast]);
 
-  // Combined allData calculation in useMemo to minimize re-renders
+  // Handle search input change and trigger the debounced function
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearch(value); // Always update the input state
+      debouncedSearch(value); // Trigger the debounced search logic
+    },
+    [debouncedSearch],
+  );
+
   const allData = useMemo(() => Object.values(data).flat(), [data]);
 
-  // Avoid unnecessary useEffect by handling everything in debounced search
   useOnClickOutside(searchRef, setOff);
 
   return (
@@ -63,14 +71,14 @@ export default function NavbarSearch() {
           id="search"
           aria-label="Search"
           onFocus={setOn}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={handleSearchChange}
           value={search}
           className="w-full disabled:cursor-not-allowed disabled:opacity-50 text-white max-sm:text-xs pr-11"
         />
         <div
           className={cn(
             'absolute z-50 top-2/4 -translate-y-2/4 right-3 invisible text-white',
-            globalMutation.isPending && 'visible',
+            loading && 'visible', // Only show spinner when loading
           )}
         >
           <LoadingSpinner />
@@ -81,8 +89,8 @@ export default function NavbarSearch() {
       <div
         className={cn(
           'absolute z-40 w-full h-[calc(100vh - 100px)] invisible',
-          isOn && 'visible',
-          globalMutation.isPending && 'invisible',
+          isOn && 'visible', // Make visible when focused
+          loading && 'invisible', // Hide the results while loading
         )}
       >
         <ul className="py-2 px-3 mt-1 h-[60vh] md:h-[65vh] no-scrollbar w-full overflow-y-auto bg-secondary text-foreground border dark:bg-black dark:text-white rounded-md shadow-lg">
@@ -114,7 +122,7 @@ export default function NavbarSearch() {
                 ),
             )
           ) : (
-            <p className="text-center py-4">No search result found</p>
+            !loading && <p className="text-center py-4">No search result found</p>
           )}
         </ul>
       </div>
