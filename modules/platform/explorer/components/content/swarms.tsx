@@ -8,6 +8,7 @@ import { makeUrl } from '@/shared/utils/helpers';
 import { PUBLIC } from '@/shared/constants/links';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
+// import AddNewSwarm  from '@/shared/components/spread_sheet_swarm/add_new_swarm_modal';
 
 // TODO: Add types
 export default function Swarms({

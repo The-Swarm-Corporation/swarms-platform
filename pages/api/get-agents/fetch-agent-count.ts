@@ -20,7 +20,9 @@ const getAgentCount = async (req: NextApiRequest, res: NextApiResponse) => {
     const guard = new AuthApiGuard({ apiKey });
     const isAuthenticated = await guard.isAuthenticated();
     if (isAuthenticated.status !== 200) {
-      return res.status(isAuthenticated.status).json({ error: isAuthenticated.message });
+      return res
+        .status(isAuthenticated.status)
+        .json({ error: isAuthenticated.message });
     }
 
     const user_id = guard.getUserId();

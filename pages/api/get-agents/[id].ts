@@ -11,12 +11,10 @@ const getAgentById = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const apiKey = req.headers.authorization?.split(' ')[1];
     if (!apiKey) {
-      return res
-        .status(401)
-        .json({
-          error: 'API Key is missing, go to link to create one',
-          link: 'https://swarms.world/platform/api-keys',
-        });
+      return res.status(401).json({
+        error: 'API Key is missing, go to link to create one',
+        link: 'https://swarms.world/platform/api-keys',
+      });
     }
 
     const guard = new AuthApiGuard({ apiKey });

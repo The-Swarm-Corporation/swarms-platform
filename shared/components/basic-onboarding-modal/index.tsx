@@ -310,10 +310,7 @@ const BasicOnboardingModal = () => {
               <Link href={SWARM_CALENDLY} target="_blank">
                 <Button>Book a call</Button>
               </Link>
-              <Link
-                href="https://swarms.world/"
-                target="_blank"
-              >
+              <Link href="https://swarms.world/" target="_blank">
                 <Button>Explore Models & Swarms</Button>
               </Link>
               <Link
