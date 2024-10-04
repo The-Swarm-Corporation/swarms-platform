@@ -25,6 +25,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@mermaid-js/mermaid-cli": "^11.2.0",
     "@octokit/rest": "^20.1.0",
     "@radix-ui/react-collapsible": "^1.0.3",
     "@radix-ui/react-dialog": "^1.0.5",
@@ -63,6 +64,7 @@
     "highlight.js": "^11.9.0",
     "install": "^0.13.0",
     "lucide-react": "^0.408.0",
+    "mermaid": "^11.3.0",
     "next": "latest",
     "next-themes": "^0.2.1",
     "node-cache": "latest",
