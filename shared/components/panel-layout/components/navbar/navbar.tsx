@@ -1,7 +1,7 @@
 'use client';
 
-import { LogIn } from 'lucide-react';
-import { FormEvent, useRef, useState } from 'react';
+import { Github, LogIn } from 'lucide-react';
+import { FormEvent, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Logo from '@/shared/components/icons/Logo';
 import { cn } from '@/shared/utils/cn';
@@ -15,6 +15,7 @@ import NavItem from '../item';
 import NavbarSearch from './components/search';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import Avatar from '@/shared/components/avatar';
+import { NAVIGATION, SWARMS_GITHUB } from '@/shared/constants/links';
 
 export default function PlatformNavBar({ user }: { user: User | null }) {
   const dropdownRef = useRef(null);
@@ -24,6 +25,28 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
   const username = trpc.main.getUser.useQuery().data?.username;
   const profileName = username ? username : user?.user_metadata?.email;
   const [isLoading, setIsLoading] = useState(false);
+
+  const isSwarmsPath = path === '/swarms';
+
+  const FILTERED_NAV_LINKS = useMemo(
+    () =>
+      !isSwarmsPath
+        ? NAV_LINKS.external
+        : NAV_LINKS.external
+            ?.filter(
+              (item) =>
+                item.link !== NAVIGATION.PRICING &&
+                item.link !== NAVIGATION.GET_DEMO,
+            )
+            .concat([
+              {
+                icon: <Github />,
+                title: 'Github',
+                link: SWARMS_GITHUB,
+              },
+            ]),
+    [isSwarmsPath],
+  );
 
   async function handleSignOut(e: FormEvent<HTMLFormElement>) {
     setIsLoading(true);
@@ -49,7 +72,7 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
         </div>
         <div className="flex items-center space-x-4">
           <ul className="p-0 hidden items-center sm:flex">
-            {NAV_LINKS.external?.map((item) => (
+            {FILTERED_NAV_LINKS?.map((item) => (
               <li key={item.title}>
                 <NavItem
                   {...item}

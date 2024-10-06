@@ -1,5 +1,5 @@
 import { cn } from '@/shared/utils/cn';
-import { X, AlignLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { X, AlignLeft, ChevronRight, ChevronDown, Github } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
 import Logo from '@/shared/components/icons/Logo';
@@ -17,6 +17,7 @@ import {
   CollapsibleTrigger,
 } from '@/shared/components/ui/collapsible';
 import NavItem from '../../item';
+import { NAVIGATION, SWARMS_GITHUB } from '@/shared/constants/links';
 
 const SidebarMobile = () => {
   const path = usePathname();
@@ -24,6 +25,26 @@ const SidebarMobile = () => {
 
   const handleMenuClick = (menu: NavMenuPropsKeys) => {
     setOpenMenu((prevMenu) => (prevMenu === menu ? '' : menu));
+  };
+
+  const isSwarmsPath = path === '/swarms';
+
+  const getSideBarMenu = (menu: NavMenuPropsKeys) => {
+    return menu === 'base' && isSwarmsPath
+      ? SIDE_BAR_MENU?.[menu]
+          ?.filter(
+            (item) =>
+              item.link !== NAVIGATION.PRICING &&
+              item.link !== NAVIGATION.GET_DEMO,
+          )
+          .concat([
+            {
+              icon: <Github />,
+              title: 'Github',
+              link: SWARMS_GITHUB,
+            },
+          ])
+      : SIDE_BAR_MENU?.[menu];
   };
 
   return (
@@ -63,7 +84,7 @@ const SidebarMobile = () => {
                     {openMenu === menu ? <ChevronDown /> : <ChevronRight />}
                   </CollapsibleTrigger>
                   <CollapsibleContent className="flex flex-col">
-                    {SIDE_BAR_MENU?.[menu]?.map((item, index) => (
+                    {getSideBarMenu(menu)?.map((item, index) => (
                       <div className="flex flex-col gap-2" key={index}>
                         <NavItem
                           {...item}
@@ -79,6 +100,7 @@ const SidebarMobile = () => {
                             {item.items?.map((subItem) => (
                               <NavItem
                                 {...subItem}
+                                key={subItem.title}
                                 className={cn(
                                   'pl-10  py-1  hover:bg-primary hover:text-white rounded-md',
                                   subItem.link === path &&
