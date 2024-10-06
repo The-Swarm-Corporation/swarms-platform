@@ -11,7 +11,7 @@ import {
 import useCardManager from './hooks/hook';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import Modal from '@/shared/components/modal';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { Trash } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';

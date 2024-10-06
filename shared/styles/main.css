@@ -120,6 +120,10 @@
     @apply w-[10%] my-2 border-foreground border-[1.5px];
   }
 
+  .mermaid {
+    @apply flex justify-center p-5 rounded-lg xl:my-5;
+  }
+
   @keyframes slideDown {
     from {
       max-height: 0;

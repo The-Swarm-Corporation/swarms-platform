@@ -1,5 +1,6 @@
 'use client';
 
+import React from "react";
 import Link from 'next/link';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
@@ -19,6 +20,9 @@ interface NavlinksProps {
 
 export default function Navlinks({ user }: NavlinksProps) {
   const router = getRedirectMethod() === 'client' ? useRouter() : null;
+  const pathname = usePathname();
+
+  const isSwarmsPath = pathname === '/swarms';
 
   return (
     <div className="relative flex flex-row justify-between py-2 align-center md:py-6 px-4">
@@ -28,15 +32,19 @@ export default function Navlinks({ user }: NavlinksProps) {
           <Logo />
         </div>
         <nav className="flex ml-2 md:ml-6 gap-3 max-md:hidden">
-          <Link href="/pricing" className={s.link}>
-            Pricing
-          </Link>
+          {!isSwarmsPath && (
+            <Link href="/pricing" className={s.link}>
+              Pricing
+            </Link>
+          )}
           <Link href={SWARMS_GITHUB} className={cn(s.link, 'hidden md:inline')}>
             GitHub
           </Link>
-          <Link href={DISCORD} className={cn(s.link, 'hidden md:inline')}>
-            Community
-          </Link>
+          {!isSwarmsPath && (
+            <Link href={DISCORD} className={cn(s.link, 'hidden md:inline')}>
+              Community
+            </Link>
+          )}
           <Link href="https://docs.swarms.world/en/latest/" className={s.link}>
             Docs
           </Link>
@@ -66,21 +74,25 @@ export default function Navlinks({ user }: NavlinksProps) {
                 <DrawerClose className="absolute top-4 right-4">
                   <X />
                 </DrawerClose>
-                <Link href="/pricing" className={s.link}>
-                  Pricing
-                </Link>
+                {!isSwarmsPath && (
+                  <Link href="/pricing" className={s.link}>
+                    Pricing
+                  </Link>
+                )}
                 <Link href={SWARMS_GITHUB} className={s.link}>
                   GitHub
                 </Link>
                 <Link href={DISCORD} className={s.link}>
                   Community
                 </Link>
-                <Link
-                  href="https://docs.swarms.world/en/latest/"
-                  className={s.link}
-                >
-                  Docs
-                </Link>
+                {!isSwarmsPath && (
+                  <Link
+                    href="https://docs.swarms.world/en/latest/"
+                    className={s.link}
+                  >
+                    Docs
+                  </Link>
+                )}
                 {user && (
                   <Link href={PLATFORM.DASHBOARD} className={s.link}>
                     Dashboard

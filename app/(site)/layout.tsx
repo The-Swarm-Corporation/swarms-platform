@@ -1,3 +1,5 @@
+import React from "react";
+
 import { Metadata, Viewport } from 'next';
 import Footer from '@/shared/components/ui/Footer';
 import Navbar from '@/shared/components/ui/Navbar';
@@ -30,10 +32,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: meta.title,
     description: meta.description,
     referrer: 'origin-when-cross-origin',
-    // keywords: ['Vercel', 'Supabase', 'Next.js', 'Stripe', 'Subscription'],
-    // authors: [{ name: 'Vercel', url: 'https://vercel.com/' }],
-    // creator: 'Vercel',
-    // publisher: 'Vercel',
     robots: meta.robots,
     icons: { icon: meta.favicon },
     metadataBase: new URL(meta.url),
@@ -47,8 +45,6 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      // site: '@Vercel',
-      // creator: '@Vercel',
       title: meta.title,
       description: meta.description,
       images: [meta.cardImage],

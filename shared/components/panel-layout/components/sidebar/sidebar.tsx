@@ -78,6 +78,7 @@ const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
                         {item.items?.map((subItem) => (
                           <NavItem
                             {...subItem}
+                            key={subItem.title}
                             className={cn(
                               'pl-10  py-1  hover:bg-primary hover:text-white rounded-md',
                               subItem.link === path &&
