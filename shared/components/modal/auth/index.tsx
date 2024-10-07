@@ -9,7 +9,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
 
-const pathnames = ['/signin', '/signup', '/pricing', '/prompt/', '/tool/', '/swarms'];
+const pathnames = [
+  '/signin',
+  '/signup',
+  '/pricing',
+  '/prompt/',
+  '/tool/',
+  '/swarms',
+];
 function AuthModal() {
   const { isAuthModalOpen, setIsAuthModalOpen } = useAuthContext();
   const router = useRouter();
@@ -23,8 +30,8 @@ function AuthModal() {
   }
 
   return (
-    <Dialog open={isAuthModalOpen} onOpenChange={setIsAuthModalOpen}>
-      <DialogContent className={cn('max-w-sm', isAuthModalOpen && '!block')}>
+    <Dialog open={isAuthModalOpen} onOpenChange={() => null}>
+      <DialogContent hideCloseButton className={cn('max-w-sm', isAuthModalOpen && '!block')}>
         <div className="flex justify-center height-screen-helper">
           <div className="flex flex-col justify-between p-3 m-auto w-80 text-center ">
             <div className="flex justify-center pb-8 ">
