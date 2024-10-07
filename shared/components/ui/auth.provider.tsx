@@ -30,13 +30,9 @@ export const AuthProvider = ({ children, user }: AuthProviderProps) => {
   const closeModal = () => setIsAuthModalOpen(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!user && !isAuthModalOpen) {
-        openModal();
-      }
-    }, 10000);
-
-    return () => clearInterval(interval);
+    if (!user) {
+      openModal();
+    }
   }, [user]);
 
   return (

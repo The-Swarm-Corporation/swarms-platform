@@ -1,6 +1,8 @@
 import React from 'react';
 import { Button } from '@/shared/components/ui/Button';
 import { Github, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
+import { DISCORD, SWARMS_GITHUB } from '@/shared/constants/links';
 
 export default function SwarmsHero() {
   return (
@@ -14,12 +16,16 @@ export default function SwarmsHero() {
         real-world activities.
       </p>
       <div className="flex justify-center space-x-4">
-        <Button>
-          <Github className="mr-2 h-4 w-4" /> Star on GitHub
-        </Button>
+        <Link href={SWARMS_GITHUB}>
+          <Button>
+            <Github className="mr-2 h-4 w-4" /> Star on GitHub
+          </Button>
+        </Link>
+        <Link href={DISCORD}>
         <Button variant="outline">
           <MessageCircle className="mr-2 h-4 w-4" /> Join Discord
         </Button>
+        </Link>
       </div>
     </section>
   );
