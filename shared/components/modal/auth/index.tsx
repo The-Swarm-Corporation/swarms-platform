@@ -18,7 +18,7 @@ const pathnames = [
   '/swarms',
 ];
 function AuthModal() {
-  const { isAuthModalOpen, setIsAuthModalOpen } = useAuthContext();
+  const { isAuthModalOpen } = useAuthContext();
   const router = useRouter();
   const pathname = usePathname();
 

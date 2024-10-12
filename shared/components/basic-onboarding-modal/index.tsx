@@ -17,8 +17,37 @@ import Link from 'next/link';
 import { SWARM_CALENDLY } from '@/shared/constants/links';
 import { ArrowLeft } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
+import axios from 'axios';
+import { useAuthContext } from '../ui/auth.provider';
+
+async function handleUpdateTwenty(
+  userId: string,
+  jobTitle: string,
+  companyName: string,
+  howDidYouFindUs: string,
+) {
+  if (!userId) return;
+
+  const response = await axios.post(
+    '/api/update-twenty-user',
+    {
+      job: jobTitle || '',
+      company: companyName || '',
+      user_id: userId,
+      referral: howDidYouFindUs || '',
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  return response.data;
+}
 
 const BasicOnboardingModal = () => {
+  const { user } = useAuthContext();
   const helper = useOnboardingHelper();
   const [showModal, setShowModal] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -69,19 +98,26 @@ const BasicOnboardingModal = () => {
         });
         return;
       }
-      await helper.updateOnboarding
-        .mutateAsync({
-          full_name: fullName,
-          company_name: companyName,
-          about_company: aboutCompany,
-          job_title: jobTitle,
-          referral: howDidYouFindUs,
-          signup_reason: whyDidYouSignUp,
-          basic_onboarding_completed: true,
-        })
-        .then(() => {
-          setStep('done');
-        });
+
+      const updateTwentyPromise = handleUpdateTwenty(
+        user?.id || '',
+        jobTitle,
+        companyName,
+        howDidYouFindUs,
+      );
+      const updateOnboardingPromise = helper.updateOnboarding.mutateAsync({
+        full_name: fullName,
+        company_name: companyName,
+        about_company: aboutCompany,
+        job_title: jobTitle,
+        referral: howDidYouFindUs,
+        signup_reason: whyDidYouSignUp,
+        basic_onboarding_completed: true,
+      });
+
+      await Promise.all([updateTwentyPromise, updateOnboardingPromise]);
+
+      setStep('done');
     }
   };
   const closeAction = () => {
@@ -310,7 +346,10 @@ const BasicOnboardingModal = () => {
               <Link href={SWARM_CALENDLY} target="_blank">
                 <Button>Book a call</Button>
               </Link>
-              <Link href="https://swarms.world/" target="_blank">
+              <Link
+                href="https://swarms.world/platform/explorer"
+                target="_blank"
+              >
                 <Button>Explore Models & Swarms</Button>
               </Link>
               <Link

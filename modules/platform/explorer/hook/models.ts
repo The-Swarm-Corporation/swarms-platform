@@ -2,13 +2,19 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { defaultOptions, explorerOptions } from '@/shared/constants/explorer';
+import { useSearchParams } from 'next/navigation';
 
 const promptLimit = 6;
 
 export default function useModels() {
+  const searchParams = useSearchParams();
+  const categoryQuery = searchParams?.get('category');
+  const searchQuery = searchParams?.get('search');
+
   const [promptOffset, setPromptOffset] = useState(0);
   const [prompts, setPrompts] = useState<any[]>([]);
   const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
+  const [search, setSearch] = useState('');
 
   const modelsQuery = trpc.explorer.getModels.useQuery();
   const toolsQuery = trpc.explorer.getAllTools.useQuery();
@@ -16,6 +22,7 @@ export default function useModels() {
   const promptsQuery = trpc.explorer.getAllPrompts.useQuery({
     limit: promptLimit,
     offset: promptOffset,
+    search: searchQuery || search,
   });
   const agentsQuery = trpc.explorer.getAllAgents.useQuery();
   const pendingSwarms = trpc.explorer.getMyPendingSwarms.useQuery();
@@ -27,14 +34,24 @@ export default function useModels() {
     agentsQuery.isLoading;
 
   const [options, setOptions] = useState(defaultOptions);
-  const [search, setSearch] = useState('');
   const [filterOption, setFilterOption] = useState<string>(
     explorerOptions[0].value,
   );
 
   useEffect(() => {
+    if (searchQuery && categoryQuery) {
+      setSearch(searchQuery);
+      setFilterOption(categoryQuery);
+    }
+  }, [searchQuery, categoryQuery]);
+
+  useEffect(() => {
     if (promptsQuery.data?.data) {
-      setPrompts((prev) => [...prev, ...promptsQuery.data?.data]);
+      if (promptOffset === 0) {
+        setPrompts(promptsQuery.data?.data);
+      } else {
+        setPrompts((prev) => [...prev, ...promptsQuery.data?.data]);
+      }
       setIsFetchingPrompts(false);
     }
   }, [promptsQuery.data?.data, promptOffset]);
@@ -42,12 +59,13 @@ export default function useModels() {
   const loadMorePrompts = useCallback(() => {
     setPromptOffset((prevOffset) => prevOffset + promptLimit);
     setIsFetchingPrompts(true);
-  }, [promptLimit]);
+  }, []);
 
-  const debouncedSearch = useMemo(() => debounce(setSearch, 100), []);
+  const debouncedSearch = useMemo(() => debounce(setSearch, 0), []);
 
   const handleSearchChange = useCallback(
     (value: string) => {
+      setPromptOffset(0);
       debouncedSearch(value);
     },
     [debouncedSearch],

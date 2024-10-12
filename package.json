@@ -53,6 +53,7 @@
     "@types/uuid": "^9.0.8",
     "@uiw/react-markdown-preview": "^5.1.1",
     "@vercel/analytics": "^1.2.2",
+    "axios": "^1.7.7",
     "canvas-confetti": "^1.9.2",
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.5.1",

@@ -282,15 +282,25 @@ const explorerRouter = router({
       z.object({
         limit: z.number().default(6),
         offset: z.number().default(1),
+        search: z.string().optional(), // Add search as an optional parameter
       }),
     )
     .query(async ({ ctx, input }) => {
-      const { limit, offset } = input;
-      const prompts = await ctx.supabase
+      const { limit, offset, search } = input;
+
+      let query = ctx.supabase
         .from('swarms_cloud_prompts')
         .select('*')
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+        .order('created_at', { ascending: false });
+
+      // If a search query is provided, filter based on name or prompt fields
+      if (search) {
+        query = query
+          .ilike('name', `%${search}%`)
+          .or(`prompt.ilike.%${search}%`);
+      }
+
+      const prompts = await query.range(offset, offset + limit - 1);
 
       if (prompts.error) {
         console.error(prompts.error);
@@ -535,6 +545,16 @@ const explorerRouter = router({
         .eq('id', input)
         .single();
       return agents.data;
+    }),
+  getAgentsByUserId: userProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      const agents = await ctx.supabase
+        .from('swarms_cloud_agents')
+        .select('*')
+        .eq('user_id', input)
+        .order('created_at', { ascending: false });
+      return agents;
     }),
   //tools
   validateTool: userProcedure

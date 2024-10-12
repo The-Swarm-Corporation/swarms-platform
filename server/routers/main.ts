@@ -126,95 +126,128 @@ const mainRouter = router({
       }
       return true;
     }),
-  globalSearch: publicProcedure
-    .input(z.string())
-    .mutation(async ({ ctx, input }) => {
-      const items: Record<string, { title: string; link: string }[]> = {};
-      // models
-      const models = await ctx.supabase
-        .from('swarms_cloud_models')
-        .select('*')
-        .ilike('name', `%${input}%`);
+  globalSearch: publicProcedure.mutation(async ({ ctx }) => {
+    const items: Record<
+      string,
+      { title: string; link: string; type: string }[]
+    > = {
+      Models: [],
+      Agents: [],
+      Prompts: [],
+      Tools: [],
+    };
 
-      if (models.data) {
-        items['Models'] = models.data.map((model) => ({
+    // Helper function to add items to the result
+    const addItems = (
+      category: string,
+      newItems: { title: string; link: string; type: string }[],
+    ) => {
+      items[category] = newItems;
+    };
+
+    // Fetch models
+    const models = await ctx.supabase
+      .from('swarms_cloud_models')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (models.data) {
+      addItems(
+        'Models',
+        models.data.map((model) => ({
           title: model.name || '',
           link: makeUrl(PUBLIC.MODEL, { slug: model.slug }),
-        }));
+          type: 'model',
+        })),
+      );
+    }
+
+    // Fetch agents
+    const agents = await ctx.supabase
+      .from('swarms_cloud_agents')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (agents.data) {
+      addItems(
+        'Agents',
+        agents.data.map((agent) => ({
+          title: agent.name || '',
+          link: makeUrl(PUBLIC.AGENT, { id: agent.id }),
+          type: 'agent',
+        })),
+      );
+    }
+
+    // Fetch prompts
+    const prompts = await ctx.supabase
+      .from('swarms_cloud_prompts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (prompts.data) {
+      addItems(
+        'Prompts',
+        prompts.data.map((prompt) => ({
+          title: prompt.name || '',
+          link: makeUrl(PUBLIC.PROMPT, { id: prompt.id }),
+          type: 'prompt',
+        })),
+      );
+    }
+
+    // Fetch tools
+    const tools = await ctx.supabase
+      .from('swarms_cloud_tools')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (tools.data) {
+      addItems(
+        'Tools',
+        tools.data.map((tool) => ({
+          title: tool.name || '',
+          link: makeUrl(PUBLIC.TOOL, { id: tool.id }),
+          type: 'tool',
+        })),
+      );
+    }
+
+    // Get reviews for sorting
+    const reviews = await ctx.supabase
+      .from('swarms_cloud_reviews')
+      .select('model_id, model_type, rating')
+      .order('created_at', { ascending: false });
+
+    if (reviews.data) {
+      const modelRatings: Record<
+        string,
+        { modelRating: number; reviewLength: number }
+      > = {};
+
+      reviews.data.forEach((review) => {
+        const key = `${review?.model_id}-${review?.model_type}`;
+        if (!modelRatings[key]) {
+          modelRatings[key] = { modelRating: 0, reviewLength: 0 };
+        }
+        modelRatings[key].modelRating += review?.rating || 0;
+        modelRatings[key].reviewLength += 1;
+      });
+
+      // Sort items based on reviews
+      for (const category of ['Agents', 'Prompts']) {
+        items[category].sort((a, b) => {
+          const aRating = modelRatings[`${a.link.split('/').pop()}-${a.type}`];
+          const bRating = modelRatings[`${b.link.split('/').pop()}-${b.type}`];
+          const aAvg = aRating ? aRating.modelRating / aRating.reviewLength : 0;
+          const bAvg = bRating ? bRating.modelRating / bRating.reviewLength : 0;
+          return bAvg - aAvg;
+        });
       }
+    }
 
-      //reviews - get agents & prompts with best reviews
-      const reviews = await ctx.supabase
-        .from('swarms_cloud_reviews')
-        .select('model_id, model_type, rating')
-        .in('model_type', ['agent', 'prompt'])
-        .order('created_at', { ascending: false });
-
-      if (reviews.data) {
-        const modelRatings: Record<
-          string,
-          { modelRating: number; reviewLength: number }
-        > = {};
-
-        reviews.data?.forEach((review) => {
-          const key = `${review?.model_id}-${review?.model_type}`;
-          if (!modelRatings[key]) {
-            modelRatings[key] = { modelRating: 0, reviewLength: 0 };
-          }
-          modelRatings[key].modelRating += review?.rating || 0;
-          modelRatings[key].reviewLength += 1;
-        });
-
-        const averageRatings = Object.keys(modelRatings).map((key) => {
-          const lastHyphenIndex = key.lastIndexOf('-');
-          const id = key.substring(0, lastHyphenIndex);
-          const type = key.substring(lastHyphenIndex + 1);
-
-          const { modelRating, reviewLength } = modelRatings[key];
-
-          return {
-            id,
-            type,
-            modelRating: modelRating / reviewLength,
-          };
-        });
-
-        const topRatedModels = averageRatings
-          ?.sort((a, b) => b?.modelRating - a?.modelRating)
-          ?.slice(0, 10);
-
-        //Agents || Prompts
-        const modelDetails = await Promise.all(
-          topRatedModels.map((model) =>
-            ctx.supabase
-              .from(
-                model.type === 'agent'
-                  ? 'swarms_cloud_agents'
-                  : 'swarms_cloud_prompts',
-              )
-              .select('id, name, search_type')
-              .eq('id', model.id)
-              .single(),
-          ),
-        );
-
-        modelDetails.forEach((modelDetail) => {
-          if (modelDetail?.data) {
-            const type =
-              modelDetail.data?.search_type === 'agent' ? 'Agents' : 'Prompts';
-            if (!items[type]) items[type] = [];
-            items[type].push({
-              title: modelDetail.data?.name || '',
-              link: makeUrl(type === 'Agents' ? PUBLIC.AGENT : PUBLIC.PROMPT, {
-                id: modelDetail.data?.id,
-              }),
-            });
-          }
-        });
-      }
-
-      return items;
-    }),
+    return { data: items };
+  }),
 });
 
 export default mainRouter;

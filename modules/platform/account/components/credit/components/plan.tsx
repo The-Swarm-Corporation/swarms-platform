@@ -60,7 +60,7 @@ export default function PlanSwitchDialog({
       <DialogContent className="max-w-[320px] sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            Can you confirm you're switching to {plan} plan?
+            Can you confirm you&apos;re switching to {plan} plan?
           </DialogTitle>
         </DialogHeader>
         <DialogDescription>

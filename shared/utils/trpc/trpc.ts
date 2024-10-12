@@ -13,7 +13,7 @@ const url = `${getURL()}/api/trpc/`;
 export const trpcConfig: any = {
   links: [
     loggerLink({
-      enabled: () => true,
+      enabled: () => false,
     }),
     httpBatchLink({
       transformer: SuperJSON,
