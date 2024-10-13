@@ -1,5 +1,12 @@
 import { createClient } from '@/shared/utils/supabase/server';
 import { supabaseAdmin } from '../supabase/admin';
+import axios from 'axios';
+
+interface TwentyCrmUser {
+  name: string;
+  email: string;
+  signUpIncomplete: boolean;
+}
 
 // we use this method as patch , we added trigger for new users so their auth email will sync with postgres to users table.
 export const syncUserEmail = async (id: string, email: string) => {
@@ -17,6 +24,76 @@ export const syncUserEmail = async (id: string, email: string) => {
     console.error('syncUserEmail', id, error);
   }
 };
+
+export const createTwentyCRMUser = async (user: TwentyCrmUser) => {
+  const response = await axios.post(
+    `${process.env.TWENTY_CRM_API_URL}/swarms`,
+    user,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.TWENTY_CRM_TOKEN}`,
+      },
+    },
+  );
+  return response.data?.data?.createSwarm?.id;
+};
+
+export async function syncTwentyCRMId(userId: string, twenty_crm_id: string) {
+  if (!userId || !twenty_crm_id) return;
+
+  try {
+    const { error } = await supabaseAdmin
+      .from('users')
+      .update({ twenty_crm_id })
+      .eq('id', userId);
+  } catch (error) {
+    console.error('syncTwentyCRMId', userId, error);
+  }
+}
+
+export const getUserById = async (id: string) => {
+  if (!id) return;
+  try {
+    const user = await supabaseAdmin
+      .from('users')
+      .select('id, email, twenty_crm_id')
+      .eq('id', id)
+      .single();
+
+    return user.data;
+  } catch (error) {
+    console.error('getUserById', id, error);
+  }
+};
+
+export async function updateTwentyCrmUser(id: string, data: any) {
+  if (!id) return;
+  try {
+    const user = await supabaseAdmin
+      .from('users')
+      .select('id, email, twenty_crm_id')
+      .eq('id', id)
+      .single();
+
+    if (!user.data?.twenty_crm_id) {
+      console.log('User does not have a twenty_crm_id');
+      return;
+    }
+
+    const response = await axios.patch(
+      `${process.env.TWENTY_CRM_API_URL}/swarms/${user.data?.twenty_crm_id}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.TWENTY_CRM_TOKEN}`,
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error('updateTwentyCrmUser', id, error);
+  }
+}
 
 export const updateFreeCreditsOnSignin = async (id: string): Promise<void> => {
   if (!id) {

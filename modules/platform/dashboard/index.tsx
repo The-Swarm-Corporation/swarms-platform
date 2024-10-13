@@ -16,6 +16,12 @@ const Dashboard = () => {
   const subscription = useSubscription();
   const { user } = useAuthContext();
 
+  const agentsRequests = user
+    ? trpc.explorer.getAgentsByUserId.useQuery(user?.id)
+    : null;
+  const agentsLength = agentsRequests ? agentsRequests?.data?.data?.length : 0;
+  const agentsEnding = agentsLength && agentsLength > 1 ? 's' : '';
+
   const userRequests = user
     ? trpc.dashboard.getUserRequestCount.useQuery()
     : null;
@@ -50,10 +56,14 @@ const Dashboard = () => {
           <span className="text-bold text-2xl">Tasks Automated</span>
         </div>
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">
-          <span className="text-primary text-4xl font-bold">
-            {commaSeparated(99974)}
-          </span>
-          <span className="text-bold text-2xl">Agents</span>
+          {agentsRequests?.isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <span className="text-primary text-4xl font-bold">
+              {commaSeparated(agentsLength ?? 0)}
+            </span>
+          )}
+          <span className="text-bold text-2xl">Agent{agentsEnding}</span>
         </div>
 
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">

@@ -265,11 +265,14 @@ export const chunk = <T>(input: T[], size: number): T[][] => {
   }, []);
 };
 
-export const createQueryString = (name: string, value: string) => {
-  const params = new URLSearchParams();
-  params.set(name, value);
+export const createQueryString = (params: Record<string, string>) => {
+  const searchParams = new URLSearchParams();
+  
+  Object.entries(params).forEach(([name, value]) => {
+    searchParams.set(name, value);
+  });
 
-  return params.toString();
+  return searchParams.toString();
 };
 
 export const openShareWindow = (platform: string, details: ShareDetails) => {

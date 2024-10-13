@@ -12,7 +12,13 @@ import { getAuthTypes } from '@/shared/utils/auth-helpers/settings';
 import { PLATFORM } from '@/shared/constants/links';
 import { User } from '@supabase/supabase-js';
 import { createOrRetrieveStripeCustomer } from '../supabase/admin';
-import { syncUserEmail, updateFreeCreditsOnSignin } from '../api/user';
+import {
+  createTwentyCRMUser,
+  getUserById,
+  syncTwentyCRMId,
+  syncUserEmail,
+  updateFreeCreditsOnSignin,
+} from '../api/user';
 import toast from 'react-hot-toast';
 
 function isValidEmail(email: string) {
@@ -21,6 +27,20 @@ function isValidEmail(email: string) {
 }
 
 export async function afterSignin(user: User) {
+  const existingUser = await getUserById(user.id);
+
+  if (!existingUser?.twenty_crm_id) {
+    const crmUser = {
+      name: user.user_metadata?.full_name || '',
+      email: user.email || '',
+      signUpIncomplete: !user.email_confirmed_at,
+    };
+
+    const crmUserId = await createTwentyCRMUser(crmUser);
+
+    await syncTwentyCRMId(user.id, crmUserId);
+  }
+
   const stripeCustomerId = await createOrRetrieveStripeCustomer({
     email: user?.email || '',
     uuid: user.id,

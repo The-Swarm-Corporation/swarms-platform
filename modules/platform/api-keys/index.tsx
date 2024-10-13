@@ -135,7 +135,9 @@ const ApiKeys = () => {
 
       if (error.message) {
         if (error.message.toLowerCase().includes('payment method missing')) {
-          const params = createQueryString('card_available', 'false');
+          const params = createQueryString({
+            card_available: 'false',
+          });
           router.push(PLATFORM.ACCOUNT + '?' + params);
         }
 
