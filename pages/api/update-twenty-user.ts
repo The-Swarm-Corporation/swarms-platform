@@ -35,7 +35,7 @@ const updateTwentyCrmUser = async (
     }
 
     const response = await axios.patch(
-      `${process.env.TWENTY_CRM_API_URL}/swarms/${data.twenty_crm_id}`,
+      `${process.env.TWENTY_CRM_API_URL}/swarmsWebsiteUsers/${data.twenty_crm_id}`,
       { job, company, referral },
       {
         headers: {

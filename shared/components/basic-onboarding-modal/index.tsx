@@ -25,6 +25,7 @@ async function handleUpdateTwenty(
   jobTitle: string,
   companyName: string,
   howDidYouFindUs: string,
+  name: string,
 ) {
   if (!userId) return;
 
@@ -35,6 +36,7 @@ async function handleUpdateTwenty(
       company: companyName || '',
       user_id: userId,
       referral: howDidYouFindUs || '',
+      customName: name || '',
     },
     {
       headers: {
@@ -104,6 +106,7 @@ const BasicOnboardingModal = () => {
         jobTitle,
         companyName,
         howDidYouFindUs,
+        fullName,
       );
       const updateOnboardingPromise = helper.updateOnboarding.mutateAsync({
         full_name: fullName,
