@@ -27,7 +27,7 @@ export const syncUserEmail = async (id: string, email: string) => {
 
 export const createTwentyCRMUser = async (user: TwentyCrmUser) => {
   const response = await axios.post(
-    `${process.env.TWENTY_CRM_API_URL}/swarms`,
+    `${process.env.TWENTY_CRM_API_URL}/swarmsWebsiteUsers`,
     user,
     {
       headers: {
@@ -35,7 +35,7 @@ export const createTwentyCRMUser = async (user: TwentyCrmUser) => {
       },
     },
   );
-  return response.data?.data?.createSwarm?.id;
+  return response.data?.data?.createSwarmsWebsiteUser?.id;
 };
 
 export async function syncTwentyCRMId(userId: string, twenty_crm_id: string) {
@@ -81,7 +81,7 @@ export async function updateTwentyCrmUser(id: string, data: any) {
     }
 
     const response = await axios.patch(
-      `${process.env.TWENTY_CRM_API_URL}/swarms/${user.data?.twenty_crm_id}`,
+      `${process.env.TWENTY_CRM_API_URL}/swarmsWebsiteUsers/${user.data?.twenty_crm_id}`,
       data,
       {
         headers: {
