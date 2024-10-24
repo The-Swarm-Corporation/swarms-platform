@@ -38,8 +38,7 @@ const publicPlaygroundRouter = router({
 
         //
         const openAi = new OpenAI({
-          apiKey:
-            'sk-22a52e4fc117dcbc1e938bc464853dd8309987aab967f28db48996360e019a22',
+          apiKey: process.env.OPENAI_API_KEY,
           baseURL: model?.data?.api_endpoint || 'https://api.swarms.world/v1/',
         });
         try {
