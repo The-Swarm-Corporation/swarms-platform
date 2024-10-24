@@ -22,9 +22,9 @@ export default function SwarmsHero() {
           </Button>
         </Link>
         <Link href={DISCORD}>
-        <Button variant="outline">
-          <MessageCircle className="mr-2 h-4 w-4" /> Join Discord
-        </Button>
+          <Button variant="outline">
+            <MessageCircle className="mr-2 h-4 w-4" /> Join Discord
+          </Button>
         </Link>
       </div>
     </section>

@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 import { Metadata, Viewport } from 'next';
 import Footer from '@/shared/components/ui/Footer';

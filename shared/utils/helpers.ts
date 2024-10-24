@@ -267,7 +267,7 @@ export const chunk = <T>(input: T[], size: number): T[][] => {
 
 export const createQueryString = (params: Record<string, string>) => {
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(params).forEach(([name, value]) => {
     searchParams.set(name, value);
   });

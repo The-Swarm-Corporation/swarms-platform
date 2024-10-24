@@ -4,10 +4,7 @@ import Navbar from '@/shared/components/ui/Navbar';
 import { PropsWithChildren, use } from 'react';
 import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
-import PanelLayoutSidebar from '@/shared/components/panel-layout/components/sidebar/sidebar';
 import { createClient } from '@/shared/utils/supabase/server';
-import PlatformNavBar from '@/shared/components/panel-layout/components/navbar/navbar';
-import { cn } from '@/shared/utils/cn';
 
 export const viewport: Viewport = {
   themeColor: [

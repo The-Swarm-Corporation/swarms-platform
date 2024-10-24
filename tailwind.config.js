@@ -2,9 +2,11 @@
 module.exports = {
   darkMode: ['class'],
   content: [
-    './shared/**/*.{ts,tsx}',
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
-    './modules/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+    // './shared/**/*.{ts,tsx}', // Make sure this path is included
   ],
   prefix: '',
   theme: {

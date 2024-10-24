@@ -7,7 +7,6 @@ export const PLATFORM = {
   ACCOUNT_BILLING: '/platform/account/billing',
 
   EXPLORER: '/',
-  AGENT_BUILDER: '/platform/agent-builder',
   SETTINGS: '/platform/organization',
   ORGANIZATION: '/platform/organization',
 };

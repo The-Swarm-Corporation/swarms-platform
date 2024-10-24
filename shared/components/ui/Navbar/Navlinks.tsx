@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React from 'react';
 import Link from 'next/link';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';

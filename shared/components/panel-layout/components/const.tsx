@@ -91,11 +91,6 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       title: 'Explorer',
       link: PLATFORM.EXPLORER,
     },
-    // {
-    //   icon: <Building size={24} />,
-    //   title: 'Agent Builder',
-    //   link: PLATFORM.AGENT_BUILDER,
-    // },
     {
       icon: <LockKeyhole size={24} />,
       title: 'API Keys',

@@ -31,7 +31,10 @@ function AuthModal() {
 
   return (
     <Dialog open={isAuthModalOpen} onOpenChange={() => null}>
-      <DialogContent hideCloseButton className={cn('max-w-sm', isAuthModalOpen && '!block')}>
+      <DialogContent
+        hideCloseButton
+        className={cn('max-w-sm', isAuthModalOpen && '!block')}
+      >
         <div className="flex justify-center height-screen-helper">
           <div className="flex flex-col justify-between p-3 m-auto w-80 text-center ">
             <div className="flex justify-center pb-8 ">
