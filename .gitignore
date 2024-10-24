@@ -16,7 +16,7 @@
 /build
 
 # misc
-nextjs-subscription-payments@0.0.0
+swarms-marketplace@0.0.0
 .DS_Store
 *.pem
 
