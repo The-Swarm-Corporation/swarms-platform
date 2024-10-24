@@ -122,4 +122,11 @@ Join our growing community around the world, for real-time support, ideas, and d
 - [Join the Swarms community on Discord!](https://discord.gg/AJazBmhKnr)
 - Join our Swarms Community Gathering every Thursday at 1pm NYC Time to unlock the potential of autonomous agents in automating your daily tasks [Sign up here](https://lu.ma/5p2jnc2v)
 
----
+# Todo
+
+- [ ] Add more tests
+- [ ] Add more documentation
+- [ ] Clean up the code and remove unused files and folders
+- [ ] Add spreadsheet swarm with check to see if user is paid and logged in
+- [ ] Accelerate build time by cutting unused depencies and code optimization, removing unused code
+- [ ] Create documentation for the platform once swarms are up
