@@ -130,3 +130,4 @@ Join our growing community around the world, for real-time support, ideas, and d
 - [ ] Add spreadsheet swarm with check to see if user is paid and logged in
 - [ ] Accelerate build time by cutting unused depencies and code optimization, removing unused code
 - [ ] Create documentation for the platform once swarms are up
+- [ ] Merge all modules, shared, components into one folder app/components for simplicity
