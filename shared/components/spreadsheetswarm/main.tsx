@@ -248,6 +248,8 @@ export function SwarmManagement() {
   };
 
   const addAgent = async () => {
+    if (redirectStatus()) return;
+
     if (
       !newAgent.name ||
       !newAgent.description ||
@@ -335,6 +337,8 @@ export function SwarmManagement() {
   const handleDuplicateClick = async (
     agent: Tables<'swarms_spreadsheet_session_agents'>,
   ) => {
+    if (redirectStatus()) return;
+
     setSelectedAgent(agent);
 
     const duplicateCountResult = await getDuplicateCountQuery.refetch();
@@ -377,6 +381,8 @@ export function SwarmManagement() {
   };
 
   const runAgents = async () => {
+    if (redirectStatus()) return;
+
     if (!currentSessionId) return;
 
     if (!task) {
@@ -461,6 +467,8 @@ export function SwarmManagement() {
   };
 
   const downloadJSON = async () => {
+    if (redirectStatus()) return;
+
     if (!currentSession) {
       toast.toast({
         description: 'No session data available',
@@ -515,6 +523,8 @@ export function SwarmManagement() {
   };
 
   const downloadCSV = () => {
+    if (redirectStatus()) return;
+    
     if (!currentSession) {
       toast.toast({
         description: 'No session data available',
