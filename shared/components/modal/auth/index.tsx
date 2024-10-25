@@ -15,8 +15,7 @@ const pathnames = [
   '/pricing',
   '/prompt/',
   '/tool/',
-  '/swarms',
-  '/spreadsheetswarm'
+  '/swarms'
 ];
 function AuthModal() {
   const { isAuthModalOpen } = useAuthContext();
