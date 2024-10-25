@@ -524,7 +524,7 @@ export function SwarmManagement() {
 
   const downloadCSV = () => {
     if (redirectStatus()) return;
-    
+
     if (!currentSession) {
       toast.toast({
         description: 'No session data available',
@@ -583,7 +583,7 @@ export function SwarmManagement() {
 
   return (
     <>
-      {allSessions.isPending && <ComponentLoader />}
+      {allSessions?.isPending && user && <ComponentLoader />}
       <div className="flex h-screen overflow-hidden">
         {/* Sidebar */}
 
