@@ -224,6 +224,270 @@ const panelRouter = router({
 
       return usage.organization;
     }),
+
+  // SPREADSHEET SWARMS
+
+  createSession: userProcedure
+    .input(
+      z.object({
+        task: z.string().optional(),
+        output: z.any().optional(),
+        tasks_executed: z.number().optional(),
+        time_saved: z.number().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
+      // Set all other sessions to non-current
+      await ctx.supabase
+        .from('swarms_spreadsheet_sessions')
+        .update({ current: false })
+        .eq('user_id', user_id);
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_spreadsheet_sessions')
+        .insert({
+          user_id,
+          task: input.task,
+          current: true,
+          output: input.output ?? {},
+          tasks_executed: input.tasks_executed ?? 0,
+          time_saved: input.time_saved ?? 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }),
+
+  getSessionWithAgents: userProcedure
+    .input(
+      z.object({
+        session_id: z.string().uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { data: session, error: sessionError } = await ctx.supabase
+        .from('swarms_spreadsheet_sessions')
+        .select('*')
+        .eq('id', input.session_id)
+        .single();
+
+      if (sessionError) throw sessionError;
+
+      const { data: agents, error: agentsError } = await ctx.supabase
+        .from('swarms_spreadsheet_session_agents')
+        .select('*')
+        .eq('session_id', input.session_id)
+        .order('created_at', { ascending: true });
+
+      if (agentsError) throw agentsError;
+
+      return { ...session, agents };
+    }),
+
+  getAllSessionsWithAgents: userProcedure.query(async ({ ctx }) => {
+    const { data: sessions, error: sessionsError } = await ctx.supabase
+      .from('swarms_spreadsheet_sessions')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (sessionsError) throw sessionsError;
+
+    const { data: agents, error: agentsError } = await ctx.supabase
+      .from('swarms_spreadsheet_session_agents')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (agentsError) throw agentsError;
+
+    const sessionsWithAgents = sessions.map((session) => {
+      return {
+        ...session,
+        agents: agents.filter((agent) => agent.session_id === session.id),
+      };
+    });
+
+    return sessionsWithAgents;
+  }),
+
+  addAgent: userProcedure
+    .input(
+      z.object({
+        session_id: z.string().uuid(),
+        name: z.string(),
+        description: z.string(),
+        system_prompt: z.string(),
+        llm: z.string(),
+        original_agent_id: z.string().uuid().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { data, error } = await ctx.supabase
+        .from('swarms_spreadsheet_session_agents')
+        .insert({
+          ...input,
+          status: 'idle',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }),
+
+  updateAgentStatus: userProcedure
+    .input(
+      z.object({
+        agent_id: z.string().uuid(),
+        status: z.enum(['idle', 'running', 'completed', 'error']),
+        output: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase
+        .from('swarms_spreadsheet_session_agents')
+        .update({
+          status: input.status,
+          output: input.output,
+        })
+        .eq('id', input.agent_id);
+
+      if (error) throw error;
+      return true;
+    }),
+
+  deleteAgent: userProcedure
+    .input(
+      z.object({
+        agent_id: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { data: agent } = await ctx.supabase
+        .from('swarms_spreadsheet_session_agents')
+        .select('original_agent_id')
+        .eq('id', input.agent_id)
+        .single();
+
+      if (agent) {
+        if (!agent.original_agent_id) {
+          await ctx.supabase
+            .from('swarms_spreadsheet_session_agents')
+            .delete()
+            .eq('original_agent_id', input.agent_id);
+        }
+      }
+
+      // Delete the agent itself
+      const { error } = await ctx.supabase
+        .from('swarms_spreadsheet_session_agents')
+        .delete()
+        .eq('id', input.agent_id);
+
+      if (error) throw error;
+      return true;
+    }),
+
+  updateSessionTask: userProcedure
+    .input(
+      z.object({
+        session_id: z.string().uuid(),
+        task: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase
+        .from('swarms_spreadsheet_sessions')
+        .update({ task: input.task })
+        .eq('id', input.session_id);
+
+      if (error) throw error;
+      return true;
+    }),
+
+  updateSessionMetrics: userProcedure
+    .input(
+      z.object({
+        session_id: z.string().uuid(),
+        tasksExecuted: z.number(),
+        timeSaved: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase
+        .from('swarms_spreadsheet_sessions')
+        .update({
+          tasks_executed: input.tasksExecuted,
+          time_saved: input.timeSaved,
+        })
+        .eq('id', input.session_id);
+
+      if (error) throw error;
+      return true;
+    }),
+
+  updateSessionOutput: userProcedure
+    .input(
+      z.object({
+        session_id: z.string().uuid(),
+        output: z.record(z.any()),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase
+        .from('swarms_spreadsheet_sessions')
+        .update({ output: input.output })
+        .eq('id', input.session_id);
+
+      if (error) throw error;
+      return true;
+    }),
+
+  getAllSessions: userProcedure.query(async ({ ctx }) => {
+    const user_id = ctx.session.data.session?.user?.id || '';
+    const { data, error } = await ctx.supabase
+      .from('swarms_spreadsheet_sessions')
+      .select('*')
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  }),
+
+  setCurrentSession: userProcedure
+    .input(z.object({ session_id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
+      await ctx.supabase
+        .from('swarms_spreadsheet_sessions')
+        .update({ current: false })
+        .eq('user_id', user_id);
+
+      const { error } = await ctx.supabase
+        .from('swarms_spreadsheet_sessions')
+        .update({ current: true })
+        .eq('id', input.session_id);
+
+      if (error) throw error;
+      return true;
+    }),
+
+  getDuplicateCount: userProcedure
+    .input(z.object({ original_agent_id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.supabase
+        .from('swarms_spreadsheet_session_agents')
+        .select('id')
+        .eq('original_agent_id', input.original_agent_id);
+
+      if (error) throw error;
+      return data.length;
+    }),
 });
 
 export default panelRouter;

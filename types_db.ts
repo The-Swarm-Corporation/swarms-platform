@@ -9,6 +9,160 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      create_now_accounts: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: number
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: number
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: number
+          name?: string | null
+        }
+        Relationships: []
+      }
+      create_now_gallery: {
+        Row: {
+          created_at: string
+          gallery_id: number
+          gen_id: number | null
+          likes: number | null
+          link: string | null
+          runid: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string
+          gallery_id?: number
+          gen_id?: number | null
+          likes?: number | null
+          link?: string | null
+          runid?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string
+          gallery_id?: number
+          gen_id?: number | null
+          likes?: number | null
+          link?: string | null
+          runid?: string | null
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_gen_id_fkey"
+            columns: ["gen_id"]
+            isOneToOne: false
+            referencedRelation: "create_now_gen_history"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      create_now_gen_history: {
+        Row: {
+          created_at: string
+          gen_type: string
+          id: number
+          link: string | null
+          metadata: Json
+          model: string
+          prompt: string | null
+          public_state: boolean
+          run_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          gen_type: string
+          id?: number
+          link?: string | null
+          metadata: Json
+          model: string
+          prompt?: string | null
+          public_state?: boolean
+          run_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          gen_type?: string
+          id?: number
+          link?: string | null
+          metadata?: Json
+          model?: string
+          prompt?: string | null
+          public_state?: boolean
+          run_id?: string | null
+        }
+        Relationships: []
+      }
+      create_now_gen_types: {
+        Row: {
+          gentype: string
+          id: number
+        }
+        Insert: {
+          gentype: string
+          id?: number
+        }
+        Update: {
+          gentype?: string
+          id?: number
+        }
+        Relationships: []
+      }
+      create_now_models: {
+        Row: {
+          created_at: string
+          id: number
+          modelname: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          modelname?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          modelname?: string | null
+        }
+        Relationships: []
+      }
+      create_now_referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referrals: number | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          referrals?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referrals?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "create_now_referrals_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           id: string
@@ -22,15 +176,7 @@ export type Database = {
           id?: string
           stripe_customer_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "public_customers_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       invoices: {
         Row: {
@@ -168,6 +314,45 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          created_at: string | null
+          id: number
+          referred_id: string | null
+          referrer_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          referred_id?: string | null
+          referrer_id?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          referred_id?: string | null
+          referrer_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           cancel_at: string | null
@@ -226,13 +411,6 @@ export type Database = {
             columns: ["price_id"]
             isOneToOne: false
             referencedRelation: "prices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "subscriptions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1279,6 +1457,36 @@ export type Database = {
           },
         ]
       }
+      swarms_framework_schema: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          source_ip: unknown | null
+          status: string | null
+          swarms_api_key: string | null
+          time_created: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          source_ip?: unknown | null
+          status?: string | null
+          swarms_api_key?: string | null
+          time_created?: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          source_ip?: unknown | null
+          status?: string | null
+          swarms_api_key?: string | null
+          time_created?: string
+        }
+        Relationships: []
+      }
       swarms_newsletter_subscribers: {
         Row: {
           created_at: string
@@ -1300,6 +1508,102 @@ export type Database = {
           id?: number
           is_subscribed?: boolean | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      swarms_spreadsheet_session_agents: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          llm: string | null
+          name: string
+          original_agent_id: string | null
+          output: string | null
+          session_id: string | null
+          status: string | null
+          system_prompt: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          llm?: string | null
+          name: string
+          original_agent_id?: string | null
+          output?: string | null
+          session_id?: string | null
+          status?: string | null
+          system_prompt?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          llm?: string | null
+          name?: string
+          original_agent_id?: string | null
+          output?: string | null
+          session_id?: string | null
+          status?: string | null
+          system_prompt?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_spreadsheet_session_agents_original_agent_id_fkey"
+            columns: ["original_agent_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_spreadsheet_session_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_spreadsheet_session_agents_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_spreadsheet_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_spreadsheet_sessions: {
+        Row: {
+          created_at: string | null
+          current: boolean | null
+          id: string
+          output: Json | null
+          task: string | null
+          tasks_executed: number | null
+          time_saved: number | null
+          timestamp: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current?: boolean | null
+          id?: string
+          output?: Json | null
+          task?: string | null
+          tasks_executed?: number | null
+          time_saved?: number | null
+          timestamp?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current?: boolean | null
+          id?: string
+          output?: Json | null
+          task?: string | null
+          tasks_executed?: number | null
+          time_saved?: number | null
+          timestamp?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1367,15 +1671,7 @@ export type Database = {
           twenty_crm_id?: string | null
           username?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "users_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -1503,4 +1799,19 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

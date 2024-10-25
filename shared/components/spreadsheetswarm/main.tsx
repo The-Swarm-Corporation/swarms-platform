@@ -67,15 +67,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-
-// Add new interfaces
-interface SpreadsheetData {
-  id: string;
-  name: string;
-  data: any[][];
-  created: number;
-  updated: number;
-}
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { trpc } from '@/shared/utils/trpc/trpc';
+import { useRouter } from 'next/navigation';
+import { createQueryString, isEmpty } from '@/shared/utils/helpers';
+import { PLATFORM } from '@/shared/constants/links';
+import { useAuthContext } from '../ui/auth.provider';
+import { Tables } from '@/types_db';
+import LoadingSpinner from '../loading-spinner';
+import ComponentLoader from '../loaders/component';
 
 interface DraggedFile {
   name: string;
@@ -91,6 +91,7 @@ interface Agent {
   llm: string;
   status: 'idle' | 'running' | 'completed';
   output: string;
+  original_agent_id?: string;
   attachments?: DraggedFile[];
 }
 
@@ -103,103 +104,246 @@ interface Session {
   timeSaved: number;
 }
 
-interface SwarmState {
-  currentSession: Session;
-  sessions: Session[];
-  spreadsheets: SpreadsheetData[];
-}
-
-const initialSession: Session = {
-  id: uuidv4(),
-  timestamp: Date.now(),
-  agents: [],
-  task: '',
-  tasksExecuted: 0,
-  timeSaved: 0,
-};
-
 export function SwarmManagement() {
-  const [swarmState, setSwarmState] = useState<SwarmState>({
-    currentSession: initialSession,
-    sessions: [],
-    spreadsheets: [],
-  });
+  const { user, setIsAuthModalOpen } = useAuthContext();
+
+  const [currentSessionId, setCurrentSessionId] = useState<string>('');
   const [isAddAgentOpen, setIsAddAgentOpen] = useState(false);
   const [newAgent, setNewAgent] = useState<Partial<Agent>>({});
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [draggedFiles, setDraggedFiles] = useState<DraggedFile[]>([]);
   const [runningAgents, setRunningAgents] = useState<Set<string>>(new Set());
+  const [task, setTask] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
+
+  const toast = useToast();
+  const router = useRouter();
+
+  const createSessionMutation = trpc.panel.createSession.useMutation();
+  const addAgentMutation = trpc.panel.addAgent.useMutation();
+  const updateAgentStatusMutation = trpc.panel.updateAgentStatus.useMutation();
+  const updateSessionTaskMutation = trpc.panel.updateSessionTask.useMutation();
+  const updateSessionOutputMutation =
+    trpc.panel.updateSessionOutput.useMutation();
+  const setCurrentSessionMutation = trpc.panel.setCurrentSession.useMutation();
+
+  const updateSessionMetricsMutation =
+    trpc.panel.updateSessionMetrics.useMutation();
+  const deleteAgentMutation = trpc.panel.deleteAgent.useMutation();
+
+  const getSubscription = trpc.payment.getSubscriptionStatus.useQuery();
+  const cardManager = trpc.payment.getUserPaymentMethods.useQuery();
+  const [selectedAgent, setSelectedAgent] =
+    useState<Tables<'swarms_spreadsheet_session_agents'> | null>(null);
+
+  const getDuplicateCountQuery = trpc.panel.getDuplicateCount.useQuery(
+    {
+      original_agent_id:
+        selectedAgent?.original_agent_id || selectedAgent?.id || '',
+    },
+    {
+      enabled: !!selectedAgent,
+    },
+  );
+
+  const sessionData = trpc.panel.getSessionWithAgents.useQuery(
+    { session_id: currentSessionId },
+    { enabled: !!currentSessionId },
+  );
+
+  const isAddAgentLoader =
+    addAgentMutation.isPending || createSessionMutation.isPending;
+  const isRunAgentLoader =
+    updateSessionTaskMutation.isPending ||
+    updateAgentStatusMutation.isPending ||
+    updateSessionMetricsMutation.isPending;
+  const isDuplicateLoader =
+    getDuplicateCountQuery.isLoading || addAgentMutation.isPending;
+
+  const allSessions = trpc.panel.getAllSessions.useQuery();
+  const allSessionsAgents = trpc.panel.getAllSessionsWithAgents.useQuery();
+
+  const currentSession = sessionData?.data;
 
   useEffect(() => {
-    const savedState = localStorage.getItem('swarmState');
-    if (savedState) {
-      setSwarmState(JSON.parse(savedState));
+    if (allSessions?.data) {
+      setCurrentSessionId(allSessions.data[0]?.id);
     }
-  }, []);
+  }, [allSessions?.data]);
 
   useEffect(() => {
-    localStorage.setItem('swarmState', JSON.stringify(swarmState));
-  }, [swarmState]);
+    if (sessionData.data?.task) {
+      setTask(sessionData.data.task);
+    }
+  }, [sessionData.data]);
 
-  const addAgent = () => {
+  const handleTaskChange = async (newTask: string) => {
+    if (currentSessionId) {
+      try {
+        const task = await updateSessionTaskMutation.mutateAsync({
+          session_id: currentSessionId,
+          task: newTask,
+        });
+        return true;
+      } catch (error) {
+        console.log({ error });
+      }
+    }
+  };
+
+  const handleSessionSelect = async (sessionId: string) => {
+    await setCurrentSessionMutation.mutateAsync({ session_id: sessionId });
+    setCurrentSessionId(sessionId);
+  };
+
+  const createNewSession = async (
+    newTask: string,
+    output?: any,
+    tasks_executed?: any,
+    time_saved?: any,
+  ) => {
+    try {
+      const newSession = await createSessionMutation.mutateAsync({
+        task: newTask,
+        tasks_executed,
+        output,
+        time_saved,
+      });
+      setCurrentSessionId(newSession.id);
+      allSessions.refetch();
+      return newSession.id;
+    } catch (error) {
+      console.error('Failed to create session:', error);
+      throw error;
+    }
+  };
+
+  const redirectStatus = () => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return true;
+    }
+
+    if (isEmpty(cardManager?.data)) {
+      const params = createQueryString({
+        card_available: 'false',
+      });
+      router.push(PLATFORM.ACCOUNT + '?' + params);
+    }
+
+    if (getSubscription.data && getSubscription.data.status !== 'active') {
+      toast.toast({
+        description: 'Please subscribe to use this feature.',
+      });
+
+      const params = createQueryString({
+        subscription_status: 'null',
+      });
+
+      router.push(PLATFORM.ACCOUNT + '?' + params);
+      return true;
+    }
+
+    return false;
+  };
+
+  const addAgent = async () => {
     if (
-      newAgent.name &&
-      newAgent.description &&
-      newAgent.systemPrompt &&
-      newAgent.llm
-    ) {
-      setSwarmState((prevState) => ({
-        ...prevState,
-        currentSession: {
-          ...prevState.currentSession,
-          agents: [
-            ...prevState.currentSession.agents,
-            {
-              ...newAgent,
-              id: uuidv4(),
-              status: 'idle',
-              output: '',
-            } as Agent,
-          ],
-        },
-      }));
-      setNewAgent({});
+      !newAgent.name ||
+      !newAgent.description ||
+      !newAgent.systemPrompt ||
+      !newAgent.llm
+    )
+      return;
+
+    try {
+      if (!currentSessionId) {
+        await createNewSession(task);
+      }
+
+      await addAgentMutation.mutateAsync({
+        session_id: currentSessionId,
+        name: newAgent.name,
+        description: newAgent.description,
+        system_prompt: newAgent.systemPrompt,
+        llm: newAgent.llm,
+      });
+
       setIsAddAgentOpen(false);
+      setNewAgent({});
+      sessionData.refetch();
+    } catch (error) {
+      console.error('Failed to add agent:', error);
     }
   };
 
-  const deleteAgent = (id: string) => {
-    setSwarmState((prevState) => ({
-      ...prevState,
-      currentSession: {
-        ...prevState.currentSession,
-        agents: prevState.currentSession.agents.filter(
-          (agent) => agent.id !== id,
-        ),
-      },
-    }));
+  const deleteAgent = async (
+    agent: Tables<'swarms_spreadsheet_session_agents'>,
+  ) => {
+    if (!currentSessionId) return;
+
+    setSelectedAgent(agent);
+
+    try {
+      await deleteAgentMutation.mutateAsync({
+        agent_id: agent?.id,
+      });
+
+      sessionData.refetch();
+      toast.toast({
+        description: 'Deleted successfully',
+      });
+    } catch (error) {
+      console.error('Failed to delete agent:', error);
+      toast.toast({
+        description: 'Failed to delete agent',
+        variant: 'destructive',
+      });
+    }
   };
 
-  // Function to duplicate agent
-  const duplicateAgent = (agent: Agent) => {
-    const duplicatedAgent = {
-      ...agent,
-      id: uuidv4(),
-      name: `${agent.name} (Copy)`,
-      status: 'idle' as const,
-      output: '',
-    };
+  const duplicateAgent = async (
+    agent: Tables<'swarms_spreadsheet_session_agents'>,
+    duplicateCount: number,
+  ) => {
+    if (!currentSessionId || !agent) return;
 
-    setSwarmState((prevState) => ({
-      ...prevState,
-      currentSession: {
-        ...prevState.currentSession,
-        agents: [...prevState.currentSession.agents, duplicatedAgent],
-      },
-    }));
+    if (duplicateCount >= 5) {
+      toast.toast({
+        description: 'Maximum number of duplicates reached for this agent.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await addAgentMutation.mutateAsync({
+        session_id: currentSessionId,
+        name: `${agent.name} (Copy)`,
+        description: agent.description || '',
+        system_prompt: agent.system_prompt || '',
+        llm: agent.llm || '',
+        original_agent_id: agent.original_agent_id || agent.id,
+      });
+
+      sessionData.refetch();
+    } catch (error) {
+      console.error('Failed to duplicate agent:', error);
+    }
   };
 
-  // Function to optimize prompt
+  const handleDuplicateClick = async (
+    agent: Tables<'swarms_spreadsheet_session_agents'>,
+  ) => {
+    setSelectedAgent(agent);
+
+    const duplicateCountResult = await getDuplicateCountQuery.refetch();
+
+    if (duplicateCountResult.data !== undefined) {
+      await duplicateAgent(agent, duplicateCountResult.data);
+    }
+  };
+
   const optimizePrompt = async () => {
     setIsOptimizing(true);
     try {
@@ -214,7 +358,6 @@ export function SwarmManagement() {
     setIsOptimizing(false);
   };
 
-  // File handling functions
   const handleFileDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
@@ -234,85 +377,122 @@ export function SwarmManagement() {
   };
 
   const runAgents = async () => {
-    if (!swarmState.currentSession.task) {
-      console.error('No task specified');
+    if (!currentSessionId) return;
+
+    if (!task) {
+      toast.toast({
+        description: 'Please enter a task',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!currentSession?.agents || currentSession?.agents?.length === 0) {
+      toast.toast({
+        description: 'No agents available',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const isTaskHandled = await handleTaskChange(task);
+
+    if (!isTaskHandled) {
+      toast.toast({
+        description: 'An error has occurred',
+        variant: 'destructive',
+      });
       return;
     }
 
     const startTime = Date.now();
-    setSwarmState((prevState) => ({
-      ...prevState,
-      currentSession: {
-        ...prevState.currentSession,
-        agents: prevState.currentSession.agents.map((agent) => ({
-          ...agent,
-          status: 'running',
-          output: '',
-        })),
-      },
-    }));
+    const agents = sessionData.data?.agents || [];
+    const outputs: Record<string, any> = {};
 
-    for (const agent of swarmState.currentSession.agents) {
-      try {
-        const { text } = await generateText({
-          model: registry.languageModel(agent.llm),
-          prompt: `${agent.systemPrompt}\n\nTask: ${swarmState.currentSession.task}\n\nAgent Name: ${agent.name}\nAgent Description: ${agent.description}\n\nResponse:`,
-        });
+    await Promise.all(
+      agents.map(async (agent) => {
+        setIsRunning(true);
+        try {
+          await updateAgentStatusMutation.mutateAsync({
+            agent_id: agent?.id,
+            status: 'running',
+          });
 
-        setSwarmState((prevState) => ({
-          ...prevState,
-          currentSession: {
-            ...prevState.currentSession,
-            agents: prevState.currentSession.agents.map((a) =>
-              a.id === agent.id
-                ? { ...a, status: 'completed', output: text }
-                : a,
-            ),
-          },
-        }));
-      } catch (error: any) {
-        console.error(`Error running agent ${agent.name}:`, error);
-        setSwarmState((prevState) => ({
-          ...prevState,
-          currentSession: {
-            ...prevState.currentSession,
-            agents: prevState.currentSession.agents.map((a) =>
-              a.id === agent.id
-                ? {
-                    ...a,
-                    status: 'completed',
-                    output: `Error: Failed to execute task - ${error.message || 'Unknown error'}`,
-                  }
-                : a,
-            ),
-          },
-        }));
-      }
-    }
+          const uniquePrompt =
+            agent.status === 'completed'
+              ? `Task: ${task}\n\nAgent Name: ${agent.id}\n\nResponse:`
+              : `${agent.system_prompt}\n\nTask: ${task}\n\nAgent Name: ${agent.name}\nAgent Description: ${agent.description}\n\nResponse:`;
+
+          const { text } = await generateText({
+            model: registry.languageModel(agent?.llm || ''),
+            prompt: uniquePrompt,
+          });
+
+          outputs[agent.id] = text;
+
+          await updateAgentStatusMutation.mutateAsync({
+            agent_id: agent?.id,
+            status: 'completed',
+            output: text,
+          });
+        } catch (error: any) {
+          outputs[agent?.id] = `Error: ${error.message || 'Unknown error'}`;
+          await updateAgentStatusMutation.mutateAsync({
+            agent_id: agent?.id,
+            status: 'error',
+            output: outputs[agent?.id],
+          });
+        } finally {
+          setIsRunning(false);
+        }
+      }),
+    );
 
     const endTime = Date.now();
     const timeSaved = Math.round((endTime - startTime) / 1000);
 
-    setSwarmState((prevState) => ({
-      ...prevState,
-      currentSession: {
-        ...prevState.currentSession,
-        tasksExecuted: prevState.currentSession.tasksExecuted + 1,
-        timeSaved: prevState.currentSession.timeSaved + timeSaved,
-      },
-    }));
+    await updateSessionMetricsMutation.mutateAsync({
+      session_id: currentSessionId,
+      tasksExecuted: (sessionData.data?.tasks_executed || 0) + 1,
+      timeSaved: (sessionData.data?.time_saved || 0) + timeSaved,
+    });
+
+    sessionData.refetch();
   };
 
-  const downloadJSON = () => {
-    const jsonString = JSON.stringify(swarmState, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `swarm_data_${swarmState.currentSession.id}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadJSON = async () => {
+    if (!currentSession) {
+      toast.toast({
+        description: 'No session data available',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await updateSessionOutputMutation.mutateAsync({
+        session_id: currentSessionId,
+        output: currentSession,
+      });
+
+      const jsonString = JSON.stringify(currentSession, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `swarm_data_${currentSessionId}.json`;
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error updating session or downloading JSON:', error);
+      toast.toast({
+        description: 'Failed to download session data',
+        variant: 'destructive',
+      });
+    }
   };
 
   const uploadJSON = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -324,7 +504,7 @@ export function SwarmManagement() {
         if (typeof content === 'string') {
           try {
             const parsedState = JSON.parse(content);
-            setSwarmState(parsedState);
+            createNewSession(parsedState);
           } catch (error) {
             console.error('Error parsing JSON:', error);
           }
@@ -335,6 +515,14 @@ export function SwarmManagement() {
   };
 
   const downloadCSV = () => {
+    if (!currentSession) {
+      toast.toast({
+        description: 'No session data available',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const headers = [
       'Session ID',
       'Timestamp',
@@ -349,18 +537,20 @@ export function SwarmManagement() {
     ];
     const csvContent = [
       headers.join(','),
-      ...swarmState.currentSession.agents.map((agent) =>
+      ...currentSession?.agents?.map((agent) =>
         [
-          swarmState.currentSession.id,
-          new Date(swarmState.currentSession.timestamp).toISOString(),
-          swarmState.currentSession.task,
-          agent.id,
-          agent.name,
-          agent.description,
-          `"${agent.systemPrompt.replace(/"/g, '""')}"`,
-          agent.llm,
-          agent.status,
-          `"${agent.output.replace(/"/g, '""')}"`,
+          currentSession?.id,
+          currentSession?.timestamp
+            ? new Date(currentSession?.timestamp).toISOString()
+            : null,
+          currentSession?.task,
+          agent?.id,
+          agent?.name,
+          agent?.description,
+          `"${(agent?.system_prompt || '')?.replace(/"/g, '""')}"`,
+          agent?.llm,
+          agent?.status,
+          `"${agent?.output?.replace(/"/g, '""')}"`,
         ].join(','),
       ),
     ].join('\n');
@@ -369,10 +559,7 @@ export function SwarmManagement() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute(
-      'download',
-      `swarm_data_${swarmState.currentSession.id}.csv`,
-    );
+    link.setAttribute('download', `swarm_data_${currentSession?.id}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -383,370 +570,406 @@ export function SwarmManagement() {
     // Implement sharing functionality here
     console.log('Sharing swarm...');
   };
-  const startNewSession = () => {
-    setSwarmState((prevState) => ({
-      ...prevState,
-      sessions: [...prevState.sessions, prevState.currentSession],
-      currentSession: {
-        ...initialSession,
-        id: uuidv4(),
-        timestamp: Date.now(),
-      },
-      spreadsheets: prevState.spreadsheets,
-    }));
-  };
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
+    <>
+      {allSessions.isPending && <ComponentLoader />}
+      <div className="flex h-screen overflow-hidden">
+        {/* Sidebar */}
 
-      {/* Main content */}
-      <div className="flex-1 overflow-auto">
-        <div className="container mx-auto p-4 space-y-6">
-          {/* Stats Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Spreadsheet Swarm</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold">Session ID</h3>
-                  <p className="text-sm font-mono">
-                    {swarmState.currentSession.id}
-                  </p>
+        {/* Main content */}
+        <div className="flex-1 overflow-auto">
+          <div className="container mx-auto p-4 space-y-6">
+            {/* Stats Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Spreadsheet Swarm</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="mb-6">
+                      <MoreHorizontal className="size-10 mr-2" />
+                      All Sessions
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Select a session</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+
+                    {allSessions?.data &&
+                      allSessions.data?.map((session) => (
+                        <DropdownMenuItem
+                          key={session?.id}
+                          onClick={() => handleSessionSelect(session?.id)}
+                        >
+                          {session?.id}
+                        </DropdownMenuItem>
+                      ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold">Session ID</h3>
+                    <p className="text-sm font-mono">
+                      {currentSession?.id || 'pending'}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold">Number of Agents</h3>
+                    <p className="text-2xl font-bold">
+                      {currentSession?.agents?.length || 0}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold">Tasks Executed</h3>
+                    <p className="text-2xl font-bold">
+                      {currentSession?.tasks_executed || 0}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold">Time Saved</h3>
+                    <p className="text-2xl font-bold">
+                      {currentSession?.time_saved || 0}s
+                    </p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold">Number of Agents</h3>
-                  <p className="text-2xl font-bold">
-                    {swarmState.currentSession.agents.length}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold">Tasks Executed</h3>
-                  <p className="text-2xl font-bold">
-                    {swarmState.currentSession.tasksExecuted}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold">Time Saved</h3>
-                  <p className="text-2xl font-bold">
-                    {swarmState.currentSession.timeSaved}s
-                  </p>
-                </div>
+              </CardContent>
+            </Card>
+
+            {/* Task Input and Actions */}
+            <div className="flex space-x-4">
+              <div className="grow">
+                <Input
+                  placeholder="Enter task for agents..."
+                  value={task}
+                  onChange={(newTask) => setTask(newTask)}
+                />
               </div>
-            </CardContent>
-          </Card>
+              <Button
+                onClick={runAgents}
+                disabled={runningAgents.size > 0}
+                className="min-w-[120px]"
+              >
+                {runningAgents.size > 0 ? (
+                  <>
+                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    Running ({runningAgents.size})
+                  </>
+                ) : (
+                  <>
+                    {isRunAgentLoader ? (
+                      <LoadingSpinner />
+                    ) : (
+                      <Play className="size-4 mr-2" />
+                    )}
+                    Run Agents
+                  </>
+                )}
+              </Button>
 
-          {/* Task Input and Actions */}
-          <div className="flex space-x-4">
-            <div className="grow">
-              <Input
-                placeholder="Enter task for agents..."
-                value={swarmState.currentSession.task}
-                onChange={(e) =>
-                  setSwarmState((prevState) => ({
-                    ...prevState,
-                    currentSession: {
-                      ...prevState.currentSession,
-                      task: e.target.value,
-                    },
-                  }))
-                }
-              />
-            </div>
-            <Button
-              onClick={runAgents}
-              disabled={runningAgents.size > 0}
-              className="min-w-[120px]"
-            >
-              {runningAgents.size > 0 ? (
-                <>
-                  <Loader2 className="size-4 mr-2 animate-spin" />
-                  Running ({runningAgents.size})
-                </>
-              ) : (
-                <>
-                  <Play className="size-4 mr-2" />
-                  Run Agents
-                </>
-              )}
-            </Button>
+              {/* Add Agent Dialog */}
+              <Dialog
+                open={isAddAgentOpen}
+                onOpenChange={() => {
+                  // if (redirectStatus()) return;
 
-            {/* Add Agent Dialog */}
-            <Dialog open={isAddAgentOpen} onOpenChange={setIsAddAgentOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="size-4 mr-2" /> Add Agent
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Add New Agent</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Name
-                    </Label>
-                    <Input
-                      id="name"
-                      value={newAgent.name || ''}
-                      onChange={(e) =>
-                        setNewAgent({ ...newAgent, name: e.target.value })
-                      }
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="description" className="text-right">
-                      Description
-                    </Label>
-                    <Input
-                      id="description"
-                      value={newAgent.description || ''}
-                      onChange={(e) =>
-                        setNewAgent({
-                          ...newAgent,
-                          description: e.target.value,
-                        })
-                      }
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="systemPrompt" className="text-right">
-                      System Prompt
-                    </Label>
-                    <div className="col-span-3 relative">
-                      <Textarea
-                        id="systemPrompt"
-                        value={newAgent.systemPrompt || ''}
-                        onChange={(e) =>
+                  setIsAddAgentOpen(true);
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button>
+                    {isAddAgentLoader ? (
+                      <LoadingSpinner />
+                    ) : (
+                      <Plus className="size-4 mr-2" />
+                    )}{' '}
+                    Add Agent
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Add New Agent</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="name" className="text-right">
+                        Name
+                      </Label>
+                      <Input
+                        id="name"
+                        value={newAgent.name || ''}
+                        onChange={(name) => setNewAgent({ ...newAgent, name })}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="description" className="text-right">
+                        Description
+                      </Label>
+                      <Input
+                        id="description"
+                        value={newAgent.description || ''}
+                        onChange={(description) =>
                           setNewAgent({
                             ...newAgent,
-                            systemPrompt: e.target.value,
+                            description,
                           })
                         }
-                        className="pr-10"
+                        className="col-span-3 bg-white dark:bg-black"
                       />
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="absolute right-2 top-2"
-                        onClick={optimizePrompt}
-                        disabled={isOptimizing}
-                      >
-                        {isOptimizing ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="size-4" />
-                        )}
-                      </Button>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="llm" className="text-right">
-                      LLM
-                    </Label>
-                    <Select
-                      onValueChange={(value) =>
-                        setNewAgent({ ...newAgent, llm: value })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select LLM" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="openai:gpt-4-turbo">
-                          GPT-4 Turbo
-                        </SelectItem>
-                        <SelectItem value="anthropic:claude-3-opus-20240229">
-                          Claude 3 Opus
-                        </SelectItem>
-                        <SelectItem value="anthropic:claude-3-sonnet-20240229">
-                          Claude 3 Sonnet
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {/* File Drop Zone */}
-                  <div
-                    className="border-2 border-dashed rounded-lg p-8 text-center col-span-4 cursor-pointer hover:border-primary/50 transition-colors"
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={handleFileDrop}
-                  >
-                    <FileText className="mx-auto size-8 mb-2" />
-                    <p className="text-lg font-medium mb-1">
-                      Drag and drop files here
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Supports PDF, TXT, CSV
-                    </p>
-                  </div>
-                  {/* File List */}
-                  {draggedFiles.length > 0 && (
-                    <div className="col-span-4 space-y-2">
-                      {draggedFiles.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-2 bg-secondary rounded"
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="systemPrompt" className="text-right">
+                        System Prompt
+                      </Label>
+                      <div className="col-span-3 relative">
+                        <Textarea
+                          id="systemPrompt"
+                          value={newAgent.systemPrompt || ''}
+                          onChange={(e) =>
+                            setNewAgent({
+                              ...newAgent,
+                              systemPrompt: e.target.value,
+                            })
+                          }
+                          className="pr-10"
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="absolute right-2 top-2"
+                          onClick={optimizePrompt}
+                          disabled={isOptimizing}
                         >
-                          <span className="flex items-center">
-                            <FileText className="size-4 mr-2" />
-                            {file.name}
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() =>
-                              setDraggedFiles((files) =>
-                                files.filter((_, i) => i !== index),
-                              )
-                            }
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </div>
-                      ))}
+                          {isOptimizing ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="size-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                  )}
-                </div>
-                <Button onClick={addAgent}>Add Agent</Button>
-              </DialogContent>
-            </Dialog>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="llm" className="text-right">
+                        LLM
+                      </Label>
+                      <Select
+                        onValueChange={(value) =>
+                          setNewAgent({ ...newAgent, llm: value })
+                        }
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Select LLM" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="openai:gpt-4-turbo">
+                            GPT-4 Turbo
+                          </SelectItem>
+                          <SelectItem value="anthropic:claude-3-opus-20240229">
+                            Claude 3 Opus
+                          </SelectItem>
+                          <SelectItem value="anthropic:claude-3-sonnet-20240229">
+                            Claude 3 Sonnet
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {/* File Drop Zone */}
+                    <div
+                      className="border-2 border-dashed rounded-lg p-8 text-center col-span-4 cursor-pointer hover:border-primary/50 transition-colors"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={handleFileDrop}
+                    >
+                      <FileText className="mx-auto size-8 mb-2" />
+                      <p className="text-lg font-medium mb-1">
+                        Drag and drop files here
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Supports PDF, TXT, CSV
+                      </p>
+                    </div>
+                    {/* File List */}
+                    {draggedFiles.length > 0 && (
+                      <div className="col-span-4 space-y-2">
+                        {draggedFiles.map((file, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 bg-secondary rounded"
+                          >
+                            <span className="flex items-center">
+                              <FileText className="size-4 mr-2" />
+                              {file.name}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() =>
+                                setDraggedFiles((files) =>
+                                  files.filter((_, i) => i !== index),
+                                )
+                              }
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <Button onClick={addAgent}>Add Agent</Button>
+                </DialogContent>
+              </Dialog>
 
-            {/* Actions Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <MoreHorizontal className="size-4 mr-2" /> Actions
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>Swarm Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={downloadJSON}>
-                  <Save className="size-4 mr-2" /> Save JSON
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    document.getElementById('file-upload')?.click()
-                  }
-                >
-                  <Upload className="size-4 mr-2" /> Load JSON
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={downloadCSV}>
-                  <Download className="size-4 mr-2" /> Download CSV
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={shareSwarm}>
-                  <Share2 className="size-4 mr-2" /> Share
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={startNewSession}>
-                  <RefreshCw className="size-4 mr-2" /> New Session
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              {/* Actions Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <MoreHorizontal className="size-4 mr-2" /> Actions
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>Swarm Actions</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={downloadJSON}>
+                    <Save className="size-4 mr-2" /> Save JSON
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      document.getElementById('file-upload')?.click()
+                    }
+                  >
+                    {updateSessionOutputMutation.isPending ? (
+                      <Loader2 className="size-4 mr-2" />
+                    ) : (
+                      <Upload className="size-4 mr-2" />
+                    )}{' '}
+                    Load JSON
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={downloadCSV}>
+                    <Download className="size-4 mr-2" /> Download CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={shareSwarm}>
+                    <Share2 className="size-4 mr-2" /> Share
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => createNewSession(task)}>
+                    <RefreshCw className="size-4 mr-2" /> New Session
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Hidden file input */}
+            <input
+              id="file-upload"
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={uploadJSON}
+            />
+
+            {/* Tabs */}
+            <Tabs defaultValue="current">
+              <TabsList>
+                <TabsTrigger value="current">Current Session</TabsTrigger>
+                <TabsTrigger value="history">Session History</TabsTrigger>
+              </TabsList>
+              <TabsContent value="current">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>System Prompt</TableHead>
+                      <TableHead>LLM</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Output</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentSession?.agents?.map((agent) => (
+                      <TableRow key={agent?.id}>
+                        <TableCell>{agent?.name}</TableCell>
+                        <TableCell>{agent?.description}</TableCell>
+                        <TableCell>{agent?.system_prompt}</TableCell>
+                        <TableCell>{agent?.llm}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {agent?.status === 'running' ? (
+                              <Loader2 className="size-4 mr-2 animate-spin" />
+                            ) : null}
+                            {isRunning ? 'running...' : agent?.status}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-md truncate">
+                          {agent?.output}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDuplicateClick(agent)}
+                            >
+                              {isDuplicateLoader ? (
+                                <LoadingSpinner />
+                              ) : (
+                                <Copy className="size-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => deleteAgent(agent)}
+                            >
+                              {deleteAgentMutation.isPending &&
+                              agent?.id === selectedAgent?.id ? (
+                                <LoadingSpinner />
+                              ) : (
+                                <Trash2 className="size-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+              <TabsContent value="history">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Session ID</TableHead>
+                      <TableHead>Timestamp</TableHead>
+                      <TableHead>Agents</TableHead>
+                      <TableHead>Tasks Executed</TableHead>
+                      <TableHead>Time Saved</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {allSessionsAgents?.data &&
+                      allSessionsAgents.data?.map((session) => (
+                        <TableRow key={session?.id}>
+                          <TableCell>{session?.id}</TableCell>
+                          <TableCell>
+                            {session?.timestamp &&
+                              new Date(session?.timestamp).toLocaleString()}
+                          </TableCell>
+                          <TableCell>{session?.agents?.length}</TableCell>
+                          <TableCell>{session?.tasks_executed}</TableCell>
+                          <TableCell>{session?.time_saved}s</TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+            </Tabs>
           </div>
-
-          {/* Hidden file input */}
-          <input
-            id="file-upload"
-            type="file"
-            accept=".json"
-            className="hidden"
-            onChange={uploadJSON}
-          />
-
-          {/* Tabs */}
-          <Tabs defaultValue="current">
-            <TabsList>
-              <TabsTrigger value="current">Current Session</TabsTrigger>
-              <TabsTrigger value="history">Session History</TabsTrigger>
-            </TabsList>
-            <TabsContent value="current">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>System Prompt</TableHead>
-                    <TableHead>LLM</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Output</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {swarmState.currentSession.agents.map((agent) => (
-                    <TableRow key={agent.id}>
-                      <TableCell>{agent.name}</TableCell>
-                      <TableCell>{agent.description}</TableCell>
-                      <TableCell>{agent.systemPrompt}</TableCell>
-                      <TableCell>{agent.llm}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          {agent.status === 'running' ? (
-                            <Loader2 className="size-4 mr-2 animate-spin" />
-                          ) : null}
-                          {agent.status}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-md truncate">
-                        {agent.output}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => duplicateAgent(agent)}
-                          >
-                            <Copy className="size-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => deleteAgent(agent.id)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TabsContent>
-            <TabsContent value="history">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Session ID</TableHead>
-                    <TableHead>Timestamp</TableHead>
-                    <TableHead>Agents</TableHead>
-                    <TableHead>Tasks Executed</TableHead>
-                    <TableHead>Time Saved</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {swarmState.sessions.map((session) => (
-                    <TableRow key={session.id}>
-                      <TableCell>{session.id}</TableCell>
-                      <TableCell>
-                        {new Date(session.timestamp).toLocaleString()}
-                      </TableCell>
-                      <TableCell>{session.agents.length}</TableCell>
-                      <TableCell>{session.tasksExecuted}</TableCell>
-                      <TableCell>{session.timeSaved}s</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TabsContent>
-          </Tabs>
         </div>
       </div>
-    </div>
+    </>
   );
 }

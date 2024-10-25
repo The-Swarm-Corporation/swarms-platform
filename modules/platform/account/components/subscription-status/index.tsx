@@ -2,12 +2,18 @@
 import { Button } from '@/shared/components/ui/Button';
 import useSubscription from '@/shared/hooks/subscription';
 import { formatDate } from '@/shared/utils/helpers';
+import { useSearchParams } from 'next/navigation';
 
 const SubscriptionStatus = () => {
   const subscription = useSubscription();
   const status = subscription.status;
   const isLoading = subscription.data.isLoading;
   const subscriptionData = subscription.data.data;
+
+  const searchParams = useSearchParams();
+  const subscriptionStatus = searchParams?.get('subscription_status');
+
+  const subNullQuery = subscriptionStatus === 'null';
 
   const tiers = ['Free', 'Premium', 'Enterprise'];
   // Assuming userTier is fetched or determined by some means
@@ -70,6 +76,11 @@ const SubscriptionStatus = () => {
                 disabled={subscription.createSubscriptionPortalLoading}
                 variant="default"
                 onClick={subscription.createSubscriptionPortal}
+                className={
+                  (!status || status !== 'active') && subNullQuery
+                    ? 'animate animate-bounce'
+                    : ''
+                }
               >
                 Subscribe
               </Button>
