@@ -269,10 +269,13 @@ const panelRouter = router({
       }),
     )
     .query(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
       const { data: session, error: sessionError } = await ctx.supabase
         .from('swarms_spreadsheet_sessions')
         .select('*')
         .eq('id', input.session_id)
+        .eq('user_id', user_id)
         .single();
 
       if (sessionError) throw sessionError;
@@ -281,6 +284,7 @@ const panelRouter = router({
         .from('swarms_spreadsheet_session_agents')
         .select('*')
         .eq('session_id', input.session_id)
+        .eq('user_id', user_id)
         .order('created_at', { ascending: true });
 
       if (agentsError) throw agentsError;
@@ -289,9 +293,12 @@ const panelRouter = router({
     }),
 
   getAllSessionsWithAgents: userProcedure.query(async ({ ctx }) => {
+    const user_id = ctx.session.data.session?.user?.id || '';
+
     const { data: sessions, error: sessionsError } = await ctx.supabase
       .from('swarms_spreadsheet_sessions')
       .select('*')
+      .eq('user_id', user_id)
       .order('created_at', { ascending: true });
 
     if (sessionsError) throw sessionsError;
@@ -299,6 +306,7 @@ const panelRouter = router({
     const { data: agents, error: agentsError } = await ctx.supabase
       .from('swarms_spreadsheet_session_agents')
       .select('*')
+      .eq('user_id', user_id)
       .order('created_at', { ascending: true });
 
     if (agentsError) throw agentsError;
@@ -325,10 +333,13 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
       const { data, error } = await ctx.supabase
         .from('swarms_spreadsheet_session_agents')
         .insert({
           ...input,
+          user_id,
           status: 'idle',
         })
         .select()
@@ -347,13 +358,16 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
       const { error } = await ctx.supabase
         .from('swarms_spreadsheet_session_agents')
         .update({
           status: input.status,
           output: input.output,
         })
-        .eq('id', input.agent_id);
+        .eq('id', input.agent_id)
+        .eq('user_id', user_id);
 
       if (error) throw error;
       return true;
@@ -366,10 +380,13 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
       const { data: agent } = await ctx.supabase
         .from('swarms_spreadsheet_session_agents')
         .select('original_agent_id')
         .eq('id', input.agent_id)
+        .eq('user_id', user_id)
         .single();
 
       if (agent) {
@@ -377,7 +394,8 @@ const panelRouter = router({
           await ctx.supabase
             .from('swarms_spreadsheet_session_agents')
             .delete()
-            .eq('original_agent_id', input.agent_id);
+            .eq('original_agent_id', input.agent_id)
+            .eq('user_id', user_id);
         }
       }
 
@@ -385,7 +403,8 @@ const panelRouter = router({
       const { error } = await ctx.supabase
         .from('swarms_spreadsheet_session_agents')
         .delete()
-        .eq('id', input.agent_id);
+        .eq('id', input.agent_id)
+        .eq('user_id', user_id);
 
       if (error) throw error;
       return true;
@@ -399,10 +418,13 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
       const { error } = await ctx.supabase
         .from('swarms_spreadsheet_sessions')
         .update({ task: input.task })
-        .eq('id', input.session_id);
+        .eq('id', input.session_id)
+        .eq('user_id', user_id);
 
       if (error) throw error;
       return true;
@@ -417,13 +439,16 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
       const { error } = await ctx.supabase
         .from('swarms_spreadsheet_sessions')
         .update({
           tasks_executed: input.tasksExecuted,
           time_saved: input.timeSaved,
         })
-        .eq('id', input.session_id);
+        .eq('id', input.session_id)
+        .eq('user_id', user_id);
 
       if (error) throw error;
       return true;
@@ -437,10 +462,13 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
       const { error } = await ctx.supabase
         .from('swarms_spreadsheet_sessions')
         .update({ output: input.output })
-        .eq('id', input.session_id);
+        .eq('id', input.session_id)
+        .eq('user_id', user_id);
 
       if (error) throw error;
       return true;
@@ -471,7 +499,8 @@ const panelRouter = router({
       const { error } = await ctx.supabase
         .from('swarms_spreadsheet_sessions')
         .update({ current: true })
-        .eq('id', input.session_id);
+        .eq('id', input.session_id)
+        .eq('user_id', user_id);
 
       if (error) throw error;
       return true;
@@ -480,10 +509,13 @@ const panelRouter = router({
   getDuplicateCount: userProcedure
     .input(z.object({ original_agent_id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
       const { data, error } = await ctx.supabase
         .from('swarms_spreadsheet_session_agents')
         .select('id')
-        .eq('original_agent_id', input.original_agent_id);
+        .eq('original_agent_id', input.original_agent_id)
+        .eq('user_id', user_id);
 
       if (error) throw error;
       return data.length;
