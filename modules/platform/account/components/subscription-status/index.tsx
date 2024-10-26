@@ -3,7 +3,9 @@ import { Button } from '@/shared/components/ui/Button';
 import useSubscription from '@/shared/hooks/subscription';
 import { formatDate } from '@/shared/utils/helpers';
 import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
+const tiers = ['Free', 'Premium', 'Enterprise'];
 const SubscriptionStatus = () => {
   const subscription = useSubscription();
   const status = subscription.status;
@@ -14,10 +16,13 @@ const SubscriptionStatus = () => {
   const subscriptionStatus = searchParams?.get('subscription_status');
 
   const subNullQuery = subscriptionStatus === 'null';
+  const [userTier, setUserTier] = useState('Free');
 
-  const tiers = ['Free', 'Premium', 'Enterprise'];
-  // Assuming userTier is fetched or determined by some means
-  const userTier = 'Free';
+  useEffect(() => {
+    if (status && status.toLowerCase() === 'active') {
+      setUserTier('Premium');
+    }
+  }, [status]);
 
   return (
     <div className="flex flex-col gap-4 w-full border rounded-md p-4 text-card-foreground">

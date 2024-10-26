@@ -350,7 +350,7 @@ export function SwarmManagement() {
 
   // Function to optimize prompt
   const optimizePrompt = async () => {
-    setIsOptimizing(true)
+    setIsOptimizing(true);
     try {
       const { text } = await generateText({
         model: registry.languageModel('openai:gpt-4-turbo'),
@@ -369,15 +369,14 @@ export function SwarmManagement() {
         ${newAgent.systemPrompt}
 
         Please provide an optimized version of this prompt, incorporating the guidelines mentioned above. Only return the optimized prompt, no other text or comments.
-        `
-      })
-      setNewAgent(prev => ({ ...prev, systemPrompt: text }))
+        `,
+      });
+      setNewAgent((prev) => ({ ...prev, systemPrompt: text }));
     } catch (error) {
-      console.error('Failed to optimize prompt:', error)
+      console.error('Failed to optimize prompt:', error);
     }
-    setIsOptimizing(false)
-  }
-
+    setIsOptimizing(false);
+  };
 
   const handleFileDrop = async (e: React.DragEvent) => {
     e.preventDefault();
@@ -702,7 +701,7 @@ export function SwarmManagement() {
                 onOpenChange={() => {
                   // if (redirectStatus()) return;
 
-                  setIsAddAgentOpen(true);
+                  setIsAddAgentOpen(!isAddAgentOpen);
                 }}
               >
                 <DialogTrigger asChild>
@@ -720,88 +719,92 @@ export function SwarmManagement() {
                     <DialogTitle>Add New Agent</DialogTitle>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">
-                        Name
-                      </Label>
-                      <Input
-                        id="name"
-                        value={newAgent.name || ''}
-                        onChange={(name) => setNewAgent({ ...newAgent, name })}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="description" className="text-right">
-                        Description
-                      </Label>
-                      <Input
-                        id="description"
-                        value={newAgent.description || ''}
-                        onChange={(description) =>
-                          setNewAgent({
-                            ...newAgent,
-                            description,
-                          })
-                        }
-                        className="col-span-3 bg-white dark:bg-black"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="systemPrompt" className="text-right">
-                        System Prompt
-                      </Label>
-                      <div className="col-span-3 relative">
-                        <Textarea
-                          id="systemPrompt"
-                          value={newAgent.systemPrompt || ''}
-                          onChange={(e) =>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="name" className="text-left">
+                          Name
+                        </Label>
+                        <Input
+                          id="name"
+                          value={newAgent.name || ''}
+                          onChange={(name) =>
+                            setNewAgent({ ...newAgent, name })
+                          }
+                          className="col-span-3"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="description" className="text-left">
+                          Description
+                        </Label>
+                        <Input
+                          id="description"
+                          value={newAgent.description || ''}
+                          onChange={(description) =>
                             setNewAgent({
                               ...newAgent,
-                              systemPrompt: e.target.value,
+                              description,
                             })
                           }
-                          className="pr-10"
+                          className="col-span-3 bg-white dark:bg-black ml-4"
                         />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="absolute right-2 top-2"
-                          onClick={optimizePrompt}
-                          disabled={isOptimizing}
-                        >
-                          {isOptimizing ? (
-                            <Loader2 className="size-4 animate-spin" />
-                          ) : (
-                            <Sparkles className="size-4" />
-                          )}
-                        </Button>
                       </div>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="llm" className="text-right">
-                        LLM
-                      </Label>
-                      <Select
-                        onValueChange={(value) =>
-                          setNewAgent({ ...newAgent, llm: value })
-                        }
-                      >
-                        <SelectTrigger className="col-span-3">
-                          <SelectValue placeholder="Select LLM" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="openai:gpt-4-turbo">
-                            GPT-4 Turbo
-                          </SelectItem>
-                          <SelectItem value="anthropic:claude-3-opus-20240229">
-                            Claude 3 Opus
-                          </SelectItem>
-                          <SelectItem value="anthropic:claude-3-sonnet-20240229">
-                            Claude 3 Sonnet
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="systemPrompt" className="text-left">
+                          System Prompt
+                        </Label>
+                        <div className="col-span-3 relative">
+                          <Textarea
+                            id="systemPrompt"
+                            value={newAgent.systemPrompt || ''}
+                            onChange={(e) =>
+                              setNewAgent({
+                                ...newAgent,
+                                systemPrompt: e.target.value,
+                              })
+                            }
+                            className="pr-10"
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="absolute right-2 top-2"
+                            onClick={optimizePrompt}
+                            disabled={isOptimizing}
+                          >
+                            {isOptimizing ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="size-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="llm" className="text-left">
+                          LLM
+                        </Label>
+                        <Select
+                          onValueChange={(value) =>
+                            setNewAgent({ ...newAgent, llm: value })
+                          }
+                        >
+                          <SelectTrigger className="col-span-3 ml-4">
+                            <SelectValue placeholder="Select LLM" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="openai:gpt-4-turbo">
+                              GPT-4 Turbo
+                            </SelectItem>
+                            <SelectItem value="anthropic:claude-3-opus-20240229">
+                              Claude 3 Opus
+                            </SelectItem>
+                            <SelectItem value="anthropic:claude-3-sonnet-20240229">
+                              Claude 3 Sonnet
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     {/* File Drop Zone */}
                     <div
