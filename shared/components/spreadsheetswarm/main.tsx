@@ -710,145 +710,144 @@ export function SwarmManagement() {
                       <LoadingSpinner />
                     ) : (
                       <Plus className="size-4 mr-2" />
-                    )}{' '}
+                    )}
                     Add Agent
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-lg p-6 space-y-6">
                   <DialogHeader>
                     <DialogTitle>Add New Agent</DialogTitle>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-left">
-                          Name
-                        </Label>
-                        <Input
-                          id="name"
-                          value={newAgent.name || ''}
-                          onChange={(name) =>
-                            setNewAgent({ ...newAgent, name })
-                          }
-                          className="col-span-3"
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="description" className="text-left">
-                          Description
-                        </Label>
-                        <Input
-                          id="description"
-                          value={newAgent.description || ''}
-                          onChange={(description) =>
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="name" className="text-left">
+                        Name
+                      </Label>
+                      <Input
+                        id="name"
+                        value={newAgent.name || ''}
+                        onChange={(name) => setNewAgent({ ...newAgent, name })}
+                        placeholder="Enter agent name"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="description" className="text-left">
+                        Description
+                      </Label>
+                      <Input
+                        id="description"
+                        value={newAgent.description || ''}
+                        onChange={(description) =>
+                          setNewAgent({
+                            ...newAgent,
+                            description,
+                          })
+                        }
+                        placeholder="Enter a brief description"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="systemPrompt" className="text-left">
+                        System Prompt
+                      </Label>
+                      <div className="relative">
+                        <Textarea
+                          id="systemPrompt"
+                          value={newAgent.systemPrompt || ''}
+                          onChange={(e) =>
                             setNewAgent({
                               ...newAgent,
-                              description,
+                              systemPrompt: e.target.value,
                             })
                           }
-                          className="col-span-3 bg-white dark:bg-black ml-4"
+                          placeholder="Enter system prompt details"
+                          className="pr-10"
                         />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="absolute right-2 top-2"
+                          onClick={optimizePrompt}
+                          disabled={isOptimizing}
+                        >
+                          {isOptimizing ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="size-4" />
+                          )}
+                        </Button>
                       </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="systemPrompt" className="text-left">
-                          System Prompt
-                        </Label>
-                        <div className="col-span-3 relative">
-                          <Textarea
-                            id="systemPrompt"
-                            value={newAgent.systemPrompt || ''}
-                            onChange={(e) =>
-                              setNewAgent({
-                                ...newAgent,
-                                systemPrompt: e.target.value,
-                              })
-                            }
-                            className="pr-10"
-                          />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="llm" className="text-left">
+                        LLM
+                      </Label>
+                      <Select
+                        onValueChange={(value) =>
+                          setNewAgent({ ...newAgent, llm: value })
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select LLM" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="openai:gpt-4-turbo">
+                            GPT-4 Turbo
+                          </SelectItem>
+                          <SelectItem value="anthropic:claude-3-opus-20240229">
+                            Claude 3 Opus
+                          </SelectItem>
+                          <SelectItem value="anthropic:claude-3-sonnet-20240229">
+                            Claude 3 Sonnet
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {/* File Drop Zone */}
+                  <div
+                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors space-y-2"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleFileDrop}
+                  >
+                    <FileText className="mx-auto size-8 mb-2" />
+                    <p className="text-lg font-medium mb-1">
+                      Drag and drop files here
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Supports PDF, TXT, CSV
+                    </p>
+                  </div>
+                  {/* File List */}
+                  {draggedFiles.length > 0 && (
+                    <div className="space-y-2">
+                      {draggedFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-2 bg-secondary rounded"
+                        >
+                          <span className="flex items-center">
+                            <FileText className="size-4 mr-2" />
+                            {file.name}
+                          </span>
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="absolute right-2 top-2"
-                            onClick={optimizePrompt}
-                            disabled={isOptimizing}
+                            onClick={() =>
+                              setDraggedFiles((files) =>
+                                files.filter((_, i) => i !== index),
+                              )
+                            }
                           >
-                            {isOptimizing ? (
-                              <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                              <Sparkles className="size-4" />
-                            )}
+                            <Trash2 className="size-4" />
                           </Button>
                         </div>
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="llm" className="text-left">
-                          LLM
-                        </Label>
-                        <Select
-                          onValueChange={(value) =>
-                            setNewAgent({ ...newAgent, llm: value })
-                          }
-                        >
-                          <SelectTrigger className="col-span-3 ml-4">
-                            <SelectValue placeholder="Select LLM" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="openai:gpt-4-turbo">
-                              GPT-4 Turbo
-                            </SelectItem>
-                            <SelectItem value="anthropic:claude-3-opus-20240229">
-                              Claude 3 Opus
-                            </SelectItem>
-                            <SelectItem value="anthropic:claude-3-sonnet-20240229">
-                              Claude 3 Sonnet
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      ))}
                     </div>
-                    {/* File Drop Zone */}
-                    <div
-                      className="border-2 border-dashed rounded-lg p-8 text-center col-span-4 cursor-pointer hover:border-primary/50 transition-colors"
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={handleFileDrop}
-                    >
-                      <FileText className="mx-auto size-8 mb-2" />
-                      <p className="text-lg font-medium mb-1">
-                        Drag and drop files here
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Supports PDF, TXT, CSV
-                      </p>
-                    </div>
-                    {/* File List */}
-                    {draggedFiles.length > 0 && (
-                      <div className="col-span-4 space-y-2">
-                        {draggedFiles.map((file, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-2 bg-secondary rounded"
-                          >
-                            <span className="flex items-center">
-                              <FileText className="size-4 mr-2" />
-                              {file.name}
-                            </span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() =>
-                                setDraggedFiles((files) =>
-                                  files.filter((_, i) => i !== index),
-                                )
-                              }
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <Button onClick={addAgent}>Add Agent</Button>
+                  )}
+                  <Button className="w-full mt-6" onClick={addAgent}>
+                    Add Agent
+                  </Button>
                 </DialogContent>
               </Dialog>
 
