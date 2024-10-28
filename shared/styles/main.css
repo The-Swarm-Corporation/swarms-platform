@@ -27,26 +27,27 @@
   }
 
   .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
+    --background: 220 16% 11%;    
+    --foreground: 0 0% 98%;       
+    --card: 220 16% 11%;          
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
+    --popover: 220 16% 11%;       
     --popover-foreground: 0 0% 98%;
-    --primary: 0 72.2% 50.6%;
+    --primary: 0 72.2% 50.6%;     
     --primary-foreground: 0 85.7% 97.3%;
-    --secondary: 0 0% 14.9%;
+    --secondary: 220 16% 16%;    
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
+    --muted: 220 16% 14%;        
+    --muted-foreground: 220 16% 65%;
+    --accent: 220 16% 16%;      
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 72.2% 50.6%;
-  }
+    --border: 220 16% 15%;       
+    --input: 220 16% 15%;         
+    --ring: 0 72.2% 50.6%;      
+    --radius: 0.5rem;
+}
 }
 
 @layer base {
@@ -77,9 +78,14 @@
     @apply bg-white dark:bg-black;
   }
 
+  .sticky-inner-list .sticky-inner-wrapper[style*="position: fixed"] {
+    @apply shadow-[0_8px_2px_-4px_rgba(0,0,0,0.12)];
+  }
+
   span[data-testid='react-awesome-stars-rating'] {
     @apply flex;
   }
+
 }
 
 @layer utilities {

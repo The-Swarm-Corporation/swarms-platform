@@ -80,7 +80,7 @@ export default function PlanSwitchDialog({
         <div className="mt-2">
           <DialogFooter className="mt-3 flex items-center justify-center gap-4">
             <DialogClose
-              className="w-2/4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="w-2/4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 bg-primary text-primary-foreground hover:bg-primary/90"
               aria-label="No"
             >
               No
