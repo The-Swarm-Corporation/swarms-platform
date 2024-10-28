@@ -600,7 +600,7 @@ export function SwarmManagement() {
   return (
     <>
       {allSessions?.isPending && user && <ComponentLoader />}
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex flex-1 h-screen overflow-hidden">
         {/* Sidebar */}
 
         {/* Main content */}
@@ -715,141 +715,129 @@ export function SwarmManagement() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Add New Agent</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-left">
-                          Name
-                        </Label>
-                        <Input
-                          id="name"
-                          value={newAgent.name || ''}
-                          onChange={(name) =>
-                            setNewAgent({ ...newAgent, name })
-                          }
-                          className="col-span-3"
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="description" className="text-left">
-                          Description
-                        </Label>
-                        <Input
-                          id="description"
-                          value={newAgent.description || ''}
-                          onChange={(description) =>
-                            setNewAgent({
-                              ...newAgent,
-                              description,
-                            })
-                          }
-                          className="col-span-3 bg-white dark:bg-black ml-4"
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="systemPrompt" className="text-left">
-                          System Prompt
-                        </Label>
-                        <div className="col-span-3 relative">
-                          <Textarea
-                            id="systemPrompt"
-                            value={newAgent.systemPrompt || ''}
-                            onChange={(e) =>
-                              setNewAgent({
-                                ...newAgent,
-                                systemPrompt: e.target.value,
-                              })
-                            }
-                            className="pr-10"
-                          />
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="absolute right-2 top-2"
-                            onClick={optimizePrompt}
-                            disabled={isOptimizing}
-                          >
-                            {isOptimizing ? (
-                              <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                              <Sparkles className="size-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="llm" className="text-left">
-                          LLM
-                        </Label>
-                        <Select
-                          onValueChange={(value) =>
-                            setNewAgent({ ...newAgent, llm: value })
-                          }
-                        >
-                          <SelectTrigger className="col-span-3 ml-4">
-                            <SelectValue placeholder="Select LLM" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="openai:gpt-4-turbo">
-                              GPT-4 Turbo
-                            </SelectItem>
-                            <SelectItem value="anthropic:claude-3-opus-20240229">
-                              Claude 3 Opus
-                            </SelectItem>
-                            <SelectItem value="anthropic:claude-3-sonnet-20240229">
-                              Claude 3 Sonnet
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    {/* File Drop Zone */}
-                    <div
-                      className="border-2 border-dashed rounded-lg p-8 text-center col-span-4 cursor-pointer hover:border-primary/50 transition-colors"
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={handleFileDrop}
-                    >
-                      <FileText className="mx-auto size-8 mb-2" />
-                      <p className="text-lg font-medium mb-1">
-                        Drag and drop files here
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Supports PDF, TXT, CSV
-                      </p>
-                    </div>
-                    {/* File List */}
-                    {draggedFiles.length > 0 && (
-                      <div className="col-span-4 space-y-2">
-                        {draggedFiles.map((file, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-2 bg-secondary rounded"
-                          >
-                            <span className="flex items-center">
-                              <FileText className="size-4 mr-2" />
-                              {file.name}
-                            </span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() =>
-                                setDraggedFiles((files) =>
-                                  files.filter((_, i) => i !== index),
-                                )
-                              }
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <Button onClick={addAgent}>Add Agent</Button>
-                </DialogContent>
+      <DialogHeader className='-mb-3'>
+        <DialogTitle>Add New Agent</DialogTitle>
+      </DialogHeader>
+      
+      <div className="grid gap-4 py-4 ">
+        <div>
+          <Label htmlFor="name" className="mb-2.5 block">Name</Label>
+          <Input
+            id="name"
+            value={newAgent.name || ''}
+            onChange={(name) => setNewAgent({ ...newAgent, name })}
+            className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-0 "
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="description" className="mb-2.5 block">Description</Label>
+          <Input
+            id="description"
+            value={newAgent.description || ''}
+            onChange={(description) => setNewAgent({ ...newAgent, description })}
+            className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-white dark:bg-black  ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-0 "
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="systemPrompt" className="mb-2.5 block">System Prompt</Label>
+          <div className="relative">
+            <Textarea
+              id="systemPrompt"
+              value={newAgent.systemPrompt || ''}
+              onChange={(e) => setNewAgent({
+                ...newAgent,
+                systemPrompt: e.target.value,
+              })}
+              className="pr-10 shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
+            />
+            <Button
+              size="sm"
+              variant="ghost"
+              className="absolute right-2 top-2"
+              onClick={optimizePrompt}
+              disabled={isOptimizing}
+            >
+              {isOptimizing ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Sparkles className="size-4" />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="llm" className="mb-2.5 block">LLM</Label>
+          <Select
+            onValueChange={(value) => setNewAgent({ ...newAgent, llm: value })}
+          >
+            <SelectTrigger className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]">
+              <SelectValue placeholder="Select LLM" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="openai:gpt-4-turbo">
+                GPT-4 Turbo
+              </SelectItem>
+              <SelectItem value="anthropic:claude-3-opus-20240229">
+                Claude 3 Opus
+              </SelectItem>
+              <SelectItem value="anthropic:claude-3-sonnet-20240229">
+                Claude 3 Sonnet
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div
+          className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleFileDrop}
+        >
+          <FileText className="mx-auto size-8 mb-2" />
+          <p className="text-lg font-medium mb-1">
+            Drag and drop files here
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Supports PDF, TXT, CSV
+          </p>
+        </div>
+
+        {draggedFiles.length > 0 && (
+          <div>
+            {draggedFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-2 bg-secondary rounded mb-2 last:mb-0"
+              >
+                <span className="flex items-center">
+                  <FileText className="size-4 mr-2" />
+                  {file.name}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    setDraggedFiles((files) =>
+                      files.filter((_, i) => i !== index)
+                    )
+                  }
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+<Button 
+  onClick={addAgent} 
+  className="shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.16),_0_3px_6px_rgba(0,0,0,0.23)] -mb-5"
+>
+  Add Agent
+</Button>
+      </div>
+    </DialogContent>
               </Dialog>
 
               {/* Actions Dropdown */}

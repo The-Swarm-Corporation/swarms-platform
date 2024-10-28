@@ -11,6 +11,7 @@ import {
   BookOpenText,
   FileText,
   Building,
+  FileSpreadsheet
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/constants/links';
 import Discord from '@/shared/components/icons/Discord';
@@ -90,6 +91,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <Blocks size={24} />,
       title: 'Explorer',
       link: PLATFORM.EXPLORER,
+    },
+    {
+      icon: <FileSpreadsheet size={24} />,
+      title: 'Spreadsheet Swarm',
+      link: PLATFORM.SPREADSHEET,
     },
     {
       icon: <LockKeyhole size={24} />,
