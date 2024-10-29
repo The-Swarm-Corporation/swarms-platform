@@ -5,7 +5,7 @@ export const PLATFORM = {
   ACCOUNT: '/platform/account',
   ACCOUNT_PROFILE: '/platform/account/profile',
   ACCOUNT_BILLING: '/platform/account/billing',
-
+  SPREADSHEET: '/platform/spreadsheet',
   EXPLORER: '/',
   SETTINGS: '/platform/organization',
   ORGANIZATION: '/platform/organization',

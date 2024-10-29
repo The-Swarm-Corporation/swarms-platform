@@ -34,7 +34,7 @@ export default function DeleteContent({
         <div className="mt-2">
           <DialogFooter className="mt-3 flex items-center justify-center gap-4">
             <DialogClose
-              className="w-2/4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white text-black"
+              className="w-2/4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 bg-white text-black"
               aria-label="No"
             >
               No

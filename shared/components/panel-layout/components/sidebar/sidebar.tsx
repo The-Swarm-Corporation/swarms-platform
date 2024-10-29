@@ -41,7 +41,7 @@ const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
       />
       <div
         className={cn(
-          'flex flex-col fixed flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-150 translate-x-0 min-h-screen border-r border-gray-900 max-lg:hidden',
+          'flex flex-col fixed flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-150 translate-x-0 min-h-screen max-lg:hidden shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
           !showTitle && 'max-w-[90px]',
         )}
       >
@@ -69,7 +69,7 @@ const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
                       className={cn(
                         'p-2 py-3 my-1 hover:bg-destructive hover:text-white rounded-md',
                         (isSubMenuActive || item.link === path) &&
-                          'bg-primary text-white',
+                          'bg-primary text-white [&_svg]:text-white',
                       )}
                     />
                     {/* sub items */}
@@ -83,7 +83,7 @@ const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
                               'pl-10  py-1  hover:bg-primary hover:text-white rounded-md',
                               subItem.link === path &&
                                 // 'border border-gray-400 dark:text-white',
-                                'bg-primary',
+                                'bg-primary text-white [&_svg]:text-white',
                             )}
                             showTitle
                           />

@@ -201,10 +201,14 @@ const Explorer = () => {
           top={48}
           innerZ={10}
           onStateChange={handleStateChange}
-          className="sticky-inner-list"
+          className={cn(
+    'sticky-inner-list',
+    isFixed && 'shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'
+  )}
+          
         >
           <div className="mt-8 pb-4 bg-white dark:bg-black">
-            <ul className="p-0 mb-2 flex items-center flex-wrap gap-3">
+            <ul className="p-0 mb-2  flex items-center flex-wrap gap-3">
               {options.map((option) => {
                 const colorSelector = isDataLoading
                   ? 'text-primary'
@@ -215,7 +219,7 @@ const Explorer = () => {
                   <li
                     key={option}
                     className={cn(
-                      'shadow cursor-pointer capitalize text-center rounded-sm flex items-center justify-center bg-secondary text-foreground w-24 p-1 px-2 text-xs md:text-sm',
+                      'shadow mt-2 cursor-pointer capitalize text-center rounded-sm flex items-center justify-center bg-secondary text-foreground w-24 p-1 px-2 text-xs md:text-sm',
                       colorSelector,
                     )}
                   >
@@ -260,7 +264,7 @@ const Explorer = () => {
         </Sticky>
         <div
           className={cn(
-            'flex flex-col h-full',
+            'flex flex-col h-full p-2',
             isFixed
               ? 'translate-y-[155px] md:translate-y-[125px] xl:translate-y-[120px]'
               : 'translate-y-0',
