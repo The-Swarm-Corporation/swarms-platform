@@ -1,43 +1,40 @@
-import { DbSession, Session } from '@/shared/types/spreadsheet';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/shared/components/spread_sheet_swarm/ui/table';
+import { Column, DataTable } from '@/shared/components/ui/Table/DataTable';
+import { Session } from '@/shared/types/spreadsheet';
 
 interface SessionTableProps {
   sessions: Session[];
 }
 
-export const SessionTable: React.FC<SessionTableProps> = ({ sessions }) => {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Session ID</TableHead>
-          <TableHead>Timestamp</TableHead>
-          <TableHead>Agents</TableHead>
-          <TableHead>Tasks Executed</TableHead>
-          <TableHead>Time Saved</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {sessions.map((session) => (
-          <TableRow key={session.id}>
-            <TableCell>{session.id}</TableCell>
-            <TableCell>
-              {session.timestamp &&
-                new Date(session.timestamp).toLocaleString()}
-            </TableCell>
-            <TableCell>{session.agents?.length}</TableCell>
-            <TableCell>{session.tasks_executed}</TableCell>
-            <TableCell>{session.time_saved}s</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+export const SessionTable: React.FC<SessionTableProps> = ({
+  sessions = [],
+}) => {
+  const columns: Column<Session>[] = [
+    {
+      header: 'Session ID',
+      accessor: (session) => session.id,
+      className: 'font-mono',
+    },
+    {
+      header: 'Timestamp',
+      accessor: (session) =>
+        session.timestamp ? new Date(session.timestamp).toLocaleString() : '',
+    },
+    {
+      header: 'Agents',
+      accessor: (session) => String(session.agents?.length || 0),
+      className: 'text-center',
+    },
+    {
+      header: 'Tasks Executed',
+      accessor: (session) => String(session.tasks_executed || 0),
+      className: 'text-center',
+    },
+    {
+      header: 'Time Saved',
+      accessor: (session) => `${session.time_saved || 0}s`,
+      className: 'text-right',
+    },
+  ];
+
+  return <DataTable data={sessions} columns={columns} />;
 };

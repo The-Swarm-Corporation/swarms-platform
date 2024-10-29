@@ -22,11 +22,6 @@ export interface NewAgent {
   llm: string;
 }
 
-export const mapDbAgentToInternalAgent = (agent: SwarmAgent) => ({
-  ...agent,
-  status: (agent.status as AgentStatus) || 'idle',
-});
-
 // types/session.ts
 
 export type DbSession = Tables<'swarms_spreadsheet_sessions'>;
@@ -34,13 +29,6 @@ export type DbSession = Tables<'swarms_spreadsheet_sessions'>;
 export interface Session extends DbSession {
   agents: SwarmAgent[];
 }
-export const mapDbSessionToSession = (
-  dbSession: DbSession & { agents: SwarmAgent[] },
-): Session => ({
-  ...dbSession,
-  tasks_executed: dbSession.tasks_executed || 0,
-  time_saved: dbSession.time_saved || 0,
-});
 
 // types/task.ts
 export interface TaskConfig {
