@@ -98,7 +98,7 @@ interface Agent {
 }
 
 const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
-  <pre id="customPreTag" {...props} />
+  <pre id="customPreTag" {...props} className="max-h-[600px]" />
 );
 
 export function SwarmManagement() {
@@ -938,7 +938,10 @@ export function SwarmManagement() {
                       >
                         <TableCell>{agent?.name}</TableCell>
                         <TableCell>{agent?.description}</TableCell>
-                        <TableCell className="w-[280px] flex items-center">
+                        <TableCell className="w-[280px] flex items-center lg:hidden">
+                            {agent?.system_prompt}
+                        </TableCell>
+                        <TableCell className="w-[280px] hidden lg:flex items-center">
                           <div className="absolute inset-0 p-4 overflow-y-auto top-1/2 -translate-y-1/2">
                             {agent?.system_prompt}
                           </div>
@@ -952,7 +955,10 @@ export function SwarmManagement() {
                             {isRunning ? 'running...' : agent?.status}
                           </div>
                         </TableCell>
-                        <TableCell className="w-[320px] flex items-center">
+                        <TableCell className="w-[320px] flex items-center lg:hidden">
+                          {agent?.output}
+                        </TableCell>
+                        <TableCell className="w-[320px] hidden lg:flex items-center">
                           <Dialog
                             open={isAgentOutput && agent?.id === agentId}
                             onOpenChange={setIsAgentOutput}
@@ -962,11 +968,13 @@ export function SwarmManagement() {
                                 {agent?.output}
                               </div>
                             </DialogTrigger>
-                            <DialogContent className="max-w-2xl p-6">
+                            <DialogContent className="max-w-3xl p-6">
                               <Copy
                                 size={30}
                                 className="p-1 text-primary cursor-pointer absolute right-12 top-2"
-                                onClick={()=>copyToClipboard(agent?.output ?? "")}
+                                onClick={() =>
+                                  copyToClipboard(agent?.output ?? '')
+                                }
                               />
                               <SyntaxHighlighter
                                 PreTag={CustomPre}
@@ -974,7 +982,7 @@ export function SwarmManagement() {
                                 language="markdown"
                                 wrapLongLines
                               >
-                                {agent?.output || ''}
+                                {agent?.output ?? ""}
                               </SyntaxHighlighter>
                             </DialogContent>
                           </Dialog>
