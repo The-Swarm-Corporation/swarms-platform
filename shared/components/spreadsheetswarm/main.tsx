@@ -76,6 +76,8 @@ import { useAuthContext } from '../ui/auth.provider';
 import { Tables } from '@/types_db';
 import LoadingSpinner from '../loading-spinner';
 import ComponentLoader from '../loaders/component';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface DraggedFile {
   name: string;
@@ -95,14 +97,9 @@ interface Agent {
   attachments?: DraggedFile[];
 }
 
-interface Session {
-  id: string;
-  timestamp: number;
-  agents: Agent[];
-  task: string;
-  tasksExecuted: number;
-  timeSaved: number;
-}
+const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
+  <pre id="customPreTag" {...props} />
+);
 
 export function SwarmManagement() {
   const { user, setIsAuthModalOpen } = useAuthContext();
@@ -115,6 +112,8 @@ export function SwarmManagement() {
   const [runningAgents, setRunningAgents] = useState<Set<string>>(new Set());
   const [task, setTask] = useState('');
   const [isRunning, setIsRunning] = useState(false);
+  const [isAgentOutput, setIsAgentOutput] = useState(false);
+  const [agentId, setAgentId] = useState('');
 
   const toast = useToast();
   const router = useRouter();
@@ -597,6 +596,17 @@ export function SwarmManagement() {
     console.log('Sharing swarm...');
   };
 
+  async function copyToClipboard(text: string) {
+    if (!text) return;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.toast({ title: 'Copied to clipboard' });
+    } catch (error) {
+      console.error('Failed to copy: ', error);
+    }
+  }
+
   return (
     <>
       {allSessions?.isPending && user && <ComponentLoader />}
@@ -715,129 +725,143 @@ export function SwarmManagement() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
-      <DialogHeader className='-mb-3'>
-        <DialogTitle>Add New Agent</DialogTitle>
-      </DialogHeader>
-      
-      <div className="grid gap-4 py-4 ">
-        <div>
-          <Label htmlFor="name" className="mb-2.5 block">Name</Label>
-          <Input
-            id="name"
-            value={newAgent.name || ''}
-            onChange={(name) => setNewAgent({ ...newAgent, name })}
-            className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-0 "
-          />
-        </div>
+                  <DialogHeader className="-mb-3">
+                    <DialogTitle>Add New Agent</DialogTitle>
+                  </DialogHeader>
 
-        <div>
-          <Label htmlFor="description" className="mb-2.5 block">Description</Label>
-          <Input
-            id="description"
-            value={newAgent.description || ''}
-            onChange={(description) => setNewAgent({ ...newAgent, description })}
-            className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-white dark:bg-black  ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-0 "
-          />
-        </div>
+                  <div className="grid gap-4 py-4 ">
+                    <div>
+                      <Label htmlFor="name" className="mb-2.5 block">
+                        Name
+                      </Label>
+                      <Input
+                        id="name"
+                        value={newAgent.name || ''}
+                        onChange={(name) => setNewAgent({ ...newAgent, name })}
+                        className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-0 "
+                      />
+                    </div>
 
-        <div>
-          <Label htmlFor="systemPrompt" className="mb-2.5 block">System Prompt</Label>
-          <div className="relative">
-            <Textarea
-              id="systemPrompt"
-              value={newAgent.systemPrompt || ''}
-              onChange={(e) => setNewAgent({
-                ...newAgent,
-                systemPrompt: e.target.value,
-              })}
-              className="pr-10 shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-            />
-            <Button
-              size="sm"
-              variant="ghost"
-              className="absolute right-2 top-2"
-              onClick={optimizePrompt}
-              disabled={isOptimizing}
-            >
-              {isOptimizing ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Sparkles className="size-4" />
-              )}
-            </Button>
-          </div>
-        </div>
+                    <div>
+                      <Label htmlFor="description" className="mb-2.5 block">
+                        Description
+                      </Label>
+                      <Input
+                        id="description"
+                        value={newAgent.description || ''}
+                        onChange={(description) =>
+                          setNewAgent({ ...newAgent, description })
+                        }
+                        className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-white dark:bg-black  ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-0 "
+                      />
+                    </div>
 
-        <div>
-          <Label htmlFor="llm" className="mb-2.5 block">LLM</Label>
-          <Select
-            onValueChange={(value) => setNewAgent({ ...newAgent, llm: value })}
-          >
-            <SelectTrigger className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]">
-              <SelectValue placeholder="Select LLM" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="openai:gpt-4-turbo">
-                GPT-4 Turbo
-              </SelectItem>
-              <SelectItem value="anthropic:claude-3-opus-20240229">
-                Claude 3 Opus
-              </SelectItem>
-              <SelectItem value="anthropic:claude-3-sonnet-20240229">
-                Claude 3 Sonnet
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+                    <div>
+                      <Label htmlFor="systemPrompt" className="mb-2.5 block">
+                        System Prompt
+                      </Label>
+                      <div className="relative">
+                        <Textarea
+                          id="systemPrompt"
+                          value={newAgent.systemPrompt || ''}
+                          onChange={(e) =>
+                            setNewAgent({
+                              ...newAgent,
+                              systemPrompt: e.target.value,
+                            })
+                          }
+                          className="pr-10 shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="absolute right-2 top-2"
+                          onClick={optimizePrompt}
+                          disabled={isOptimizing}
+                        >
+                          {isOptimizing ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="size-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
 
-        <div
-          className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleFileDrop}
-        >
-          <FileText className="mx-auto size-8 mb-2" />
-          <p className="text-lg font-medium mb-1">
-            Drag and drop files here
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Supports PDF, TXT, CSV
-          </p>
-        </div>
+                    <div>
+                      <Label htmlFor="llm" className="mb-2.5 block">
+                        LLM
+                      </Label>
+                      <Select
+                        onValueChange={(value) =>
+                          setNewAgent({ ...newAgent, llm: value })
+                        }
+                      >
+                        <SelectTrigger className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]">
+                          <SelectValue placeholder="Select LLM" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="openai:gpt-4-turbo">
+                            GPT-4 Turbo
+                          </SelectItem>
+                          <SelectItem value="anthropic:claude-3-opus-20240229">
+                            Claude 3 Opus
+                          </SelectItem>
+                          <SelectItem value="anthropic:claude-3-sonnet-20240229">
+                            Claude 3 Sonnet
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-        {draggedFiles.length > 0 && (
-          <div>
-            {draggedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-2 bg-secondary rounded mb-2 last:mb-0"
-              >
-                <span className="flex items-center">
-                  <FileText className="size-4 mr-2" />
-                  {file.name}
-                </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() =>
-                    setDraggedFiles((files) =>
-                      files.filter((_, i) => i !== index)
-                    )
-                  }
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-<Button 
-  onClick={addAgent} 
-  className="shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.16),_0_3px_6px_rgba(0,0,0,0.23)] -mb-5"
->
-  Add Agent
-</Button>
-      </div>
-    </DialogContent>
+                    <div
+                      className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={handleFileDrop}
+                    >
+                      <FileText className="mx-auto size-8 mb-2" />
+                      <p className="text-lg font-medium mb-1">
+                        Drag and drop files here
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Supports PDF, TXT, CSV
+                      </p>
+                    </div>
+
+                    {draggedFiles.length > 0 && (
+                      <div>
+                        {draggedFiles.map((file, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 bg-secondary rounded mb-2 last:mb-0"
+                          >
+                            <span className="flex items-center">
+                              <FileText className="size-4 mr-2" />
+                              {file.name}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() =>
+                                setDraggedFiles((files) =>
+                                  files.filter((_, i) => i !== index),
+                                )
+                              }
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <Button
+                      onClick={addAgent}
+                      className="shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.16),_0_3px_6px_rgba(0,0,0,0.23)] -mb-5"
+                    >
+                      Add Agent
+                    </Button>
+                  </div>
+                </DialogContent>
               </Dialog>
 
               {/* Actions Dropdown */}
@@ -908,10 +932,17 @@ export function SwarmManagement() {
                   </TableHeader>
                   <TableBody>
                     {currentSession?.agents?.map((agent) => (
-                      <TableRow key={agent?.id}>
+                      <TableRow
+                        key={agent?.id}
+                        onClick={() => setAgentId(agent?.id)}
+                      >
                         <TableCell>{agent?.name}</TableCell>
                         <TableCell>{agent?.description}</TableCell>
-                        <TableCell>{agent?.system_prompt}</TableCell>
+                        <TableCell className="w-[280px] flex items-center">
+                          <div className="absolute inset-0 p-4 overflow-y-auto top-1/2 -translate-y-1/2">
+                            {agent?.system_prompt}
+                          </div>
+                        </TableCell>
                         <TableCell>{agent?.llm}</TableCell>
                         <TableCell>
                           <div className="flex items-center">
@@ -921,8 +952,32 @@ export function SwarmManagement() {
                             {isRunning ? 'running...' : agent?.status}
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-md truncate">
-                          {agent?.output}
+                        <TableCell className="w-[320px] flex items-center">
+                          <Dialog
+                            open={isAgentOutput && agent?.id === agentId}
+                            onOpenChange={setIsAgentOutput}
+                          >
+                            <DialogTrigger asChild>
+                              <div className="absolute inset-0 p-4 overflow-y-auto top-1/2 -translate-y-1/2 cursor-pointer hover:text-gray-200">
+                                {agent?.output}
+                              </div>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl p-6">
+                              <Copy
+                                size={30}
+                                className="p-1 text-primary cursor-pointer absolute right-12 top-2"
+                                onClick={()=>copyToClipboard(agent?.output ?? "")}
+                              />
+                              <SyntaxHighlighter
+                                PreTag={CustomPre}
+                                style={dracula}
+                                language="markdown"
+                                wrapLongLines
+                              >
+                                {agent?.output || ''}
+                              </SyntaxHighlighter>
+                            </DialogContent>
+                          </Dialog>
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
