@@ -58,6 +58,7 @@ import {
   Sparkles,
   Loader2,
   FileText,
+  Pencil,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
@@ -115,6 +116,9 @@ export function SwarmManagement() {
   const [isAgentOutput, setIsAgentOutput] = useState(false);
   const [agentId, setAgentId] = useState('');
 
+  const [swarmName, setSwarmName] = useState<string>('');
+  const [isEditingName, setIsEditingName] = useState(false);
+
   const toast = useToast();
   const router = useRouter();
 
@@ -134,6 +138,8 @@ export function SwarmManagement() {
   const cardManager = trpc.payment.getUserPaymentMethods.useQuery();
   const [selectedAgent, setSelectedAgent] =
     useState<Tables<'swarms_spreadsheet_session_agents'> | null>(null);
+
+  const updateSessionNameMutation = trpc.panel.updateSessionName.useMutation();
 
   const getDuplicateCountQuery = trpc.panel.getDuplicateCount.useQuery(
     {
@@ -173,6 +179,33 @@ export function SwarmManagement() {
   useEffect(() => {
     if (sessionData.data?.task) {
       setTask(sessionData.data.task);
+    }
+  }, [sessionData.data]);
+
+  const handleNameSave = async () => {
+    if (!currentSessionId) return;
+
+    try {
+      await updateSessionNameMutation.mutateAsync({
+        session_id: currentSessionId,
+        name: swarmName,
+      });
+      setIsEditingName(false);
+      sessionData.refetch();
+    } catch (error) {
+      console.error('Failed to update name:', error);
+      toast.toast({
+        description: 'Failed to update name',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (sessionData.data?.name) {
+      setSwarmName(sessionData.data.name);
+    } else {
+      setSwarmName(''); // Reset when no name is set
     }
   }, [sessionData.data]);
 
@@ -619,7 +652,66 @@ export function SwarmManagement() {
             {/* Stats Card */}
             <Card>
               <CardHeader>
-                <CardTitle>Spreadsheet Swarm</CardTitle>
+                <div className="flex items-center justify-between">
+                  {isEditingName ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={swarmName}
+                        onChange={(name) => setSwarmName(name)}
+                        placeholder="Enter swarm name..."
+                        className="w-[300px]"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleNameSave();
+                          } else if (e.key === 'Escape') {
+                            setIsEditingName(false);
+                            setSwarmName(sessionData.data?.name || '');
+                          }
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleNameSave}
+                        disabled={
+                          !swarmName.trim() ||
+                          updateSessionNameMutation.isPending
+                        }
+                      >
+                        {updateSessionNameMutation.isPending ? (
+                          <LoadingSpinner />
+                        ) : (
+                          'Save'
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setIsEditingName(false);
+                          setSwarmName(sessionData.data?.name || '');
+                        }}
+                        disabled={updateSessionNameMutation.isPending}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-xl">
+                        {swarmName || 'Untitled Spreadsheet Swarm'}
+                      </CardTitle>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setIsEditingName(true)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <DropdownMenu>
@@ -939,7 +1031,7 @@ export function SwarmManagement() {
                         <TableCell>{agent?.name}</TableCell>
                         <TableCell>{agent?.description}</TableCell>
                         <TableCell className="w-[280px] flex items-center lg:hidden">
-                            {agent?.system_prompt}
+                          {agent?.system_prompt}
                         </TableCell>
                         <TableCell className="w-[280px] hidden lg:flex items-center">
                           <div className="absolute inset-0 p-4 overflow-y-auto top-1/2 -translate-y-1/2">
@@ -982,7 +1074,7 @@ export function SwarmManagement() {
                                 language="markdown"
                                 wrapLongLines
                               >
-                                {agent?.output ?? ""}
+                                {agent?.output ?? ''}
                               </SyntaxHighlighter>
                             </DialogContent>
                           </Dialog>

@@ -430,6 +430,26 @@ const panelRouter = router({
       return true;
     }),
 
+  updateSessionName: userProcedure
+    .input(
+      z.object({
+        session_id: z.string().uuid(),
+        name: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id || '';
+
+      const { error } = await ctx.supabase
+        .from('swarms_spreadsheet_sessions')
+        .update({ name: input.name })
+        .eq('id', input.session_id)
+        .eq('user_id', user_id);
+
+      if (error) throw error;
+      return true;
+    }),
+
   updateSessionMetrics: userProcedure
     .input(
       z.object({
