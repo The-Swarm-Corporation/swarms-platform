@@ -1,4 +1,4 @@
-import { SwarmManagement } from '@/shared/components/spreadsheetswarm/SwarmManagement';
+import { SwarmManagement } from '@/shared/components/spreadsheetswarm/main';
 
 export default function SpreadSheetSwarm() {
   return (
