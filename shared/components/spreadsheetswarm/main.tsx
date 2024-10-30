@@ -1,27 +1,19 @@
 'use client';
 
 // React core
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // Third-party libraries
 import { generateText } from 'ai';
-import { v4 as uuidv4 } from 'uuid';
 
 // UI Components
-import { Button } from '../ui/Button';
+import { registry } from '@/shared/utils/registry';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from '../spread_sheet_swarm/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,36 +22,44 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../spread_sheet_swarm/ui/dropdown-menu';
-import Input from '../ui/Input';
 import { Label } from '../spread_sheet_swarm/ui/label';
+import { Button } from '../ui/Button';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../spread_sheet_swarm/ui/table';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog';
+import Input from '../ui/Input';
 import { Textarea } from '../ui/textarea';
-import { registry } from '@/shared/utils/registry';
 
 // Icons
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { PLATFORM } from '@/shared/constants/links';
+import { createQueryString, isEmpty } from '@/shared/utils/helpers';
+import { trpc } from '@/shared/utils/trpc/trpc';
+import { Tables } from '@/types_db';
 import {
-  Plus,
-  Download,
-  Share2,
-  Play,
-  Trash2,
-  Save,
-  Upload,
-  RefreshCw,
-  MoreHorizontal,
   Copy,
-  Sparkles,
-  Loader2,
+  Download,
   FileText,
+  Loader2,
+  MoreHorizontal,
+  Play,
+  Plus,
+  RefreshCw,
+  Save,
+  Share2,
+  Sparkles,
+  Trash2,
+  Upload,
 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { useRouter } from 'next/navigation';
+import ComponentLoader from '../loaders/component';
+import LoadingSpinner from '../loading-spinner';
+import { PaginatedTable } from '../spread_sheet_swarm/ui/PaginatedTable';
+import { useAuthContext } from '../ui/auth.provider';
 import {
   Select,
   SelectContent,
@@ -67,19 +67,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import { trpc } from '@/shared/utils/trpc/trpc';
-import { useRouter } from 'next/navigation';
-import { createQueryString, isEmpty } from '@/shared/utils/helpers';
-import { PLATFORM } from '@/shared/constants/links';
-import { useAuthContext } from '../ui/auth.provider';
-import { Tables } from '@/types_db';
-import LoadingSpinner from '../loading-spinner';
-import ComponentLoader from '../loaders/component';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { PaginatedTable } from '../spread_sheet_swarm/ui/PaginatedTable';
-import { dummyAgents, dummySessionHistory } from './dummyData';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 interface DraggedFile {
   name: string;
