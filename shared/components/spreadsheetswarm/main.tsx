@@ -78,6 +78,8 @@ import LoadingSpinner from '../loading-spinner';
 import ComponentLoader from '../loaders/component';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { PaginatedTable } from '../spread_sheet_swarm/ui/PaginatedTable';
+import { dummyAgents, dummySessionHistory } from './dummyData';
 
 interface DraggedFile {
   name: string;
@@ -607,6 +609,119 @@ export function SwarmManagement() {
     }
   }
 
+  // Current Session columns
+  const currentSessionColumns = [
+    {
+      key: 'name',
+      header: 'Name',
+      width: 150,
+    },
+    {
+      key: 'description',
+      header: 'Description',
+      width: 200,
+    },
+    {
+      key: 'system_prompt',
+      header: 'System Prompt',
+      width: 300,
+    },
+    {
+      key: 'llm',
+      header: 'LLM',
+      width: 150,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: 120,
+      renderCell: (agent: any) => (
+        <div className="flex items-center">
+          {agent.status === 'running' ? (
+            <Loader2 className="size-4 mr-2 animate-spin" />
+          ) : null}
+          {isRunning ? 'running...' : agent.status}
+        </div>
+      ),
+    },
+    {
+      key: 'output',
+      header: 'Output',
+      width: 250,
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 120,
+      hideInExpanded: true, // Don't show actions in expanded content
+      renderCell: (agent: any) => (
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDuplicateClick(agent);
+            }}
+          >
+            {isDuplicateLoader ? (
+              <LoadingSpinner />
+            ) : (
+              <Copy className="size-4" />
+            )}
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteAgent(agent);
+            }}
+          >
+            {deleteAgentMutation.isPending && agent.id === selectedAgent?.id ? (
+              <LoadingSpinner />
+            ) : (
+              <Trash2 className="size-4" />
+            )}
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  // Session history columns
+  const sessionHistoryColumns = [
+    {
+      key: 'id',
+      header: 'Session ID',
+      width: 200,
+    },
+    {
+      key: 'timestamp',
+      header: 'Timestamp',
+      width: 200,
+      renderCell: (session: any) =>
+        session.timestamp && new Date(session.timestamp).toLocaleString(),
+    },
+    {
+      key: 'agents',
+      header: 'Agents',
+      width: 100,
+      renderCell: (session: any) => session.agents?.length,
+    },
+    {
+      key: 'tasks_executed',
+      header: 'Tasks Executed',
+      width: 150,
+    },
+    {
+      key: 'time_saved',
+      header: 'Time Saved',
+      width: 150,
+      renderCell: (session: any) => `${session.time_saved}s`,
+    },
+  ];
+
   return (
     <>
       {allSessions?.isPending && user && <ComponentLoader />}
@@ -918,134 +1033,19 @@ export function SwarmManagement() {
                 <TabsTrigger value="history">Session History</TabsTrigger>
               </TabsList>
               <TabsContent value="current">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>System Prompt</TableHead>
-                      <TableHead>LLM</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Output</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {currentSession?.agents?.map((agent) => (
-                      <TableRow
-                        key={agent?.id}
-                        onClick={() => setAgentId(agent?.id)}
-                      >
-                        <TableCell>{agent?.name}</TableCell>
-                        <TableCell>{agent?.description}</TableCell>
-                        <TableCell className="w-[280px] flex items-center lg:hidden">
-                            {agent?.system_prompt}
-                        </TableCell>
-                        <TableCell className="w-[280px] hidden lg:flex items-center">
-                          <div className="absolute inset-0 p-4 overflow-y-auto top-1/2 -translate-y-1/2">
-                            {agent?.system_prompt}
-                          </div>
-                        </TableCell>
-                        <TableCell>{agent?.llm}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            {agent?.status === 'running' ? (
-                              <Loader2 className="size-4 mr-2 animate-spin" />
-                            ) : null}
-                            {isRunning ? 'running...' : agent?.status}
-                          </div>
-                        </TableCell>
-                        <TableCell className="w-[320px] flex items-center lg:hidden">
-                          {agent?.output}
-                        </TableCell>
-                        <TableCell className="w-[320px] hidden lg:flex items-center">
-                          <Dialog
-                            open={isAgentOutput && agent?.id === agentId}
-                            onOpenChange={setIsAgentOutput}
-                          >
-                            <DialogTrigger asChild>
-                              <div className="absolute inset-0 p-4 overflow-y-auto top-1/2 -translate-y-1/2 cursor-pointer hover:text-gray-200">
-                                {agent?.output}
-                              </div>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-3xl p-6">
-                              <Copy
-                                size={30}
-                                className="p-1 text-primary cursor-pointer absolute right-12 top-2"
-                                onClick={() =>
-                                  copyToClipboard(agent?.output ?? '')
-                                }
-                              />
-                              <SyntaxHighlighter
-                                PreTag={CustomPre}
-                                style={dracula}
-                                language="markdown"
-                                wrapLongLines
-                              >
-                                {agent?.output ?? ""}
-                              </SyntaxHighlighter>
-                            </DialogContent>
-                          </Dialog>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDuplicateClick(agent)}
-                            >
-                              {isDuplicateLoader ? (
-                                <LoadingSpinner />
-                              ) : (
-                                <Copy className="size-4" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => deleteAgent(agent)}
-                            >
-                              {deleteAgentMutation.isPending &&
-                              agent?.id === selectedAgent?.id ? (
-                                <LoadingSpinner />
-                              ) : (
-                                <Trash2 className="size-4" />
-                              )}
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <PaginatedTable
+                  columns={currentSessionColumns}
+                  data={currentSession?.agents || []}
+                  pageSize={5}
+                  expandable={true}
+                />
               </TabsContent>
               <TabsContent value="history">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Session ID</TableHead>
-                      <TableHead>Timestamp</TableHead>
-                      <TableHead>Agents</TableHead>
-                      <TableHead>Tasks Executed</TableHead>
-                      <TableHead>Time Saved</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allSessionsAgents?.data &&
-                      allSessionsAgents.data?.map((session) => (
-                        <TableRow key={session?.id}>
-                          <TableCell>{session?.id}</TableCell>
-                          <TableCell>
-                            {session?.timestamp &&
-                              new Date(session?.timestamp).toLocaleString()}
-                          </TableCell>
-                          <TableCell>{session?.agents?.length}</TableCell>
-                          <TableCell>{session?.tasks_executed}</TableCell>
-                          <TableCell>{session?.time_saved}s</TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
+                <PaginatedTable
+                  columns={sessionHistoryColumns}
+                  data={allSessionsAgents?.data || []}
+                  pageSize={10}
+                />
               </TabsContent>
             </Tabs>
           </div>
