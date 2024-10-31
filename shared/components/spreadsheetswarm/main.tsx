@@ -800,6 +800,12 @@ export function SwarmManagement() {
           link={getShareablePath()}
         />
 
+        <ShareModal 
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        link={getShareablePath()}
+      />
+
         {/* Main content */}
         <div className="flex-1 ">
           <div className="container mx-auto p-4 space-y-6 ">
