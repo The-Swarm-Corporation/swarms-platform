@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Image from 'next/image';
 import Modal from '@/shared/components/modal';
 import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
@@ -66,7 +66,7 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
       bgColor: '#fdd9ce',
     },
   ];
-
+  
   return (
     <Modal
       isOpen={isOpen}
