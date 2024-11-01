@@ -427,6 +427,20 @@ export function SwarmManagement() {
       console.error('Failed to add agent:', error);
     }
   };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const mainWrapperElements = document.getElementsByClassName('main-wrapper-all');
+      console.log(mainWrapperElements)
+      if (mainWrapperElements.length >= 1) {
+        // Remove classes from all elements after the first one
+        for (let i = 0; i < mainWrapperElements.length; i++) {
+          mainWrapperElements[i].className = '';
+        }
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const deleteAgent = async (
     agent: Tables<'swarms_spreadsheet_session_agents'>,
@@ -763,12 +777,28 @@ export function SwarmManagement() {
       {allSessions?.isPending && user && <ComponentLoader />}
       <div className="flex flex-1 h-screen ">
         {/* Sidebar */}
+        <div className="w-64 border-r bg-background p-4">
+          <h3 className="font-semibold mb-4">All Sessions</h3>
+          <div className="space-y-2">
+            {allSessions?.data?.map((session) => (
+              <div
+                key={session?.id}
+                onClick={() => handleSessionSelect(session?.id)}
+                className={`p-3 rounded-md cursor-pointer hover:bg-primary hover:text-white transition-colors ${
+                  currentSession?.id === session?.id ? 'bg-primary text-white' : ''
+                }`}
+              >
+                <span className="font-mono text-sm break-all">{session?.id}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <ShareModal 
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        link={getShareablePath()}
-      />
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          link={getShareablePath()}
+        />
 
         {/* Main content */}
         <div className="flex-1 ">
@@ -776,62 +806,39 @@ export function SwarmManagement() {
             {/* Stats Card */}
             <Card className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'>
               <CardHeader>
-                <CardTitle>Spreadsheet Swarm</CardTitle>
+                <CardTitle>Session Stats</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Sessions List */}
-                  <div className="w-full lg:w-1/2 lg:border-r lg:pr-6">
-                    <h3 className="font-semibold mb-4">All Sessions</h3>
-                    <div className="h-[150px] overflow-y-auto space-y-2 p-2">
-                      {allSessions?.data?.map((session) => (
-                        <div
-                          key={session?.id}
-                          onClick={() => handleSessionSelect(session?.id)}
-                          className={`p-3 rounded-md cursor-pointer hover:bg-primary hover:text-white transition-colors hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] ${
-                            currentSession?.id === session?.id ? 'bg-primary text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]' : ''
-                          }`}
-                        >
-                          <span className="font-mono text-sm">{session?.id}</span>
-                        </div>
-                      ))}
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold">Session ID</h3>
+                    <p className="text-sm font-mono break-all">
+                      {currentSession?.id || 'pending'}
+                    </p>
                   </div>
-
-                  {/* Stats Grid */}
-                  <div className="w-full lg:w-1/2">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center">
-                        <h3 className="text-lg font-semibold">Session ID</h3>
-                        <p className="text-sm font-mono break-all">
-                          {currentSession?.id || 'pending'}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-lg font-semibold">Number of Agents</h3>
-                        <p className="text-2xl font-bold">
-                          {currentSession?.agents?.length || 0}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-lg font-semibold">Tasks Executed</h3>
-                        <p className="text-2xl font-bold">
-                          {currentSession?.tasks_executed || 0}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-lg font-semibold">Time Saved</h3>
-                        <p className="text-2xl font-bold">
-                          {currentSession?.time_saved || 0}s
-                        </p>
-                      </div>
-                    </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold">Number of Agents</h3>
+                    <p className="text-2xl font-bold">
+                      {currentSession?.agents?.length || 0}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold">Tasks Executed</h3>
+                    <p className="text-2xl font-bold">
+                      {currentSession?.tasks_executed || 0}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold">Time Saved</h3>
+                    <p className="text-2xl font-bold">
+                      {currentSession?.time_saved || 0}s
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Task Input and Actions */}
+  {/* Task Input and Actions */}
             <div className="flex space-x-4">
               <div className="grow">
                 <Input
