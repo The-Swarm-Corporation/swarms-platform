@@ -17,7 +17,7 @@ import ReactFlow, {
   getBezierPath,
 } from "reactflow"
 import "reactflow/dist/style.css"
-import { Button } from "../ui/Button"
+import { Button } from "../spread_sheet_swarm/ui/button"
 import { Textarea } from "../ui/textarea"
 import {
   Dialog,
