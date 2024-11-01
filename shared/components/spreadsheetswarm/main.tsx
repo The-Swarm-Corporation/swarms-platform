@@ -612,7 +612,7 @@ export function SwarmManagement() {
     {
       key: 'system_prompt',
       header: 'System Prompt',
-      width: 300,
+      width: 200,
     },
     {
       key: 'llm',
@@ -635,7 +635,7 @@ export function SwarmManagement() {
     {
       key: 'output',
       header: 'Output',
-      width: 250,
+      width: 200,
     },
     {
       key: 'actions',
