@@ -1573,6 +1573,7 @@ export type Database = {
           created_at: string | null
           current: boolean | null
           id: string
+          name: string | null       
           output: Json | null
           task: string | null
           tasks_executed: number | null
@@ -1585,6 +1586,7 @@ export type Database = {
           created_at?: string | null
           current?: boolean | null
           id?: string
+          name?: string | null     
           output?: Json | null
           task?: string | null
           tasks_executed?: number | null
@@ -1597,6 +1599,7 @@ export type Database = {
           created_at?: string | null
           current?: boolean | null
           id?: string
+          name?: string | null      
           output?: Json | null
           task?: string | null
           tasks_executed?: number | null
