@@ -6,7 +6,7 @@ import { Metadata, Viewport } from 'next';
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: '#0F0F10' },
+    { media: '(prefers-color-scheme: dark)', color: '#181a21' },
   ],
 };
 
