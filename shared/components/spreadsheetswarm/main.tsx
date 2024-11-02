@@ -57,7 +57,6 @@ import {
   Sparkles,
   Loader2,
   FileText,
-  Edit2,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
@@ -69,8 +68,7 @@ import {
 } from '../ui/select';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-
+import { useRouter } from 'next/navigation';
 import { createQueryString, isEmpty } from '@/shared/utils/helpers';
 import { PLATFORM } from '@/shared/constants/links';
 import { useAuthContext } from '../ui/auth.provider';
@@ -79,8 +77,6 @@ import LoadingSpinner from '../loading-spinner';
 import ComponentLoader from '../loaders/component';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import ShareModal from '@/modules/platform/explorer/components/share-modal';
-
 
 interface DraggedFile {
   name: string;
@@ -117,30 +113,9 @@ export function SwarmManagement() {
   const [isRunning, setIsRunning] = useState(false);
   const [isAgentOutput, setIsAgentOutput] = useState(false);
   const [agentId, setAgentId] = useState('');
-  const [isEditAgentOpen, setIsEditAgentOpen] = useState(false);
-  const [editingAgent, setEditingAgent] = useState<Partial<Agent>>({});
-
-  const updateAgentMutation = trpc.panel.updateAgent.useMutation();
-
-
 
   const toast = useToast();
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-
-
-  useEffect(() => {
-    if(!isShareModalOpen){
-      setTimeout(()=>{
-    document.body.style.removeProperty('overflow');
-    document.body.style.removeProperty('pointer-events');
-      },500)
-    }
-  }, [isShareModalOpen]);
-  
-
 
   const createSessionMutation = trpc.panel.createSession.useMutation();
   const addAgentMutation = trpc.panel.addAgent.useMutation();
@@ -214,133 +189,9 @@ export function SwarmManagement() {
     }
   };
 
-  const updateURL = (sessionId: string) => {
-    if (typeof window === 'undefined') return; // Guard against server-side execution
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('session', sessionId);
-    
-    // Use replace to avoid adding to history stack
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  };
-
-  // Update handleSessionSelect to include URL update
-  const getShareablePath = () => {
-    if (!currentSessionId) return '';
-    // Ensure we have the correct pathname
-    return `${pathname}?session=${currentSessionId}`;
-  };
-
-  useEffect(() => {
-    const handleInitialSession = async () => {
-      const sessionId = searchParams.get('session');
-      
-      if (sessionId) {
-        setCurrentSessionId(sessionId);
-        await handleSessionSelect(sessionId);
-      } else if (allSessions?.data?.[0]?.id) {
-        const newSessionId = allSessions.data[0].id;
-        setCurrentSessionId(newSessionId);
-        updateURL(newSessionId);
-      }
-    };
-
-    handleInitialSession();
-  }, [allSessions?.data, searchParams]);
-
-
-  // Add a share function that copies the current URL
-  const shareSession = async () => {
-    if (!currentSessionId) {
-      toast.toast({
-        description: 'No session selected',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      const url = `${window.location.origin}${window.location.pathname}?session=${currentSessionId}`;
-      await navigator.clipboard.writeText(url);
-      toast.toast({
-        description: 'Session URL copied to clipboard',
-      });
-    } catch (error) {
-      console.error('Failed to copy URL:', error);
-      toast.toast({
-        description: 'Failed to copy session URL',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // Update the shareSwarm function to use the new shareSession
-  const shareSwarm = () => {
-    if (!currentSessionId) {
-      toast.toast({
-        description: 'No session selected',
-        variant: 'destructive',
-      });
-      return;
-    }
-    setIsShareModalOpen(true);
-  };
-
   const handleSessionSelect = async (sessionId: string) => {
-    try {
-      await setCurrentSessionMutation.mutateAsync({ session_id: sessionId });
-      setCurrentSessionId(sessionId);
-      updateURL(sessionId);
-    } catch (error) {
-      console.error('Failed to select session:', error);
-      toast.toast({
-        description: 'Failed to select session',
-        variant: 'destructive',
-      });
-    }
-  };
-
-
-  const handleEditClick = (agent: Tables<'swarms_spreadsheet_session_agents'>) => {
-    if (redirectStatus()) return;
-    
-    setEditingAgent({
-      id: agent.id,
-      name: agent.name,
-      description: agent.description,
-      systemPrompt: agent.system_prompt,
-      llm: agent.llm,
-    });
-    setIsEditAgentOpen(true);
-  };
-
-  // Function to handle saving edited agent
-  const saveEditedAgent = async () => {
-    if (!editingAgent.id || !editingAgent.name || !editingAgent.description || !editingAgent.systemPrompt || !editingAgent.llm) return;
-
-    try {
-      await updateAgentMutation.mutateAsync({
-        agent_id: editingAgent.id,
-        name: editingAgent.name,
-        description: editingAgent.description,
-        system_prompt: editingAgent.systemPrompt,
-        llm: editingAgent.llm,
-      });
-
-      setIsEditAgentOpen(false);
-      setEditingAgent({});
-      sessionData.refetch();
-      
-      toast.toast({
-        description: 'Agent updated successfully',
-      });
-    } catch (error) {
-      console.error('Failed to update agent:', error);
-      toast.toast({
-        description: 'Failed to update agent',
-        variant: 'destructive',
-      });
-    }
+    await setCurrentSessionMutation.mutateAsync({ session_id: sessionId });
+    setCurrentSessionId(sessionId);
   };
 
   const createNewSession = async (
@@ -357,7 +208,6 @@ export function SwarmManagement() {
         time_saved,
       });
       setCurrentSessionId(newSession.id);
-      updateURL(newSession.id);
       allSessions.refetch();
       return newSession.id;
     } catch (error) {
@@ -426,20 +276,6 @@ export function SwarmManagement() {
       console.error('Failed to add agent:', error);
     }
   };
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const mainWrapperElements = document.getElementsByClassName('main-wrapper-all');
-      console.log(mainWrapperElements)
-      if (mainWrapperElements.length >= 1) {
-        // Remove classes from all elements after the first one
-        for (let i = 0; i < mainWrapperElements.length; i++) {
-          mainWrapperElements[i].className = '';
-        }
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const deleteAgent = async (
     agent: Tables<'swarms_spreadsheet_session_agents'>,
@@ -511,10 +347,9 @@ export function SwarmManagement() {
   };
 
   // Function to optimize prompt
-    const optimizePrompt = async (isEditing = false) => {
+  const optimizePrompt = async () => {
     setIsOptimizing(true);
     try {
-      const currentPrompt = isEditing ? editingAgent.systemPrompt : newAgent.systemPrompt;
       const { text } = await generateText({
         model: registry.languageModel('openai:gpt-4-turbo'),
         prompt: `
@@ -529,17 +364,12 @@ export function SwarmManagement() {
         7. Aim for a prompt that fosters the agent's growth and specialization.
 
         Original prompt to optimize:
-        ${currentPrompt}
+        ${newAgent.systemPrompt}
 
         Please provide an optimized version of this prompt, incorporating the guidelines mentioned above. Only return the optimized prompt, no other text or comments.
         `,
       });
-      
-      if (isEditing) {
-        setEditingAgent((prev) => ({ ...prev, systemPrompt: text }));
-      } else {
-        setNewAgent((prev) => ({ ...prev, systemPrompt: text }));
-      }
+      setNewAgent((prev) => ({ ...prev, systemPrompt: text }));
     } catch (error) {
       console.error('Failed to optimize prompt:', error);
     }
@@ -760,6 +590,11 @@ export function SwarmManagement() {
     document.body.removeChild(link);
   };
 
+  const shareSwarm = () => {
+    // Implement sharing functionality here
+    console.log('Sharing swarm...');
+  };
+
   async function copyToClipboard(text: string) {
     if (!text) return;
 
@@ -774,44 +609,45 @@ export function SwarmManagement() {
   return (
     <>
       {allSessions?.isPending && user && <ComponentLoader />}
-      <div className="flex flex-1 h-screen ">
+      <div className="flex flex-1 h-screen overflow-hidden">
         {/* Sidebar */}
-        <div className="w-64 border-r bg-background p-4">
-          <h3 className="font-semibold mb-4">All Sessions</h3>
-          <div className="space-y-2">
-            {allSessions?.data?.map((session) => (
-              <div
-                key={session?.id}
-                onClick={() => handleSessionSelect(session?.id)}
-                className={`p-3 rounded-md cursor-pointer hover:bg-primary hover:text-white transition-colors ${
-                  currentSession?.id === session?.id ? 'bg-primary text-white' : ''
-                }`}
-              >
-                <span className="font-mono text-sm break-all">{session?.id}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <ShareModal 
-          isOpen={isShareModalOpen}
-          onClose={() => setIsShareModalOpen(false)}
-          link={getShareablePath()}
-        />
 
         {/* Main content */}
-        <div className="flex-1 ">
-          <div className="container mx-auto p-4 space-y-6 ">
+        <div className="flex-1 overflow-auto">
+          <div className="container mx-auto p-4 space-y-6">
             {/* Stats Card */}
-            <Card className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'>
+            <Card>
               <CardHeader>
-                <CardTitle>Session Stats</CardTitle>
+                <CardTitle>Spreadsheet Swarm</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="mb-6">
+                      <MoreHorizontal className="size-10 mr-2" />
+                      All Sessions
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Select a session</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+
+                    {allSessions?.data &&
+                      allSessions.data?.map((session) => (
+                        <DropdownMenuItem
+                          key={session?.id}
+                          onClick={() => handleSessionSelect(session?.id)}
+                        >
+                          {session?.id}
+                        </DropdownMenuItem>
+                      ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <div className="grid grid-cols-4 gap-4">
                   <div className="text-center">
                     <h3 className="text-lg font-semibold">Session ID</h3>
-                    <p className="text-sm font-mono break-all">
+                    <p className="text-sm font-mono">
                       {currentSession?.id || 'pending'}
                     </p>
                   </div>
@@ -837,11 +673,10 @@ export function SwarmManagement() {
               </CardContent>
             </Card>
 
-  {/* Task Input and Actions */}
+            {/* Task Input and Actions */}
             <div className="flex space-x-4">
               <div className="grow">
                 <Input
-                className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'
                   placeholder="Enter task for agents..."
                   value={task}
                   onChange={(newTask: any) => setTask(newTask)}
@@ -850,7 +685,7 @@ export function SwarmManagement() {
               <Button
                 onClick={runAgents}
                 disabled={runningAgents.size > 0}
-                className="min-w-[120px] shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
+                className="min-w-[120px]"
               >
                 {runningAgents.size > 0 ? (
                   <>
@@ -879,7 +714,7 @@ export function SwarmManagement() {
                 }}
               >
                 <DialogTrigger asChild>
-                  <Button className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'>
+                  <Button>
                     {isAddAgentLoader ? (
                       <LoadingSpinner />
                     ) : (
@@ -1030,7 +865,7 @@ export function SwarmManagement() {
 
               {/* Actions Dropdown */}
               <DropdownMenu>
-                <DropdownMenuTrigger asChild className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'>
+                <DropdownMenuTrigger asChild>
                   <Button variant="outline">
                     <MoreHorizontal className="size-4 mr-2" /> Actions
                   </Button>
@@ -1077,229 +912,111 @@ export function SwarmManagement() {
 
             {/* Tabs */}
             <Tabs defaultValue="current">
-              <TabsList className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'>
+              <TabsList>
                 <TabsTrigger value="current">Current Session</TabsTrigger>
                 <TabsTrigger value="history">Session History</TabsTrigger>
               </TabsList>
               <TabsContent value="current">
-                <div className="relative z-0 overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="whitespace-nowrap">Name</TableHead>
-                        <TableHead className="whitespace-nowrap">Description</TableHead>
-                        <TableHead className="whitespace-nowrap">System Prompt</TableHead>
-                        <TableHead className="whitespace-nowrap">LLM</TableHead>
-                        <TableHead className="whitespace-nowrap">Status</TableHead>
-                        <TableHead className="whitespace-nowrap">Output</TableHead>
-                        <TableHead className="whitespace-nowrap">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {currentSession?.agents?.map((agent) => (
-                        <TableRow
-                          key={agent?.id}
-                          onClick={() => setAgentId(agent?.id)}
-                        >
-                          <TableCell className="min-w-[100px]">{agent?.name}</TableCell>
-                          <TableCell className="min-w-[150px]">{agent?.description}</TableCell>
-                          <TableCell className="min-w-[280px]">
-                            <div className="max-h-[100px] overflow-y-auto">
-                              {agent?.system_prompt}
-                            </div>
-                          </TableCell>
-                          <TableCell className="min-w-[80px]">{agent?.llm}</TableCell>
-                          <TableCell className="min-w-[100px]">
-                            <div className="flex items-center">
-                              {agent?.status === 'running' ? (
-                                <Loader2 className="size-4 mr-2 animate-spin" />
-                              ) : null}
-                              {isRunning ? 'running...' : agent?.status}
-                            </div>
-                          </TableCell>
-                          <TableCell className="min-w-[320px]">
-                            <Dialog
-                              open={isAgentOutput && agent?.id === agentId}
-                              onOpenChange={setIsAgentOutput}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>System Prompt</TableHead>
+                      <TableHead>LLM</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Output</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentSession?.agents?.map((agent) => (
+                      <TableRow
+                        key={agent?.id}
+                        onClick={() => setAgentId(agent?.id)}
+                      >
+                        <TableCell>{agent?.name}</TableCell>
+                        <TableCell>{agent?.description}</TableCell>
+                        <TableCell className="w-[280px] flex items-center lg:hidden">
+                            {agent?.system_prompt}
+                        </TableCell>
+                        <TableCell className="w-[280px] hidden lg:flex items-center">
+                          <div className="absolute inset-0 p-4 overflow-y-auto top-1/2 -translate-y-1/2">
+                            {agent?.system_prompt}
+                          </div>
+                        </TableCell>
+                        <TableCell>{agent?.llm}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {agent?.status === 'running' ? (
+                              <Loader2 className="size-4 mr-2 animate-spin" />
+                            ) : null}
+                            {isRunning ? 'running...' : agent?.status}
+                          </div>
+                        </TableCell>
+                        <TableCell className="w-[320px] flex items-center lg:hidden">
+                          {agent?.output}
+                        </TableCell>
+                        <TableCell className="w-[320px] hidden lg:flex items-center">
+                          <Dialog
+                            open={isAgentOutput && agent?.id === agentId}
+                            onOpenChange={setIsAgentOutput}
+                          >
+                            <DialogTrigger asChild>
+                              <div className="absolute inset-0 p-4 overflow-y-auto top-1/2 -translate-y-1/2 cursor-pointer hover:text-gray-200">
+                                {agent?.output}
+                              </div>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-3xl p-6">
+                              <Copy
+                                size={30}
+                                className="p-1 text-primary cursor-pointer absolute right-12 top-2"
+                                onClick={() =>
+                                  copyToClipboard(agent?.output ?? '')
+                                }
+                              />
+                              <SyntaxHighlighter
+                                PreTag={CustomPre}
+                                style={dracula}
+                                language="markdown"
+                                wrapLongLines
+                              >
+                                {agent?.output ?? ""}
+                              </SyntaxHighlighter>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDuplicateClick(agent)}
                             >
-                              <DialogTrigger asChild>
-                                <div className="max-h-[100px] overflow-y-auto cursor-pointer hover:text-gray-200">
-                                  {agent?.output}
-                                </div>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-3xl p-6">
-                                <DialogHeader>
-                                  <DialogTitle>Output</DialogTitle>
-                                </DialogHeader>
-                                <Copy
-                                  size={30}
-                                  className="p-1 text-primary cursor-pointer absolute right-12 top-2 focus:outline-none"
-                                  onClick={() =>
-                                    copyToClipboard(agent?.output ?? '')
-                                  }
-                                />
-                                <SyntaxHighlighter
-                                  PreTag={CustomPre}
-                                  style={dracula}
-                                  language="markdown"
-                                  wrapLongLines
-                                >
-                                  {agent?.output ?? ""}
-                                </SyntaxHighlighter>
-                              </DialogContent>
-                            </Dialog>
-                          </TableCell>
-                          <TableCell className="min-w-[120px]">
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'
-            onClick={() => handleEditClick(agent)}
-          >
-            {updateAgentMutation.isPending && agent?.id === editingAgent?.id ? (
-              <LoadingSpinner />
-            ) : (
-              <Edit2 className="size-4" />
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleDuplicateClick(agent)}
-            className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'
-          >
-            {isDuplicateLoader ? (
-              <LoadingSpinner />
-            ) : (
-              <Copy className="size-4" />
-            )}
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => deleteAgent(agent)}
-            className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'
-            >
-            {deleteAgentMutation.isPending && agent?.id === selectedAgent?.id ? (
-              <LoadingSpinner />
-            ) : (
-              <Trash2 className="size-4" />
-            )}
-          </Button>
-        </div>
-      </TableCell>
-
-      {/* Add Edit Agent Dialog */}
-      <Dialog
-        open={isEditAgentOpen}
-        onOpenChange={() => setIsEditAgentOpen(!isEditAgentOpen)}
-      >
-        <DialogContent className="max-w-2xl">
-          <DialogHeader className="-mb-3">
-            <DialogTitle>Edit Agent</DialogTitle>
-          </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <div>
-              <Label htmlFor="edit-name" className="mb-2.5 block">
-                Name
-              </Label>
-              <Input
-                id="edit-name"
-                value={editingAgent.name || ''}
-                onChange={(name) => setEditingAgent({ ...editingAgent, name })}
-                className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-description" className="mb-2.5 block">
-                Description
-              </Label>
-              <Input
-                id="edit-description"
-                value={editingAgent.description || ''}
-                onChange={(description) =>
-                  setEditingAgent({ ...editingAgent, description })
-                }
-                className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-systemPrompt" className="mb-2.5 block">
-                System Prompt
-              </Label>
-              <div className="relative">
-                <Textarea
-                  id="edit-systemPrompt"
-                  value={editingAgent.systemPrompt || ''}
-                  onChange={(e) =>
-                    setEditingAgent({
-                      ...editingAgent,
-                      systemPrompt: e.target.value,
-                    })
-                  }
-                  className="pr-10 shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-                />
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute right-2 top-2"
-                  onClick={() => optimizePrompt(true)}
-                  disabled={isOptimizing}
-                >
-                  {isOptimizing ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="size-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="edit-llm" className="mb-2.5 block">
-                LLM
-              </Label>
-              <Select
-                value={editingAgent.llm}
-                onValueChange={(value) =>
-                  setEditingAgent({ ...editingAgent, llm: value })
-                }
-              >
-                <SelectTrigger className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]">
-                  <SelectValue placeholder="Select LLM" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="openai:gpt-4-turbo">
-                    GPT-4 Turbo
-                  </SelectItem>
-                  <SelectItem value="anthropic:claude-3-opus-20240229">
-                    Claude 3 Opus
-                  </SelectItem>
-                  <SelectItem value="anthropic:claude-3-sonnet-20240229">
-                    Claude 3 Sonnet
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button
-              onClick={saveEditedAgent}
-              className="shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.16),_0_3px_6px_rgba(0,0,0,0.23)] -mb-5"
-            >
-              Save Changes
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                              {isDuplicateLoader ? (
+                                <LoadingSpinner />
+                              ) : (
+                                <Copy className="size-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => deleteAgent(agent)}
+                            >
+                              {deleteAgentMutation.isPending &&
+                              agent?.id === selectedAgent?.id ? (
+                                <LoadingSpinner />
+                              ) : (
+                                <Trash2 className="size-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </TabsContent>
               <TabsContent value="history">
                 <Table>
