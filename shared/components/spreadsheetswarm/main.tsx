@@ -218,7 +218,7 @@ export function SwarmManagement() {
   const updateURL = (sessionId: string) => {
     if (typeof window === 'undefined') return; // Guard against server-side execution
 
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString());
     params.set('session', sessionId);
     
     // Use replace to avoid adding to history stack
@@ -234,7 +234,7 @@ export function SwarmManagement() {
 
   useEffect(() => {
     const handleInitialSession = async () => {
-      const sessionId = searchParams.get('session');
+      const sessionId = searchParams?.get('session');
       
       if (sessionId) {
         setCurrentSessionId(sessionId);
@@ -308,9 +308,9 @@ export function SwarmManagement() {
     setEditingAgent({
       id: agent.id,
       name: agent.name,
-      description: agent.description,
-      systemPrompt: agent.system_prompt,
-      llm: agent.llm,
+      description: agent.description || "",
+      systemPrompt: agent.system_prompt || "",
+      llm: agent.llm || "",
     });
     setIsEditAgentOpen(true);
   };
@@ -432,12 +432,11 @@ export function SwarmManagement() {
       const mainWrapperElements = document.getElementsByClassName('main-wrapper-all');
       console.log(mainWrapperElements)
       if (mainWrapperElements.length >= 1) {
-        // Remove classes from all elements after the first one
         for (let i = 0; i < mainWrapperElements.length; i++) {
           mainWrapperElements[i].className = '';
         }
       }
-    }, 1000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -941,7 +940,7 @@ export function SwarmManagement() {
                           size="sm"
                           variant="ghost"
                           className="absolute right-2 top-2"
-                          onClick={optimizePrompt}
+                          onClick={() => optimizePrompt(false)}
                           disabled={isOptimizing}
                         >
                           {isOptimizing ? (
@@ -1248,7 +1247,7 @@ export function SwarmManagement() {
                   size="sm"
                   variant="ghost"
                   className="absolute right-2 top-2"
-                  onClick={() => optimizePrompt(true)}
+                  onClick={() => optimizePrompt(false)}
                   disabled={isOptimizing}
                 >
                   {isOptimizing ? (
