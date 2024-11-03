@@ -428,17 +428,32 @@ export function SwarmManagement() {
     }
   };
   useEffect(() => {
+    const mainWrapperElements = document.getElementsByClassName('main-wrapper-all');
+    const originalClasses: string[] = [];
+
+    // Save original classes
+    for (let i = 0; i < mainWrapperElements.length; i++) {
+      originalClasses[i] = mainWrapperElements[i].className;
+    }
+
     const timer = setTimeout(() => {
-      const mainWrapperElements = document.getElementsByClassName('main-wrapper-all');
-      console.log(mainWrapperElements)
       if (mainWrapperElements.length >= 1) {
         for (let i = 0; i < mainWrapperElements.length; i++) {
-          mainWrapperElements[i].className = '';
+          mainWrapperElements[i].className = 'main-wrapper-all';
         }
       }
     }, 500);
 
-    return () => clearTimeout(timer);
+    // Restore original classes on unmount
+    return () => {
+      clearTimeout(timer);
+      const mainWrapperElements = document.getElementsByClassName('main-wrapper-all');
+      for (let i = 0; i < mainWrapperElements.length; i++) {
+        if (mainWrapperElements[i]) {
+          mainWrapperElements[i].className = originalClasses[i];
+        }
+      }
+    };
   }, []);
 
   const deleteAgent = async (
