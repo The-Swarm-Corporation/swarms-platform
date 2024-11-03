@@ -35,41 +35,6 @@ const panelRouter = router({
 
     return data;
   }),
-  updateAgent: userProcedure
-  .input(
-    z.object({
-      agent_id: z.string().uuid(),
-      name: z.string(),
-      description: z.string(),
-      system_prompt: z.string(),
-      llm: z.string(),
-    }),
-  )
-  .mutation(async ({ ctx, input }) => {
-    const user_id = ctx.session.data.session?.user?.id || '';
-
-    const { data, error } = await ctx.supabase
-      .from('swarms_spreadsheet_session_agents')
-      .update({
-        name: input.name,
-        description: input.description,
-        system_prompt: input.system_prompt,
-        llm: input.llm,
-      })
-      .eq('id', input.agent_id)
-      .eq('user_id', user_id)
-      .select()
-      .single();
-
-    if (error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while updating agent',
-      });
-    }
-
-    return data;
-  }),
   getUserFreeCredits: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.session?.user as User;
     const { data, error } = await ctx.supabase
