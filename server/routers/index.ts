@@ -8,7 +8,6 @@ import apiKeyRouter from './api-key';
 import { organizationRouter } from './organization';
 import dashboardRouter from './dashboard';
 import explorerOptionsRouter from './explorer-options';
-import { dndRouter } from './dnd';
 
 export const appRouter = router({
   main: mainRouter,
@@ -20,6 +19,5 @@ export const appRouter = router({
   explorerOptions: explorerOptionsRouter,
   organization: organizationRouter,
   dashboard: dashboardRouter,
-  dnd: dndRouter,
 });
 export type AppRouter = typeof appRouter;
