@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react"
+import { useState, useCallback, useEffect, useMemo } from "react"
 import ReactFlow, {
   Node,
   Edge,
@@ -53,9 +53,6 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { experimental_createProviderRegistry as createProviderRegistry, generateText } from 'ai'
 import { Card } from "../spread_sheet_swarm/ui/card"
 import { Input } from "../spread_sheet_swarm/ui/input"
-import { trpc as api } from '@/shared/utils/trpc/trpc';
-import debounce from 'lodash/debounce';
-import { useRouter, useSearchParams } from 'next/navigation';
 
 
 // Create provider registry
@@ -319,22 +316,8 @@ const edgeTypes: EdgeTypes = {
   custom: CustomEdge,
 };
 
-// Add this type to better handle flow data
-interface FlowData {
-  nodes: ReactFlowNode[];
-  edges: Edge[];
-  architecture: SwarmArchitecture;
-  results: { [key: string]: string };
-}
-
-// Add this utility function at the top level
-const isEqual = (prev: any, next: any) => JSON.stringify(prev) === JSON.stringify(next);
-
 export function EnhancedAgentSwarmManagementComponent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Make sure your useNodesState is properly typed
+// Make sure your useNodesState is properly typed
   const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowNode[]>([]);
   // const [nodes, setNodes, onNodesChange] = useNodesState<AgentData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
@@ -345,146 +328,6 @@ export function EnhancedAgentSwarmManagementComponent() {
   const [taskResults, setTaskResults] = useState<{ [key: string]: string }>({})
   const [swarmArchitecture, setSwarmArchitecture] = useState<SwarmArchitecture>("Concurrent")
   const [popup, setPopup] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-
-  // Add TRPC mutations and queries
-  const saveFlowMutation = api.dnd.saveFlow.useMutation();
-  const getCurrentFlowQuery = api.dnd.getCurrentFlow.useQuery(
-    { flowId: searchParams.get('flowId') || undefined },
-    { 
-      enabled: !!searchParams.get('flowId'),
-      onSuccess: (data) => {
-        if (data) {
-          // Update JSON representation whenever we get new data
-          const swarmData = {
-            nodes: data.nodes,
-            edges: data.edges,
-            architecture: data.architecture,
-            results: data.results,
-          };
-          setSwarmJson(JSON.stringify(swarmData, null, 2));
-        }
-      }
-    }
-  );
-  const getAllFlowsQuery = api.dnd.getAllFlows.useQuery();
-  const setCurrentFlowMutation = api.dnd.setCurrentFlow.useMutation();
-
-  // Add new state for tracking current flow ID
-  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
-
-  // Add a ref to track initial load
-  const initialLoadRef = useRef(false);
-
-  // Add state ref to track current state values
-  const stateRef = useRef({
-    nodes: [] as ReactFlowNode[],
-    edges: [] as Edge[],
-    taskResults: {} as { [key: string]: string }
-  });
-
-  // Inside the component, add these state tracking refs
-  const previousStateRef = useRef({
-    nodes: [] as ReactFlowNode[],
-    edges: [] as Edge[],
-  });
-
-  const saveInProgressRef = useRef(false);
-
-  // Add new function to handle new flow creation
-  const createNewFlow = useCallback(async () => {
-    try {
-      // Clear all states
-      setNodes([]);
-      setEdges([]);
-      setTaskResults({});
-      setSwarmArchitecture("Concurrent");
-      setSwarmJson("");
-      setTask("");
-      setCurrentFlowId(null);
-      
-      // Reset refs
-      previousStateRef.current = {
-        nodes: [],
-        edges: []
-      };
-      initialLoadRef.current = false;
-
-      // Save new empty flow to get an ID
-      const result = await saveFlowMutation.mutateAsync({
-        nodes: [],
-        edges: [], 
-        architecture: "Concurrent",
-        results: {}
-      });
-
-      if (result) {
-        // Update URL with new flow ID
-        const newUrl = new URL(window.location.href);
-        newUrl.searchParams.set('flowId', result.id);
-        router.replace(newUrl.pathname + newUrl.search);
-        
-        // Refresh flows list
-        await getAllFlowsQuery.refetch();
-        
-        setPopup({ message: 'New flow created', type: 'success' });
-      }
-
-    } catch (error) {
-      console.error('Error creating new flow:', error);
-      setPopup({ message: 'Error creating new flow', type: 'error' });
-    }
-  }, [router, setNodes, setEdges, saveFlowMutation, getAllFlowsQuery]);
-
-  // Update state ref whenever state changes
-  useEffect(() => {
-    stateRef.current = {
-      nodes,
-      edges,
-      taskResults
-    };
-  }, [nodes, edges, taskResults]);
-
-  // Modify the useEffect for loading initial flow data
-  useEffect(() => {
-    const flowId = searchParams.get('flowId');
-    
-    if (flowId && getCurrentFlowQuery.data && !initialLoadRef.current) {
-      // Set the flag to prevent multiple loads
-      initialLoadRef.current = true;
-      
-      try {
-        const flowData = getCurrentFlowQuery.data;
-        
-        // Update all relevant state with the loaded flow data
-        setNodes(flowData.nodes || []);
-        setEdges(flowData.edges || []);
-        setSwarmArchitecture(flowData.architecture || "Concurrent");
-        setTaskResults(flowData.results || {});
-        setCurrentFlowId(flowId);
-        
-        // Initialize previous state
-        previousStateRef.current = {
-          nodes: flowData.nodes || [],
-          edges: flowData.edges || []
-        };
-        
-        // Update the JSON representation
-        const swarmData = {
-          nodes: flowData.nodes,
-          edges: flowData.edges,
-          architecture: flowData.architecture,
-          results: flowData.results,
-        };
-        setSwarmJson(JSON.stringify(swarmData, null, 2));
-        
-        setPopup({ message: 'Flow loaded successfully', type: 'success' });
-      } catch (error) {
-        console.error('Error loading flow data:', error);
-        setPopup({ message: 'Error loading flow data', type: 'error' });
-      }
-    }
-  }, [searchParams, getCurrentFlowQuery.data]);
-
 
 
   const onConnect = useCallback(
@@ -517,7 +360,7 @@ export function EnhancedAgentSwarmManagementComponent() {
   );
 
 
-  const addAgent = useCallback((agent: AgentData) => {
+  const addAgent = (agent: AgentData) => {
     const newNode: ReactFlowNode = {
       id: `${nodes.length + 1}`,
       type: "agent",
@@ -571,8 +414,8 @@ export function EnhancedAgentSwarmManagementComponent() {
     }
     // @ts-ignore
     setNodes((nds: Node<ReactFlowNode[], string | undefined>[]) => [...nds, newNode]);
-    //saveVersion();
-  }, [nodes, setNodes]);
+    saveVersion();
+  };
 
   const updateNodeData = (id: string, updatedData: AgentData) => {
     setNodes((nds: Node<ReactFlowNode[], string | undefined>[]) =>
@@ -580,7 +423,7 @@ export function EnhancedAgentSwarmManagementComponent() {
         node.id === id ? { ...node, data: { ...node.data, ...updatedData } } : node
       )
     );
-    //saveVersion();
+    saveVersion();
   };
 
   // Expose the updateNodeData function to the window object
@@ -627,7 +470,7 @@ export function EnhancedAgentSwarmManagementComponent() {
   
       // Reset edge animations
       setEdges((eds) => eds.map(edge => ({ ...edge, animated: false, style: { ...edge.style, stroke: "#8E8E93" } })))
-   //   updateCSV(newResults);
+      updateCSV(newResults);
   
       console.log("Task results:", results)
     } catch (error) {
@@ -639,7 +482,7 @@ export function EnhancedAgentSwarmManagementComponent() {
   
     setTask("")
     updateSwarmJson()
-    //saveVersion()
+    saveVersion()
   }
 
   const runConcurrentSwarm = async () => {
@@ -788,7 +631,7 @@ export function EnhancedAgentSwarmManagementComponent() {
           setSwarmArchitecture(swarmData.architecture || "Concurrent")
           setTaskResults(swarmData.results || {})
           updateSwarmJson()
-          //saveVersion()
+          saveVersion()
           setPopup({ message: 'Swarm configuration loaded successfully', type: 'success' });
         } catch (error) {
           console.error('Error parsing JSON:', error)
@@ -799,289 +642,135 @@ export function EnhancedAgentSwarmManagementComponent() {
     }
   }
 
-  // Modify the save version function to properly handle flow data
-  const saveVersionStable = useCallback(async () => {
-    try {
-      // Create a properly structured flow data object
-      const flowData = {
-        flow_id: currentFlowId, // Make sure to include the current flow ID
-        nodes: nodes.map(node => ({
-          ...node,
-          data: {
-            ...node.data,
-            // Ensure all required fields are present
-            id: node.data.id,
-            name: node.data.name,
-            type: node.data.type,
-            model: node.data.model,
-            systemPrompt: node.data.systemPrompt,
-            clusterId: node.data.clusterId,
-            isProcessing: node.data.isProcessing || false,
-            lastResult: node.data.lastResult || '',
-            dataSource: node.data.dataSource,
-            dataSourceInput: node.data.dataSourceInput,
-          }
-        })),
-        edges: edges.map(edge => ({
-          ...edge,
-          // Ensure edge data is properly structured
-          data: edge.data || { label: 'Connection' }
-        })),
-        architecture: swarmArchitecture,
-        results: taskResults,
-      };
-
-      // Always pass the flowData with flow_id to the mutation
-      const result = await saveFlowMutation.mutateAsync(flowData);
-      
-      // Only update URL and currentFlowId if this is a new flow
-      if (!currentFlowId && result.id) {
-        const newUrl = new URL(window.location.href);
-        newUrl.searchParams.set('flowId', result.id);
-        router.replace(newUrl.pathname + newUrl.search);
-        setCurrentFlowId(result.id);
-      }
-
-      setPopup({ message: 'Flow saved successfully', type: 'success' });
-      
-      // Refresh the flows list if needed
-      await getAllFlowsQuery.refetch();
-      
-    } catch (error) {
-      console.error('Error saving flow:', error);
-      setPopup({ message: 'Failed to save flow', type: 'error' });
+  const saveVersion = () => {
+    const newVersion: SwarmVersion = {
+      id: Date.now().toString(),
+      timestamp: Date.now(),
+      nodes: nodes as any[],
+      edges: edges,
+      architecture: swarmArchitecture,
+      results: taskResults,
     }
-  }, [nodes, edges, swarmArchitecture, taskResults, saveFlowMutation, router, currentFlowId, getAllFlowsQuery]);
-
-
-
-  // Replace the existing save-related code with this implementation
-  const debouncedSave = useMemo(
-    () =>
-      debounce(async () => {
-        // Prevent concurrent saves
-        if (saveInProgressRef.current) {
-          return;
-        }
-
-        const currentNodes = stateRef.current.nodes;
-        const currentEdges = stateRef.current.edges;
-        
-        // Check if there are actual changes
-        const hasChanges = !isEqual(previousStateRef.current.nodes, currentNodes) ||
-                          !isEqual(previousStateRef.current.edges, currentEdges);
-
-        if (!hasChanges || !currentFlowId) {
-          return;
-        }
-
-        try {
-          saveInProgressRef.current = true;
-          
-          // Update previous state before saving
-          previousStateRef.current = {
-            nodes: JSON.parse(JSON.stringify(currentNodes)),
-            edges: JSON.parse(JSON.stringify(currentEdges))
-          };
-
-          await saveVersionStable();
-        } finally {
-          saveInProgressRef.current = false;
-        }
-      }, 2000),
-    [currentFlowId, saveVersionStable]
-  );
-
-  // Update the effect that triggers saves
-  useEffect(() => {
-    if (!currentFlowId || (nodes.length === 0 && edges.length === 0)) {
-      return;
-    }
-
-    // Update current state ref
-    stateRef.current = {
-      nodes,
-      edges,
-      taskResults
-    };
-
-    // Only trigger save if not the initial load
-    if (previousStateRef.current.nodes.length > 0) {
-      debouncedSave();
-    } else {
-      // Initialize previous state on first load
-      previousStateRef.current = {
-        nodes: JSON.parse(JSON.stringify(nodes)),
-        edges: JSON.parse(JSON.stringify(edges))
-      };
-    }
-
-    return () => {
-      debouncedSave.cancel();
-    };
-  }, [nodes, edges, currentFlowId, debouncedSave, taskResults]);
-
-  useEffect(() => {
-    if (popup) {
-      const timer = setTimeout(() => {
-        setPopup(null);
-      }, 3000); 
-      return () => clearTimeout(timer);
-    }
-  }, [popup]);
-  
-
-  // Add share link functionality
-  const shareFlowLink = () => {
-    if (currentFlowId) {
-      const shareUrl = new URL(window.location.href);
-      shareUrl.searchParams.set('flowId', currentFlowId);
-      navigator.clipboard.writeText(shareUrl.toString());
-      setPopup({ message: 'Flow link copied to clipboard', type: 'success' });
-    }
-  };
-
-  // Add to dropdown menu options
-  const dropdownMenuItems = (
-    // ... existing dropdown items ...
-    <DropdownMenuItem onClick={shareFlowLink}>
-      <Share className="w-4 h-4 mr-2" />
-      Share Link
-    </DropdownMenuItem>
-  );
-
-  
-  // Add error state handling
-  if (getCurrentFlowQuery.isError) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="text-red-500 text-xl">Error loading flow</div>
-          <Button onClick={() => router.push('/')}>Return to Home</Button>
-        </div>
-      </div>
-    );
+    setVersions(prevVersions => [...prevVersions, newVersion])
+    setSelectedVersion(newVersion.id)
   }
 
-  // Add this function inside the component
-  const loadVersion = async (flowId: string) => {
-    try {
-      // Prevent loading if a save is in progress
-      if (saveInProgressRef.current) {
-        setPopup({ message: 'Please wait for current save to complete', type: 'error' });
-        return;
-      }
-
-      // Set current flow as active
-      await setCurrentFlowMutation.mutateAsync({ flow_id: flowId });
-      
-      // Update URL with new flow ID
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('flowId', flowId);
-      router.replace(newUrl.pathname + newUrl.search);
-      
-      // Fetch the specific flow data directly with the flowId
-      const { data: flowData } = await getCurrentFlowQuery.refetch({
-        queryKey: ['dnd.getCurrentFlow', { flowId }]
-      });
-      
-      if (flowData) {
-        // Update all state
-        setNodes(flowData.nodes || []);
-        setEdges(flowData.edges || []);
-        setSwarmArchitecture(flowData.architecture || "Concurrent");
-        setTaskResults(flowData.results || {});
-        setCurrentFlowId(flowId);
-        
-        // Update previous state to prevent immediate save
-        previousStateRef.current = {
-          nodes: flowData.nodes || [],
-          edges: flowData.edges || []
-        };
-        
-        // Update JSON representation
-        const swarmData = {
-          nodes: flowData.nodes,
-          edges: flowData.edges,
-          architecture: flowData.architecture,
-          results: flowData.results,
-        };
-        setSwarmJson(JSON.stringify(swarmData, null, 2));
-        
-        // Reset save in progress flag
-        saveInProgressRef.current = false;
-        
-        setPopup({ message: 'Flow version loaded successfully', type: 'success' });
-      } else {
-        throw new Error('No flow data found');
-      }
-    } catch (error) {
-      console.error('Error loading flow version:', error);
-      setPopup({ message: 'Error loading flow version', type: 'error' });
-      // Reset save in progress flag on error
-      saveInProgressRef.current = false;
+  const loadVersion = (versionId: string) => {
+    const version: any = versions.find(v => v.id === versionId)
+    if (version) {
+      setNodes(version.nodes)
+      setEdges(version.edges)
+      setSwarmArchitecture(version.architecture)
+      setTaskResults(version.results)
+      updateSwarmJson()
     }
-  };
+  }
 
-  // Update the VersionsTabContent to use the new loadVersion function
-  const VersionsTabContent = () => (
-    <TabsContent value="versions">
-      <h2 className="text-lg font-semibold mb-4">Versions</h2>
-      <div className="max-h-[calc(100vh-300px)] overflow-y-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Version</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {getAllFlowsQuery.data?.map((flow) => (
-              <TableRow key={flow.id}>
-                <TableCell>{flow.id}</TableCell>
-                <TableCell>{new Date(flow.created_at).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    onClick={() => loadVersion(flow.id)}
-                    disabled={saveFlowMutation.isLoading || setCurrentFlowMutation.isLoading}
-                  >
-                    Load
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </TabsContent>
-  );
+  const fetchDataFromSource = async (source: DataSource, input?: string): Promise<string> => {
+    // This is a mock function. In a real application, you would implement actual API calls here.
+    switch (source) {
+      case "Wikipedia":
+        return "Mock data from Wikipedia API"
+      case "ArXiv":
+        return "Mock data from ArXiv API"
+      case "News API":
+        return "Mock data from News API"
+      case "Custom API":
+        return `Mock data from Custom API: ${input}`
+      default:
+        return "No data source specified"
+    }
+  }
 
-  // Replace the existing Versions TabsContent with the new component
+  const updateCSV = (results: { [key: string]: string }) => {
+    const csvContent = Object.entries(results)
+      .map(([agentId, result]) => {
+        const agent: any = nodes.find(node => node.id === agentId);
+        return `${agent?.data.name || 'Unknown'},${result.replace(/,/g, ';')}`;
+      })
+      .join('\n');
+    
+    const blob = new Blob([`Agent,Result\n${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'task_results.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  useEffect(() => {
+    const layout = () => {
+      setNodes((nds) => {
+        const centerX = 400
+        const centerY = 300
+        const radius = 200
+
+        // Position agents based on swarm architecture
+        switch (swarmArchitecture) {
+          case "Concurrent":
+            // Position all agents in a circle
+            nds.forEach((node, index) => {
+              const angle = (index / nds.length) * 2 * Math.PI
+              node.position = {
+                x: centerX + radius * Math.cos(angle),
+                y: centerY + radius * Math.sin(angle),
+              }
+            })
+            break;
+          case "Sequential":
+            // Position agents in a line
+            nds.forEach((node, index) => {
+              node.position = {
+                x: 100 + index * 150,
+                y: centerY,
+              }
+            })
+            break;
+          case "Hierarchical":
+            const bosses = nds.filter((n: any) => n.data.type === "Boss")
+            const workers = nds.filter((n: any) => n.data.type === "Worker")
+            
+            // Position bosses in a circle around the queen
+            bosses.forEach((boss, index) => {
+              const angle = (index / bosses.length) * 2 * Math.PI
+              boss.position = {
+                x: centerX + radius * 0.6 * Math.cos(angle),
+                y: centerY + radius * 0.6 * Math.sin(angle),
+              }
+            })
+            
+            // Position workers near their bosses
+            workers.forEach((worker: any) => {
+              const boss = bosses.find((b: any) => b.data.clusterId === worker.data.clusterId)
+              if (boss) {
+                worker.position = {
+                  x: boss.position.x + (Math.random() - 0.5) * 100,
+                  y: boss.position.y + (Math.random() - 0.5) * 100,
+                }
+              }
+            })
+            break;
+        }
+
+        return nds
+      })
+    }
+
+    layout()
+    updateSwarmJson()
+  }, [setNodes, nodes, edges, swarmArchitecture])
+
   return (
     <div className="w-full h-screen flex flex-col bg-white text-gray-900">
       <div className="flex justify-between items-center p-4 border-b border-gray-200">
         <h1 className="text-2xl font-semibold text-gray-900">LLM Agent Swarm</h1>
         <div className="flex space-x-2">
-          {/* Add New Flow button */}
-          <Button
-            variant="outline"
-            className="bg-gray-50 text-gray-900 border-gray-200 hover:bg-gray-100"
-            onClick={createNewFlow}
-            disabled={saveFlowMutation.isLoading}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Flow
-          </Button>
-
-          {/* Existing Add Agent Dialog */}
           <Dialog>
             <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="bg-gray-50 text-gray-900 border-gray-200 hover:bg-gray-100"
-              >
+              <Button variant="outline" className="bg-gray-50 text-gray-900 border-gray-200 hover:bg-gray-100">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Agent
               </Button>
@@ -1139,7 +828,7 @@ export function EnhancedAgentSwarmManagementComponent() {
                     <Label htmlFor="systemPrompt" className="text-right">System Prompt</Label>
                     <Textarea id="systemPrompt" name="systemPrompt" className="col-span-3" />
                   </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="dataSource" className="text-right">Data Source</Label>
                     <Select name="dataSource">
                       <SelectTrigger className="col-span-3">
@@ -1187,10 +876,6 @@ export function EnhancedAgentSwarmManagementComponent() {
                   <Upload className="w-4 h-4 mr-2" />
                   Load JSON
                 </label>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={shareFlowLink}>
-                <Share className="w-4 h-4 mr-2" />
-                Share Link
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1245,7 +930,19 @@ export function EnhancedAgentSwarmManagementComponent() {
               </div>
             </TabsContent>
             <TabsContent value="versions">
-              <VersionsTabContent />
+              <h2 className="text-lg font-semibold mb-4">Versions</h2>
+              <Select value={selectedVersion || undefined} onValueChange={loadVersion}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select version" />
+                </SelectTrigger>
+                <SelectContent>
+                  {versions.map((version) => (
+                    <SelectItem key={version.id} value={version.id}>
+                      {new Date(version.timestamp).toLocaleString()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </TabsContent>
           </Tabs>
         </div>

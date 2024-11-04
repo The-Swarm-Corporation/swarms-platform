@@ -27,25 +27,25 @@
   }
 
   .dark {
-    --background: 225 7% 6%;         /* #0F0F10 */
-    --foreground: 0 0% 98%;
-    --card: 225 7% 6%;               /* #0F0F10 */
+    --background: 220 16% 11%;    
+    --foreground: 0 0% 98%;       
+    --card: 220 16% 11%;          
     --card-foreground: 0 0% 98%;
-    --popover: 225 7% 6%;            /* #0F0F10 */
+    --popover: 220 16% 11%;       
     --popover-foreground: 0 0% 98%;
-    --primary: 0 72.2% 50.6%;
+    --primary: 0 72.2% 50.6%;     
     --primary-foreground: 0 85.7% 97.3%;
-    --secondary: 225 7% 9%;          /* Slightly lighter than background */
+    --secondary: 220 16% 16%;    
     --secondary-foreground: 0 0% 98%;
-    --muted: 225 7% 8%;              /* Slightly lighter than background */
+    --muted: 220 16% 14%;        
     --muted-foreground: 220 16% 65%;
-    --accent: 225 7% 9%;             /* Slightly lighter than background */
+    --accent: 220 16% 16%;      
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 225 7% 8%;             /* Slightly lighter than background */
-    --input: 225 7% 8%;              /* Slightly lighter than background */
-    --ring: 0 72.2% 50.6%;
+    --border: 220 16% 15%;       
+    --input: 220 16% 15%;         
+    --ring: 0 72.2% 50.6%;      
     --radius: 0.5rem;
 }
 }
@@ -84,17 +84,6 @@
 
   span[data-testid='react-awesome-stars-rating'] {
     @apply flex;
-  }
-
-  .spreadsheet-swarm {
-    padding-left: 6em;
-    min-width: 100%;
-  }
-
-  @media (max-width: 1024px) {
-    .spreadsheet-swarm {
-      padding-left: 0;
-    }
   }
 
 }
