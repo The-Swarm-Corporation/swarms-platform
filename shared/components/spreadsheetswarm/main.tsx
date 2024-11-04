@@ -846,7 +846,7 @@ export function SwarmManagement() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="text-center min-w-[305px]">
+                  <div className="text-center">
                     <h3 className="text-lg font-semibold">Session ID</h3>
                     <p className="text-sm font-mono break-all">
                       {currentSession?.id || 'pending'}
