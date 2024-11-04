@@ -131,6 +131,7 @@ export function SwarmManagement() {
   const searchParams = useSearchParams();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if(!isShareModalOpen){
@@ -439,9 +440,13 @@ export function SwarmManagement() {
     const timer = setTimeout(() => {
       if (mainWrapperElements.length >= 1) {
         for (let i = 0; i < mainWrapperElements.length; i++) {
-          mainWrapperElements[i].className = 'main-wrapper-all';
+          mainWrapperElements[i].className = 'main-wrapper-all spreadsheet-swarm';
         }
       }
+      // Set loading to false after classes are updated
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
     }, 500);
 
     // Restore original classes on unmount
@@ -786,12 +791,23 @@ export function SwarmManagement() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <LoadingSpinner size={40} />
+          <p className="text-muted-foreground">Loading Spreadsheet Swarm...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {allSessions?.isPending && user && <ComponentLoader />}
       <div className="flex flex-1 h-screen ">
         {/* Sidebar */}
-        <div className="w-64 border-r bg-background p-4">
+        <div className="w-[250px] border-r bg-background p-4">
           <h3 className="font-semibold mb-4">All Sessions</h3>
           <div className="space-y-2">
             {allSessions?.data?.map((session) => (
@@ -821,8 +837,8 @@ export function SwarmManagement() {
       />
 
         {/* Main content */}
-        <div className="flex-1 ">
-          <div className="container mx-auto p-4 space-y-6 ">
+        <div className="">
+          <div className="container mx-auto ">
             {/* Stats Card */}
             <Card className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'>
               <CardHeader>
@@ -830,7 +846,7 @@ export function SwarmManagement() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="text-center">
+                  <div className="text-center min-w-[305px]">
                     <h3 className="text-lg font-semibold">Session ID</h3>
                     <p className="text-sm font-mono break-all">
                       {currentSession?.id || 'pending'}

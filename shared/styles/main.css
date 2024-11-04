@@ -86,6 +86,17 @@
     @apply flex;
   }
 
+  .spreadsheet-swarm {
+    padding-left: 6em;
+    min-width: 100%;
+  }
+
+  @media (max-width: 1024px) {
+    .spreadsheet-swarm {
+      padding-left: 0;
+    }
+  }
+
 }
 
 @layer utilities {
