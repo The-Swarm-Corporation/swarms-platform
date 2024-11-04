@@ -1138,8 +1138,16 @@ export function SwarmManagement() {
                           key={agent?.id}
                           onClick={() => setAgentId(agent?.id)}
                         >
-                          <TableCell className="min-w-[100px]">{agent?.name}</TableCell>
-                          <TableCell className="min-w-[150px]">{agent?.description}</TableCell>
+                          <TableCell className="min-w-[100px]">
+                            <div className="max-h-[100px] overflow-y-auto">
+                              {agent?.name}
+                            </div>
+                          </TableCell>
+                          <TableCell className="min-w-[150px]">
+                            <div className="max-h-[100px] overflow-y-auto">
+                              {agent?.description}
+                            </div>
+                          </TableCell>
                           <TableCell className="min-w-[280px]">
                             <div className="max-h-[100px] overflow-y-auto">
                               {agent?.system_prompt}
