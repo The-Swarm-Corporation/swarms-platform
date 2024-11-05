@@ -12,17 +12,16 @@ const PanelLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <>
-      <PlatformNavBar user={user} />
-      <div className="mt-16 md:mt-20 flex flex-row w-screen h-screen min-h-screen max-md:flex-col">
-        {/* sidebar */}
-        <PanelLayoutSidebar user={user} />
-        {/* content */}
-        {/* <Navbar /> */}
-        <div className="flex container lg:max-w-7xl lg:px-12 h-full mx-auto py-8 max-lg:z-10">
-          {children}
+      <div className="flex flex-col min-h-screen bg-background">
+        <PlatformNavBar user={user} />
+        <div className="flex flex-1 pt-16 md:pt-20">
+          <PanelLayoutSidebar user={user} />
+          <main className="flex-1 px-4 py-8 lg:px-8">
+            <div className="max-w-7xl mx-auto">{children}</div>
+          </main>
         </div>
+        <LayoutModals />
       </div>
-      <LayoutModals />
     </>
   );
 };
