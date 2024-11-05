@@ -112,163 +112,164 @@ interface EdgeParams {
 
 const AnimatedHexagon = motion.polygon
 
-const nodeTypes = {
-  agent: ({ data, id }: NodeProps<AgentData>) => {
-    const [isEditing, setIsEditing] = useState(false)
-
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>
-            <div className="relative" onClick={() => setIsEditing(true)}>
-              <svg width="80" height="80" viewBox="0 0 100 100">
-                <AnimatedHexagon
-                  points="50 1 95 25 95 75 50 99 5 75 5 25"
-                  fill={data.type === "Boss" ? "#1E1E1E" : "#3A3A3A"}
-                  stroke="#8E8E93"
-                  strokeWidth="2"
-                  initial={{ scale: 0 }}
-                  animate={{ 
-                    scale: 1, 
-                    rotate: data.isProcessing ? 360 : 0,
-                  }}
-                  transition={{ 
-                    duration: 0.5, 
-                    repeat: data.isProcessing ? Infinity : 0,
-                  }}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-xs">
-                <div className="font-bold text-white">{data.name}</div>
-                <div className="text-white">{data.type}</div>
-                {data.lastResult && (
-                  <div className="text-white text-[8px] mt-1 max-w-[70px] h-8 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
-                    {data.lastResult}
-                  </div>
-                )}
-              </div>
+const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
+  const [isEditing, setIsEditing] = useState(false)
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <div className="relative" onClick={() => setIsEditing(true)}>
+            <svg width="80" height="80" viewBox="0 0 100 100">
+              <AnimatedHexagon
+                points="50 1 95 25 95 75 50 99 5 75 5 25"
+                fill={data.type === "Boss" ? "#1E1E1E" : "#3A3A3A"}
+                stroke="#8E8E93"
+                strokeWidth="2"
+                initial={{ scale: 0 }}
+                animate={{ 
+                  scale: 1, 
+                  rotate: data.isProcessing ? 360 : 0,
+                }}
+                transition={{ 
+                  duration: 0.5, 
+                  repeat: data.isProcessing ? Infinity : 0,
+                }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-xs">
+              <div className="font-bold text-white">{data.name}</div>
+              <div className="text-white">{data.type}</div>
               {data.lastResult && (
-                <motion.div 
-                  className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                >
-                  ✓
-                </motion.div>
-              )}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="text-sm">
-              <p><strong>Name:</strong> {data.name}</p>
-              <p><strong>Type:</strong> {data.type}</p>
-              <p><strong>Model:</strong> {data.model}</p>
-              <p><strong>System Prompt:</strong> {data.systemPrompt}</p>
-              <p><strong>Data Source:</strong> {data.dataSource || "None"}</p>
-              {data.lastResult && (
-                <p><strong>Last Result:</strong> {data.lastResult}</p>
-              )}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-        <AnimatePresence>
-          {isEditing && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-            >
-              <Card className="w-96 bg-white p-6 rounded-lg shadow-xl">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Edit Agent</h3>
-                  <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)}>
-                    <X className="h-4 w-4" />
-                  </Button>
+                <div className="text-white text-[8px] mt-1 max-w-[70px] h-8 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+                  {data.lastResult}
                 </div>
-                <form onSubmit={(e) => {
-                  e.preventDefault()
-                  const formData: any = new FormData(e.target as HTMLFormElement)
-                  const updatedAgent: AgentData = {
-                    ...data,
-                    name: formData.get("name") as string,
-                    type: formData.get("type") as AgentType,
-                    model: formData.get("model") as AgentModel,
-                    systemPrompt: formData.get("systemPrompt") as string,
-                    dataSource: formData.get("dataSource") as DataSource | undefined,
-                    dataSourceInput: formData.get("dataSourceInput") as string | undefined,
-                  }
-                  // Update the node data
-                  // You'll need to implement this function in the main component
-                  window.updateNodeData(id, updatedAgent)
-                  setIsEditing(false)
-                }}>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Name</Label>
-                      <Input id="name" name="name" defaultValue={data.name} />
-                    </div>
-                    <div>
-                      <Label htmlFor="type">Type</Label>
-                      <Select name="type" defaultValue={data.type}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Worker">Worker</SelectItem>
-                          <SelectItem value="Boss">Boss</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="model">Model</Label>
-                      <Select name="model" defaultValue={data.model}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                          <SelectItem value="gpt-4">GPT-4</SelectItem>
-                          <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                          <SelectItem value="claude-2">Claude 2</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="systemPrompt">System Prompt</Label>
-                      <Textarea id="systemPrompt" name="systemPrompt" defaultValue={data.systemPrompt} />
-                    </div>
-                    <div>
-                      <Label htmlFor="dataSource">Data Source</Label>
-                      <Select name="dataSource" defaultValue={data.dataSource}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Wikipedia">Wikipedia</SelectItem>
-                          <SelectItem value="ArXiv">ArXiv</SelectItem>
-                          <SelectItem value="News API">News API</SelectItem>
-                          <SelectItem value="Custom API">Custom API</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="dataSourceInput">Data Source Input</Label>
-                      <Input id="dataSourceInput" name="dataSourceInput" defaultValue={data.dataSourceInput} />
-                    </div>
+              )}
+            </div>
+            {data.lastResult && (
+              <motion.div 
+                className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              >
+                ✓
+              </motion.div>
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className="text-sm">
+            <p><strong>Name:</strong> {data.name}</p>
+            <p><strong>Type:</strong> {data.type}</p>
+            <p><strong>Model:</strong> {data.model}</p>
+            <p><strong>System Prompt:</strong> {data.systemPrompt}</p>
+            <p><strong>Data Source:</strong> {data.dataSource || "None"}</p>
+            {data.lastResult && (
+              <p><strong>Last Result:</strong> {data.lastResult}</p>
+            )}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+      <AnimatePresence>
+        {isEditing && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          >
+            <Card className="w-96 bg-white p-6 rounded-lg shadow-xl">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Edit Agent</h3>
+                <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                const formData: any = new FormData(e.target as HTMLFormElement)
+                const updatedAgent: AgentData = {
+                  ...data,
+                  name: formData.get("name") as string,
+                  type: formData.get("type") as AgentType,
+                  model: formData.get("model") as AgentModel,
+                  systemPrompt: formData.get("systemPrompt") as string,
+                  dataSource: formData.get("dataSource") as DataSource | undefined,
+                  dataSourceInput: formData.get("dataSourceInput") as string | undefined,
+                }
+                // Update the node data
+                // You'll need to implement this function in the main component
+                window.updateNodeData(id, updatedAgent)
+                setIsEditing(false)
+              }}>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Name</Label>
+                    <Input id="name" name="name" defaultValue={data.name} />
                   </div>
-                  <DialogFooter className="mt-6">
-                    <Button type="submit">Save Changes</Button>
-                  </DialogFooter>
-                </form>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </TooltipProvider>
-    )
-  },
+                  <div>
+                    <Label htmlFor="type">Type</Label>
+                    <Select name="type" defaultValue={data.type}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Worker">Worker</SelectItem>
+                        <SelectItem value="Boss">Boss</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="model">Model</Label>
+                    <Select name="model" defaultValue={data.model}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                        <SelectItem value="gpt-4">GPT-4</SelectItem>
+                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                        <SelectItem value="claude-2">Claude 2</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="systemPrompt">System Prompt</Label>
+                    <Textarea id="systemPrompt" name="systemPrompt" defaultValue={data.systemPrompt} />
+                  </div>
+                  <div>
+                    <Label htmlFor="dataSource">Data Source</Label>
+                    <Select name="dataSource" defaultValue={data.dataSource}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Wikipedia">Wikipedia</SelectItem>
+                        <SelectItem value="ArXiv">ArXiv</SelectItem>
+                        <SelectItem value="News API">News API</SelectItem>
+                        <SelectItem value="Custom API">Custom API</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="dataSourceInput">Data Source Input</Label>
+                    <Input id="dataSourceInput" name="dataSourceInput" defaultValue={data.dataSourceInput} />
+                  </div>
+                </div>
+                <DialogFooter className="mt-6">
+                  <Button type="submit">Save Changes</Button>
+                </DialogFooter>
+              </form>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </TooltipProvider>
+  )
+}
+
+const nodeTypes = {
+  agent: AgentNode
 }
 
 const CustomEdge = ({
@@ -321,7 +322,7 @@ const edgeTypes: EdgeTypes = {
 
 // Add this type to better handle flow data
 interface FlowData {
-  nodes: ReactFlowNode[];
+  nodes: any[];
   edges: Edge[];
   architecture: SwarmArchitecture;
   results: { [key: string]: string };
@@ -335,7 +336,7 @@ export function EnhancedAgentSwarmManagementComponent() {
   const searchParams = useSearchParams();
 
   // Make sure your useNodesState is properly typed
-  const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowNode[]>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<any[]>([]);
   // const [nodes, setNodes, onNodesChange] = useNodesState<AgentData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [task, setTask] = useState("")
@@ -349,10 +350,10 @@ export function EnhancedAgentSwarmManagementComponent() {
   // Add TRPC mutations and queries
   const saveFlowMutation = api.dnd.saveFlow.useMutation();
   const getCurrentFlowQuery = api.dnd.getCurrentFlow.useQuery(
-    { flowId: searchParams.get('flowId') || undefined },
+    { flowId: searchParams?.get('flowId') || undefined },
     { 
-      enabled: !!searchParams.get('flowId'),
-      onSuccess: (data) => {
+      enabled: !!searchParams?.get('flowId'),
+      onSuccess: (data:any) => {
         if (data) {
           // Update JSON representation whenever we get new data
           const swarmData = {
@@ -375,12 +376,23 @@ export function EnhancedAgentSwarmManagementComponent() {
   // Add a ref to track initial load
   const initialLoadRef = useRef(false);
 
-  // Add state ref to track current state values
-  const stateRef = useRef({
-    nodes: [] as ReactFlowNode[],
-    edges: [] as Edge[],
-    taskResults: {} as { [key: string]: string }
+  // Update the stateRef type and assignment
+  const stateRef = useRef<{
+    nodes: ReactFlowNode[];
+    edges: Edge[];
+    taskResults: { [key: string]: string };
+  }>({
+    nodes: [],
+    edges: [],
+    taskResults: {}
   });
+
+  // Update the assignment
+  stateRef.current = {
+    nodes: nodes as any[],
+    edges,
+    taskResults
+  };
 
   // Inside the component, add these state tracking refs
   const previousStateRef = useRef({
@@ -438,7 +450,7 @@ export function EnhancedAgentSwarmManagementComponent() {
   // Update state ref whenever state changes
   useEffect(() => {
     stateRef.current = {
-      nodes,
+      nodes: nodes as any[],
       edges,
       taskResults
     };
@@ -446,7 +458,7 @@ export function EnhancedAgentSwarmManagementComponent() {
 
   // Modify the useEffect for loading initial flow data
   useEffect(() => {
-    const flowId = searchParams.get('flowId');
+    const flowId = searchParams?.get('flowId');
     
     if (flowId && getCurrentFlowQuery.data && !initialLoadRef.current) {
       // Set the flag to prevent multiple loads
@@ -719,9 +731,9 @@ export function EnhancedAgentSwarmManagementComponent() {
       if (!workerPrompt) return null
 
       let context = ""
-      if (worker.data.dataSource) {
-        context = await fetchDataFromSource(worker.data.dataSource, worker.data.dataSourceInput)
-      }
+      // if (worker.data.dataSource) {
+      //   context = await fetchDataFromSource(worker.data.dataSource, worker.data.dataSourceInput)
+      // }
 
       const { text } = await generateText({
         model: registry.languageModel(`openai:${worker.data.model}`),
@@ -810,16 +822,16 @@ export function EnhancedAgentSwarmManagementComponent() {
           data: {
             ...node.data,
             // Ensure all required fields are present
-            id: node.data.id,
-            name: node.data.name,
-            type: node.data.type,
-            model: node.data.model,
-            systemPrompt: node.data.systemPrompt,
-            clusterId: node.data.clusterId,
-            isProcessing: node.data.isProcessing || false,
-            lastResult: node.data.lastResult || '',
-            dataSource: node.data.dataSource,
-            dataSourceInput: node.data.dataSourceInput,
+            id: node.data?.id || '',
+            name: node.data?.name || '',
+            type: node.data?.type || '',
+            model: node.data?.model || '',
+            systemPrompt: node.data?.systemPrompt || '',
+            clusterId: node.data?.clusterId || '',
+            isProcessing: node.data?.isProcessing || false,
+            lastResult: node.data?.lastResult || '',
+            dataSource: node.data?.dataSource,
+            dataSourceInput: node.data?.dataSourceInput,
           }
         })),
         edges: edges.map(edge => ({
@@ -900,7 +912,7 @@ export function EnhancedAgentSwarmManagementComponent() {
 
     // Update current state ref
     stateRef.current = {
-      nodes,
+      nodes: nodes as any[],
       edges,
       taskResults
     };
@@ -982,7 +994,7 @@ export function EnhancedAgentSwarmManagementComponent() {
       
       // Fetch the specific flow data directly with the flowId
       const { data: flowData } = await getCurrentFlowQuery.refetch({
-        queryKey: ['dnd.getCurrentFlow', { flowId }]
+    //    queryKey: ['dnd.getCurrentFlow', { flowId }]
       });
       
       if (flowData) {
@@ -1045,7 +1057,7 @@ export function EnhancedAgentSwarmManagementComponent() {
                   <Button
                     variant="ghost"
                     onClick={() => loadVersion(flow.id)}
-                    disabled={saveFlowMutation.isLoading || setCurrentFlowMutation.isLoading}
+                    disabled={saveFlowMutation.status === 'pending' || setCurrentFlowMutation.status === 'pending'}
                   >
                     Load
                   </Button>
@@ -1069,7 +1081,7 @@ export function EnhancedAgentSwarmManagementComponent() {
             variant="outline"
             className="bg-gray-50 text-gray-900 border-gray-200 hover:bg-gray-100"
             onClick={createNewFlow}
-            disabled={saveFlowMutation.isLoading}
+            disabled={saveFlowMutation.isPending}
           >
             <Plus className="w-4 h-4 mr-2" />
             New Flow
