@@ -840,7 +840,8 @@ export function SwarmManagement() {
         <div className="">
           <div className="container mx-auto ">
             {/* Stats Card */}
-            <Card className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'>
+            <div className="space-y-6"> 
+            <Card className='mt-6 shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'>
               <CardHeader>
                 <CardTitle>Session Stats</CardTitle>
               </CardHeader>
@@ -1375,6 +1376,7 @@ export function SwarmManagement() {
                 </Table>
               </TabsContent>
             </Tabs>
+            </div>
           </div>
         </div>
       </div>
