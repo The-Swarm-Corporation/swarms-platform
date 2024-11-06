@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react"
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -15,10 +15,10 @@ import ReactFlow, {
   EdgeTypes,
   EdgeProps,
   getBezierPath,
-} from "reactflow"
-import "reactflow/dist/style.css"
-import { Button } from "../spread_sheet_swarm/ui/button"
-import { Textarea } from "../ui/textarea"
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+import { Button } from '../spread_sheet_swarm/ui/button';
+import { Textarea } from '../ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -27,17 +27,30 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog"
+} from '../ui/dialog';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../ui/tooltip"
-import { Label } from "../ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
+} from '../ui/tooltip';
+import { Label } from '../ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,18 +58,29 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../spread_sheet_swarm/ui/dropdown-menu"
-import { Plus, Crown, Send, Save, Share, Upload, MoreHorizontal, X } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { anthropic } from '@ai-sdk/anthropic'
-import { createOpenAI } from '@ai-sdk/openai'
-import { experimental_createProviderRegistry as createProviderRegistry, generateText } from 'ai'
-import { Card } from "../spread_sheet_swarm/ui/card"
-import { Input } from "../spread_sheet_swarm/ui/input"
+} from '../spread_sheet_swarm/ui/dropdown-menu';
+import {
+  Plus,
+  Crown,
+  Send,
+  Save,
+  Share,
+  Upload,
+  MoreHorizontal,
+  X,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { anthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
+import {
+  experimental_createProviderRegistry as createProviderRegistry,
+  generateText,
+} from 'ai';
+import { Card } from '../spread_sheet_swarm/ui/card';
+import { Input } from '../spread_sheet_swarm/ui/input';
 import { trpc as api } from '@/shared/utils/trpc/trpc';
 import debounce from 'lodash/debounce';
 import { useRouter, useSearchParams } from 'next/navigation';
-
 
 // Create provider registry
 const registry = createProviderRegistry({
@@ -64,15 +88,13 @@ const registry = createProviderRegistry({
   openai: createOpenAI({
     apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
   }),
-})
+});
 
-type AgentType = "Worker" | "Boss"
-type AgentModel = "gpt-3.5-turbo" | "gpt-4" | "claude-2" | "gpt-4-turbo"
-type DataSource = "Wikipedia" | "ArXiv" | "News API" | "Custom API"
-type SwarmArchitecture = "Concurrent" | "Sequential" | "Hierarchical"
+type AgentType = 'Worker' | 'Boss';
+type AgentModel = 'gpt-3.5-turbo' | 'gpt-4' | 'claude-2' | 'gpt-4-turbo';
+type DataSource = 'Wikipedia' | 'ArXiv' | 'News API' | 'Custom API';
+type SwarmArchitecture = 'Concurrent' | 'Sequential' | 'Hierarchical';
 type ReactFlowNode = Node<AgentData>;
-
-
 
 // Define types that exactly match your Zod schema
 type NodeData = {
@@ -119,14 +141,13 @@ type SaveFlowEdge = {
   [key: string]: unknown; // Add index signature to match passthrough behavior
 };
 
-
 interface AgentData {
   id: string;
   name: string;
   type: AgentType;
   model: AgentModel;
   systemPrompt: string;
-  clusterId?: any;  // Made optional but explicit in the type
+  clusterId?: any; // Made optional but explicit in the type
   isProcessing?: boolean;
   lastResult?: string;
   dataSource?: DataSource;
@@ -134,12 +155,12 @@ interface AgentData {
 }
 
 interface SwarmVersion {
-  id: string
-  timestamp: number
-  nodes: Node<AgentData>[]
-  edges: Edge[]
-  architecture: SwarmArchitecture
-  results: { [key: string]: string }
+  id: string;
+  timestamp: number;
+  nodes: Node<AgentData>[];
+  edges: Edge[];
+  architecture: SwarmArchitecture;
+  results: { [key: string]: string };
 }
 
 declare global {
@@ -157,10 +178,10 @@ interface EdgeParams {
   label?: string;
 }
 
-const AnimatedHexagon = motion.polygon
+const AnimatedHexagon = motion.polygon;
 
 const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(false);
   return (
     <TooltipProvider>
       <Tooltip>
@@ -169,50 +190,71 @@ const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
             <svg width="80" height="80" viewBox="0 0 100 100">
               <AnimatedHexagon
                 points="50 1 95 25 95 75 50 99 5 75 5 25"
-                fill={data.type === "Boss" ? "#1E1E1E" : "#3A3A3A"}
-                stroke="#8E8E93"
+                fill={data.type === "Boss" 
+                  ? "hsl(var(--card))" 
+                  : "hsl(var(--secondary))"
+                }
+                stroke={document.documentElement.classList.contains('dark') ? "#333" : "hsl(var(--border))"}
                 strokeWidth="2"
                 initial={{ scale: 0 }}
                 animate={{ 
-                  scale: 1, 
-                  rotate: data.isProcessing ? 360 : 0,
+                  scale: 1,
+                  rotate: data.isProcessing ? 360 : 0 
                 }}
                 transition={{ 
-                  duration: 0.5, 
-                  repeat: data.isProcessing ? Infinity : 0,
+                  duration: 0.5,
+                  repeat: data.isProcessing ? Infinity : 0 
+                }}
+                style={{
+                  fill: document.documentElement.classList.contains('dark') 
+                    ? data.type === "Boss" 
+                      ? "#0F0F10" 
+                      : "#1A1A1B"
+                    : data.type === "Boss"
+                      ? "hsl(var(--card))"
+                      : "hsl(var(--secondary))"
                 }}
               />
             </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-xs">
-              <div className="font-bold text-white">{data.name}</div>
-              <div className="text-white">{data.type}</div>
-              {data.lastResult && (
-                <div className="text-white text-[8px] mt-1 max-w-[70px] h-8 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
-                  {data.lastResult}
-                </div>
-              )}
+            <div className="absolute p-2 inset-0 flex flex-col items-center justify-center text-xs">
+              <div className="font-bold text-card-foreground text-[0.6rem]">
+                {data.name}
+              </div>
+              <div className="text-muted-foreground">{data.type}</div>
             </div>
             {data.lastResult && (
-              <motion.div 
-                className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center"
+              <motion.div
+                className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full w-6 h-6 flex items-center justify-center"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               >
                 ✓
               </motion.div>
             )}
           </div>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent className="max-w-[500px] bg-popover text-popover-foreground border-border">
           <div className="text-sm">
-            <p><strong>Name:</strong> {data.name}</p>
-            <p><strong>Type:</strong> {data.type}</p>
-            <p><strong>Model:</strong> {data.model}</p>
-            <p><strong>System Prompt:</strong> {data.systemPrompt}</p>
-            <p><strong>Data Source:</strong> {data.dataSource || "None"}</p>
+            <p>
+              <strong>Name:</strong> {data.name}
+            </p>
+            <p>
+              <strong>Type:</strong> {data.type}
+            </p>
+            <p>
+              <strong>Model:</strong> {data.model}
+            </p>
+            <p>
+              <strong>System Prompt:</strong> {data.systemPrompt}
+            </p>
+            <p>
+              <strong>Data Source:</strong> {data.dataSource || 'None'}
+            </p>
             {data.lastResult && (
-              <p><strong>Last Result:</strong> {data.lastResult}</p>
+              <p>
+                <strong>Last Result:</strong> {data.lastResult}
+              </p>
             )}
           </div>
         </TooltipContent>
@@ -223,57 +265,83 @@ const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/95"
           >
-            <Card className="w-96 bg-white p-6 rounded-lg shadow-xl">
+            <Card className="w-96 min-w-[500px] bg-card text-card-foreground p-6 rounded-lg shadow-xl border-border">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Edit Agent</h3>
-                <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)}>
+                <h3 className="text-lg font-semibold text-card-foreground antialiased">
+                  Edit Agent
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsEditing(false)}
+                  className="text-muted-foreground hover:text-card-foreground"
+                >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <form onSubmit={(e) => {
-                e.preventDefault()
-                const formData: any = new FormData(e.target as HTMLFormElement)
-                const updatedAgent: AgentData = {
-                  ...data,
-                  name: formData.get("name") as string,
-                  type: formData.get("type") as AgentType,
-                  model: formData.get("model") as AgentModel,
-                  systemPrompt: formData.get("systemPrompt") as string,
-                  dataSource: formData.get("dataSource") as DataSource | undefined,
-                  dataSourceInput: formData.get("dataSourceInput") as string | undefined,
-                }
-                // Update the node data
-                // You'll need to implement this function in the main component
-                window.updateNodeData(id, updatedAgent)
-                setIsEditing(false)
-              }}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData: any = new FormData(
+                    e.target as HTMLFormElement,
+                  );
+                  const updatedAgent: AgentData = {
+                    ...data,
+                    name: formData.get('name') as string,
+                    type: formData.get('type') as AgentType,
+                    model: formData.get('model') as AgentModel,
+                    systemPrompt: formData.get('systemPrompt') as string,
+                    dataSource: formData.get('dataSource') as
+                      | DataSource
+                      | undefined,
+                    dataSourceInput: formData.get('dataSourceInput') as
+                      | string
+                      | undefined,
+                  };
+                  window.updateNodeData(id, updatedAgent);
+                  setIsEditing(false);
+                }}
+              >
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" name="name" defaultValue={data.name} />
+                    <Label htmlFor="name" className="text-card-foreground">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      defaultValue={data.name}
+                      className="bg-card border-border text-card-foreground"
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="type">Type</Label>
+                    <Label htmlFor="type" className="text-card-foreground">
+                      Type
+                    </Label>
                     <Select name="type" defaultValue={data.type}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-card border-border text-card-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-popover border-border">
                         <SelectItem value="Worker">Worker</SelectItem>
                         <SelectItem value="Boss">Boss</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="model">Model</Label>
+                    <Label htmlFor="model" className="text-card-foreground">
+                      Model
+                    </Label>
                     <Select name="model" defaultValue={data.model}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-card border-border text-card-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="gpt-3.5-turbo">
+                          GPT-3.5 Turbo
+                        </SelectItem>
                         <SelectItem value="gpt-4">GPT-4</SelectItem>
                         <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
                         <SelectItem value="claude-2">Claude 2</SelectItem>
@@ -281,16 +349,31 @@ const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="systemPrompt">System Prompt</Label>
-                    <Textarea id="systemPrompt" name="systemPrompt" defaultValue={data.systemPrompt} />
+                    <Label
+                      htmlFor="systemPrompt"
+                      className="text-card-foreground"
+                    >
+                      System Prompt
+                    </Label>
+                    <Textarea
+                      id="systemPrompt"
+                      name="systemPrompt"
+                      defaultValue={data.systemPrompt}
+                      className="bg-card border-border text-card-foreground"
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="dataSource">Data Source</Label>
+                    <Label
+                      htmlFor="dataSource"
+                      className="text-card-foreground"
+                    >
+                      Data Source
+                    </Label>
                     <Select name="dataSource" defaultValue={data.dataSource}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-card border-border text-card-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-popover border-border">
                         <SelectItem value="Wikipedia">Wikipedia</SelectItem>
                         <SelectItem value="ArXiv">ArXiv</SelectItem>
                         <SelectItem value="News API">News API</SelectItem>
@@ -299,12 +382,27 @@ const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="dataSourceInput">Data Source Input</Label>
-                    <Input id="dataSourceInput" name="dataSourceInput" defaultValue={data.dataSourceInput} />
+                    <Label
+                      htmlFor="dataSourceInput"
+                      className="text-card-foreground"
+                    >
+                      Data Source Input
+                    </Label>
+                    <Input
+                      id="dataSourceInput"
+                      name="dataSourceInput"
+                      defaultValue={data.dataSourceInput}
+                      className="bg-card border-border text-card-foreground"
+                    />
                   </div>
                 </div>
                 <DialogFooter className="mt-6">
-                  <Button type="submit">Save Changes</Button>
+                  <Button
+                    type="submit"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    Save Changes
+                  </Button>
                 </DialogFooter>
               </form>
             </Card>
@@ -312,12 +410,12 @@ const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
         )}
       </AnimatePresence>
     </TooltipProvider>
-  )
-}
+  );
+};
 
 const nodeTypes = {
-  agent: AgentNode
-}
+  agent: AgentNode,
+};
 
 const CustomEdge = ({
   id,
@@ -376,7 +474,8 @@ interface FlowData {
 }
 
 // Add this utility function at the top level
-const isEqual = (prev: any, next: any) => JSON.stringify(prev) === JSON.stringify(next);
+const isEqual = (prev: any, next: any) =>
+  JSON.stringify(prev) === JSON.stringify(next);
 
 export function EnhancedAgentSwarmManagementComponent() {
   const router = useRouter();
@@ -385,24 +484,28 @@ export function EnhancedAgentSwarmManagementComponent() {
   // Make sure your useNodesState is properly typed
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   // const [nodes, setNodes, onNodesChange] = useNodesState<AgentData>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
-  const [task, setTask] = useState("")
-  const [swarmJson, setSwarmJson] = useState("")
-  const [versions, setVersions] = useState<SwarmVersion[]>([])
-  const [selectedVersion, setSelectedVersion] = useState<string | null>(null)
-  const [taskResults, setTaskResults] = useState<{ [key: string]: string }>({})
-  const [swarmArchitecture, setSwarmArchitecture] = useState<SwarmArchitecture>("Concurrent")
-  const [popup, setPopup] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [task, setTask] = useState('');
+  const [swarmJson, setSwarmJson] = useState('');
+  const [versions, setVersions] = useState<SwarmVersion[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
+  const [taskResults, setTaskResults] = useState<{ [key: string]: string }>({});
+  const [swarmArchitecture, setSwarmArchitecture] =
+    useState<SwarmArchitecture>('Concurrent');
+  const [popup, setPopup] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
 
   // Add TRPC mutations and queries
   const saveFlowMutation = api.dnd.saveFlow.useMutation();
   const getCurrentFlowQuery = api.dnd.getCurrentFlow.useQuery(
-    { 
-      flowId: searchParams?.get('flowId') || undefined 
+    {
+      flowId: searchParams?.get('flowId') || undefined,
     },
     {
       enabled: !!searchParams?.get('flowId'),
-    }
+    },
   );
 
   useEffect(() => {
@@ -416,7 +519,7 @@ export function EnhancedAgentSwarmManagementComponent() {
       setSwarmJson(JSON.stringify(swarmData, null, 2));
     }
   }, [getCurrentFlowQuery.data]);
-  
+
   const getAllFlowsQuery = api.dnd.getAllFlows.useQuery();
   const setCurrentFlowMutation = api.dnd.setCurrentFlow.useMutation();
 
@@ -434,14 +537,14 @@ export function EnhancedAgentSwarmManagementComponent() {
   }>({
     nodes: [],
     edges: [],
-    taskResults: {}
+    taskResults: {},
   });
 
   // Update the assignment
   stateRef.current = {
     nodes: nodes as any,
     edges,
-    taskResults
+    taskResults,
   };
 
   // Inside the component, add these state tracking refs
@@ -459,24 +562,24 @@ export function EnhancedAgentSwarmManagementComponent() {
       setNodes([]);
       setEdges([]);
       setTaskResults({});
-      setSwarmArchitecture("Concurrent");
-      setSwarmJson("");
-      setTask("");
+      setSwarmArchitecture('Concurrent');
+      setSwarmJson('');
+      setTask('');
       setCurrentFlowId(null);
-      
+
       // Reset refs
       previousStateRef.current = {
         nodes: [],
-        edges: []
+        edges: [],
       };
       initialLoadRef.current = false;
 
       // Save new empty flow to get an ID
       const result = await saveFlowMutation.mutateAsync({
         nodes: [],
-        edges: [], 
-        architecture: "Concurrent",
-        results: {}
+        edges: [],
+        architecture: 'Concurrent',
+        results: {},
       });
 
       if (result) {
@@ -484,13 +587,12 @@ export function EnhancedAgentSwarmManagementComponent() {
         const newUrl = new URL(window.location.href);
         newUrl.searchParams.set('flowId', result.id);
         router.replace(newUrl.pathname + newUrl.search);
-        
+
         // Refresh flows list
         await getAllFlowsQuery.refetch();
-        
+
         setPopup({ message: 'New flow created', type: 'success' });
       }
-
     } catch (error) {
       console.error('Error creating new flow:', error);
       setPopup({ message: 'Error creating new flow', type: 'error' });
@@ -502,34 +604,34 @@ export function EnhancedAgentSwarmManagementComponent() {
     stateRef.current = {
       nodes: nodes as any[],
       edges,
-      taskResults
+      taskResults,
     };
   }, [nodes, edges, taskResults]);
 
   // Modify the useEffect for loading initial flow data
   useEffect(() => {
     const flowId = searchParams?.get('flowId');
-    
+
     if (flowId && getCurrentFlowQuery.data && !initialLoadRef.current) {
       // Set the flag to prevent multiple loads
       initialLoadRef.current = true;
-      
+
       try {
         const flowData = getCurrentFlowQuery.data;
-        
+
         // Update all relevant state with the loaded flow data
         setNodes(flowData.nodes || []);
         setEdges(flowData.edges || []);
-        setSwarmArchitecture(flowData.architecture || "Concurrent");
+        setSwarmArchitecture(flowData.architecture || 'Concurrent');
         setTaskResults(flowData.results || {});
         setCurrentFlowId(flowId);
-        
+
         // Initialize previous state
         previousStateRef.current = {
           nodes: flowData.nodes || [],
-          edges: flowData.edges || []
+          edges: flowData.edges || [],
         };
-        
+
         // Update the JSON representation
         const swarmData = {
           nodes: flowData.nodes,
@@ -538,7 +640,7 @@ export function EnhancedAgentSwarmManagementComponent() {
           results: flowData.results,
         };
         setSwarmJson(JSON.stringify(swarmData, null, 2));
-        
+
         setPopup({ message: 'Flow loaded successfully', type: 'success' });
       } catch (error) {
         console.error('Error loading flow data:', error);
@@ -547,15 +649,13 @@ export function EnhancedAgentSwarmManagementComponent() {
     }
   }, [searchParams, getCurrentFlowQuery.data]);
 
-
-
   const onConnect = useCallback(
     (params: Connection) => {
       // Early return if required fields are missing
       if (!params.source || !params.target) {
         return;
       }
-  
+
       // Create a properly typed edge object
       const newEdge: Edge = {
         id: `e${params.source}-${params.target}`,
@@ -565,82 +665,94 @@ export function EnhancedAgentSwarmManagementComponent() {
         targetHandle: params.targetHandle ?? undefined,
         type: 'custom',
         animated: true,
-        style: { stroke: "#8E8E93" },
+        style: { stroke: '#8E8E93' },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: "#8E8E93",
+          color: '#8E8E93',
         },
         data: { label: 'Connection' },
       };
-  
+
       setEdges((eds) => addEdge(newEdge, eds));
     },
-    [setEdges]
+    [setEdges],
   );
 
+  const addAgent = useCallback(
+    (agent: AgentData) => {
+      const newNode: ReactFlowNode = {
+        id: `${nodes.length + 1}`,
+        type: 'agent',
+        position: { x: Math.random() * 500, y: Math.random() * 300 },
+        data: agent,
+      };
 
-  const addAgent = useCallback((agent: AgentData) => {
-    const newNode: ReactFlowNode = {
-      id: `${nodes.length + 1}`,
-      type: "agent",
-      position: { x: Math.random() * 500, y: Math.random() * 300 },
-      data: agent,
-    };
-  
-    if (agent.type === "Boss") {
-      const clusterId = `cluster-${nodes.length + 1}`;
-      newNode.data = { ...newNode.data, clusterId };
-    } else if (agent.type === "Worker") {
-      const availableBosses = (nodes as unknown as ReactFlowNode[]).filter(
-        (node: any) => {
-          if (node.data.type !== "Boss") return false;
-          const workerCount = (nodes as unknown as ReactFlowNode[]).filter(
-            (n) => n.data?.clusterId === node.data?.clusterId
-          ).length;
-          return workerCount < 3;
-        }
-      );
-  
-      if (availableBosses.length > 0) {
-        const closestBoss = availableBosses.reduce((prev, curr) => {
-          const prevDistance = Math.abs(prev.position.x - newNode.position.x) + 
-                             Math.abs(prev.position.y - newNode.position.y);
-          const currDistance = Math.abs(curr.position.x - newNode.position.x) + 
-                             Math.abs(curr.position.y - newNode.position.y);
-          return currDistance < prevDistance ? curr : prev;
-        });
-  
-        if (closestBoss.data.clusterId) {
-          newNode.data = { ...newNode.data, clusterId: closestBoss.data.clusterId };
-          
-          const newEdge: Edge = {
-            id: `e${closestBoss.id}-${newNode.id}`,
-            source: closestBoss.id,
-            target: newNode.id,
-            type: 'custom',
-            animated: true,
-            style: { stroke: "#8E8E93" },
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              color: "#8E8E93",
-            },
-            data: { label: 'Hierarchy' },
-          };
-  
-          setEdges((eds) => [...eds, newEdge]);
+      if (agent.type === 'Boss') {
+        const clusterId = `cluster-${nodes.length + 1}`;
+        newNode.data = { ...newNode.data, clusterId };
+      } else if (agent.type === 'Worker') {
+        const availableBosses = (nodes as unknown as ReactFlowNode[]).filter(
+          (node: any) => {
+            if (node.data.type !== 'Boss') return false;
+            const workerCount = (nodes as unknown as ReactFlowNode[]).filter(
+              (n) => n.data?.clusterId === node.data?.clusterId,
+            ).length;
+            return workerCount < 3;
+          },
+        );
+
+        if (availableBosses.length > 0) {
+          const closestBoss = availableBosses.reduce((prev, curr) => {
+            const prevDistance =
+              Math.abs(prev.position.x - newNode.position.x) +
+              Math.abs(prev.position.y - newNode.position.y);
+            const currDistance =
+              Math.abs(curr.position.x - newNode.position.x) +
+              Math.abs(curr.position.y - newNode.position.y);
+            return currDistance < prevDistance ? curr : prev;
+          });
+
+          if (closestBoss.data.clusterId) {
+            newNode.data = {
+              ...newNode.data,
+              clusterId: closestBoss.data.clusterId,
+            };
+
+            const newEdge: Edge = {
+              id: `e${closestBoss.id}-${newNode.id}`,
+              source: closestBoss.id,
+              target: newNode.id,
+              type: 'custom',
+              animated: true,
+              style: { stroke: '#8E8E93' },
+              markerEnd: {
+                type: MarkerType.ArrowClosed,
+                color: '#8E8E93',
+              },
+              data: { label: 'Hierarchy' },
+            };
+
+            setEdges((eds) => [...eds, newEdge]);
+          }
         }
       }
-    }
-    // @ts-ignore
-    setNodes((nds: Node<ReactFlowNode[], string | undefined>[]) => [...nds, newNode]);
-    //saveVersion();
-  }, [nodes, setNodes]);
+      // @ts-ignore
+      setNodes((nds: Node<ReactFlowNode[], string | undefined>[]) => [
+        ...nds,
+        newNode,
+      ]);
+      //saveVersion();
+    },
+    [nodes, setNodes],
+  );
 
   const updateNodeData = (id: string, updatedData: AgentData) => {
     setNodes((nds: Node<ReactFlowNode[], string | undefined>[]) =>
       nds.map((node) =>
-        node.id === id ? { ...node, data: { ...node.data, ...updatedData } } : node
-      )
+        node.id === id
+          ? { ...node, data: { ...node.data, ...updatedData } }
+          : node,
+      ),
     );
     //saveVersion();
   };
@@ -651,77 +763,119 @@ export function EnhancedAgentSwarmManagementComponent() {
   }, []);
 
   const runTask = async () => {
-    console.log("Running task:", task)
+    console.log('Running task:', task);
     // Reset states and show processing indicators
-    setNodes((nds) => nds.map(node => ({ ...node, data: { ...node.data, isProcessing: true, lastResult: null } })))
-    setEdges((eds) => eds.map(edge => ({ ...edge, animated: true, style: { ...edge.style, stroke: "#32D74B" } })))
-    setTaskResults({})
-  
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        data: { ...node.data, isProcessing: true, lastResult: null },
+      })),
+    );
+    setEdges((eds) =>
+      eds.map((edge) => ({
+        ...edge,
+        animated: true,
+        style: { ...edge.style, stroke: '#32D74B' },
+      })),
+    );
+    setTaskResults({});
+
     try {
-      let results: { id: string, result: string }[] = [];
-  
+      let results: { id: string; result: string }[] = [];
+
       // Run the appropriate swarm architecture
       switch (swarmArchitecture) {
-        case "Concurrent":
+        case 'Concurrent':
           results = await runConcurrentSwarm();
           break;
-        case "Sequential":
+        case 'Sequential':
           results = await runSequentialSwarm();
           break;
-        case "Hierarchical":
+        case 'Hierarchical':
           results = await runHierarchicalSwarm();
           break;
       }
-  
+
       // Update results in real-time as they come in
-      const newResults: { [key: string]: string } = {}
+      const newResults: { [key: string]: string } = {};
       for (const result of results) {
         if (result) {
-          newResults[result.id] = result.result
-          setNodes((nds) => nds.map(node => 
-            node.id === result.id 
-              ? { ...node, data: { ...node.data, isProcessing: false, lastResult: result.result } }
-              : node
-          ))
-          setTaskResults(prevResults => ({ ...prevResults, [result.id]: result.result }))
+          newResults[result.id] = result.result;
+          setNodes((nds) =>
+            nds.map((node) =>
+              node.id === result.id
+                ? {
+                    ...node,
+                    data: {
+                      ...node.data,
+                      isProcessing: false,
+                      lastResult: result.result,
+                    },
+                  }
+                : node,
+            ),
+          );
+          setTaskResults((prevResults) => ({
+            ...prevResults,
+            [result.id]: result.result,
+          }));
         }
       }
-  
+
       // Reset edge animations
-      setEdges((eds) => eds.map(edge => ({ ...edge, animated: false, style: { ...edge.style, stroke: "#8E8E93" } })))
-   //   updateCSV(newResults);
-  
-      console.log("Task results:", results)
+      setEdges((eds) =>
+        eds.map((edge) => ({
+          ...edge,
+          animated: false,
+          style: { ...edge.style, stroke: '#8E8E93' },
+        })),
+      );
+      //   updateCSV(newResults);
+
+      console.log('Task results:', results);
     } catch (error) {
-      console.error("Error running task:", error)
+      console.error('Error running task:', error);
       // Reset processing states on error
-      setNodes((nds) => nds.map(node => ({ ...node, data: { ...node.data, isProcessing: false } })))
-      setEdges((eds) => eds.map(edge => ({ ...edge, animated: false, style: { ...edge.style, stroke: "#8E8E93" } })))
+      setNodes((nds) =>
+        nds.map((node) => ({
+          ...node,
+          data: { ...node.data, isProcessing: false },
+        })),
+      );
+      setEdges((eds) =>
+        eds.map((edge) => ({
+          ...edge,
+          animated: false,
+          style: { ...edge.style, stroke: '#8E8E93' },
+        })),
+      );
     }
-  
-    setTask("")
-    updateSwarmJson()
+
+    setTask('');
+    updateSwarmJson();
     //saveVersion()
-  }
+  };
 
   const runConcurrentSwarm = async () => {
-    return await Promise.all((nodes as any[]).map(async (node) => {
-      const { text } = await generateText({
-        model: registry.languageModel(`openai:${node?.data?.model}`),
-        prompt: `${node?.data?.systemPrompt || ''}
+    return await Promise.all(
+      (nodes as any[]).map(async (node) => {
+        const { text } = await generateText({
+          model: registry.languageModel(`openai:${node?.data?.model}`),
+          prompt: `${node?.data?.systemPrompt || ''}
         
         Task: ${task}
         
         Response:`,
-      })
-      return { id: node.id, result: text }
-    }))
-  }
+        });
+        return { id: node.id, result: text };
+      }),
+    );
+  };
 
   const runSequentialSwarm = async () => {
-    const results: { id: string, result: string }[] = [];
-    let context: string = "";
-  
+    const results: { id: string; result: string }[] = [];
+    let context: string = '';
+
     for (const node of nodes as any[]) {
       const { text } = await generateText({
         model: registry.languageModel(`openai:${node.data.model}`),
@@ -730,80 +884,93 @@ export function EnhancedAgentSwarmManagementComponent() {
       results.push({ id: node.id, result: text });
       context += `\n${node.data.name}: ${text}`;
     }
-  
+
     return results;
-  }
+  };
 
   const runHierarchicalSwarm = async () => {
-
-    const bosses: any = nodes.filter((node: any) => node.data.type === "Boss")
-    const workers: any = nodes.filter((node: any) => node.data.type === "Worker")
+    const bosses: any = nodes.filter((node: any) => node.data.type === 'Boss');
+    const workers: any = nodes.filter(
+      (node: any) => node.data.type === 'Worker',
+    );
 
     // Bosses receive their subtasks
-    const bossPrompts = await Promise.all(bosses.map(async (boss: any) => {
-      const { text } = await generateText({
-        model: registry.languageModel(`openai:${boss.data.model}`),
-        prompt: `${boss.data.systemPrompt}
+    const bossPrompts = await Promise.all(
+      bosses.map(async (boss: any) => {
+        const { text } = await generateText({
+          model: registry.languageModel(`openai:${boss.data.model}`),
+          prompt: `${boss.data.systemPrompt}
         
         You are a Boss agent. Create a subtask based on the following main task:
         
         Task: ${task}
         
         Subtask for your team:`,
-      })
-      return { bossId: boss.id, subtask: text }
-    }))
+        });
+        return { bossId: boss.id, subtask: text };
+      }),
+    );
 
     // Bosses delegate to Workers
-    const workerPrompts = await Promise.all(workers.map(async (worker: any) => {
-      const boss = bosses.find((b: any) => b.data.clusterId === worker.data.clusterId)
-      if (!boss) return null
+    const workerPrompts = await Promise.all(
+      workers.map(async (worker: any) => {
+        const boss = bosses.find(
+          (b: any) => b.data.clusterId === worker.data.clusterId,
+        );
+        if (!boss) return null;
 
-      const bossPrompt = bossPrompts.find(bp => bp.bossId === boss.id)
-      if (!bossPrompt) return null
+        const bossPrompt = bossPrompts.find((bp) => bp.bossId === boss.id);
+        if (!bossPrompt) return null;
 
-      const { text } = await generateText({
-        model: registry.languageModel(`openai:${boss.data.model}`),
-        prompt: `${boss.data.systemPrompt}
+        const { text } = await generateText({
+          model: registry.languageModel(`openai:${boss.data.model}`),
+          prompt: `${boss.data.systemPrompt}
         
         You are a Boss agent. Delegate a specific task to the Worker agent named ${worker.data.name} based on the following subtask:
         
         Subtask:  ${bossPrompt.subtask}
         
         Specific task for ${worker.data.name}:`,
-      })
-      return { workerId: worker.id, task: text }
-    }))
+        });
+        return { workerId: worker.id, task: text };
+      }),
+    );
 
     // Workers perform their tasks
-    const results = await Promise.all(workers.map(async (worker: any) => {
-      const workerPrompt = workerPrompts.find((wp: any) => wp?.workerId === worker.id)
-      if (!workerPrompt) return null
+    const results = await Promise.all(
+      workers.map(async (worker: any) => {
+        const workerPrompt = workerPrompts.find(
+          (wp: any) => wp?.workerId === worker.id,
+        );
+        if (!workerPrompt) return null;
 
-      let context = ""
-      // if (worker.data.dataSource) {
-      //   context = await fetchDataFromSource(worker.data.dataSource, worker.data.dataSourceInput)
-      // }
+        let context = '';
+        // if (worker.data.dataSource) {
+        //   context = await fetchDataFromSource(worker.data.dataSource, worker.data.dataSourceInput)
+        // }
 
-      const { text } = await generateText({
-        model: registry.languageModel(`openai:${worker.data.model}`),
-        prompt: `${worker.data.systemPrompt}
+        const { text } = await generateText({
+          model: registry.languageModel(`openai:${worker.data.model}`),
+          prompt: `${worker.data.systemPrompt}
         
         Context: ${context}
         
         Task: ${workerPrompt.task}
         
         Response:`,
-      })
-      return { id: worker.id, result: text }
-    }))
+        });
+        return { id: worker.id, result: text };
+      }),
+    );
 
-    return results.filter((result): result is { id: string; result: string } => result !== null);
-  }
+    return results.filter(
+      (result): result is { id: string; result: string } => result !== null,
+    );
+  };
 
   const updateSwarmJson = () => {
     const swarmData = {
-      nodes: nodes.map(node => ({
+      nodes: nodes.map((node) => ({
         id: node.id,
         type: node.type,
         data: node.data,
@@ -812,54 +979,65 @@ export function EnhancedAgentSwarmManagementComponent() {
       edges: edges,
       architecture: swarmArchitecture,
       results: taskResults,
-    }
-    setSwarmJson(JSON.stringify(swarmData, null, 2))
-  }
+    };
+    setSwarmJson(JSON.stringify(swarmData, null, 2));
+  };
 
   const saveSwarmConfiguration = () => {
-    updateSwarmJson()
-    const blob = new Blob([swarmJson], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'swarm-configuration.json'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+    updateSwarmJson();
+    const blob = new Blob([swarmJson], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'swarm-configuration.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const shareSwarmConfiguration = () => {
-    updateSwarmJson()
-    navigator.clipboard.writeText(swarmJson).then(() => {
-      setPopup({ message: 'Swarm configuration copied to clipboard', type: 'success' });
-    }, (err) => {
-      console.error('Could not copy text: ', err)
-      setPopup({ message: 'Failed to copy configuration', type: 'error' });
-    })
-  }
+    updateSwarmJson();
+    navigator.clipboard.writeText(swarmJson).then(
+      () => {
+        setPopup({
+          message: 'Swarm configuration copied to clipboard',
+          type: 'success',
+        });
+      },
+      (err) => {
+        console.error('Could not copy text: ', err);
+        setPopup({ message: 'Failed to copy configuration', type: 'error' });
+      },
+    );
+  };
 
-  const loadSwarmConfiguration = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+  const loadSwarmConfiguration = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const content = e.target?.result as string
-          const swarmData = JSON.parse(content)
-          setNodes(swarmData.nodes)
-          setEdges(swarmData.edges)
-          setSwarmArchitecture(swarmData.architecture || "Concurrent")
-          setTaskResults(swarmData.results || {})
-          updateSwarmJson()
+          const content = e.target?.result as string;
+          const swarmData = JSON.parse(content);
+          setNodes(swarmData.nodes);
+          setEdges(swarmData.edges);
+          setSwarmArchitecture(swarmData.architecture || 'Concurrent');
+          setTaskResults(swarmData.results || {});
+          updateSwarmJson();
           //saveVersion()
-          setPopup({ message: 'Swarm configuration loaded successfully', type: 'success' });
+          setPopup({
+            message: 'Swarm configuration loaded successfully',
+            type: 'success',
+          });
         } catch (error) {
-          console.error('Error parsing JSON:', error)
+          console.error('Error parsing JSON:', error);
           setPopup({ message: 'Invalid JSON file', type: 'error' });
         }
-      }
-      reader.readAsText(file)
+      };
+      reader.readAsText(file);
     }
-  }
+  };
 
   const saveVersionStable = useCallback(async () => {
     try {
@@ -884,12 +1062,12 @@ export function EnhancedAgentSwarmManagementComponent() {
             lastResult: data?.lastResult || '',
             dataSource: data?.dataSource,
             dataSourceInput: data?.dataSourceInput,
-            ...data
+            ...data,
           },
-          ...rest
+          ...rest,
         };
       });
-  
+
       // Transform edges to match the expected schema
       const validEdges: any[] = edges.map((edge) => {
         const { id, source, target, ...rest } = edge;
@@ -899,17 +1077,24 @@ export function EnhancedAgentSwarmManagementComponent() {
           target,
           type: rest.type,
           animated: rest.animated,
-          style: rest.style ? {
-            stroke: rest.style.stroke || '#000000',
-          } : undefined,
-          markerEnd: rest.markerEnd ? {
-            type: typeof rest.markerEnd === 'string' ? rest.markerEnd : (rest.markerEnd as any)?.type || 'arrow',
-            color: (rest.markerEnd as any)?.color || '#000000',
-          } : undefined,
+          style: rest.style
+            ? {
+                stroke: rest.style.stroke || '#000000',
+              }
+            : undefined,
+          markerEnd: rest.markerEnd
+            ? {
+                type:
+                  typeof rest.markerEnd === 'string'
+                    ? rest.markerEnd
+                    : (rest.markerEnd as any)?.type || 'arrow',
+                color: (rest.markerEnd as any)?.color || '#000000',
+              }
+            : undefined,
           data: rest.data || { label: 'Connection' },
         };
       });
-  
+
       // Create the flow data object
       const flowData = {
         flow_id: currentFlowId || undefined,
@@ -918,20 +1103,19 @@ export function EnhancedAgentSwarmManagementComponent() {
         architecture: swarmArchitecture,
         results: taskResults || {},
       } as const; // Use const assertion to preserve literal types
-  
+
       // Save the flow
       const result = await saveFlowMutation.mutateAsync(flowData);
-      
+
       if (!currentFlowId && result.id) {
         const newUrl = new URL(window.location.href);
         newUrl.searchParams.set('flowId', result.id);
         router.replace(newUrl.pathname + newUrl.search);
         setCurrentFlowId(result.id);
       }
-  
+
       setPopup({ message: 'Flow saved successfully', type: 'success' });
       await getAllFlowsQuery.refetch();
-      
     } catch (error) {
       console.error('Error saving flow:', error);
       setPopup({ message: 'Failed to save flow', type: 'error' });
@@ -946,7 +1130,7 @@ export function EnhancedAgentSwarmManagementComponent() {
     currentFlowId,
     getAllFlowsQuery,
   ]);
-  
+
   // Type guard if needed
   const isValidSaveFlowNode = (node: unknown): node is SaveFlowNode => {
     return (
@@ -974,10 +1158,11 @@ export function EnhancedAgentSwarmManagementComponent() {
 
         const currentNodes = stateRef.current.nodes;
         const currentEdges = stateRef.current.edges;
-        
+
         // Check if there are actual changes
-        const hasChanges = !isEqual(previousStateRef.current.nodes, currentNodes) ||
-                          !isEqual(previousStateRef.current.edges, currentEdges);
+        const hasChanges =
+          !isEqual(previousStateRef.current.nodes, currentNodes) ||
+          !isEqual(previousStateRef.current.edges, currentEdges);
 
         if (!hasChanges || !currentFlowId) {
           return;
@@ -985,11 +1170,11 @@ export function EnhancedAgentSwarmManagementComponent() {
 
         try {
           saveInProgressRef.current = true;
-          
+
           // Update previous state before saving
           previousStateRef.current = {
             nodes: JSON.parse(JSON.stringify(currentNodes)),
-            edges: JSON.parse(JSON.stringify(currentEdges))
+            edges: JSON.parse(JSON.stringify(currentEdges)),
           };
 
           await saveVersionStable();
@@ -997,7 +1182,7 @@ export function EnhancedAgentSwarmManagementComponent() {
           saveInProgressRef.current = false;
         }
       }, 2000),
-    [currentFlowId, saveVersionStable]
+    [currentFlowId, saveVersionStable],
   );
 
   // Update the effect that triggers saves
@@ -1010,7 +1195,7 @@ export function EnhancedAgentSwarmManagementComponent() {
     stateRef.current = {
       nodes: nodes,
       edges,
-      taskResults
+      taskResults,
     };
 
     // Only trigger save if not the initial load
@@ -1020,7 +1205,7 @@ export function EnhancedAgentSwarmManagementComponent() {
       // Initialize previous state on first load
       previousStateRef.current = {
         nodes: JSON.parse(JSON.stringify(nodes)),
-        edges: JSON.parse(JSON.stringify(edges))
+        edges: JSON.parse(JSON.stringify(edges)),
       };
     }
 
@@ -1033,11 +1218,10 @@ export function EnhancedAgentSwarmManagementComponent() {
     if (popup) {
       const timer = setTimeout(() => {
         setPopup(null);
-      }, 3000); 
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [popup]);
-  
 
   // Add share link functionality
   const shareFlowLink = () => {
@@ -1058,7 +1242,6 @@ export function EnhancedAgentSwarmManagementComponent() {
     </DropdownMenuItem>
   );
 
-  
   // Add error state handling
   if (getCurrentFlowQuery.isError) {
     return (
@@ -1076,37 +1259,40 @@ export function EnhancedAgentSwarmManagementComponent() {
     try {
       // Prevent loading if a save is in progress
       if (saveInProgressRef.current) {
-        setPopup({ message: 'Please wait for current save to complete', type: 'error' });
+        setPopup({
+          message: 'Please wait for current save to complete',
+          type: 'error',
+        });
         return;
       }
 
       // Set current flow as active
       await setCurrentFlowMutation.mutateAsync({ flow_id: flowId });
-      
+
       // Update URL with new flow ID
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.set('flowId', flowId);
       router.replace(newUrl.pathname + newUrl.search);
-      
+
       // Fetch the specific flow data directly with the flowId
       const { data: flowData } = await getCurrentFlowQuery.refetch({
-    //    queryKey: ['dnd.getCurrentFlow', { flowId }]
+        //    queryKey: ['dnd.getCurrentFlow', { flowId }]
       });
-      
+
       if (flowData) {
         // Update all state
         setNodes(flowData.nodes || []);
         setEdges(flowData.edges || []);
-        setSwarmArchitecture(flowData.architecture || "Concurrent");
+        setSwarmArchitecture(flowData.architecture || 'Concurrent');
         setTaskResults(flowData.results || {});
         setCurrentFlowId(flowId);
-        
+
         // Update previous state to prevent immediate save
         previousStateRef.current = {
           nodes: flowData.nodes || [],
-          edges: flowData.edges || []
+          edges: flowData.edges || [],
         };
-        
+
         // Update JSON representation
         const swarmData = {
           nodes: flowData.nodes,
@@ -1115,11 +1301,14 @@ export function EnhancedAgentSwarmManagementComponent() {
           results: flowData.results,
         };
         setSwarmJson(JSON.stringify(swarmData, null, 2));
-        
+
         // Reset save in progress flag
         saveInProgressRef.current = false;
-        
-        setPopup({ message: 'Flow version loaded successfully', type: 'success' });
+
+        setPopup({
+          message: 'Flow version loaded successfully',
+          type: 'success',
+        });
       } else {
         throw new Error('No flow data found');
       }
@@ -1148,12 +1337,17 @@ export function EnhancedAgentSwarmManagementComponent() {
             {getAllFlowsQuery.data?.map((flow) => (
               <TableRow key={flow.id}>
                 <TableCell>{flow.id}</TableCell>
-                <TableCell>{new Date(flow.created_at).toLocaleString()}</TableCell>
+                <TableCell>
+                  {new Date(flow.created_at).toLocaleString()}
+                </TableCell>
                 <TableCell>
                   <Button
                     variant="ghost"
                     onClick={() => loadVersion(flow.id)}
-                    disabled={saveFlowMutation.status === 'pending' || setCurrentFlowMutation.status === 'pending'}
+                    disabled={
+                      saveFlowMutation.status === 'pending' ||
+                      setCurrentFlowMutation.status === 'pending'
+                    }
                   >
                     Load
                   </Button>
@@ -1168,14 +1362,16 @@ export function EnhancedAgentSwarmManagementComponent() {
 
   // Replace the existing Versions TabsContent with the new component
   return (
-    <div className="w-full h-screen flex flex-col bg-white text-gray-900">
-      <div className="flex justify-between items-center p-4 border-b border-gray-200">
-        <h1 className="text-2xl font-semibold text-gray-900">LLM Agent Swarm</h1>
+    <div className="w-full h-screen flex flex-col bg-background text-foreground">
+      <div className="flex justify-between items-center p-4 border-b border-border">
+        <h1 className="text-2xl font-semibold text-foreground">
+          LLM Agent Swarm
+        </h1>
         <div className="flex space-x-2">
           {/* Add New Flow button */}
           <Button
             variant="outline"
-            className="bg-gray-50 text-gray-900 border-gray-200 hover:bg-gray-100"
+            className="bg-card hover:bg-muted"
             onClick={createNewFlow}
             disabled={saveFlowMutation.isPending}
           >
@@ -1186,10 +1382,7 @@ export function EnhancedAgentSwarmManagementComponent() {
           {/* Existing Add Agent Dialog */}
           <Dialog>
             <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="bg-gray-50 text-gray-900 border-gray-200 hover:bg-gray-100"
-              >
+              <Button variant="outline" className="bg-card hover:bg-muted">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Agent
               </Button>
@@ -1197,28 +1390,40 @@ export function EnhancedAgentSwarmManagementComponent() {
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Add New Agent</DialogTitle>
-                <DialogDescription>Create a new LLM agent to add to your swarm.</DialogDescription>
+                <DialogDescription>
+                  Create a new LLM agent to add to your swarm.
+                </DialogDescription>
               </DialogHeader>
-              <form onSubmit={(e) => {
-                e.preventDefault()
-                const formData = new FormData(e.target as HTMLFormElement)
-                addAgent({
-                  id: `${nodes.length + 1}`,
-                  name: formData.get("name") as string,
-                  type: formData.get("type") as AgentType,
-                  model: formData.get("model") as AgentModel,
-                  systemPrompt: formData.get("systemPrompt") as string,
-                  dataSource: formData.get("dataSource") as DataSource | undefined,
-                  dataSourceInput: formData.get("dataSourceInput") as string | undefined,
-                })
-              }}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target as HTMLFormElement);
+                  addAgent({
+                    id: `${nodes.length + 1}`,
+                    name: formData.get('name') as string,
+                    type: formData.get('type') as AgentType,
+                    model: formData.get('model') as AgentModel,
+                    systemPrompt: formData.get('systemPrompt') as string,
+                    dataSource: formData.get('dataSource') as
+                      | DataSource
+                      | undefined,
+                    dataSourceInput: formData.get('dataSourceInput') as
+                      | string
+                      | undefined,
+                  });
+                }}
+              >
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">Name</Label>
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
                     <Input id="name" name="name" className="col-span-3" />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="type" className="text-right">Type</Label>
+                    <Label htmlFor="type" className="text-right">
+                      Type
+                    </Label>
                     <Select name="type">
                       <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select agent type" />
@@ -1230,13 +1435,17 @@ export function EnhancedAgentSwarmManagementComponent() {
                     </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="model" className="text-right">Model</Label>
+                    <Label htmlFor="model" className="text-right">
+                      Model
+                    </Label>
                     <Select name="model">
                       <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select model" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                        <SelectItem value="gpt-3.5-turbo">
+                          GPT-3.5 Turbo
+                        </SelectItem>
                         <SelectItem value="gpt-4">GPT-4</SelectItem>
                         <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
                         <SelectItem value="claude-2">Claude 2</SelectItem>
@@ -1244,11 +1453,19 @@ export function EnhancedAgentSwarmManagementComponent() {
                     </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="systemPrompt" className="text-right">System Prompt</Label>
-                    <Textarea id="systemPrompt" name="systemPrompt" className="col-span-3" />
+                    <Label htmlFor="systemPrompt" className="text-right">
+                      System Prompt
+                    </Label>
+                    <Textarea
+                      id="systemPrompt"
+                      name="systemPrompt"
+                      className="col-span-3"
+                    />
                   </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="dataSource" className="text-right">Data Source</Label>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="dataSource" className="text-right">
+                      Data Source
+                    </Label>
                     <Select name="dataSource">
                       <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select data source" />
@@ -1262,8 +1479,14 @@ export function EnhancedAgentSwarmManagementComponent() {
                     </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="dataSourceInput" className="text-right">Data Source Input</Label>
-                    <Input id="dataSourceInput" name="dataSourceInput" className="col-span-3" />
+                    <Label htmlFor="dataSourceInput" className="text-right">
+                      Data Source Input
+                    </Label>
+                    <Input
+                      id="dataSourceInput"
+                      name="dataSourceInput"
+                      className="col-span-3"
+                    />
                   </div>
                 </div>
                 <DialogFooter>
@@ -1274,7 +1497,7 @@ export function EnhancedAgentSwarmManagementComponent() {
           </Dialog>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="bg-gray-50 text-gray-900 border-gray-200 hover:bg-gray-100">
+              <Button variant="outline" className="bg-card hover:bg-muted">
                 <MoreHorizontal className="w-4 h-4 mr-2" />
                 Options
               </Button>
@@ -1291,7 +1514,10 @@ export function EnhancedAgentSwarmManagementComponent() {
                 Share JSON
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <label htmlFor="load-json" className="flex items-center cursor-pointer">
+                <label
+                  htmlFor="load-json"
+                  className="flex items-center cursor-pointer"
+                >
                   <Upload className="w-4 h-4 mr-2" />
                   Load JSON
                 </label>
@@ -1309,8 +1535,13 @@ export function EnhancedAgentSwarmManagementComponent() {
             className="hidden"
             onChange={loadSwarmConfiguration}
           />
-          <Select value={swarmArchitecture} onValueChange={(value: SwarmArchitecture) => setSwarmArchitecture(value)}>
-            <SelectTrigger className="w-[180px] bg-gray-50 text-gray-900 border-gray-200">
+          <Select
+            value={swarmArchitecture}
+            onValueChange={(value: SwarmArchitecture) =>
+              setSwarmArchitecture(value)
+            }
+          >
+            <SelectTrigger className="w-[180px] bg-card border-border">
               <SelectValue placeholder="Select architecture" />
             </SelectTrigger>
             <SelectContent>
@@ -1322,7 +1553,7 @@ export function EnhancedAgentSwarmManagementComponent() {
         </div>
       </div>
       <div className="flex-grow flex overflow-hidden">
-        <div className="w-96 border-r border-gray-200 p-4 overflow-y-auto">
+        <div className="w-96 border-r border-border p-4 overflow-y-auto bg-background">
           <Tabs defaultValue="results" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="results">Results</TabsTrigger>
@@ -1340,13 +1571,17 @@ export function EnhancedAgentSwarmManagementComponent() {
                   </TableHeader>
                   <TableBody>
                     {Object.entries(taskResults).map(([agentId, result]) => {
-                      const agent: any = nodes.find(node => node.id === agentId)
+                      const agent: any = nodes.find(
+                        (node) => node.id === agentId,
+                      );
                       return (
                         <TableRow key={agentId}>
-                          <TableCell className="font-medium">{agent?.data.name || 'Unknown Agent'}</TableCell>
+                          <TableCell className="font-medium">
+                            {agent?.data.name || 'Unknown Agent'}
+                          </TableCell>
                           <TableCell>{result}</TableCell>
                         </TableRow>
-                      )
+                      );
                     })}
                   </TableBody>
                 </Table>
@@ -1368,20 +1603,26 @@ export function EnhancedAgentSwarmManagementComponent() {
             edgeTypes={edgeTypes}
             fitView
           >
-            <Background color="#f1f5f9" gap={16} />
+            <Background 
+              color={document.documentElement.classList.contains('dark') ? "#333" : "#ccc"} 
+              gap={16} 
+            />
             <Controls />
           </ReactFlow>
         </div>
       </div>
-      <div className="p-4 border-t border-gray-200 flex justify-center items-center">
+      <div className="p-4 border-t border-border flex justify-center items-center">
         <Input
           type="text"
           placeholder="Enter a task for the swarm..."
           value={task}
           onChange={(e) => setTask(e.target.value)}
-          className="w-1/2 mr-2"
+          className="w-1/2 mr-2 bg-input text-foreground placeholder:text-muted-foreground"
         />
-        <Button onClick={runTask} className="bg-blue-500 hover:bg-blue-600 text-white">
+        <Button
+          onClick={runTask}
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
+        >
           <Send className="w-4 h-4 mr-2" />
           Run Task
         </Button>
@@ -1392,14 +1633,101 @@ export function EnhancedAgentSwarmManagementComponent() {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className={`fixed top-4 right-4 p-4 rounded-md shadow-md ${
-              popup.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-            } text-white`}
+            className={`fixed top-4 right-4 p-4 rounded-md shadow-md max-w-[500px] overflow-hidden text-ellipsis ${
+              popup.type === 'success'
+                ? 'bg-emerald-600 dark:bg-emerald-500 text-white'
+                : 'bg-destructive text-destructive-foreground'
+            }`}
           >
             {popup.message}
           </motion.div>
         )}
       </AnimatePresence>
+      <style jsx global>{`
+        /* Light mode styles */
+        .react-flow__node {
+          background: transparent !important;
+          color: hsl(var(--card-foreground));
+        }
+
+        .react-flow__node-default {
+          background: transparent !important;
+        }
+
+        /* Dark mode styles */
+        .dark .react-flow__node {
+          background: transparent !important;
+          color: hsl(var(--card-foreground));
+        }
+
+        .dark .react-flow__node-default {
+          background: transparent !important;
+        }
+
+        /* Node handle styles */
+        .react-flow__handle {
+          background: hsl(var(--muted));
+          border-color: hsl(var(--border));
+        }
+
+        .dark .react-flow__handle {
+          background: white;
+          border-color: white;
+        }
+
+        /* Edge styles */
+        .react-flow__edge-path {
+          stroke: hsl(var(--border));
+        }
+
+        .dark .react-flow__edge-path {
+          stroke: white;
+        }
+
+        /* Controls - Light mode */
+        .react-flow__panel.react-flow__controls {
+          background: hsl(var(--card));
+          border: 1px solid hsl(var(--border));
+          border-radius: 6px;
+          padding: 4px;
+        }
+
+        .react-flow__controls-button {
+          background: hsl(var(--card)) !important;
+          border: 1px solid hsl(var(--border)) !important;
+        }
+
+        .react-flow__controls-button:hover {
+          background: hsl(var(--muted)) !important;
+        }
+
+        .react-flow__controls-button svg path {
+          fill: hsl(var(--foreground)) !important;
+        }
+
+        /* Controls - Dark mode */
+        .dark .react-flow__panel.react-flow__controls {
+          background: #0F0F10;
+        }
+
+        .dark .react-flow__controls-button {
+          background: #0F0F10 !important;
+          border: 1px solid white !important;
+        }
+
+        .dark .react-flow__controls-button:hover {
+          background: #1A1A1B !important;
+        }
+
+        .dark .react-flow__controls-button svg path {
+          fill: white !important;
+        }
+
+        /* Ensure proper spacing between buttons */
+        .react-flow__controls-button + .react-flow__controls-button {
+          margin-top: 4px;
+        }
+      `}</style>
     </div>
-  )
+  );
 }
