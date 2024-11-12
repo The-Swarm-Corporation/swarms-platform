@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, useContext,createContext } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -15,6 +15,11 @@ import ReactFlow, {
   EdgeTypes,
   EdgeProps,
   getBezierPath,
+  Handle,
+  Position,
+  useReactFlow,
+  ReactFlowInstance,
+  ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Button } from '../spread_sheet_swarm/ui/button';
@@ -68,6 +73,7 @@ import {
   Upload,
   MoreHorizontal,
   X,
+  Settings,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { anthropic } from '@ai-sdk/anthropic';
@@ -166,9 +172,10 @@ interface SwarmVersion {
 declare global {
   interface Window {
     updateNodeData: (id: string, updatedData: AgentData) => void;
+    updateGroupData?: (id: string, updatedData: GroupData) => void;
+    addAgentToGroup?: (groupId: string) => void;
   }
 }
-
 interface EdgeParams {
   source: string | null;
   target: string | null;
@@ -179,6 +186,7 @@ interface EdgeParams {
 }
 
 const AnimatedHexagon = motion.polygon;
+
 
 const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -413,8 +421,188 @@ const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
   );
 };
 
-const nodeTypes = {
+
+// Make groupProcessingStates available globally for the GroupNode component
+const GroupNodeContext = createContext<{
+  groupProcessingStates: any;
+}>({ groupProcessingStates: {} });
+
+
+const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
+  const { groupProcessingStates } = useContext(GroupNodeContext);
+  const processingState = groupProcessingStates[id];
+  const [isEditing, setIsEditing] = useState(false);
+  return (
+    <div className="min-w-[300px] min-h-[200px] relative">
+      {/* Semi-transparent backdrop with more visible styling */}
+      <div className="absolute inset-0 bg-card/80 dark:bg-background/80 backdrop-blur-sm border-2 border-border dark:border-gray-800 rounded-lg shadow-lg" />
+      
+      {/* Input handle */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="w-2 h-2 !bg-muted-foreground"
+      />
+      
+      {/* Group Content */}
+      <div className="relative p-4">
+        {/* Group Header */}
+        <div className="flex justify-between items-center mb-4 border-b border-border pb-2">
+          <div>
+            <h3 className="font-semibold text-lg text-card-foreground">{data.teamName}</h3>
+            <p className="text-sm text-muted-foreground">{data.swarmType}</p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                <Settings className="w-4 h-4 mr-2" />
+                Edit Group
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.addAgentToGroup?.(id)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Agent
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Agents Container */}
+        <div className="flex flex-wrap gap-4">
+          {data.agents?.map((agent) => (
+            <motion.div
+              key={agent.id}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="relative"
+            >
+              <div className="transform scale-75 origin-top-left">
+                <AgentNode
+                  data={agent}
+                  id={agent.id}
+                  type="agent"
+                  xPos={0}
+                  yPos={0}
+                  selected={false}
+                  zIndex={0}
+                  isConnectable={true}
+                  dragging={false}
+                />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Output handle */}
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="w-2 h-2 !bg-muted-foreground"
+      />
+
+      {/* Edit Group Dialog */}
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-left">Edit Group</DialogTitle>
+            <DialogDescription className="text-left">
+              Make changes to the group configuration here.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target as HTMLFormElement);
+            const updatedData = {
+              ...data,
+              teamName: formData.get('teamName') as string,
+              swarmType: formData.get('swarmType') as string,
+              description: formData.get('description') as string,
+            };
+            window.updateGroupData?.(id, updatedData);
+            setIsEditing(false);
+          }}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="teamName" className="text-left">Team Name</Label>
+                <Input
+                  id="teamName"
+                  name="teamName"
+                  defaultValue={data.teamName}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="swarmType" className="text-left">Swarm Type</Label>
+                <Select name="swarmType" defaultValue={data.swarmType}>
+                  <SelectTrigger className="col-span-3 text-left">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Research">Research</SelectItem>
+                    <SelectItem value="Development">Development</SelectItem>
+                    <SelectItem value="Analytics">Analytics</SelectItem>
+                    <SelectItem value="Custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="text-left">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  defaultValue={data.description}
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Save Changes</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add processing indicator */}
+      {processingState?.isProcessing && (
+        <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex items-center justify-center">
+          <div className="text-primary-foreground">Processing...</div>
+        </div>
+      )}
+      
+      {/* Add completion indicator */}
+      {processingState?.result && (
+        <div className="absolute top-2 right-2">
+          <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center">
+            ✓
+          </div>
+        </div>
+      )}
+      
+      {/* Show group result if available */}
+      {/* {processingState?.result && (
+        <div className="mt-2 p-2 bg-muted/50 rounded text-sm">
+          <strong>Group Result:</strong>
+          <div className="max-h-20 overflow-y-auto">
+            {processingState.result}
+          </div>
+        </div>
+      )} */}
+    </div>
+  );
+};
+
+ 
+
+// eslint-disable-next-line react-hooks/rules-of-hooks
+const nodeTypes ={
   agent: AgentNode,
+  group: GroupNode,
 };
 
 const CustomEdge = ({
@@ -465,6 +653,7 @@ const edgeTypes: EdgeTypes = {
   custom: CustomEdge,
 };
 
+type TaskResults = { [key: string]: string };
 // Add this type to better handle flow data
 interface FlowData {
   nodes: any;
@@ -477,12 +666,162 @@ interface FlowData {
 const isEqual = (prev: any, next: any) =>
   JSON.stringify(prev) === JSON.stringify(next);
 
-export function EnhancedAgentSwarmManagementComponent() {
+// Add new interfaces
+interface GroupData {
+  teamName: string;
+  swarmType: string;
+  agents: AgentData[];
+  description?: string;
+}
+
+type NodeTypes = {
+  agent: React.FC<NodeProps<AgentData>>;
+  group: React.FC<NodeProps<GroupData>>;
+}
+
+// Update SwarmData interface
+interface SwarmData {
+  nodes: Node[];
+  edges: Edge[];
+  architecture: SwarmArchitecture;
+  results: TaskResults;
+  groups?: GroupData[];
+}
+
+// Add this type definition near the top with other interfaces
+interface AddAgentToGroupDialogProps {
+  groupId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  nodes: Node[];
+  setNodes: (nodes: any) => void;
+}
+
+// Add this new component before the main component
+const AddAgentToGroupDialog: React.FC<AddAgentToGroupDialogProps> = ({
+  groupId,
+  open,
+  onOpenChange,
+  nodes,
+  setNodes,
+}) => {
+  const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
+
+  // Filter out agents that are already in groups
+  const availableAgents = nodes.filter((node) => 
+    node.type === 'agent' && 
+    !node.data.groupId && 
+    node.id !== groupId
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    setNodes((currentNodes: Node[]) => 
+      currentNodes.map((node) => {
+        if (node.id === groupId) {
+          // Update group with new agents
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              agents: [
+                ...(node.data.agents || []),
+                ...selectedAgents.map(agentId => 
+                  nodes.find(n => n.id === agentId)?.data
+                ).filter(Boolean)
+              ]
+            }
+          };
+        }
+        if (selectedAgents.includes(node.id)) {
+          // Update agent with group reference
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              groupId
+            }
+          };
+        }
+        return node;
+      })
+    );
+    
+    setSelectedAgents([]);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="text-left">Add Agents to Group</DialogTitle>
+          <DialogDescription className="text-left">
+            Select agents to add to this group.
+          </DialogDescription>
+        </DialogHeader>
+        {availableAgents.length === 0 ? (
+          <div className="py-6 text-left text-muted-foreground">
+            No available agents to add. Create new agents first.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              {availableAgents.map((agent) => (
+                <div key={agent.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id={agent.id}
+                    value={agent.id}
+                    checked={selectedAgents.includes(agent.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedAgents([...selectedAgents, agent.id]);
+                      } else {
+                        setSelectedAgents(selectedAgents.filter(id => id !== agent.id));
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-border"
+                  />
+                  <Label htmlFor={agent.id} className="flex-grow text-left">
+                    {agent.data.name} ({agent.data.type})
+                  </Label>
+                </div>
+              ))}
+            </div>
+            <DialogFooter>
+              <Button 
+                type="submit" 
+                disabled={selectedAgents.length === 0}
+              >
+                Add Selected Agents
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
+   
+// Create a wrapped component for the main content
+const FlowContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Make sure your useNodesState is properly typed
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [addToGroupDialogState, setAddToGroupDialogState] = useState<{
+    open: boolean;
+    groupId: string | null;
+  }>({
+    open: false,
+    groupId: null
+  });
   // const [nodes, setNodes, onNodesChange] = useNodesState<AgentData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [task, setTask] = useState('');
@@ -496,6 +835,16 @@ export function EnhancedAgentSwarmManagementComponent() {
     message: string;
     type: 'success' | 'error';
   } | null>(null);
+
+const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>) => {
+  setGroupProcessingStates(prev => ({
+    ...prev,
+    [groupId]: {
+      ...prev[groupId],
+      ...update
+    }
+  }));
+};
 
   // Add TRPC mutations and queries
   const saveFlowMutation = api.dnd.saveFlow.useMutation();
@@ -525,7 +874,7 @@ export function EnhancedAgentSwarmManagementComponent() {
 
   // Add new state for tracking current flow ID
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
-
+  const reactFlowInstance = useReactFlow();
   // Add a ref to track initial load
   const initialLoadRef = useRef(false);
 
@@ -554,6 +903,9 @@ export function EnhancedAgentSwarmManagementComponent() {
   });
 
   const saveInProgressRef = useRef(false);
+
+
+
 
   // Add new function to handle new flow creation
   const createNewFlow = useCallback(async () => {
@@ -649,20 +1001,65 @@ export function EnhancedAgentSwarmManagementComponent() {
     }
   }, [searchParams, getCurrentFlowQuery.data]);
 
+  // Add new type for group processing state
+  interface GroupProcessingState {
+    isProcessing: boolean;
+    completedAgents: string[];
+    result?: string;
+    error?: string;
+  }
+
+  // Add processing state tracking
+  const [groupProcessingStates, setGroupProcessingStates] = useState<{
+    [groupId: string]: GroupProcessingState;
+  }>({});
+
+  // Add function to check for circular connections
+  const hasCircularConnection = (
+    source: string,
+    target: string,
+    visitedGroups = new Set<string>()
+  ): boolean => {
+    if (visitedGroups.has(target)) return true;
+    visitedGroups.add(source);
+
+    const outgoingEdges = edges.filter(edge => edge.source === target);
+    return outgoingEdges.some(edge =>
+      hasCircularConnection(target, edge.target, new Set(visitedGroups))
+    );
+  };
+
+  // Modify onConnect to handle group connections
   const onConnect = useCallback(
     (params: Connection) => {
-      // Early return if required fields are missing
-      if (!params.source || !params.target) {
+      if (!params.source || !params.target) return;
+
+      // Get source and target nodes
+      const sourceNode = nodes.find(n => n.id === params.source);
+      const targetNode = nodes.find(n => n.id === params.target);
+
+      // Only allow connections between groups
+      if (sourceNode?.type !== 'group' || targetNode?.type !== 'group') {
+        setPopup({
+          message: 'Only groups can be connected to other groups',
+          type: 'error'
+        });
         return;
       }
 
-      // Create a properly typed edge object
+      // Check for circular connections
+      if (hasCircularConnection(params.source, params.target)) {
+        setPopup({
+          message: 'Circular connections between groups are not allowed',
+          type: 'error'
+        });
+        return;
+      }
+
       const newEdge: Edge = {
         id: `e${params.source}-${params.target}`,
         source: params.source,
         target: params.target,
-        sourceHandle: params.sourceHandle ?? undefined,
-        targetHandle: params.targetHandle ?? undefined,
         type: 'custom',
         animated: true,
         style: { stroke: '#8E8E93' },
@@ -670,12 +1067,12 @@ export function EnhancedAgentSwarmManagementComponent() {
           type: MarkerType.ArrowClosed,
           color: '#8E8E93',
         },
-        data: { label: 'Connection' },
+        data: { label: 'Group Flow' },
       };
 
       setEdges((eds) => addEdge(newEdge, eds));
     },
-    [setEdges],
+    [nodes, edges, setEdges]
   );
 
   const addAgent = useCallback(
@@ -762,112 +1159,304 @@ export function EnhancedAgentSwarmManagementComponent() {
     (window as any).updateNodeData = updateNodeData;
   }, []);
 
+  // Modify runTask to handle both grouped and standalone agents
   const runTask = async () => {
-    console.log('Running task:', task);
-    // Reset states and show processing indicators
-    setNodes((nds) =>
-      nds.map((node) => ({
-        ...node,
-        data: { ...node.data, isProcessing: true, lastResult: null },
-      })),
-    );
-    setEdges((eds) =>
-      eds.map((edge) => ({
-        ...edge,
-        animated: true,
-        style: { ...edge.style, stroke: '#32D74B' },
-      })),
-    );
-    setTaskResults({});
-
     try {
-      let results: { id: string; result: string }[] = [];
+      // Reset all states
+      setGroupProcessingStates({});
+      setTaskResults({});
 
-      // Run the appropriate swarm architecture
-      switch (swarmArchitecture) {
-        case 'Concurrent':
-          results = await runConcurrentSwarm();
-          break;
-        case 'Sequential':
-          results = await runSequentialSwarm();
-          break;
-        case 'Hierarchical':
-          results = await runHierarchicalSwarm();
-          break;
+      // 1. Process standalone agents based on swarm architecture
+      const standaloneAgents = nodes.filter(node => 
+        node.type === 'agent' && !node.data.groupId
+      );
+
+      let standaloneResults: { id: string; result: string }[] = [];
+      
+      if (standaloneAgents.length > 0) {
+        switch (swarmArchitecture) {
+          case 'Concurrent':
+            standaloneResults = await Promise.all(
+              standaloneAgents.map(async (agent) => {
+                const { text } = await generateText({
+                  model: registry.languageModel(`openai:${agent.data.model}`),
+                  prompt: `${agent.data.systemPrompt}
+                  
+                  Task: ${task}
+                  
+                  Response:`,
+                });
+                return { id: agent.id, result: text };
+              })
+            );
+            break;
+
+          case 'Sequential':
+            let context = '';
+            for (const agent of standaloneAgents) {
+              const { text } = await generateText({
+                model: registry.languageModel(`openai:${agent.data.model}`),
+                prompt: `${agent.data.systemPrompt}
+                
+                Previous context: ${context}
+                
+                Task: ${task}
+                
+                Response:`,
+              });
+              standaloneResults.push({ id: agent.id, result: text });
+              context += `\n${agent.data.name}: ${text}`;
+            }
+            break;
+
+          case 'Hierarchical':
+            const bosses = standaloneAgents.filter(node => node.data.type === 'Boss');
+            const workers = standaloneAgents.filter(node => node.data.type === 'Worker');
+
+            // Process bosses first
+            const bossPrompts = await Promise.all(
+              bosses.map(async (boss) => {
+                const { text } = await generateText({
+                  model: registry.languageModel(`openai:${boss.data.model}`),
+                  prompt: `${boss.data.systemPrompt}
+                  
+                  You are a Boss agent. Create a subtask based on the following main task:
+                  
+                  Task: ${task}
+                  
+                  Subtask for your team:`,
+                });
+                standaloneResults.push({ id: boss.id, result: text });
+                return { bossId: boss.id, subtask: text };
+              })
+            );
+
+            // Then process workers
+            await Promise.all(
+              workers.map(async (worker) => {
+                const boss = bosses.find(b => b.data.clusterId === worker.data.clusterId);
+                if (!boss) return null;
+
+                const bossPrompt = bossPrompts.find(bp => bp.bossId === boss.id);
+                if (!bossPrompt) return null;
+
+                const { text } = await generateText({
+                  model: registry.languageModel(`openai:${worker.data.model}`),
+                  prompt: `${worker.data.systemPrompt}
+                  
+                  Task from your boss: ${bossPrompt.subtask}
+                  
+                  Response:`,
+                });
+                standaloneResults.push({ id: worker.id, result: text });
+              })
+            );
+            break;
+        }
+
+        // Store standalone results
+        standaloneResults.forEach(({ id, result }) => {
+          setTaskResults(prev => ({
+            ...prev,
+            [id]: result
+          }));
+        });
       }
 
-      // Update results in real-time as they come in
-      const newResults: { [key: string]: string } = {};
-      for (const result of results) {
-        if (result) {
-          newResults[result.id] = result.result;
-          setNodes((nds) =>
-            nds.map((node) =>
-              node.id === result.id
-                ? {
-                    ...node,
-                    data: {
-                      ...node.data,
-                      isProcessing: false,
-                      lastResult: result.result,
-                    },
-                  }
-                : node,
-            ),
-          );
-          setTaskResults((prevResults) => ({
-            ...prevResults,
-            [result.id]: result.result,
-          }));
+      // 2. Process connected groups
+      const startingGroups = nodes.filter(node => 
+        node.type === 'group' && 
+        !edges.some(edge => edge.target === node.id)
+      );
+
+      if (startingGroups.length > 0) {
+        // Process each starting group chain sequentially
+        for (const startGroup of startingGroups) {
+          await processGroupChain(startGroup.id, task);
         }
       }
 
-      // Reset edge animations
-      setEdges((eds) =>
-        eds.map((edge) => ({
-          ...edge,
-          animated: false,
-          style: { ...edge.style, stroke: '#8E8E93' },
-        })),
-      );
-      //   updateCSV(newResults);
+      setPopup({
+        message: 'Task completed successfully',
+        type: 'success'
+      });
 
-      console.log('Task results:', results);
     } catch (error) {
       console.error('Error running task:', error);
-      // Reset processing states on error
-      setNodes((nds) =>
-        nds.map((node) => ({
-          ...node,
-          data: { ...node.data, isProcessing: false },
-        })),
-      );
-      setEdges((eds) =>
-        eds.map((edge) => ({
-          ...edge,
-          animated: false,
-          style: { ...edge.style, stroke: '#8E8E93' },
-        })),
-      );
+      setPopup({
+        message: 'Error processing task',
+        type: 'error'
+      });
     }
-
-    setTask('');
-    updateSwarmJson();
-    //saveVersion()
   };
 
+  // Keep the existing processGroupChain function as is
+  const processGroupChain = async (groupId: string, currentTask: string, previousResults: string = '') => {
+    try {
+      updateGroupState(groupId, {
+        isProcessing: true,
+        completedAgents: [],
+      });
+
+      const group = nodes.find(n => n.id === groupId);
+      if (!group || group.type !== 'group') return;
+
+      // Create a more detailed context from previous results
+      const contextPrompt = previousResults 
+        ? `Previous Team's Results:
+           ${previousResults}
+           
+           Using these results as context, your team should build upon this work.
+           
+           Main Task: ${currentTask}`
+        : `You are the first team working on this task.
+           
+           Main Task: ${currentTask}`;
+
+      // Process all agents within the group
+      const results = await Promise.all(
+        group.data.agents.map(async (agent: AgentData) => {
+          const { text } = await generateText({
+            model: registry.languageModel(`openai:${agent.model}`),
+            prompt: `${agent.systemPrompt}
+
+            Context and Task:
+            ${contextPrompt}
+            
+            Your Role: ${agent.type}
+            Team: ${group.data.teamName}
+            Team Type: ${group.data.swarmType}
+            
+            Provide your specialized contribution based on the context and your role.`,
+          });
+
+          // Update the agent's lastResult in the nodes state
+          setNodes(nodes => nodes.map(node => {
+            if (node.type === 'group' && node.id === groupId) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  agents: node.data.agents.map((a: AgentData) => 
+                    a.id === agent.id ? { ...a, lastResult: text } : a
+                  )
+                }
+              };
+            }
+            return node;
+          }));
+
+          updateGroupState(groupId, {
+            completedAgents: [...(groupProcessingStates[groupId]?.completedAgents || []), agent.id],
+          });
+
+          return { agentId: agent.id, result: text };
+        })
+      );
+
+      // Combine results from all agents in the group
+      const groupResult = `Team ${group.data.teamName} Results:\n${results.map(r => r.result).join('\n\n')}`;
+
+      // Update group state with results
+      updateGroupState(groupId, {
+        isProcessing: false,
+        result: groupResult,
+      });
+
+      // Store individual agent results
+      results.forEach(({ agentId, result }) => {
+        setTaskResults(prev => ({
+          ...prev,
+          [agentId]: result,
+        }));
+      });
+
+      // Find and process next groups in chain
+      const nextGroups = edges
+        .filter(edge => edge.source === groupId)
+        .map(edge => edge.target);
+
+      // Process next groups sequentially, passing current group's results
+      for (const nextGroupId of nextGroups) {
+        await processGroupChain(nextGroupId, currentTask, groupResult);
+      }
+
+    } catch (error) {
+      console.error(`Error processing group ${groupId}:`, error);
+      updateGroupState(groupId, {
+        isProcessing: false,
+        error: 'Error processing group',
+      });
+    }
+  };
+
+  // Update GroupNode component to show processing state
+  const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
+    const { groupProcessingStates } = useContext(GroupNodeContext);
+    const processingState = groupProcessingStates[id];
+    
+    return (
+      <div className="min-w-[300px] min-h-[200px] relative">
+        {/* Existing group node code ... */}
+        
+        {/* Add processing indicator */}
+        {processingState?.isProcessing && (
+          <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex items-center justify-center">
+            <div className="text-primary-foreground">Processing...</div>
+          </div>
+        )}
+        
+        {/* Add completion indicator */}
+        {processingState?.result && (
+          <div className="absolute top-2 right-2">
+            <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center">
+              ✓
+            </div>
+          </div>
+        )}
+        
+        {/* Show group result if available */}
+        {processingState?.result && (
+          <div className="mt-2 p-2 bg-muted/50 rounded text-sm">
+            <strong>Group Result:</strong>
+            <div className="max-h-20 overflow-y-auto">
+              {processingState.result}
+            </div>
+          </div>
+        )}
+        
+        {/* Existing group node content ... */}
+      </div>
+    );
+  };
+
+  // Expose the updateNodeData function to the window object
+  useEffect(() => {
+    (window as any).updateNodeData = updateNodeData;
+  }, []);
+
   const runConcurrentSwarm = async () => {
+    // Get all agents, both standalone and within groups
+    const allAgents = nodes.reduce((acc: AgentData[], node) => {
+      if (node.type === 'agent') {
+        acc.push(node.data);
+      } else if (node.type === 'group' && node.data.agents) {
+        acc.push(...node.data.agents);
+      }
+      return acc;
+    }, []);
+
     return await Promise.all(
-      (nodes as any[]).map(async (node) => {
+      allAgents.map(async (agent) => {
         const { text } = await generateText({
-          model: registry.languageModel(`openai:${node?.data?.model}`),
-          prompt: `${node?.data?.systemPrompt || ''}
-        
-        Task: ${task}
-        
-        Response:`,
+          model: registry.languageModel(`openai:${agent.model}`),
+          prompt: `${agent.systemPrompt || ''}
+          
+          Task: ${task}
+          
+          Response:`,
         });
-        return { id: node.id, result: text };
+        return { id: agent.id, result: text };
       }),
     );
   };
@@ -876,17 +1465,100 @@ export function EnhancedAgentSwarmManagementComponent() {
     const results: { id: string; result: string }[] = [];
     let context: string = '';
 
-    for (const node of nodes as any[]) {
+    // Get all agents in order, both standalone and within groups
+    const allAgents = nodes.reduce((acc: AgentData[], node) => {
+      if (node.type === 'agent') {
+        acc.push(node.data);
+      } else if (node.type === 'group' && node.data.agents) {
+        acc.push(...node.data.agents);
+      }
+      return acc;
+    }, []);
+
+    for (const agent of allAgents) {
       const { text } = await generateText({
-        model: registry.languageModel(`openai:${node.data.model}`),
-        prompt: `${node.data.systemPrompt || ''}...`,
+        model: registry.languageModel(`openai:${agent.model}`),
+        prompt: `${agent.systemPrompt || ''}
+        
+        Previous context: ${context}
+        
+        Task: ${task}
+        
+        Response:`,
       });
-      results.push({ id: node.id, result: text });
-      context += `\n${node.data.name}: ${text}`;
+      results.push({ id: agent.id, result: text });
+      context += `\n${agent.name}: ${text}`;
     }
 
     return results;
   };
+
+   // Add this function inside the component
+   const loadVersion = async (flowId: string) => {
+    try {
+      // Prevent loading if a save is in progress
+      if (saveInProgressRef.current) {
+        setPopup({
+          message: 'Please wait for current save to complete',
+          type: 'error',
+        });
+        return;
+      }
+
+      // Set current flow as active
+      await setCurrentFlowMutation.mutateAsync({ flow_id: flowId });
+
+      // Update URL with new flow ID
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('flowId', flowId);
+      router.replace(newUrl.pathname + newUrl.search);
+
+      // Fetch the specific flow data directly with the flowId
+      const { data: flowData } = await getCurrentFlowQuery.refetch({
+        //    queryKey: ['dnd.getCurrentFlow', { flowId }]
+      });
+
+      if (flowData) {
+        // Update all state
+        setNodes(flowData.nodes || []);
+        setEdges(flowData.edges || []);
+        setSwarmArchitecture(flowData.architecture || 'Concurrent');
+        setTaskResults(flowData.results || {});
+        setCurrentFlowId(flowId);
+
+        // Update previous state to prevent immediate save
+        previousStateRef.current = {
+          nodes: flowData.nodes || [],
+          edges: flowData.edges || [],
+        };
+
+        // Update JSON representation
+        const swarmData = {
+          nodes: flowData.nodes,
+          edges: flowData.edges,
+          architecture: flowData.architecture,
+          results: flowData.results,
+        };
+        setSwarmJson(JSON.stringify(swarmData, null, 2));
+
+        // Reset save in progress flag
+        saveInProgressRef.current = false;
+
+        setPopup({
+          message: 'Flow version loaded successfully',
+          type: 'success',
+        });
+      } else {
+        throw new Error('No flow data found');
+      }
+    } catch (error) {
+      console.error('Error loading flow version:', error);
+      setPopup({ message: 'Error loading flow version', type: 'error' });
+      // Reset save in progress flag on error
+      saveInProgressRef.current = false;
+    }
+  };
+
 
   const runHierarchicalSwarm = async () => {
     const bosses: any = nodes.filter((node: any) => node.data.type === 'Boss');
@@ -1254,81 +1926,67 @@ export function EnhancedAgentSwarmManagementComponent() {
     );
   }
 
-  // Add this function inside the component
-  const loadVersion = async (flowId: string) => {
-    try {
-      // Prevent loading if a save is in progress
-      if (saveInProgressRef.current) {
-        setPopup({
-          message: 'Please wait for current save to complete',
-          type: 'error',
-        });
-        return;
-      }
-
-      // Set current flow as active
-      await setCurrentFlowMutation.mutateAsync({ flow_id: flowId });
-
-      // Update URL with new flow ID
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('flowId', flowId);
-      router.replace(newUrl.pathname + newUrl.search);
-
-      // Fetch the specific flow data directly with the flowId
-      const { data: flowData } = await getCurrentFlowQuery.refetch({
-        //    queryKey: ['dnd.getCurrentFlow', { flowId }]
-      });
-
-      if (flowData) {
-        // Update all state
-        setNodes(flowData.nodes || []);
-        setEdges(flowData.edges || []);
-        setSwarmArchitecture(flowData.architecture || 'Concurrent');
-        setTaskResults(flowData.results || {});
-        setCurrentFlowId(flowId);
-
-        // Update previous state to prevent immediate save
-        previousStateRef.current = {
-          nodes: flowData.nodes || [],
-          edges: flowData.edges || [],
-        };
-
-        // Update JSON representation
-        const swarmData = {
-          nodes: flowData.nodes,
-          edges: flowData.edges,
-          architecture: flowData.architecture,
-          results: flowData.results,
-        };
-        setSwarmJson(JSON.stringify(swarmData, null, 2));
-
-        // Reset save in progress flag
-        saveInProgressRef.current = false;
-
-        setPopup({
-          message: 'Flow version loaded successfully',
-          type: 'success',
-        });
-      } else {
-        throw new Error('No flow data found');
-      }
-    } catch (error) {
-      console.error('Error loading flow version:', error);
-      setPopup({ message: 'Error loading flow version', type: 'error' });
-      // Reset save in progress flag on error
-      saveInProgressRef.current = false;
-    }
+  const createGroup = (groupData: Omit<GroupData, 'agents'>) => {
+    
+    
+    // Get the current viewport
+    const { x, y, zoom } = reactFlowInstance.getViewport();
+    
+    // Calculate center of the current viewport
+    const centerX = -x / zoom + (window.innerWidth / 2) / zoom;
+    const centerY = -y / zoom + (window.innerHeight / 2) / zoom;
+    
+    const newGroup = {
+      id: `group-${Date.now()}`,
+      type: 'group',
+      position: { 
+        x: centerX - 150, // Offset by half the group width
+        y: centerY - 100  // Offset by half the group height
+      },
+      data: {
+        ...groupData,
+        agents: [],
+      },
+      style: {
+        width: 300,
+        height: 200,
+      },
+    };
+    
+    setNodes((nds) => [...nds, newGroup]);
+    setIsCreatingGroup(false);
   };
+
+  // Add the updateGroupData function
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    window.updateGroupData = (id: string, updatedData: GroupData) => {
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === id
+            ? { ...node, data: { ...node.data, ...updatedData } }
+            : node,
+        ),
+      );
+    };
+  
+    window.addAgentToGroup = (groupId: string) => {
+      setAddToGroupDialogState({
+        open: true,
+        groupId
+      });
+    };
+  }, [setNodes]);
 
   // Update the VersionsTabContent to use the new loadVersion function
   const VersionsTabContent = () => (
     <TabsContent value="versions">
-      <h2 className="text-lg font-semibold mb-4">Versions</h2>
+      <h2 className="text-lg font-semibold mb-4">Flows</h2>
       <div className="max-h-[calc(100vh-300px)] overflow-y-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Version</TableHead>
+              <TableHead>Flows</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
@@ -1364,10 +2022,17 @@ export function EnhancedAgentSwarmManagementComponent() {
   return (
     <div className="w-full h-screen flex flex-col bg-background text-foreground">
       <div className="flex justify-between items-center p-4 border-b border-border">
-        <h1 className="text-2xl font-semibold text-foreground">
-          LLM Agent Swarm
-        </h1>
+        <h1 className="text-2xl font-semibold">LLM Agent Swarm</h1>
         <div className="flex space-x-2">
+          {/* Add this button */}
+          <Button
+            variant="outline"
+            className="bg-card hover:bg-muted"
+            onClick={() => setIsCreatingGroup(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Group
+          </Button>
           {/* Add New Flow button */}
           <Button
             variant="outline"
@@ -1552,12 +2217,68 @@ export function EnhancedAgentSwarmManagementComponent() {
           </Select>
         </div>
       </div>
+
+      {/* Add this Dialog */}
+      <Dialog open={isCreatingGroup} onOpenChange={setIsCreatingGroup}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create Agent Group</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target as HTMLFormElement);
+            createGroup({
+              teamName: formData.get('teamName') as string,
+              swarmType: formData.get('swarmType') as string,
+              description: formData.get('description') as string,
+            });
+          }}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="teamName" className="text-right">Team Name</Label>
+                <Input
+                  id="teamName"
+                  name="teamName"
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="swarmType" className="text-right">Swarm Type</Label>
+                <Select name="swarmType" required>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Research">Research</SelectItem>
+                    <SelectItem value="Development">Development</SelectItem>
+                    <SelectItem value="Analytics">Analytics</SelectItem>
+                    <SelectItem value="Custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="text-right">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Create Group</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       <div className="flex-grow flex overflow-hidden">
         <div className="w-96 border-r border-border p-4 overflow-y-auto bg-background">
           <Tabs defaultValue="results" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="results">Results</TabsTrigger>
-              <TabsTrigger value="versions">Versions</TabsTrigger>
+              <TabsTrigger value="versions">Flows</TabsTrigger>
             </TabsList>
             <TabsContent value="results">
               <h2 className="text-lg font-semibold mb-4">Task Results</h2>
@@ -1566,19 +2287,32 @@ export function EnhancedAgentSwarmManagementComponent() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Agent</TableHead>
+                      <TableHead>Group</TableHead>
                       <TableHead>Result</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {Object.entries(taskResults).map(([agentId, result]) => {
-                      const agent: any = nodes.find(
-                        (node) => node.id === agentId,
+                      // Find the agent either as a standalone node or within a group
+                      const agentNode = nodes.find(node => 
+                        node.id === agentId || 
+                        (node.type === 'group' && node.data.agents?.some((a:any) => a.id === agentId))
                       );
+                      
+                      const agent = agentNode?.type === 'group' 
+                        ? agentNode.data.agents?.find((a:any) => a.id === agentId)
+                        : agentNode?.data;
+
+                      const groupName = agentNode?.type === 'group' 
+                        ? agentNode.data.teamName 
+                        : '-';
+
                       return (
                         <TableRow key={agentId}>
                           <TableCell className="font-medium">
-                            {agent?.data.name || 'Unknown Agent'}
+                            {agent?.name || 'Unknown Agent'}
                           </TableCell>
+                          <TableCell>{groupName}</TableCell>
                           <TableCell>{result}</TableCell>
                         </TableRow>
                       );
@@ -1593,22 +2327,24 @@ export function EnhancedAgentSwarmManagementComponent() {
           </Tabs>
         </div>
         <div className="flex-grow relative">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            fitView
-          >
-            <Background 
-              color={document.documentElement.classList.contains('dark') ? "#333" : "#ccc"} 
-              gap={16} 
-            />
-            <Controls />
-          </ReactFlow>
+          <GroupNodeContext.Provider value={{ groupProcessingStates }}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              fitView
+            >
+              <Background 
+                color={document?.documentElement.classList.contains('dark') ? "#333" : "#ccc"} 
+                gap={16} 
+              />
+              <Controls />
+            </ReactFlow>
+          </GroupNodeContext.Provider>
         </div>
       </div>
       <div className="p-4 border-t border-border flex justify-center items-center">
@@ -1643,6 +2379,13 @@ export function EnhancedAgentSwarmManagementComponent() {
           </motion.div>
         )}
       </AnimatePresence>
+      <AddAgentToGroupDialog
+        groupId={addToGroupDialogState.groupId || ''}
+        open={addToGroupDialogState.open}
+        onOpenChange={(open) => setAddToGroupDialogState(prev => ({ ...prev, open }))}
+        nodes={nodes}
+        setNodes={setNodes}
+      />
       <style jsx global>{`
         /* Light mode styles */
         .react-flow__node {
@@ -1727,7 +2470,82 @@ export function EnhancedAgentSwarmManagementComponent() {
         .react-flow__controls-button + .react-flow__controls-button {
           margin-top: 4px;
         }
+
+        /* Group Node Styles */
+        .react-flow__node-group {
+          background: transparent;
+          border: none;
+          width: auto !important;
+          height: auto !important;
+        }
+
+        .react-flow__node-group .react-flow__handle {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background-color: hsl(var(--primary));
+          border: 2px solid hsl(var(--background));
+        }
+
+        .react-flow__node-group .react-flow__handle-left {
+          left: -4px;
+        }
+
+        .react-flow__node-group .react-flow__handle-right {
+          right: -4px;
+        }
+
+        /* Dialog and form styles */
+        .dialog-content {
+          text-align: left;
+        }
+
+        .select-trigger {
+          text-align: left;
+        }
+
+        .select-content {
+          text-align: left;
+        }
+
+        /* Node hover card styles */
+        .react-flow__node-default {
+          text-align: left;
+        }
+
+        .react-flow__node-group {
+          text-align: left;
+        }
+
+        /* Form field styles */
+        .form-label {
+          text-align: left;
+        }
+
+        .form-input {
+          text-align: left;
+        }
+
+        /* Dialog header styles */
+        .dialog-header {
+          text-align: left;
+        }
+
+        /* Select dropdown styles */
+        .select-dropdown {
+          text-align: left;
+        }
       `}</style>
     </div>
   );
 }
+
+// Update the main component to use the provider
+export function EnhancedAgentSwarmManagementComponent() {
+  return (
+    <ReactFlowProvider>
+      <FlowContent />
+    </ReactFlowProvider>
+  );
+}
+
