@@ -74,6 +74,9 @@ import {
   MoreHorizontal,
   X,
   Settings,
+  FileText,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { anthropic } from '@ai-sdk/anthropic';
@@ -87,6 +90,7 @@ import { Input } from '../spread_sheet_swarm/ui/input';
 import { trpc as api } from '@/shared/utils/trpc/trpc';
 import debounce from 'lodash/debounce';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 
 // Create provider registry
 const registry = createProviderRegistry({
@@ -148,6 +152,7 @@ type SaveFlowEdge = {
 };
 
 interface AgentData {
+  description: string;
   id: string;
   name: string;
   type: AgentType;
@@ -158,6 +163,7 @@ interface AgentData {
   lastResult?: string;
   dataSource?: DataSource;
   dataSourceInput?: string;
+  hideDeleteButton?: boolean;
 }
 
 interface SwarmVersion {
@@ -174,6 +180,8 @@ declare global {
     updateNodeData: (id: string, updatedData: AgentData) => void;
     updateGroupData?: (id: string, updatedData: GroupData) => void;
     addAgentToGroup?: (groupId: string) => void;
+    addAgent?: (agent: AgentData) => void;
+    createGroup?: (groupData: Omit<GroupData, 'agents'>) => void;
   }
 }
 interface EdgeParams {
@@ -187,96 +195,269 @@ interface EdgeParams {
 
 const AnimatedHexagon = motion.polygon;
 
+// Add this new component for the delete button
+const DeleteButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <Button 
+    variant="ghost" 
+    size="icon" 
+    onClick={(e) => {
+      e.stopPropagation();
+      onClick();
+    }}
+    className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md border-2 border-background z-10 transition-all duration-200 hover:scale-110"
+  >
+    <X className="h-5 w-5" />
+  </Button>
+);
 
-const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
+// Add this new function near the top of the file with other utility functions
+const generateSystemPrompt = async (agentName: string, agentDescription: string) => {
+  try {
+    const { text } = await generateText({
+      model: registry.languageModel('openai:gpt-4-turbo'),
+      prompt: `
+      You are an expert AI prompt engineer. Your task is to create a highly effective system prompt for an AI agent with the following details:
+
+      Agent Name: ${agentName}
+      Agent Description: ${agentDescription || 'No description provided'}
+
+      Create a detailed, production-ready system prompt that:
+      1. Clearly defines the agent's role, responsibilities, and constraints
+      2. Incorporates best practices for prompt engineering
+      3. Includes specific instructions for handling edge cases
+      4. Provides guidelines for output format and quality
+      5. Establishes appropriate boundaries and ethical considerations
+      6. Optimizes for the agent's specific purpose as described
+      7. Includes relevant context and background information
+
+      Return only the system prompt, without any additional text or formatting.
+      `,
+    });
+    
+    return text;
+  } catch (error) {
+    console.error('Failed to generate system prompt:', error);
+    throw new Error('Failed to generate system prompt');
+  }
+};
+
+// Add this utility function near the top with other utility functions
+const optimizePrompt = async (currentPrompt: string): Promise<string> => {
+  if (!currentPrompt?.trim()) {
+    throw new Error('System prompt is required for optimization');
+  }
+
+  try {
+    const { text } = await generateText({
+      model: registry.languageModel('openai:gpt-4-turbo'),
+      prompt: `
+      Your task is to optimize the following system prompt for an AI agent. The optimized prompt should be highly reliable, production-grade, and tailored to the specific needs of the agent. Consider the following guidelines:
+
+      1. Thoroughly understand the agent's requirements and capabilities.
+      2. Employ diverse prompting strategies (e.g., chain of thought, few-shot learning).
+      3. Blend strategies effectively for the specific task or scenario.
+      4. Ensure production-grade quality and educational value.
+      5. Provide necessary constraints for the agent's operation.
+      6. Design for extensibility and wide scenario coverage.
+      7. Aim for a prompt that fosters the agent's growth and specialization.
+
+      Original prompt to optimize:
+      ${currentPrompt}
+
+      Please provide an optimized version of this prompt, incorporating the guidelines mentioned above. Only return the optimized prompt, no other text or comments.
+      `,
+    });
+    
+    return text;
+  } catch (error) {
+    console.error('Failed to optimize prompt:', error);
+    throw new Error('Failed to optimize system prompt');
+  }
+};
+
+const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }> = ({ data, id, hideDeleteButton }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [localSystemPrompt, setLocalSystemPrompt] = useState(data.systemPrompt || '');
+  const { setNodes, setEdges } = useReactFlow();
+  const { toast } = useToast(); // Add toast import if not already present
+
+  // Update localSystemPrompt when data changes
+  useEffect(() => {
+    setLocalSystemPrompt(data.systemPrompt || '');
+  }, [data.systemPrompt]);
+
+  const handleDelete = useCallback(() => {
+    setNodes(nodes => nodes.filter(node => node.id !== id));
+    setEdges(edges => edges.filter(edge => 
+      edge.source !== id && edge.target !== id
+    ));
+  }, [id, setNodes, setEdges]);
+
+  // Add the generate prompt handler
+  const handleGeneratePrompt = async () => {
+    if (!data.name) {
+      toast({
+        title: "Error",
+        description: "Agent name is required to generate a prompt",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const generatedPrompt = await generateSystemPrompt(data.name, data.description || '');
+      window.updateNodeData(id, { ...data, systemPrompt: generatedPrompt });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate system prompt",
+        variant: "destructive"
+      });
+    }
+    setIsGenerating(false);
+  };
+
+  // Add the optimize prompt handler
+  const handleOptimizePrompt = async () => {
+    if (!localSystemPrompt) {
+      toast({
+        title: "Error",
+        description: "System prompt is required for optimization",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsOptimizing(true);
+    try {
+      const optimizedPrompt = await optimizePrompt(localSystemPrompt);
+      
+      // Update both local state and node data
+      setLocalSystemPrompt(optimizedPrompt);
+      
+      // Update the node data in the flow
+      setNodes((nodes) =>
+        nodes.map((node) => {
+          if (node.id === id) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                systemPrompt: optimizedPrompt,
+              },
+            };
+          }
+          return node;
+        })
+      );
+
+      toast({
+        description: "System prompt optimized successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to optimize system prompt",
+        variant: "destructive"
+      });
+    }
+    setIsOptimizing(false);
+  };
+
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger>
-          <div className="relative" onClick={() => setIsEditing(true)}>
-            <svg width="80" height="80" viewBox="0 0 100 100">
-              <AnimatedHexagon
-                points="50 1 95 25 95 75 50 99 5 75 5 25"
-                fill={data.type === "Boss" 
-                  ? "hsl(var(--card))" 
-                  : "hsl(var(--secondary))"
-                }
-                stroke={document.documentElement.classList.contains('dark') ? "#333" : "hsl(var(--border))"}
-                strokeWidth="2"
-                initial={{ scale: 0 }}
-                animate={{ 
-                  scale: 1,
-                  rotate: data.isProcessing ? 360 : 0 
-                }}
-                transition={{ 
-                  duration: 0.5,
-                  repeat: data.isProcessing ? Infinity : 0 
-                }}
-                style={{
-                  fill: document.documentElement.classList.contains('dark') 
-                    ? data.type === "Boss" 
-                      ? "#0F0F10" 
-                      : "#1A1A1B"
-                    : data.type === "Boss"
-                      ? "hsl(var(--card))"
-                      : "hsl(var(--secondary))"
-                }}
-              />
-            </svg>
-            <div className="absolute p-2 inset-0 flex flex-col items-center justify-center text-xs">
-              <div className="font-bold text-card-foreground text-[0.6rem]">
-                {data.name}
+    <div className="relative">
+      {!hideDeleteButton &&
+      <DeleteButton onClick={handleDelete} />}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <div className="relative" onClick={() => setIsEditing(true)}>
+              <svg width="80" height="80" viewBox="0 0 100 100">
+                <AnimatedHexagon
+                  points="50 1 95 25 95 75 50 99 5 75 5 25"
+                  fill={data.type === "Boss" 
+                    ? "hsl(var(--card))" 
+                    : "hsl(var(--secondary))"
+                  }
+                  stroke={document.documentElement.classList.contains('dark') ? "#333" : "hsl(var(--border))"}
+                  strokeWidth="2"
+                  initial={{ scale: 0 }}
+                  animate={{ 
+                    scale: 1,
+                    rotate: data.isProcessing ? 360 : 0 
+                  }}
+                  transition={{ 
+                    duration: 0.5,
+                    repeat: data.isProcessing ? Infinity : 0 
+                  }}
+                  style={{
+                    fill: document.documentElement.classList.contains('dark') 
+                      ? data.type === "Boss" 
+                        ? "#0F0F10" 
+                        : "#1A1A1B"
+                      : data.type === "Boss"
+                        ? "hsl(var(--card))"
+                        : "hsl(var(--secondary))"
+                  }}
+                />
+              </svg>
+              <div className="absolute p-2 inset-0 flex flex-col items-center justify-center text-xs">
+                <div className="font-bold text-card-foreground text-[0.6rem]">
+                  {data.name}
+                </div>
+                <div className="text-muted-foreground">{data.type}</div>
               </div>
-              <div className="text-muted-foreground">{data.type}</div>
+              {data.lastResult && (
+                <motion.div
+                  className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full w-6 h-6 flex items-center justify-center"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                >
+                  ✓
+                </motion.div>
+              )}
             </div>
-            {data.lastResult && (
-              <motion.div
-                className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full w-6 h-6 flex items-center justify-center"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              >
-                ✓
-              </motion.div>
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent className="max-w-[500px] bg-popover text-popover-foreground border-border">
-          <div className="text-sm">
-            <p>
-              <strong>Name:</strong> {data.name}
-            </p>
-            <p>
-              <strong>Type:</strong> {data.type}
-            </p>
-            <p>
-              <strong>Model:</strong> {data.model}
-            </p>
-            <p>
-              <strong>System Prompt:</strong> {data.systemPrompt}
-            </p>
-            <p>
-              <strong>Data Source:</strong> {data.dataSource || 'None'}
-            </p>
-            {data.lastResult && (
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[500px] bg-popover text-popover-foreground border-border">
+            <div className="text-sm">
               <p>
-                <strong>Last Result:</strong> {data.lastResult}
+                <strong>Name:</strong> {data.name}
               </p>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
+              <p>
+                <strong>Type:</strong> {data.type}
+              </p>
+              <p>
+                <strong>Model:</strong> {data.model}
+              </p>
+              <p>
+                <strong>System Prompt:</strong> {data.systemPrompt}
+              </p>
+              <p>
+                <strong>Data Source:</strong> {data.dataSource || 'None'}
+              </p>
+              {data.lastResult && (
+                <p>
+                  <strong>Last Result:</strong> {data.lastResult}
+                </p>
+              )}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <AnimatePresence>
-        {isEditing && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/95"
-          >
-            <Card className="w-96 min-w-[500px] bg-card text-card-foreground p-6 rounded-lg shadow-xl border-border">
-              <div className="flex justify-between items-center mb-4">
+      {isEditing && (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.9 }}
+    className="fixed inset-0 z-50 flex items-center justify-center bg-background/95"
+  >
+    <Card className="w-96 min-w-[500px] bg-card text-card-foreground p-6 rounded-lg shadow-xl border-border relative z-[60]">
+     <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-card-foreground antialiased">
                   Edit Agent
                 </h3>
@@ -363,12 +544,48 @@ const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
                     >
                       System Prompt
                     </Label>
-                    <Textarea
-                      id="systemPrompt"
-                      name="systemPrompt"
-                      defaultValue={data.systemPrompt}
-                      className="bg-card border-border text-card-foreground"
-                    />
+                    <div className="relative mt-1.5">
+                      <Textarea
+                        id="systemPrompt"
+                        name="systemPrompt"
+                        value={localSystemPrompt}
+                        onChange={(e) => {
+                          const newValue = e.target.value;
+                          setLocalSystemPrompt(newValue);
+                          // Update node data
+                          setNodes((nodes) =>
+                            nodes.map((node) => {
+                              if (node.id === id) {
+                                return {
+                                  ...node,
+                                  data: {
+                                    ...node.data,
+                                    systemPrompt: newValue,
+                                  },
+                                };
+                              }
+                              return node;
+                            })
+                          );
+                        }}
+                        className="pr-12 min-h-[100px] bg-card border-border text-card-foreground"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleOptimizePrompt}
+                        disabled={isOptimizing || !localSystemPrompt}
+                        title={!localSystemPrompt ? "System prompt required" : "Optimize prompt"}
+                        className="absolute right-2 top-2 h-8 w-8 p-0"
+                      >
+                        {isOptimizing ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                   <div>
                     <Label
@@ -417,7 +634,7 @@ const AgentNode: React.FC<NodeProps<AgentData>> = ({ data, id }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </TooltipProvider>
+    </div>
   );
 };
 
@@ -432,167 +649,182 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
   const { groupProcessingStates } = useContext(GroupNodeContext);
   const processingState = groupProcessingStates[id];
   const [isEditing, setIsEditing] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const { setNodes, setEdges } = useReactFlow();
+  
+  const handleDelete = useCallback(() => {
+    setNodes(nodes => {
+      // Get all agent IDs in this group
+      const agentIds = data.agents?.map(agent => agent.id) || [];
+      
+      // Remove the group and its agents
+      return nodes.filter(node => 
+        node.id !== id && !agentIds.includes(node.id)
+      );
+    });
+    
+    setEdges(edges => edges.filter(edge => 
+      edge.source !== id && edge.target !== id
+    ));
+  }, [id, data.agents, setNodes, setEdges]);
+
+
   return (
-    <div className="min-w-[300px] min-h-[200px] relative">
-      {/* Semi-transparent backdrop with more visible styling */}
-      <div className="absolute inset-0 bg-card/80 dark:bg-background/80 backdrop-blur-sm border-2 border-border dark:border-gray-800 rounded-lg shadow-lg" />
-      
-      {/* Input handle */}
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="w-2 h-2 !bg-muted-foreground"
-      />
-      
-      {/* Group Content */}
-      <div className="relative p-4">
-        {/* Group Header */}
-        <div className="flex justify-between items-center mb-4 border-b border-border pb-2">
-          <div>
-            <h3 className="font-semibold text-lg text-card-foreground">{data.teamName}</h3>
-            <p className="text-sm text-muted-foreground">{data.swarmType}</p>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                <Settings className="w-4 h-4 mr-2" />
-                Edit Group
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => window.addAgentToGroup?.(id)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Agent
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Agents Container */}
-        <div className="flex flex-wrap gap-4">
-          {data.agents?.map((agent) => (
-            <motion.div
-              key={agent.id}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="relative"
-            >
-              <div className="transform scale-75 origin-top-left">
-                <AgentNode
-                  data={agent}
-                  id={agent.id}
-                  type="agent"
-                  xPos={0}
-                  yPos={0}
-                  selected={false}
-                  zIndex={0}
-                  isConnectable={true}
-                  dragging={false}
-                />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Output handle */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="w-2 h-2 !bg-muted-foreground"
-      />
-
-      {/* Edit Group Dialog */}
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-left">Edit Group</DialogTitle>
-            <DialogDescription className="text-left">
-              Make changes to the group configuration here.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target as HTMLFormElement);
-            const updatedData = {
-              ...data,
-              teamName: formData.get('teamName') as string,
-              swarmType: formData.get('swarmType') as string,
-              description: formData.get('description') as string,
-            };
-            window.updateGroupData?.(id, updatedData);
-            setIsEditing(false);
-          }}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="teamName" className="text-left">Team Name</Label>
-                <Input
-                  id="teamName"
-                  name="teamName"
-                  defaultValue={data.teamName}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="swarmType" className="text-left">Swarm Type</Label>
-                <Select name="swarmType" defaultValue={data.swarmType}>
-                  <SelectTrigger className="col-span-3 text-left">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent align="start">
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Research">Research</SelectItem>
-                    <SelectItem value="Development">Development</SelectItem>
-                    <SelectItem value="Analytics">Analytics</SelectItem>
-                    <SelectItem value="Custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-left">Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  defaultValue={data.description}
-                  className="col-span-3"
-                />
-              </div>
+    <div className="relative">
+      <DeleteButton onClick={handleDelete} />
+      <div className="min-w-[300px] min-h-[200px] relative">
+        {/* Semi-transparent backdrop with more visible styling */}
+        <div className="absolute inset-0 bg-card/80 dark:bg-background/80 backdrop-blur-sm border-2 border-border dark:border-gray-800 rounded-lg shadow-lg" />
+        
+        {/* Input handle */}
+        <Handle
+          type="target"
+          position={Position.Left}
+          className="w-2 h-2 !bg-muted-foreground"
+        />
+        
+        {/* Group Content */}
+        <div className="relative p-4">
+          {/* Group Header */}
+          <div className="flex justify-between items-center mb-4 border-b border-border pb-2">
+            <div>
+              <h3 className="font-semibold text-lg text-card-foreground">{data.teamName}</h3>
+              <p className="text-sm text-muted-foreground">{data.swarmType}</p>
             </div>
-            <DialogFooter>
-              <Button type="submit">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Edit Group
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.addAgentToGroup?.(id)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Agent
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-      {/* Add processing indicator */}
-      {processingState?.isProcessing && (
-        <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex items-center justify-center">
-          <div className="text-primary-foreground">Processing...</div>
-        </div>
-      )}
-      
-      {/* Add completion indicator */}
-      {processingState?.result && (
-        <div className="absolute top-2 right-2">
-          <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center">
-            ✓
+          {/* Agents Container */}
+          <div className="flex flex-wrap gap-4">
+            {data.agents?.map((agent) => (
+              <motion.div
+                key={agent.id}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="relative"
+              >
+                <div className="transform scale-75 origin-top-left">
+                  <AgentNode
+                    data={agent}
+                    id={agent.id}
+                    type="agent"
+                    xPos={0}
+                    yPos={0}
+                    selected={false}
+                    zIndex={0}
+                    isConnectable={true}
+                    dragging={false}
+                    hideDeleteButton={true}
+                  />
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
-      )}
-      
-      {/* Show group result if available */}
-      {/* {processingState?.result && (
-        <div className="mt-2 p-2 bg-muted/50 rounded text-sm">
-          <strong>Group Result:</strong>
-          <div className="max-h-20 overflow-y-auto">
-            {processingState.result}
+
+        {/* Output handle */}
+        <Handle
+          type="source"
+          position={Position.Right}
+          className="w-2 h-2 !bg-muted-foreground"
+        />
+
+        {/* Edit Group Dialog */}
+        <Dialog open={isEditing} onOpenChange={setIsEditing}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="text-left">Edit Group</DialogTitle>
+              <DialogDescription className="text-left">
+                Make changes to the group configuration here.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.target as HTMLFormElement);
+              const updatedData = {
+                ...data,
+                teamName: formData.get('teamName') as string,
+                swarmType: formData.get('swarmType') as string,
+                description: formData.get('description') as string,
+              };
+              window.updateGroupData?.(id, updatedData);
+              setIsEditing(false);
+            }}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="teamName" className="text-left">Team Name</Label>
+                  <Input
+                    id="teamName"
+                    name="teamName"
+                    defaultValue={data.teamName}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="swarmType" className="text-left">Swarm Type</Label>
+                  <Select name="swarmType" defaultValue={data.swarmType}>
+                    <SelectTrigger className="col-span-3 text-left">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="start">
+                      <SelectItem value="Marketing">Marketing</SelectItem>
+                      <SelectItem value="Research">Research</SelectItem>
+                      <SelectItem value="Development">Development</SelectItem>
+                      <SelectItem value="Analytics">Analytics</SelectItem>
+                      <SelectItem value="Custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="description" className="text-left">Description</Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    defaultValue={data.description}
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit">Save Changes</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add processing indicator */}
+        {processingState?.isProcessing && (
+          <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex items-center justify-center">
+            <div className="text-primary-foreground">Processing...</div>
           </div>
-        </div>
-      )} */}
+        )}
+        
+        {/* Add completion indicator */}
+        {processingState?.result && (
+          <div className="absolute top-2 right-2">
+            <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center">
+              ✓
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 };
@@ -720,7 +952,6 @@ const AddAgentToGroupDialog: React.FC<AddAgentToGroupDialogProps> = ({
     setNodes((currentNodes: Node[]) => 
       currentNodes.map((node) => {
         if (node.id === groupId) {
-          // Update group with new agents
           return {
             ...node,
             data: {
@@ -735,7 +966,6 @@ const AddAgentToGroupDialog: React.FC<AddAgentToGroupDialogProps> = ({
           };
         }
         if (selectedAgents.includes(node.id)) {
-          // Update agent with group reference
           return {
             ...node,
             data: {
@@ -754,7 +984,7 @@ const AddAgentToGroupDialog: React.FC<AddAgentToGroupDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[425px] bg-background border border-border rounded-lg shadow-lg z-[100]">
         <DialogHeader>
           <DialogTitle className="text-left">Add Agents to Group</DialogTitle>
           <DialogDescription className="text-left">
@@ -762,14 +992,14 @@ const AddAgentToGroupDialog: React.FC<AddAgentToGroupDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         {availableAgents.length === 0 ? (
-          <div className="py-6 text-left text-muted-foreground">
+          <div className="py-6 text-center text-muted-foreground">
             No available agents to add. Create new agents first.
           </div>
         ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="max-h-[300px] overflow-y-auto px-4">
               {availableAgents.map((agent) => (
-                <div key={agent.id} className="flex items-center gap-2">
+                <div key={agent.id} className="flex items-center gap-2 py-2">
                   <input
                     type="checkbox"
                     id={agent.id}
@@ -790,10 +1020,11 @@ const AddAgentToGroupDialog: React.FC<AddAgentToGroupDialogProps> = ({
                 </div>
               ))}
             </div>
-            <DialogFooter>
+            <DialogFooter className="px-4 pb-4">
               <Button 
                 type="submit" 
                 disabled={selectedAgents.length === 0}
+                className="w-full"
               >
                 Add Selected Agents
               </Button>
@@ -829,6 +1060,10 @@ const FlowContent = () => {
   const [versions, setVersions] = useState<SwarmVersion[]>([]);
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
   const [taskResults, setTaskResults] = useState<{ [key: string]: string }>({});
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const { toast } = useToast(); 
+const [systemPrompt, setSystemPrompt] = useState('');
+
   const [swarmArchitecture, setSwarmArchitecture] =
     useState<SwarmArchitecture>('Concurrent');
   const [popup, setPopup] = useState<{
@@ -901,6 +1136,33 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
     nodes: [] as ReactFlowNode[],
     edges: [] as Edge[],
   });
+
+  const handleOptimizePrompt = async () => {
+    if (!systemPrompt) {
+      toast({
+        title: "Error",
+        description: "System prompt is required for optimization",
+        variant: "destructive"
+      });
+      return;
+    }
+  
+    setIsOptimizing(true);
+    try {
+      const optimizedPrompt = await optimizePrompt(systemPrompt);
+      setSystemPrompt(optimizedPrompt);
+      toast({
+        description: "System prompt optimized successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to optimize system prompt",
+        variant: "destructive"
+      });
+    }
+    setIsOptimizing(false);
+  };
 
   const saveInProgressRef = useRef(false);
 
@@ -1927,22 +2189,28 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
   }
 
   const createGroup = (groupData: Omit<GroupData, 'agents'>) => {
+    // Get viewport info safely
+    const viewport = reactFlowInstance?.getViewport();
     
+    // Default position if viewport is not available
+    let position = { x: 100, y: 100 };
     
-    // Get the current viewport
-    const { x, y, zoom } = reactFlowInstance.getViewport();
+    if (viewport) {
+      // Calculate center position with safety checks
+      const centerX = (-viewport.x / viewport.zoom) + ((window.innerWidth / 2) / viewport.zoom);
+      const centerY = (-viewport.y / viewport.zoom) + ((window.innerHeight / 2) / viewport.zoom);
+      
+      position = {
+        x: Math.max(0, centerX - 150), // Prevent negative positions
+        y: Math.max(0, centerY - 100)
+      };
+    }
     
-    // Calculate center of the current viewport
-    const centerX = -x / zoom + (window.innerWidth / 2) / zoom;
-    const centerY = -y / zoom + (window.innerHeight / 2) / zoom;
-    
+    // Create new group with unique ID
     const newGroup = {
-      id: `group-${Date.now()}`,
+      id: `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: 'group',
-      position: { 
-        x: centerX - 150, // Offset by half the group width
-        y: centerY - 100  // Offset by half the group height
-      },
+      position,
       data: {
         ...groupData,
         agents: [],
@@ -1953,7 +2221,8 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
       },
     };
     
-    setNodes((nds) => [...nds, newGroup]);
+    // Update nodes state using functional update
+    setNodes(prevNodes => [...prevNodes, newGroup]);
     setIsCreatingGroup(false);
   };
 
@@ -2075,6 +2344,7 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
                     dataSourceInput: formData.get('dataSourceInput') as
                       | string
                       | undefined,
+                    description: '',
                   });
                 }}
               >
@@ -2118,41 +2388,34 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
                     </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="systemPrompt" className="text-right">
-                      System Prompt
-                    </Label>
-                    <Textarea
-                      id="systemPrompt"
-                      name="systemPrompt"
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="dataSource" className="text-right">
-                      Data Source
-                    </Label>
-                    <Select name="dataSource">
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select data source" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Wikipedia">Wikipedia</SelectItem>
-                        <SelectItem value="ArXiv">ArXiv</SelectItem>
-                        <SelectItem value="News API">News API</SelectItem>
-                        <SelectItem value="Custom API">Custom API</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="dataSourceInput" className="text-right">
-                      Data Source Input
-                    </Label>
-                    <Input
-                      id="dataSourceInput"
-                      name="dataSourceInput"
-                      className="col-span-3"
-                    />
-                  </div>
+  <Label htmlFor="systemPrompt" className="text-right">
+    System Prompt
+  </Label>
+  <div className="relative col-span-3">
+    <Textarea
+      id="systemPrompt"
+      name="systemPrompt"
+      value={systemPrompt}
+      onChange={(e) => setSystemPrompt(e.target.value)}
+      className="pr-12"
+    />
+    <Button
+      type="button"
+      size="sm"
+      variant="ghost"
+      onClick={handleOptimizePrompt}
+      disabled={isOptimizing || !systemPrompt}
+      title={!systemPrompt ? "System prompt required" : "Optimize prompt"}
+      className="absolute right-2 top-2 h-8 w-8 p-0"
+    >
+      {isOptimizing ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Sparkles className="h-4 w-4" />
+      )}
+    </Button>
+  </div>
+</div>
                 </div>
                 <DialogFooter>
                   <Button type="submit">Add Agent</Button>
