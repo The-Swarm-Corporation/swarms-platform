@@ -305,7 +305,47 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
   const { setNodes, setEdges } = useReactFlow();
   const { toast } = useToast(); // Add toast import if not already present
 
+
+
+  useEffect(() => {
+    const cleanup = () => {
+      // Check if no modals are open before cleaning up
+      const anyModalOpen = document.querySelector('[role="dialog"]');
+      if (!anyModalOpen) {
+        cleanupBodyStyles();
+      }
+    };
   
+    // Listen for escape key
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        cleanup();
+      }
+    };
+  
+    window.addEventListener('keydown', handleEscape);
+    
+    // Add a mutation observer to detect DOM changes
+    const observer = new MutationObserver(() => {
+      // Check if any dialog was removed
+      const anyModalOpen = document.querySelector('[role="dialog"]');
+      if (!anyModalOpen) {
+        cleanup();
+      }
+    });
+  
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+      observer.disconnect();
+      cleanup();
+    };
+  }, []);
+
   useBodyStyleCleanup(isEditing);
 
   // Update localSystemPrompt when data changes
@@ -676,6 +716,8 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const { setNodes, setEdges } = useReactFlow();
+
+  useBodyStyleCleanup(isEditing);
   
   const handleDelete = useCallback(() => {
     setNodes(nodes => {
