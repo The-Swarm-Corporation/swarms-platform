@@ -304,6 +304,8 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
   const [localSystemPrompt, setLocalSystemPrompt] = useState(data.systemPrompt || '');
   const { setNodes, setEdges } = useReactFlow();
   const { toast } = useToast(); // Add toast import if not already present
+
+  
   useBodyStyleCleanup(isEditing);
 
   // Update localSystemPrompt when data changes
