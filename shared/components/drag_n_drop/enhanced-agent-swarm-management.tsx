@@ -241,6 +241,28 @@ const generateSystemPrompt = async (agentName: string, agentDescription: string)
   }
 };
 
+const cleanupBodyStyles = () => {
+  document.body.style.removeProperty('pointer-events');
+  // Also remove any other unwanted styles that might be added
+  document.body.style.removeProperty('overflow');
+};
+
+// Create a hook to manage body styles
+const useBodyStyleCleanup = (isOpen: boolean) => {
+  useEffect(() => {
+    // Clean up styles when modal closes
+    if (!isOpen) {
+      cleanupBodyStyles();
+    }
+
+    // Always clean up on unmount
+    return () => {
+      cleanupBodyStyles();
+    };
+  }, [isOpen]);
+};
+
+
 // Add this utility function near the top with other utility functions
 const optimizePrompt = async (currentPrompt: string): Promise<string> => {
   if (!currentPrompt?.trim()) {
@@ -282,6 +304,7 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
   const [localSystemPrompt, setLocalSystemPrompt] = useState(data.systemPrompt || '');
   const { setNodes, setEdges } = useReactFlow();
   const { toast } = useToast(); // Add toast import if not already present
+  useBodyStyleCleanup(isEditing);
 
   // Update localSystemPrompt when data changes
   useEffect(() => {
@@ -938,7 +961,7 @@ const AddAgentToGroupDialog: React.FC<AddAgentToGroupDialogProps> = ({
   setNodes,
 }) => {
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
-
+  useBodyStyleCleanup(open);
   // Filter out agents that are already in groups
   const availableAgents = nodes.filter((node) => 
     node.type === 'agent' && 
@@ -983,7 +1006,7 @@ const AddAgentToGroupDialog: React.FC<AddAgentToGroupDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open}  onOpenChange={onOpenChange}>
       <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[425px] bg-background border border-border rounded-lg shadow-lg z-[100]">
         <DialogHeader>
           <DialogTitle className="text-left">Add Agents to Group</DialogTitle>
@@ -1070,7 +1093,7 @@ const [systemPrompt, setSystemPrompt] = useState('');
     message: string;
     type: 'success' | 'error';
   } | null>(null);
-
+  useBodyStyleCleanup(isCreatingGroup);
 const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>) => {
   setGroupProcessingStates(prev => ({
     ...prev,
