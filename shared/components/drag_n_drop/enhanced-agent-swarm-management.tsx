@@ -724,10 +724,24 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
       // Get all agent IDs in this group
       const agentIds = data.agents?.map(agent => agent.id) || [];
       
-      // Remove the group and its agents
-      return nodes.filter(node => 
-        node.id !== id && !agentIds.includes(node.id)
-      );
+      // Update nodes: Remove the group and update agents to be standalone
+      return nodes.map(node => {
+        if (node.id === id) {
+          // Remove the group
+          return null;
+        }
+        if (agentIds.includes(node.id)) {
+          // Update agent to remove group association
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              groupId: undefined
+            }
+          };
+        }
+        return node;
+      }).filter(Boolean) as Node[];
     });
     
     setEdges(edges => edges.filter(edge => 
@@ -735,6 +749,32 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
     ));
   }, [id, data.agents, setNodes, setEdges]);
 
+  // Add a new function to remove agent from group
+  const removeAgentFromGroup = (groupId: string, agentId: string) => {
+    setNodes(nodes => nodes.map(node => {
+      if (node.id === groupId) {
+        // Remove agent from group's agents array
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            agents: node.data.agents.filter((agent: AgentData) => agent.id !== agentId)
+          }
+        };
+      }
+      if (node.id === agentId) {
+        // Remove group association from agent
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            groupId: undefined
+          }
+        };
+      }
+      return node;
+    }));
+  };
 
   return (
     <div className="relative">
@@ -786,6 +826,17 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
                 animate={{ scale: 1, opacity: 1 }}
                 className="relative"
               >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeAgentFromGroup(id, agent.id);
+                  }}
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md border-2 border-background z-10"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
                 <div className="transform scale-75 origin-top-left">
                   <AgentNode
                     data={agent}
@@ -916,6 +967,12 @@ const CustomEdge = ({
   data,
   markerEnd,
 }: EdgeProps) => {
+  const { setEdges } = useReactFlow();
+  
+  // Calculate midpoint for the delete button
+  const midX = (sourceX + targetX) / 2;
+  const midY = (sourceY + targetY) / 2;
+
   const [edgePath] = getBezierPath({
     sourceX,
     sourceY,
@@ -924,6 +981,11 @@ const CustomEdge = ({
     targetY,
     targetPosition,
   });
+
+  const handleDelete = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    setEdges((edges) => edges.filter((e) => e.id !== id));
+  };
 
   return (
     <>
@@ -934,20 +996,40 @@ const CustomEdge = ({
         d={edgePath}
         markerEnd={markerEnd}
       />
-      <text>
-        <textPath
-          href={`#${id}`}
-          style={{ fontSize: '12px' }}
-          startOffset="50%"
-          textAnchor="middle"
-        >
-          {data?.label}
-        </textPath>
-      </text>
+      {/* Delete button */}
+      <foreignObject
+        width={24}
+        height={24}
+        x={midX - 12}
+        y={midY - 12}
+        requiredExtensions="http://www.w3.org/1999/xhtml"
+      >
+        <div className="flex items-center justify-center h-full">
+          <button
+            className="h-6 w-6 rounded-full bg-destructive/90 hover:bg-destructive flex items-center justify-center text-destructive-foreground"
+            onClick={handleDelete}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </foreignObject>
+      {/* {data?.label && (
+        <text>
+          <textPath
+            href={`#${id}`}
+            style={{ fontSize: '12px' }}
+            startOffset="50%"
+            textAnchor="middle"
+          >
+            {data.label}
+          </textPath>
+        </text>
+      )} */}
     </>
   );
 };
 
+// Make sure to update the edgeTypes
 const edgeTypes: EdgeTypes = {
   custom: CustomEdge,
 };
@@ -1389,7 +1471,7 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
         id: `e${params.source}-${params.target}`,
         source: params.source,
         target: params.target,
-        type: 'custom',
+        type: 'custom', // Set the edge type to custom
         animated: true,
         style: { stroke: '#8E8E93' },
         markerEnd: {
@@ -1407,25 +1489,27 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
   const addAgent = useCallback(
     (agent: AgentData) => {
       const newNode: ReactFlowNode = {
-        id: `${nodes.length + 1}`,
+        id: `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Generate unique ID
         type: 'agent',
-        position: { x: Math.random() * 500, y: Math.random() * 300 },
+        position: { 
+          // Get viewport center for better positioning
+          x: Math.random() * 500, 
+          y: Math.random() * 300 
+        },
         data: agent,
       };
 
       if (agent.type === 'Boss') {
-        const clusterId = `cluster-${nodes.length + 1}`;
+        const clusterId = `cluster-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         newNode.data = { ...newNode.data, clusterId };
       } else if (agent.type === 'Worker') {
-        const availableBosses = (nodes as unknown as ReactFlowNode[]).filter(
-          (node: any) => {
-            if (node.data.type !== 'Boss') return false;
-            const workerCount = (nodes as unknown as ReactFlowNode[]).filter(
-              (n) => n.data?.clusterId === node.data?.clusterId,
-            ).length;
-            return workerCount < 3;
-          },
-        );
+        const availableBosses = nodes.filter((node) => {
+          if (node.data.type !== 'Boss') return false;
+          const workerCount = nodes.filter(
+            (n) => n.data?.clusterId === node.data?.clusterId,
+          ).length;
+          return workerCount < 3;
+        });
 
         if (availableBosses.length > 0) {
           const closestBoss = availableBosses.reduce((prev, curr) => {
@@ -1444,6 +1528,7 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
               clusterId: closestBoss.data.clusterId,
             };
 
+            // Add edge to connect worker to boss
             const newEdge: Edge = {
               id: `e${closestBoss.id}-${newNode.id}`,
               source: closestBoss.id,
@@ -1462,14 +1547,11 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
           }
         }
       }
-      // @ts-ignore
-      setNodes((nds: Node<ReactFlowNode[], string | undefined>[]) => [
-        ...nds,
-        newNode,
-      ]);
-      //saveVersion();
+
+      // Use functional update to preserve existing nodes
+      setNodes((prevNodes) => [...prevNodes, newNode]);
     },
-    [nodes, setNodes],
+    [nodes, setNodes, setEdges],
   );
 
   const updateNodeData = (id: string, updatedData: AgentData) => {
@@ -1604,6 +1686,7 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
           await processGroupChain(startGroup.id, task);
         }
       }
+      
 
       setPopup({
         message: 'Task completed successfully',
@@ -1620,7 +1703,13 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
   };
 
   // Keep the existing processGroupChain function as is
-  const processGroupChain = async (groupId: string, currentTask: string, previousResults: string = '') => {
+  const processGroupChain = async (groupId: string, currentTask: string, previousResults: string = '', processedGroups = new Set<string>()) => {
+    // Prevent infinite loops and reprocessing
+    if (processedGroups.has(groupId)) {
+      return;
+    }
+    processedGroups.add(groupId);
+
     try {
       updateGroupState(groupId, {
         isProcessing: true,
@@ -1700,15 +1789,17 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
         }));
       });
 
-      // Find and process next groups in chain
+      // Find next groups in chain
       const nextGroups = edges
         .filter(edge => edge.source === groupId)
         .map(edge => edge.target);
 
-      // Process next groups sequentially, passing current group's results
-      for (const nextGroupId of nextGroups) {
-        await processGroupChain(nextGroupId, currentTask, groupResult);
-      }
+      // Process all next groups in parallel
+      await Promise.all(
+        nextGroups.map(nextGroupId => 
+          processGroupChain(nextGroupId, currentTask, groupResult, processedGroups)
+        )
+      );
 
     } catch (error) {
       console.error(`Error processing group ${groupId}:`, error);
@@ -2665,7 +2756,7 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
+              edgeTypes={edgeTypes} // Add this if not already present
               fitView
             >
               <Background 
