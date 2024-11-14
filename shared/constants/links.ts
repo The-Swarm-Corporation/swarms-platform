@@ -1,6 +1,7 @@
 export const PLATFORM = {
   DASHBOARD: '/platform/dashboard',
   API_KEYS: '/platform/api-keys',
+  DRAG_N_DROP: '/platform/dragndrop',
   USAGE: '/platform/usage',
   ACCOUNT: '/platform/account',
   ACCOUNT_PROFILE: '/platform/account/profile',

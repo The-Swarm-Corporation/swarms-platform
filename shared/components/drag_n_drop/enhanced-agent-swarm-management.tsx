@@ -354,11 +354,30 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
   }, [data.systemPrompt]);
 
   const handleDelete = useCallback(() => {
-    setNodes(nodes => nodes.filter(node => node.id !== id));
+    setNodes(nodes => {
+      // Create a new array of nodes
+      return nodes.map(node => {
+        // If this is a group node, check if it contains the agent
+        if (node.type === 'group' && node.data.agents) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              // Remove the agent from the group's agents array
+              agents: node.data.agents.filter((agent: AgentData) => agent.id !== data.id)
+            }
+          };
+        }
+        // Remove the agent node itself
+        return node.id !== id ? node : null;
+      }).filter(Boolean) as Node[];
+    });
+
+    // Remove any edges connected to this agent
     setEdges(edges => edges.filter(edge => 
       edge.source !== id && edge.target !== id
     ));
-  }, [id, setNodes, setEdges]);
+  }, [id, data.id, setNodes, setEdges]);
 
   // Add the generate prompt handler
   const handleGeneratePrompt = async () => {
@@ -709,6 +728,65 @@ const GroupNodeContext = createContext<{
   groupProcessingStates: any;
 }>({ groupProcessingStates: {} });
 
+
+const LoadingScreen = () => {
+  return (
+    <div className="fixed inset-x-0 bottom-0 top-[64px] bg-background/95 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="flex flex-col items-center space-y-6">
+        <motion.div 
+          className="relative w-24 h-24"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Hexagon background */}
+          <motion.svg 
+            viewBox="0 0 100 100" 
+            className="absolute inset-0"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          >
+            <polygon
+              points="50 1 95 25 95 75 50 99 5 75 5 25"
+              className="fill-card stroke-border"
+              strokeWidth="2"
+            />
+          </motion.svg>
+          
+          {/* Inner rotating hexagons */}
+          <motion.svg 
+            viewBox="0 0 100 100" 
+            className="absolute inset-0"
+            animate={{ rotate: -360 }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          >
+            <motion.polygon
+              points="50 20 72 32 72 58 50 70 28 58 28 32"
+              className="fill-primary/20 stroke-primary"
+              strokeWidth="2"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </motion.svg>
+        </motion.div>
+        
+        <motion.div
+          className="flex flex-col items-center space-y-2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h2 className="text-xl font-semibold text-foreground">
+            Loading Swarm
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Initializing agent network...
+          </p>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
 
 const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
   const { groupProcessingStates } = useContext(GroupNodeContext);
@@ -1194,6 +1272,7 @@ const FlowContent = () => {
 
   // Make sure your useNodesState is properly typed
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [addToGroupDialogState, setAddToGroupDialogState] = useState<{
     open: boolean;
@@ -1316,6 +1395,60 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
   const saveInProgressRef = useRef(false);
 
 
+  useEffect(() => {
+    const mainWrapperElements = document.getElementsByClassName('main-wrapper-all');
+    const panelLayoutElements = document.getElementsByClassName('panel-layout-wrapper');
+    const originalClasses: { [key: string]: string[] } = {
+      mainWrapper: [],
+      panelLayout: []
+    };
+
+    // Save original classes
+    for (let i = 0; i < mainWrapperElements.length; i++) {
+      originalClasses.mainWrapper[i] = mainWrapperElements[i].className;
+    }
+    
+    for (let i = 0; i < panelLayoutElements.length; i++) {
+      originalClasses.panelLayout[i] = panelLayoutElements[i].className;
+      // Remove specific classes from panel layout
+      const classes = panelLayoutElements[i].className
+        .split(' ')
+        .filter(cls => !['w-screen', 'h-screen', 'min-h-screen'].includes(cls))
+        .join(' ');
+      panelLayoutElements[i].className = classes;
+    }
+
+    const timer = setTimeout(() => {
+      if (mainWrapperElements.length >= 1) {
+        for (let i = 0; i < mainWrapperElements.length; i++) {
+          mainWrapperElements[i].className = 'main-wrapper-all spreadsheet-swarm';
+        }
+      }
+      // Set loading to false after classes are updated
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
+    }, 500);
+
+    // Restore original classes on unmount
+    return () => {
+      clearTimeout(timer);
+      const mainWrapperElements = document.getElementsByClassName('main-wrapper-all');
+      const panelLayoutElements = document.getElementsByClassName('panel-layout-wrapper');
+      
+      for (let i = 0; i < mainWrapperElements.length; i++) {
+        if (mainWrapperElements[i]) {
+          mainWrapperElements[i].className = originalClasses.mainWrapper[i];
+        }
+      }
+
+      for (let i = 0; i < panelLayoutElements.length; i++) {
+        if (panelLayoutElements[i]) {
+          panelLayoutElements[i].className = originalClasses.panelLayout[i];
+        }
+      }
+    };
+  }, []);
 
 
   // Add new function to handle new flow creation
@@ -2409,7 +2542,7 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
   const VersionsTabContent = () => (
     <TabsContent value="versions">
       <h2 className="text-lg font-semibold mb-4">Flows</h2>
-      <div className="max-h-[calc(100vh-300px)] overflow-y-auto">
+      <div className="max-h-[calc(100vh-340px)] overflow-y-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -2445,9 +2578,14 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
     </TabsContent>
   );
 
+  if (isLoading) {
+    return <LoadingScreen />
+  }
+
   // Replace the existing Versions TabsContent with the new component
   return (
-    <div className="w-full h-screen flex flex-col bg-background text-foreground">
+    <div className="w-full h-[calc(100%-10px)] flex flex-col bg-background text-foreground">
+      {/* Header */}
       <div className="flex justify-between items-center p-4 border-b border-border">
         <h1 className="text-2xl font-semibold">LLM Agent Swarm</h1>
         <div className="flex space-x-2">
@@ -2695,15 +2833,16 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
         </DialogContent>
       </Dialog>
       <div className="flex-grow flex overflow-hidden">
-        <div className="w-96 border-r border-border p-4 overflow-y-auto bg-background">
-          <Tabs defaultValue="results" className="space-y-4">
+        {/* Sidebar */}
+        <div className="w-96 border-r border-border p-4 overflow-hidden bg-background">
+          <Tabs defaultValue="results" className="h-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="results">Results</TabsTrigger>
               <TabsTrigger value="versions">Flows</TabsTrigger>
             </TabsList>
             <TabsContent value="results">
               <h2 className="text-lg font-semibold mb-4">Task Results</h2>
-              <div className="max-h-[calc(100vh-300px)] overflow-y-auto">
+              <div className="h-[calc(100vh-340px)] overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -2743,11 +2882,46 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
               </div>
             </TabsContent>
             <TabsContent value="versions">
-              <VersionsTabContent />
+              <h2 className="text-lg font-semibold mb-4">Flows</h2>
+              <div className="h-[calc(100vh-340px)] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Flows</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getAllFlowsQuery.data?.map((flow) => (
+                      <TableRow key={flow.id}>
+                        <TableCell>{flow.id}</TableCell>
+                        <TableCell>
+                          {new Date(flow.created_at).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            onClick={() => loadVersion(flow.id)}
+                            disabled={
+                              saveFlowMutation.status === 'pending' ||
+                              setCurrentFlowMutation.status === 'pending'
+                            }
+                          >
+                            Load
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
-        <div className="flex-grow relative">
+
+        {/* Flow area */}
+        <div className="flex-1 relative">
           <GroupNodeContext.Provider value={{ groupProcessingStates }}>
             <ReactFlow
               nodes={nodes}
@@ -2756,7 +2930,7 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes} // Add this if not already present
+              edgeTypes={edgeTypes}
               fitView
             >
               <Background 
@@ -2768,6 +2942,8 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
           </GroupNodeContext.Provider>
         </div>
       </div>
+
+      {/* Footer */}
       <div className="p-4 border-t border-border flex justify-center items-center">
         <Input
           type="text"
