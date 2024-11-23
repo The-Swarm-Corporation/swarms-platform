@@ -63,34 +63,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../spread_sheet_swarm/ui/dropdown-menu';
-import {
-  Plus,
-  Crown,
-  Send,
-  Save,
-  Share,
-  Upload,
-  MoreHorizontal,
-  X,
-  Settings,
-  FileText,
-  Sparkles,
-  Loader2,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { anthropic } from '@ai-sdk/anthropic';
-import { createOpenAI } from '@ai-sdk/openai';
-import {
-  experimental_createProviderRegistry as createProviderRegistry,
-  generateText,
-} from 'ai';
-import { Card } from '../spread_sheet_swarm/ui/card';
-import { Input } from '../spread_sheet_swarm/ui/input';
-import { trpc as api } from '@/shared/utils/trpc/trpc';
-import debounce from 'lodash/debounce';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+} from "../spread_sheet_swarm/ui/dropdown-menu"
+import { Plus, Send, Save, Share, Upload, MoreHorizontal, X } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { anthropic } from '@ai-sdk/anthropic'
+import { createOpenAI } from '@ai-sdk/openai'
+import { experimental_createProviderRegistry as createProviderRegistry, generateText } from 'ai'
+import { Card } from "../spread_sheet_swarm/ui/card"
+import { Input } from "../spread_sheet_swarm/ui/input"
+
 
 // Create provider registry
 const registry = createProviderRegistry({
@@ -100,10 +81,10 @@ const registry = createProviderRegistry({
   }),
 });
 
-type AgentType = 'Worker' | 'Boss';
-type AgentModel = 'gpt-3.5-turbo' | 'gpt-4' | 'claude-2' | 'gpt-4-turbo';
-type DataSource = 'Wikipedia' | 'ArXiv' | 'News API' | 'Custom API';
-type SwarmArchitecture = 'Concurrent' | 'Sequential' | 'Hierarchical';
+type AgentType = "Worker" | "Boss"
+type AgentModel = "gpt-3.5-turbo" | "gpt-4" | "claude-2" | "gpt-4-turbo"
+type DataSource = "Wikipedia" | "ArXiv" | "News API" | "Custom API"
+type SwarmArchitecture = "Concurrent" | "Sequential" | "Hierarchical"
 type ReactFlowNode = Node<AgentData>;
 
 // Define types that exactly match your Zod schema
@@ -161,7 +142,6 @@ interface AgentData {
   clusterId?: any; // Made optional but explicit in the type
   isProcessing?: boolean;
   lastResult?: string;
-  dataSource?: DataSource;
   dataSourceInput?: string;
   hideDeleteButton?: boolean;
 }
@@ -508,21 +488,11 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
           </TooltipTrigger>
           <TooltipContent className="max-w-[500px] bg-popover text-popover-foreground border-border">
             <div className="text-sm">
-              <p>
-                <strong>Name:</strong> {data.name}
-              </p>
-              <p>
-                <strong>Type:</strong> {data.type}
-              </p>
-              <p>
-                <strong>Model:</strong> {data.model}
-              </p>
-              <p>
-                <strong>System Prompt:</strong> {data.systemPrompt}
-              </p>
-              <p>
-                <strong>Data Source:</strong> {data.dataSource || 'None'}
-              </p>
+              <p><strong>Name:</strong> {data.name}</p>
+              <p><strong>Type:</strong> {data.type}</p>
+              <p><strong>Model:</strong> {data.model}</p>
+              <p><strong>System Prompt:</strong> {data.systemPrompt}</p>
+              <p><strong>Data Source:</strong> {data.dataSource || "None"}</p>
               {data.lastResult && (
                 <p>
                   <strong>Last Result:</strong> {data.lastResult}
@@ -562,476 +532,84 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
                   );
                   const updatedAgent: AgentData = {
                     ...data,
-                    name: formData.get('name') as string,
-                    type: formData.get('type') as AgentType,
-                    model: formData.get('model') as AgentModel,
-                    systemPrompt: formData.get('systemPrompt') as string,
-                    dataSource: formData.get('dataSource') as
-                      | DataSource
-                      | undefined,
-                    dataSourceInput: formData.get('dataSourceInput') as
-                      | string
-                      | undefined,
-                  };
-                  window.updateNodeData(id, updatedAgent);
-                  setIsEditing(false);
-                }}
-              >
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name" className="text-card-foreground">
-                      Name
-                    </Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      defaultValue={data.name}
-                      className="bg-card border-border text-card-foreground"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="type" className="text-card-foreground">
-                      Type
-                    </Label>
-                    <Select name="type" defaultValue={data.type}>
-                      <SelectTrigger className="bg-card border-border text-card-foreground">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border-border">
-                        <SelectItem value="Worker">Worker</SelectItem>
-                        <SelectItem value="Boss">Boss</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="model" className="text-card-foreground">
-                      Model
-                    </Label>
-                    <Select name="model" defaultValue={data.model}>
-                      <SelectTrigger className="bg-card border-border text-card-foreground">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border-border">
-                        <SelectItem value="gpt-3.5-turbo">
-                          GPT-3.5 Turbo
-                        </SelectItem>
-                        <SelectItem value="gpt-4">GPT-4</SelectItem>
-                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                        <SelectItem value="claude-2">Claude 2</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label
-                      htmlFor="systemPrompt"
-                      className="text-card-foreground"
-                    >
-                      System Prompt
-                    </Label>
-                    <div className="relative mt-1.5">
-                      <Textarea
-                        id="systemPrompt"
-                        name="systemPrompt"
-                        value={localSystemPrompt}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          setLocalSystemPrompt(newValue);
-                          // Update node data
-                          setNodes((nodes) =>
-                            nodes.map((node) => {
-                              if (node.id === id) {
-                                return {
-                                  ...node,
-                                  data: {
-                                    ...node.data,
-                                    systemPrompt: newValue,
-                                  },
-                                };
-                              }
-                              return node;
-                            })
-                          );
-                        }}
-                        className="pr-12 min-h-[100px] bg-card border-border text-card-foreground"
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleOptimizePrompt}
-                        disabled={isOptimizing || !localSystemPrompt}
-                        title={!localSystemPrompt ? "System prompt required" : "Optimize prompt"}
-                        className="absolute right-2 top-2 h-8 w-8 p-0"
-                      >
-                        {isOptimizing ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="h-4 w-4" />
-                        )}
-                      </Button>
+                    name: formData.get("name") as string,
+                    type: formData.get("type") as AgentType,
+                    model: formData.get("model") as AgentModel,
+                    systemPrompt: formData.get("systemPrompt") as string,
+                    dataSource: formData.get("dataSource") as DataSource | undefined,
+                    dataSourceInput: formData.get("dataSourceInput") as string | undefined,
+                  }
+                  // Update the node data
+                  // You'll need to implement this function in the main component
+                  window.updateNodeData(id, updatedAgent)
+                  setIsEditing(false)
+                }}>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="name">Name</Label>
+                      <Input id="name" name="name" defaultValue={data.name} />
+                    </div>
+                    <div>
+                      <Label htmlFor="type">Type</Label>
+                      <Select name="type" defaultValue={data.type}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Worker">Worker</SelectItem>
+                          <SelectItem value="Boss">Boss</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="model">Model</Label>
+                      <Select name="model" defaultValue={data.model}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                          <SelectItem value="gpt-4">GPT-4</SelectItem>
+                          <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                          <SelectItem value="claude-2">Claude 2</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="systemPrompt">System Prompt</Label>
+                      <Textarea id="systemPrompt" name="systemPrompt" defaultValue={data.systemPrompt} />
+                    </div>
+                    <div>
+                      <Label htmlFor="dataSource">Data Source</Label>
+                      <Select name="dataSource" defaultValue={data.dataSource}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Wikipedia">Wikipedia</SelectItem>
+                          <SelectItem value="ArXiv">ArXiv</SelectItem>
+                          <SelectItem value="News API">News API</SelectItem>
+                          <SelectItem value="Custom API">Custom API</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="dataSourceInput">Data Source Input</Label>
+                      <Input id="dataSourceInput" name="dataSourceInput" defaultValue={data.dataSourceInput} />
                     </div>
                   </div>
-                  <div>
-                    <Label
-                      htmlFor="dataSource"
-                      className="text-card-foreground"
-                    >
-                      Data Source
-                    </Label>
-                    <Select name="dataSource" defaultValue={data.dataSource}>
-                      <SelectTrigger className="bg-card border-border text-card-foreground">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border-border">
-                        <SelectItem value="Wikipedia">Wikipedia</SelectItem>
-                        <SelectItem value="ArXiv">ArXiv</SelectItem>
-                        <SelectItem value="News API">News API</SelectItem>
-                        <SelectItem value="Custom API">Custom API</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label
-                      htmlFor="dataSourceInput"
-                      className="text-card-foreground"
-                    >
-                      Data Source Input
-                    </Label>
-                    <Input
-                      id="dataSourceInput"
-                      name="dataSourceInput"
-                      defaultValue={data.dataSourceInput}
-                      className="bg-card border-border text-card-foreground"
-                    />
-                  </div>
-                </div>
-                <DialogFooter className="mt-6">
-                  <Button
-                    type="submit"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  >
-                    Save Changes
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-
-// Make groupProcessingStates available globally for the GroupNode component
-const GroupNodeContext = createContext<{
-  groupProcessingStates: any;
-}>({ groupProcessingStates: {} });
-
-
-const LoadingScreen = () => {
-  return (
-    <div className="fixed inset-x-0 bottom-0 top-[64px] bg-background/95 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="flex flex-col items-center space-y-6">
-        <motion.div 
-          className="relative w-24 h-24"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Hexagon background */}
-          <motion.svg 
-            viewBox="0 0 100 100" 
-            className="absolute inset-0"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          >
-            <polygon
-              points="50 1 95 25 95 75 50 99 5 75 5 25"
-              className="fill-card stroke-border"
-              strokeWidth="2"
-            />
-          </motion.svg>
-          
-          {/* Inner rotating hexagons */}
-          <motion.svg 
-            viewBox="0 0 100 100" 
-            className="absolute inset-0"
-            animate={{ rotate: -360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          >
-            <motion.polygon
-              points="50 20 72 32 72 58 50 70 28 58 28 32"
-              className="fill-primary/20 stroke-primary"
-              strokeWidth="2"
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-          </motion.svg>
-        </motion.div>
-        
-        <motion.div
-          className="flex flex-col items-center space-y-2"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <h2 className="text-xl font-semibold text-foreground">
-            Loading Swarm
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Initializing agent network...
-          </p>
-        </motion.div>
-      </div>
-    </div>
-  );
-};
-
-const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
-  const { groupProcessingStates } = useContext(GroupNodeContext);
-  const processingState = groupProcessingStates[id];
-  const [isEditing, setIsEditing] = useState(false);
-  const [isOptimizing, setIsOptimizing] = useState(false);
-  const { setNodes, setEdges } = useReactFlow();
-
-  useBodyStyleCleanup(isEditing);
-  
-  const handleDelete = useCallback(() => {
-    setNodes(nodes => {
-      // Get all agent IDs in this group
-      const agentIds = data.agents?.map(agent => agent.id) || [];
-      
-      // Update nodes: Remove the group and update agents to be standalone
-      return nodes.map(node => {
-        if (node.id === id) {
-          // Remove the group
-          return null;
-        }
-        if (agentIds.includes(node.id)) {
-          // Update agent to remove group association
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              groupId: undefined
-            }
-          };
-        }
-        return node;
-      }).filter(Boolean) as Node[];
-    });
-    
-    setEdges(edges => edges.filter(edge => 
-      edge.source !== id && edge.target !== id
-    ));
-  }, [id, data.agents, setNodes, setEdges]);
-
-  // Add a new function to remove agent from group
-  const removeAgentFromGroup = (groupId: string, agentId: string) => {
-    setNodes(nodes => nodes.map(node => {
-      if (node.id === groupId) {
-        // Remove agent from group's agents array
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            agents: node.data.agents.filter((agent: AgentData) => agent.id !== agentId)
-          }
-        };
-      }
-      if (node.id === agentId) {
-        // Remove group association from agent
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            groupId: undefined
-          }
-        };
-      }
-      return node;
-    }));
-  };
-
-  return (
-    <div className="relative">
-      <DeleteButton onClick={handleDelete} />
-      <div className="min-w-[300px] min-h-[200px] relative">
-        {/* Semi-transparent backdrop with more visible styling */}
-        <div className="absolute inset-0 bg-card/80 dark:bg-background/80 backdrop-blur-sm border-2 border-border dark:border-gray-800 rounded-lg shadow-lg" />
-        
-        {/* Input handle */}
-        <Handle
-          type="target"
-          position={Position.Left}
-          className="w-2 h-2 !bg-muted-foreground"
-        />
-        
-        {/* Group Content */}
-        <div className="relative p-4">
-          {/* Group Header */}
-          <div className="flex justify-between items-center mb-4 border-b border-border pb-2">
-            <div>
-              <h3 className="font-semibold text-lg text-card-foreground">{data.teamName}</h3>
-              <p className="text-sm text-muted-foreground">{data.swarmType}</p>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Edit Group
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.addAgentToGroup?.(id)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Agent
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Agents Container */}
-          <div className="flex flex-wrap gap-4">
-            {data.agents?.map((agent) => (
-              <motion.div
-                key={agent.id}
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="relative"
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeAgentFromGroup(id, agent.id);
-                  }}
-                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md border-2 border-background z-10"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-                <div className="transform scale-75 origin-top-left">
-                  <AgentNode
-                    data={agent}
-                    id={agent.id}
-                    type="agent"
-                    xPos={0}
-                    yPos={0}
-                    selected={false}
-                    zIndex={0}
-                    isConnectable={true}
-                    dragging={false}
-                    hideDeleteButton={true}
-                  />
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Output handle */}
-        <Handle
-          type="source"
-          position={Position.Right}
-          className="w-2 h-2 !bg-muted-foreground"
-        />
-
-        {/* Edit Group Dialog */}
-        <Dialog open={isEditing} onOpenChange={setIsEditing}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle className="text-left">Edit Group</DialogTitle>
-              <DialogDescription className="text-left">
-                Make changes to the group configuration here.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.target as HTMLFormElement);
-              const updatedData = {
-                ...data,
-                teamName: formData.get('teamName') as string,
-                swarmType: formData.get('swarmType') as string,
-                description: formData.get('description') as string,
-              };
-              window.updateGroupData?.(id, updatedData);
-              setIsEditing(false);
-            }}>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="teamName" className="text-left">Team Name</Label>
-                  <Input
-                    id="teamName"
-                    name="teamName"
-                    defaultValue={data.teamName}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="swarmType" className="text-left">Swarm Type</Label>
-                  <Select name="swarmType" defaultValue={data.swarmType}>
-                    <SelectTrigger className="col-span-3 text-left">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent align="start">
-                      <SelectItem value="Marketing">Marketing</SelectItem>
-                      <SelectItem value="Research">Research</SelectItem>
-                      <SelectItem value="Development">Development</SelectItem>
-                      <SelectItem value="Analytics">Analytics</SelectItem>
-                      <SelectItem value="Custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description" className="text-left">Description</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    defaultValue={data.description}
-                    className="col-span-3"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit">Save Changes</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Add processing indicator */}
-        {processingState?.isProcessing && (
-          <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex items-center justify-center">
-            <div className="text-primary-foreground">Processing...</div>
-          </div>
-        )}
-        
-        {/* Add completion indicator */}
-        {processingState?.result && (
-          <div className="absolute top-2 right-2">
-            <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center">
-              ✓
-            </div>
-          </div>
-        )}
-
-      </div>
-    </div>
-  );
-};
-
- 
-
-// eslint-disable-next-line react-hooks/rules-of-hooks
-const nodeTypes ={
-  agent: AgentNode,
-  group: GroupNode,
-};
+                  <DialogFooter className="mt-6">
+                    <Button type="submit">Save Changes</Button>
+                  </DialogFooter>
+                </form>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </TooltipProvider>
+    )
+  },
+}
 
 const CustomEdge = ({
   id,
@@ -2015,36 +1593,20 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
   };
 
   const runSequentialSwarm = async () => {
-    const results: { id: string; result: string }[] = [];
-    let context: string = '';
-
-    // Get all agents in order, both standalone and within groups
-    const allAgents = nodes.reduce((acc: AgentData[], node) => {
-      if (node.type === 'agent') {
-        acc.push(node.data);
-      } else if (node.type === 'group' && node.data.agents) {
-        acc.push(...node.data.agents);
-      }
-      return acc;
-    }, []);
-
-    for (const agent of allAgents) {
+    const results: { id: string, result: string }[] = [];
+    let context: string = "";
+  
+    for (const node of nodes as any[]) {
       const { text } = await generateText({
-        model: registry.languageModel(`openai:${agent.model}`),
-        prompt: `${agent.systemPrompt || ''}
-        
-        Previous context: ${context}
-        
-        Task: ${task}
-        
-        Response:`,
+        model: registry.languageModel(`openai:${node.data.model}`),
+        prompt: `${node.data.systemPrompt || ''}...`,
       });
-      results.push({ id: agent.id, result: text });
-      context += `\n${agent.name}: ${text}`;
+      results.push({ id: node.id, result: text });
+      context += `\n${node.data.name}: ${text}`;
     }
-
+  
     return results;
-  };
+  }
 
    // Add this function inside the component
    const loadVersion = async (flowId: string) => {
@@ -2162,17 +1724,14 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
     );
 
     // Workers perform their tasks
-    const results = await Promise.all(
-      workers.map(async (worker: any) => {
-        const workerPrompt = workerPrompts.find(
-          (wp: any) => wp?.workerId === worker.id,
-        );
-        if (!workerPrompt) return null;
+    const results = await Promise.all(workers.map(async (worker: any) => {
+      const workerPrompt = workerPrompts.find((wp: any) => wp?.workerId === worker.id)
+      if (!workerPrompt) return null
 
-        let context = '';
-        // if (worker.data.dataSource) {
-        //   context = await fetchDataFromSource(worker.data.dataSource, worker.data.dataSourceInput)
-        // }
+      let context = ""
+      if (worker.data.dataSource) {
+        context = await fetchDataFromSource(worker.data.dataSource, worker.data.dataSourceInput)
+      }
 
         const { text } = await generateText({
           model: registry.languageModel(`openai:${worker.data.model}`),
@@ -2262,182 +1821,66 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
       };
       reader.readAsText(file);
     }
-  };
+  }
 
-  const saveVersionStable = useCallback(async () => {
-    try {
-      // Transform nodes to match the expected schema
-      const validNodes: SaveFlowNode[] = nodes.map((node) => {
-        const { id, type, position, data, ...rest } = node;
-        return {
-          id,
-          type: type || 'default',
-          position: {
-            x: position.x,
-            y: position.y,
-          },
-          data: {
-            id: data?.id || id,
-            name: data?.name || '',
-            type: data?.type || 'default',
-            model: data?.model || '',
-            systemPrompt: data?.systemPrompt || '',
-            clusterId: data?.clusterId,
-            isProcessing: data?.isProcessing || false,
-            lastResult: data?.lastResult || '',
-            dataSource: data?.dataSource,
-            dataSourceInput: data?.dataSourceInput,
-            ...data,
-          },
-          ...rest,
-        };
-      });
-
-      // Transform edges to match the expected schema
-      const validEdges: any[] = edges.map((edge) => {
-        const { id, source, target, ...rest } = edge;
-        return {
-          id,
-          source,
-          target,
-          type: rest.type,
-          animated: rest.animated,
-          style: rest.style
-            ? {
-                stroke: rest.style.stroke || '#000000',
-              }
-            : undefined,
-          markerEnd: rest.markerEnd
-            ? {
-                type:
-                  typeof rest.markerEnd === 'string'
-                    ? rest.markerEnd
-                    : (rest.markerEnd as any)?.type || 'arrow',
-                color: (rest.markerEnd as any)?.color || '#000000',
-              }
-            : undefined,
-          data: rest.data || { label: 'Connection' },
-        };
-      });
-
-      // Create the flow data object
-      const flowData = {
-        flow_id: currentFlowId || undefined,
-        nodes: validNodes,
-        edges: validEdges,
-        architecture: swarmArchitecture,
-        results: taskResults || {},
-      } as const; // Use const assertion to preserve literal types
-
-      // Save the flow
-      const result = await saveFlowMutation.mutateAsync(flowData);
-
-      if (!currentFlowId && result.id) {
-        const newUrl = new URL(window.location.href);
-        newUrl.searchParams.set('flowId', result.id);
-        router.replace(newUrl.pathname + newUrl.search);
-        setCurrentFlowId(result.id);
-      }
-
-      setPopup({ message: 'Flow saved successfully', type: 'success' });
-      await getAllFlowsQuery.refetch();
-    } catch (error) {
-      console.error('Error saving flow:', error);
-      setPopup({ message: 'Failed to save flow', type: 'error' });
+  const saveVersion = () => {
+    const newVersion: SwarmVersion = {
+      id: Date.now().toString(),
+      timestamp: Date.now(),
+      nodes: nodes as any[],
+      edges: edges,
+      architecture: swarmArchitecture,
+      results: taskResults,
     }
-  }, [
-    nodes,
-    edges,
-    swarmArchitecture,
-    taskResults,
-    saveFlowMutation,
-    router,
-    currentFlowId,
-    getAllFlowsQuery,
-  ]);
+    setVersions(prevVersions => [...prevVersions, newVersion])
+    setSelectedVersion(newVersion.id)
+  }
 
-  // Type guard if needed
-  const isValidSaveFlowNode = (node: unknown): node is SaveFlowNode => {
-    return (
-      typeof node === 'object' &&
-      node !== null &&
-      'id' in node &&
-      'type' in node &&
-      'position' in node &&
-      'data' in node &&
-      typeof (node as any).data.id === 'string' &&
-      typeof (node as any).data.name === 'string' &&
-      typeof (node as any).data.type === 'string' &&
-      typeof (node as any).data.model === 'string' &&
-      typeof (node as any).data.systemPrompt === 'string'
-    );
-  };
-  // Replace the existing save-related code with this implementation
-  const debouncedSave = useMemo(
-    () =>
-      debounce(async () => {
-        // Prevent concurrent saves
-        if (saveInProgressRef.current) {
-          return;
-        }
-
-        const currentNodes = stateRef.current.nodes;
-        const currentEdges = stateRef.current.edges;
-
-        // Check if there are actual changes
-        const hasChanges =
-          !isEqual(previousStateRef.current.nodes, currentNodes) ||
-          !isEqual(previousStateRef.current.edges, currentEdges);
-
-        if (!hasChanges || !currentFlowId) {
-          return;
-        }
-
-        try {
-          saveInProgressRef.current = true;
-
-          // Update previous state before saving
-          previousStateRef.current = {
-            nodes: JSON.parse(JSON.stringify(currentNodes)),
-            edges: JSON.parse(JSON.stringify(currentEdges)),
-          };
-
-          await saveVersionStable();
-        } finally {
-          saveInProgressRef.current = false;
-        }
-      }, 2000),
-    [currentFlowId, saveVersionStable],
-  );
-
-  // Update the effect that triggers saves
-  useEffect(() => {
-    if (!currentFlowId || (nodes.length === 0 && edges.length === 0)) {
-      return;
+  const loadVersion = (versionId: string) => {
+    const version: any = versions.find(v => v.id === versionId)
+    if (version) {
+      setNodes(version.nodes)
+      setEdges(version.edges)
+      setSwarmArchitecture(version.architecture)
+      setTaskResults(version.results)
+      updateSwarmJson()
     }
+  }
 
-    // Update current state ref
-    stateRef.current = {
-      nodes: nodes,
-      edges,
-      taskResults,
-    };
-
-    // Only trigger save if not the initial load
-    if (previousStateRef.current.nodes.length > 0) {
-      debouncedSave();
-    } else {
-      // Initialize previous state on first load
-      previousStateRef.current = {
-        nodes: JSON.parse(JSON.stringify(nodes)),
-        edges: JSON.parse(JSON.stringify(edges)),
-      };
+  const fetchDataFromSource = async (source: DataSource, input?: string): Promise<string> => {
+    // This is a mock function. In a real application, you would implement actual API calls here.
+    switch (source) {
+      case "Wikipedia":
+        return "Mock data from Wikipedia API"
+      case "ArXiv":
+        return "Mock data from ArXiv API"
+      case "News API":
+        return "Mock data from News API"
+      case "Custom API":
+        return `Mock data from Custom API: ${input}`
+      default:
+        return "No data source specified"
     }
+  }
 
-    return () => {
-      debouncedSave.cancel();
-    };
-  }, [nodes, edges, currentFlowId, debouncedSave, taskResults]);
+  const updateCSV = (results: { [key: string]: string }) => {
+    const csvContent = Object.entries(results)
+      .map(([agentId, result]) => {
+        const agent: any = nodes.find(node => node.id === agentId);
+        return `${agent?.data.name || 'Unknown'},${result.replace(/,/g, ';')}`;
+      })
+      .join('\n');
+    
+    const blob = new Blob([`Agent,Result\n${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'task_results.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
   useEffect(() => {
     if (popup) {
@@ -2584,10 +2027,9 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
 
   // Replace the existing Versions TabsContent with the new component
   return (
-    <div className="w-full h-[calc(100%-10px)] flex flex-col bg-background text-foreground">
-      {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b border-border">
-        <h1 className="text-2xl font-semibold">LLM Agent Swarm</h1>
+    <div className="w-full h-screen flex flex-col bg-white text-gray-900">
+      <div className="flex justify-between items-center p-4 border-b border-gray-200">
+        <h1 className="text-2xl font-semibold text-gray-900">LLM Agent Swarm</h1>
         <div className="flex space-x-2">
           {/* Add this button */}
           <Button
@@ -2624,26 +2066,19 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
                   Create a new LLM agent to add to your swarm.
                 </DialogDescription>
               </DialogHeader>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.target as HTMLFormElement);
-                  addAgent({
-                    id: `${nodes.length + 1}`,
-                    name: formData.get('name') as string,
-                    type: formData.get('type') as AgentType,
-                    model: formData.get('model') as AgentModel,
-                    systemPrompt: formData.get('systemPrompt') as string,
-                    dataSource: formData.get('dataSource') as
-                      | DataSource
-                      | undefined,
-                    dataSourceInput: formData.get('dataSourceInput') as
-                      | string
-                      | undefined,
-                    description: '',
-                  });
-                }}
-              >
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                const formData = new FormData(e.target as HTMLFormElement)
+                addAgent({
+                  id: `${nodes.length + 1}`,
+                  name: formData.get("name") as string,
+                  type: formData.get("type") as AgentType,
+                  model: formData.get("model") as AgentModel,
+                  systemPrompt: formData.get("systemPrompt") as string,
+                  dataSource: formData.get("dataSource") as DataSource | undefined,
+                  dataSourceInput: formData.get("dataSourceInput") as string | undefined,
+                })
+              }}>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">
@@ -2684,34 +2119,27 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
                     </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-  <Label htmlFor="systemPrompt" className="text-right">
-    System Prompt
-  </Label>
-  <div className="relative col-span-3">
-    <Textarea
-      id="systemPrompt"
-      name="systemPrompt"
-      value={systemPrompt}
-      onChange={(e) => setSystemPrompt(e.target.value)}
-      className="pr-12"
-    />
-    <Button
-      type="button"
-      size="sm"
-      variant="ghost"
-      onClick={handleOptimizePrompt}
-      disabled={isOptimizing || !systemPrompt}
-      title={!systemPrompt ? "System prompt required" : "Optimize prompt"}
-      className="absolute right-2 top-2 h-8 w-8 p-0"
-    >
-      {isOptimizing ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Sparkles className="h-4 w-4" />
-      )}
-    </Button>
-  </div>
-</div>
+                    <Label htmlFor="systemPrompt" className="text-right">System Prompt</Label>
+                    <Textarea id="systemPrompt" name="systemPrompt" className="col-span-3" />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="dataSource" className="text-right">Data Source</Label>
+                    <Select name="dataSource">
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select data source" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Wikipedia">Wikipedia</SelectItem>
+                        <SelectItem value="ArXiv">ArXiv</SelectItem>
+                        <SelectItem value="News API">News API</SelectItem>
+                        <SelectItem value="Custom API">Custom API</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="dataSourceInput" className="text-right">Data Source Input</Label>
+                    <Input id="dataSourceInput" name="dataSourceInput" className="col-span-3" />
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button type="submit">Add Agent</Button>
