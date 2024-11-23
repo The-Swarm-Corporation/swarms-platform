@@ -1,13 +1,13 @@
 'use client';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import { DISCORD, PLATFORM, SWARM_CALENDLY } from '@/shared/constants/links';
 import useSubscription from '@/shared/hooks/subscription';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { commaSeparated, formatSpentTime } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { Check } from 'lucide-react';
+import { Check, Code, Github } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
@@ -31,7 +31,6 @@ const Dashboard = () => {
     const estimatedTimeSaved = requestCount * timeInSecs;
 
     return formatSpentTime(
-      // seconds
       estimatedTimeSaved,
     ).split(' ');
   }, [userRequests?.data]);
@@ -65,7 +64,6 @@ const Dashboard = () => {
           )}
           <span className="text-bold text-2xl">Agent{agentsEnding}</span>
         </div>
-
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">
           {userRequests?.isLoading ? (
             <LoadingSpinner />
@@ -80,70 +78,99 @@ const Dashboard = () => {
       </div>
       <div className="flex flex-col gap-4 mt-4">
         <div className="border rounded-md p-8 py-10">
-          <h2 className="text-2xl font-bold">Subscribe now to get access</h2>
+          <h2 className="text-2xl font-bold">Access Our Premium Platforms</h2>
           <span className="text-muted-foreground">
-            Swarms AI API subscription includes:
+            Get access to our powerful AI platforms and tools:
           </span>
           <div className="flex flex-col gap-2 mt-4">
-            <div className="flex  items-center gap-2">
+            <div className="flex items-center gap-2">
               <Check size={24} />
-              <span>Access to the best Multi-Modal Models</span>
+              <span>Spreadsheet Swarm - Advanced spreadsheet automation and analysis</span>
             </div>
-            <div className="flex  items-center gap-2">
+            <div className="flex items-center gap-2">
               <Check size={24} />
-              <span>Access to the swarms for special workflows</span>
+              <span>Drag & Drop Swarm - Intuitive AI workflow builder</span>
             </div>
-            <div className="flex  items-center gap-2">
+            <div className="flex items-center gap-2">
               <Check size={24} />
-              <span>Usage-Based Pricing for models and swarms</span>
+              <span>Real-time support via our active Discord community</span>
             </div>
-            <div className="flex  items-center gap-2">
+            <div className="flex items-center gap-2">
               <Check size={24} />
-              <span>99% Uptime with 24/7 Support</span>
+              <span>Access to cutting-edge Multi-Modal AI Models</span>
             </div>
-            <div className="flex  items-center gap-2">
+            <div className="flex items-center gap-2">
               <Check size={24} />
-              <span>The Explorer: Explore Multi-Modal Models and Swarms</span>
+              <span>Flexible usage-based pricing with special discounts</span>
             </div>
-            <div className="flex  items-center gap-2">
+            <div className="flex items-center gap-2">
               <Check size={24} />
-              <span>Early Access to new models, swarms, and features!</span>
+              <span>Early access to new features and platforms</span>
             </div>
-            <div className="flex  items-center gap-2">
+            <div className="flex items-center gap-2">
               <Check size={24} />
-              <span>Coupons and Discounts for usage-based pricing!</span>
+              <span>24/7 Technical support with 99% uptime guarantee</span>
             </div>
           </div>
-          <Button
-            className="mt-4 hover:bg-red-900"
-            variant={'default'}
-            disabled={subscription.createSubscriptionPortalLoading}
-            onClick={subscribe}
-          >
-            Subscribe
-          </Button>
+          <div className="flex gap-4 mt-6">
+            <Button
+              className="hover:bg-red-900"
+              variant="default"
+              disabled={subscription.createSubscriptionPortalLoading}
+              onClick={subscribe}
+            >
+              Subscribe Now
+            </Button>
+          </div>
         </div>
+
+        {/* New GitHub SDK Section */}
+        <div className="border rounded-md p-8 py-10">
+          <div className="flex items-center gap-3">
+            <Github size={32} />
+            <h2 className="text-2xl font-bold">Swarms SDK</h2>
+          </div>
+          <span className="text-muted-foreground block mt-2">
+            Get started with our open-source SDK and build powerful AI applications
+          </span>
+          
+          <div className="mt-6 bg-zinc-900 p-4 rounded-md">
+            <div className="flex items-center justify-between">
+              <code className="text-green-400">pip3 install -U swarms</code>
+              <Code size={20} className="text-zinc-400" />
+            </div>
+          </div>
+          
+          <div className="flex gap-4 mt-6">
+            <Link href="https://github.com/kyegomez/swarms" target="_blank">
+              <Button className="hover:bg-red-900" variant="default">
+                <Github className="mr-2 h-5 w-5" />
+                View on GitHub
+              </Button>
+            </Link>
+          </div>
+        </div>
+
         <div className="flex gap-4 max-sm:flex-wrap">
           <div className="sm:w-1/2 flex flex-col gap-2 border rounded-md p-4">
-            <h2 className="text-2xl font-bold">Create an Organization</h2>
+            <h2 className="text-2xl font-bold">Spreadsheet Swarm</h2>
             <span className="text-muted-foreground">
-              Create an organization to invite your team members and manage your
-              projects.
+              Transform your spreadsheet workflows with AI-powered automation and analysis.
             </span>
-            <Link href={PLATFORM.ORGANIZATION}>
-              <Button className="mt-4 hover:bg-red-900" variant={'default'}>
-                Create Organization
+            <Link href="https://swarms.world/spreadsheetswarm">
+              <Button className="mt-4 hover:bg-red-900" variant="default">
+                Access Spreadsheet Swarm
               </Button>
             </Link>
           </div>
           <div className="sm:w-1/2 flex flex-col gap-2 border rounded-md p-4">
-            <h2 className="text-2xl font-bold">Add Team Members</h2>
+            <h2 className="text-2xl font-bold">Drag & Drop Swarm</h2>
             <span className="text-muted-foreground">
-              Invite your team members to collaborate on projects.
+              Build custom AI workflows with our intuitive drag & drop interface.
             </span>
-            <Link href={PLATFORM.ORGANIZATION}>
-              <Button className="mt-4 hover:bg-red-900" variant={'default'}>
-                Invite Team Members
+            <Link href="https://swarms.world/dragndrop">
+              <Button className="mt-4 hover:bg-red-900" variant="default">
+                Try Drag & Drop Swarm
               </Button>
             </Link>
           </div>
@@ -152,37 +179,36 @@ const Dashboard = () => {
           <div className="sm:w-1/2 flex flex-col gap-2 border rounded-md p-4">
             <h2 className="text-2xl font-bold">API Keys</h2>
             <span className="text-muted-foreground">
-              Create now an API key to access an API Key.
+              Create an API key to access our platforms programmatically.
             </span>
             <Link href={PLATFORM.API_KEYS}>
-              <Button className="mt-4 hover:bg-red-900" variant={'default'}>
+              <Button className="mt-4 hover:bg-red-900" variant="default">
                 Create API Key
               </Button>
             </Link>
           </div>
           <div className="sm:w-1/2 flex flex-col gap-2 border rounded-md p-4">
-            <h2 className="text-2xl font-bold">Documention</h2>
+            <h2 className="text-2xl font-bold">Documentation</h2>
             <span className="text-muted-foreground">
-              Learn more about Swarms through our documentation.
+              Learn more about Swarms through our comprehensive documentation.
             </span>
             <Link href="https://docs.swarms.world/en/latest/">
-              <Button className="mt-4 hover:bg-red-900" variant={'default'}>
-                Documention
+              <Button className="mt-4 hover:bg-red-900" variant="default">
+                View Documentation
               </Button>
             </Link>
           </div>
         </div>
         <div className="flex gap-4 border p-4 rounded-md">
           <div className="w-full flex flex-col gap-2">
-            <h2 className="text-2xl font-bold">Community</h2>
+            <h2 className="text-2xl font-bold">Join Our Community</h2>
             <span className="text-muted-foreground">
-              Join the Swarms community for real-time support, assistance, and
-              conversations with friends!
+              Connect with other users, get support, and stay updated on the latest features!
             </span>
             <div className="flex gap-4 mt-4">
               <Link href={DISCORD}>
-                <Button className="hover:bg-red-900" variant={'default'}>
-                  Join Community!
+                <Button className="hover:bg-red-900" variant="default">
+                  Join Discord Community
                 </Button>
               </Link>
             </div>
@@ -190,15 +216,14 @@ const Dashboard = () => {
         </div>
         <div className="flex gap-4 border p-4 rounded-md mb-8">
           <div className="w-full flex flex-col gap-2">
-            <h2 className="text-2xl font-bold">Get Demo</h2>
+            <h2 className="text-2xl font-bold">Schedule a Demo</h2>
             <span className="text-muted-foreground">
-              Get a demo of the Swarms platform and learn how it can help you
-              automate your operations.
+              See how Swarms can transform your workflow with a personalized demo.
             </span>
             <div className="flex gap-4 mt-4">
               <Link href={SWARM_CALENDLY}>
-                <Button className="hover:bg-red-900" variant={'default'}>
-                  Get Demo!
+                <Button className="hover:bg-red-900" variant="default">
+                  Book Demo
                 </Button>
               </Link>
             </div>
