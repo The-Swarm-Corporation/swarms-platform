@@ -40,6 +40,8 @@ const Dashboard = () => {
     subscription.createSubscriptionPortal();
   }
 
+  const agentsGoal = agentsLength ? agentsLength * 5 : 0;
+
   return (
     <div className="w-full flex flex-col">
       <h1 className="text-3xl font-extrabold sm:text-4xl">Home</h1>
@@ -55,6 +57,7 @@ const Dashboard = () => {
           <span className="text-bold text-2xl">Tasks Automated</span>
         </div>
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">
+        <span className="text-bold text-2xl"> Goal: ⭐ {commaSeparated(agentsGoal)} {/* Display the goal with a star emoji */}</span>
           {agentsRequests?.isLoading ? (
             <LoadingSpinner />
           ) : (
