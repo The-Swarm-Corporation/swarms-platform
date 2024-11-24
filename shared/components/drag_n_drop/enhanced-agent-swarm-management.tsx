@@ -2401,7 +2401,7 @@ const FlowContent = () => {
             disabled={saveFlowMutation.isPending}
           >
             <Plus className="w-4 h-4 mr-2" />
-            New Flow
+            New Swarm
           </Button>
 
           <Button
@@ -2410,7 +2410,7 @@ const FlowContent = () => {
             onClick={() => setIsCreatingGroup(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
-            New Swarm
+            New Team
           </Button>
 
           <Dialog>
@@ -2575,7 +2575,7 @@ const FlowContent = () => {
       <Dialog open={isCreatingGroup} onOpenChange={setIsCreatingGroup}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create Swarm</DialogTitle>
+            <DialogTitle>Create Team</DialogTitle>
           </DialogHeader>
           <form onSubmit={(e) => {
             e.preventDefault();
