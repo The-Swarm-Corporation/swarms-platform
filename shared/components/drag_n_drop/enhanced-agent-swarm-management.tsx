@@ -2394,7 +2394,6 @@ const FlowContent = () => {
       <div className="flex justify-between items-center p-4 border-b border-border">
         <h1 className="text-2xl font-semibold">Swarms No-Code Builder</h1>
         <div className="flex space-x-2">
-          {/* Add this button */}
           <Button
             variant="outline"
             className="bg-card hover:bg-muted"
@@ -2403,7 +2402,6 @@ const FlowContent = () => {
             <Plus className="w-4 h-4 mr-2" />
             New Group
           </Button>
-          {/* Add New Flow button */}
           <Button
             variant="outline"
             className="bg-card hover:bg-muted"
@@ -2414,7 +2412,6 @@ const FlowContent = () => {
             New Flow
           </Button>
 
-          {/* Existing Add Agent Dialog */}
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" className="bg-card hover:bg-muted">
@@ -2426,7 +2423,7 @@ const FlowContent = () => {
               <DialogHeader>
                 <DialogTitle>Add New Agent</DialogTitle>
                 <DialogDescription>
-                  Create a new LLM agent to add to your swarm.
+                  Create a new agent to add to your swarm.
                 </DialogDescription>
               </DialogHeader>
               <form
@@ -2460,15 +2457,6 @@ const FlowContent = () => {
                     <Label htmlFor="type" className="text-right">
                       Type
                     </Label>
-                    <Select name="type">
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select agent type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Worker">Worker</SelectItem>
-                        <SelectItem value="Boss">Boss</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="model" className="text-right">
@@ -2489,34 +2477,34 @@ const FlowContent = () => {
                     </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-  <Label htmlFor="systemPrompt" className="text-right">
-    System Prompt
-  </Label>
-  <div className="relative col-span-3">
-    <Textarea
-      id="systemPrompt"
-      name="systemPrompt"
-      value={systemPrompt}
-      onChange={(e) => setSystemPrompt(e.target.value)}
-      className="pr-12"
-    />
-    <Button
-      type="button"
-      size="sm"
-      variant="ghost"
-      onClick={handleOptimizePrompt}
-      disabled={isOptimizing || !systemPrompt}
-      title={!systemPrompt ? "System prompt required" : "Optimize prompt"}
-      className="absolute right-2 top-2 h-8 w-8 p-0"
-    >
-      {isOptimizing ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Sparkles className="h-4 w-4" />
-      )}
-    </Button>
-  </div>
-</div>
+                  <Label htmlFor="systemPrompt" className="text-right">
+                    System Prompt
+                  </Label>
+                  <div className="relative col-span-3">
+                    <Textarea
+                      id="systemPrompt"
+                      name="systemPrompt"
+                      value={systemPrompt}
+                      onChange={(e) => setSystemPrompt(e.target.value)}
+                      className="pr-12"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleOptimizePrompt}
+                      disabled={isOptimizing || !systemPrompt}
+                      title={!systemPrompt ? "System prompt required" : "Optimize prompt"}
+                      className="absolute right-2 top-2 h-8 w-8 p-0"
+                    >
+                      {isOptimizing ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
                 </div>
                 <DialogFooter>
                   <Button type="submit">Add Agent</Button>
