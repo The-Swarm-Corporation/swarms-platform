@@ -88,6 +88,8 @@ import { trpc as api } from '@/shared/utils/trpc/trpc';
 import debounce from 'lodash/debounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { useEnhancedAutosave } from './autosave';
+import SaveStatusIndicator from './save_status';
 
 // Create provider registry
 const registry = createProviderRegistry({
@@ -768,66 +770,6 @@ const GroupNodeContext = createContext<{
   groupProcessingStates: any;
 }>({ groupProcessingStates: {} });
 
-
-const LoadingScreen = () => {
-  return (
-    <div className="fixed inset-x-0 bottom-0 top-[64px] bg-background/95 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="flex flex-col items-center space-y-6">
-        <motion.div 
-          className="relative w-24 h-24"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Hexagon background */}
-          <motion.svg 
-            viewBox="0 0 100 100" 
-            className="absolute inset-0"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          >
-            <polygon
-              points="50 1 95 25 95 75 50 99 5 75 5 25"
-              className="fill-card stroke-border"
-              strokeWidth="2"
-            />
-          </motion.svg>
-          
-          {/* Inner rotating hexagons */}
-          <motion.svg 
-            viewBox="0 0 100 100" 
-            className="absolute inset-0"
-            animate={{ rotate: -360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          >
-            <motion.polygon
-              points="50 20 72 32 72 58 50 70 28 58 28 32"
-              className="fill-primary/20 stroke-primary"
-              strokeWidth="2"
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-          </motion.svg>
-        </motion.div>
-        
-        <motion.div
-          className="flex flex-col items-center space-y-2"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <h2 className="text-xl font-semibold text-foreground">
-            Loading Swarm
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Initializing agent network...
-          </p>
-        </motion.div>
-      </div>
-    </div>
-  );
-};
-
 const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
   const { groupProcessingStates } = useContext(GroupNodeContext);
   const processingState = groupProcessingStates[id];
@@ -1295,7 +1237,19 @@ const FlowContent = () => {
   const [taskResults, setTaskResults] = useState<{ [key: string]: string }>({});
   const [isOptimizing, setIsOptimizing] = useState(false);
   const { toast } = useToast(); 
-const [systemPrompt, setSystemPrompt] = useState('');
+  const [systemPrompt, setSystemPrompt] = useState('');
+  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null); // Move this line above the useEnhancedAutosave call
+  const saveFlowMutation = api.dnd.saveFlow.useMutation(); // Move this line above the useEnhancedAutosave call
+  const { lastSaveStatus, forceSave, isSaving } = useEnhancedAutosave({
+    nodes,
+    edges,
+    currentFlowId,
+    taskResults,
+    onSave: saveFlowMutation.mutateAsync,
+    debounceMs: 1000, // Adjust as needed
+    maxRetries: 3,
+    enabled: true
+  });
 
   const [swarmArchitecture, setSwarmArchitecture] =
     useState<SwarmArchitecture>('Concurrent');
@@ -1304,18 +1258,18 @@ const [systemPrompt, setSystemPrompt] = useState('');
     type: 'success' | 'error';
   } | null>(null);
   useBodyStyleCleanup(isCreatingGroup);
-const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>) => {
-  setGroupProcessingStates(prev => ({
-    ...prev,
-    [groupId]: {
-      ...prev[groupId],
-      ...update
-    }
-  }));
-};
+  
+  const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>) => {
+    setGroupProcessingStates(prev => ({
+      ...prev,
+      [groupId]: {
+        ...prev[groupId],
+        ...update
+      }
+    }));
+  };
 
   // Add TRPC mutations and queries
-  const saveFlowMutation = api.dnd.saveFlow.useMutation();
   const getCurrentFlowQuery = api.dnd.getCurrentFlow.useQuery(
     {
       flowId: searchParams?.get('flowId') || undefined,
@@ -1339,9 +1293,6 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
 
   const getAllFlowsQuery = api.dnd.getAllFlows.useQuery();
   const setCurrentFlowMutation = api.dnd.setCurrentFlow.useMutation();
-
-  // Add new state for tracking current flow ID
-  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
   const reactFlowInstance = useReactFlow();
   // Add a ref to track initial load
   const initialLoadRef = useRef(false);
@@ -1831,6 +1782,8 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
         type: 'success'
       });
 
+      await forceSave(); // Save the new results
+
     } catch (error) {
       console.error('Error running task:', error);
       setPopup({
@@ -2061,86 +2014,6 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
   };
 
 
-  const runHierarchicalSwarm = async () => {
-    const bosses: any = nodes.filter((node: any) => node.data.type === 'Boss');
-    const workers: any = nodes.filter(
-      (node: any) => node.data.type === 'Worker',
-    );
-
-    // Bosses receive their subtasks
-    const bossPrompts = await Promise.all(
-      bosses.map(async (boss: any) => {
-        const { text } = await generateText({
-          model: registry.languageModel(`openai:${boss.data.model}`),
-          prompt: `${boss.data.systemPrompt}
-        
-        You are a Boss agent. Create a subtask based on the following main task:
-        
-        Task: ${task}
-        
-        Subtask for your team:`,
-        });
-        return { bossId: boss.id, subtask: text };
-      }),
-    );
-
-    // Bosses delegate to Workers
-    const workerPrompts = await Promise.all(
-      workers.map(async (worker: any) => {
-        const boss = bosses.find(
-          (b: any) => b.data.clusterId === worker.data.clusterId,
-        );
-        if (!boss) return null;
-
-        const bossPrompt = bossPrompts.find((bp) => bp.bossId === boss.id);
-        if (!bossPrompt) return null;
-
-        const { text } = await generateText({
-          model: registry.languageModel(`openai:${boss.data.model}`),
-          prompt: `${boss.data.systemPrompt}
-        
-        You are a Boss agent. Delegate a specific task to the Worker agent named ${worker.data.name} based on the following subtask:
-        
-        Subtask:  ${bossPrompt.subtask}
-        
-        Specific task for ${worker.data.name}:`,
-        });
-        return { workerId: worker.id, task: text };
-      }),
-    );
-
-    // Workers perform their tasks
-    const results = await Promise.all(
-      workers.map(async (worker: any) => {
-        const workerPrompt = workerPrompts.find(
-          (wp: any) => wp?.workerId === worker.id,
-        );
-        if (!workerPrompt) return null;
-
-        let context = '';
-        // if (worker.data.dataSource) {
-        //   context = await fetchDataFromSource(worker.data.dataSource, worker.data.dataSourceInput)
-        // }
-
-        const { text } = await generateText({
-          model: registry.languageModel(`openai:${worker.data.model}`),
-          prompt: `${worker.data.systemPrompt}
-        
-        Context: ${context}
-        
-        Task: ${workerPrompt.task}
-        
-        Response:`,
-        });
-        return { id: worker.id, result: text };
-      }),
-    );
-
-    return results.filter(
-      (result): result is { id: string; result: string } => result !== null,
-    );
-  };
-
   const updateSwarmJson = () => {
     const swarmData = {
       nodes: nodes.map((node) => ({
@@ -2304,22 +2177,59 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
     getAllFlowsQuery,
   ]);
 
-  // Type guard if needed
-  const isValidSaveFlowNode = (node: unknown): node is SaveFlowNode => {
-    return (
-      typeof node === 'object' &&
-      node !== null &&
-      'id' in node &&
-      'type' in node &&
-      'position' in node &&
-      'data' in node &&
-      typeof (node as any).data.id === 'string' &&
-      typeof (node as any).data.name === 'string' &&
-      typeof (node as any).data.type === 'string' &&
-      typeof (node as any).data.model === 'string' &&
-      typeof (node as any).data.systemPrompt === 'string'
-    );
+
+
+  const useSaveShortcuts = () => {
+    useEffect(() => {
+      const handleKeyPress = (e: KeyboardEvent) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+          e.preventDefault();
+          forceSave();
+        }
+      };
+  
+      window.addEventListener('keydown', handleKeyPress);
+      return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [forceSave]);
   };
+  
+  const useUnsavedChangesWarning = () => {
+    useEffect(() => {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        if (isSaving) {
+          const message = 'Changes are being saved. Are you sure you want to leave?';
+          e.returnValue = message;
+          return message;
+        }
+        if (lastSaveStatus === 'error') {
+          const message = 'You have unsaved changes. Are you sure you want to leave?';
+          e.returnValue = message;
+          return message;
+        }
+      };
+  
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isSaving, lastSaveStatus]);
+  };
+  
+
+  useSaveShortcuts();
+  useUnsavedChangesWarning();
+
+  // Update popup handling to show save status
+  useEffect(() => {
+    if (lastSaveStatus === 'error') {
+      setPopup({
+        message: 'Failed to save changes. Click save to retry.',
+        type: 'error'
+      });
+    }
+  }, [lastSaveStatus]);
+
+
+
+
   // Replace the existing save-related code with this implementation
   const debouncedSave = useMemo(
     () =>
@@ -2405,15 +2315,6 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
       setPopup({ message: 'Flow link copied to clipboard', type: 'success' });
     }
   };
-
-  // Add to dropdown menu options
-  const dropdownMenuItems = (
-    // ... existing dropdown items ...
-    <DropdownMenuItem onClick={shareFlowLink}>
-      <Share className="w-4 h-4 mr-2" />
-      Share Link
-    </DropdownMenuItem>
-  );
 
   // Add error state handling
   if (getCurrentFlowQuery.isError) {
