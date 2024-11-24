@@ -18,7 +18,6 @@ import ReactFlow, {
   Handle,
   Position,
   useReactFlow,
-  ReactFlowInstance,
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -66,7 +65,6 @@ import {
 } from '../spread_sheet_swarm/ui/dropdown-menu';
 import {
   Plus,
-  Crown,
   Send,
   Save,
   Share,
@@ -74,7 +72,6 @@ import {
   MoreHorizontal,
   X,
   Settings,
-  FileText,
   Sparkles,
   Loader2,
 } from 'lucide-react';
@@ -132,24 +129,6 @@ type SaveFlowNode = {
   [key: string]: unknown; // Add index signature to match passthrough behavior
 };
 
-type SaveFlowEdge = {
-  id: string;
-  source: string;
-  target: string;
-  type?: string;
-  animated?: boolean;
-  style?: {
-    stroke: string;
-  };
-  markerEnd?: {
-    type: string;
-    color: string;
-  };
-  data?: {
-    label: string;
-  };
-  [key: string]: unknown; // Add index signature to match passthrough behavior
-};
 
 interface AgentData {
   description: string;
@@ -210,28 +189,89 @@ const DeleteButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   </Button>
 );
 
-// Add this new function near the top of the file with other utility functions
+
+const AgentLoadingOverlay = () => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center"
+    >
+      <div className="flex flex-col items-center space-y-4">
+        <motion.div 
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          className="relative"
+        >
+          <div className="w-16 h-16">
+            <Loader2 className="w-16 h-16 text-primary animate-spin" />
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-lg font-medium text-foreground"
+        >
+          Processing Agent Tasks...
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
+export default AgentLoadingOverlay;
+
 const generateSystemPrompt = async (agentName: string, agentDescription: string) => {
   try {
     const { text } = await generateText({
       model: registry.languageModel('openai:gpt-4-turbo'),
-      prompt: `
-      You are an expert AI prompt engineer. Your task is to create a highly effective system prompt for an AI agent with the following details:
+      prompt: `You are an expert AI prompt engineer specializing in creating advanced system prompts for AI agents in a swarm architecture. Your task is to create a highly effective system prompt for an AI agent with the following details:
 
       Agent Name: ${agentName}
       Agent Description: ${agentDescription || 'No description provided'}
 
-      Create a detailed, production-ready system prompt that:
-      1. Clearly defines the agent's role, responsibilities, and constraints
-      2. Incorporates best practices for prompt engineering
-      3. Includes specific instructions for handling edge cases
-      4. Provides guidelines for output format and quality
-      5. Establishes appropriate boundaries and ethical considerations
-      6. Optimizes for the agent's specific purpose as described
-      7. Includes relevant context and background information
+      To create a reliable and effective system prompt, follow these instructions:
 
-      Return only the system prompt, without any additional text or formatting.
-      `,
+      1. Begin by defining the agent's role and responsibilities, ensuring they are clear and concise.
+      2. Establish explicit boundaries and constraints for the agent's operation, including any limitations or restrictions.
+      3. Provide context awareness and collaboration guidelines, outlining how the agent should interact with other agents and systems.
+      4. Specify the required output format, including any necessary data structures or formatting requirements.
+      5. Incorporate error handling and edge cases, ensuring the agent can recover from unexpected events or inputs.
+      6. Enable dynamic adaptation to different tasks, allowing the agent to adjust its behavior in response to changing requirements.
+      7. Include memory and context management, ensuring the agent can retain and utilize relevant information.
+      8. Define interaction patterns with other agents, outlining how they should communicate and coordinate.
+      9. Establish quality control measures, ensuring the agent's output meets the required standards.
+      10. Implement task prioritization logic, allowing the agent to manage multiple tasks and prioritize them effectively.
+
+      To showcase the agent's capabilities, provide the following multi-shot examples:
+
+      Example 1: 
+      Input: [Provide a sample input for the agent]
+      Expected Output: [Describe the expected output from the agent]
+      Explanation: [Explain the reasoning behind the expected output]
+
+      Example 2: 
+      Input: [Provide a sample input for the agent]
+      Expected Output: [Describe the expected output from the agent]
+      Explanation: [Explain the reasoning behind the expected output]
+
+      Example 3: 
+      Input: [Provide a sample input for the agent]
+      Expected Output: [Describe the expected output from the agent]
+      Explanation: [Explain the reasoning behind the expected output]
+
+      Use these advanced prompt engineering techniques:
+      - Chain-of-thought reasoning
+      - Few-shot examples
+      - Role-based conditioning
+      - Task decomposition
+      - Output structuring
+      - Context window management
+      - Error recovery protocols
+      - Multi-shot examples for reliability and showcasing the agent
+
+      Return only the optimized system prompt without any additional text or explanations.`,
     });
     
     return text;
@@ -1091,18 +1131,6 @@ const CustomEdge = ({
           </button>
         </div>
       </foreignObject>
-      {/* {data?.label && (
-        <text>
-          <textPath
-            href={`#${id}`}
-            style={{ fontSize: '12px' }}
-            startOffset="50%"
-            textAnchor="middle"
-          >
-            {data.label}
-          </textPath>
-        </text>
-      )} */}
     </>
   );
 };
@@ -1113,13 +1141,6 @@ const edgeTypes: EdgeTypes = {
 };
 
 type TaskResults = { [key: string]: string };
-// Add this type to better handle flow data
-interface FlowData {
-  nodes: any;
-  edges: Edge[];
-  architecture: SwarmArchitecture;
-  results: { [key: string]: string };
-}
 
 // Add this utility function at the top level
 const isEqual = (prev: any, next: any) =>
@@ -1131,20 +1152,6 @@ interface GroupData {
   swarmType: string;
   agents: AgentData[];
   description?: string;
-}
-
-type NodeTypes = {
-  agent: React.FC<NodeProps<AgentData>>;
-  group: React.FC<NodeProps<GroupData>>;
-}
-
-// Update SwarmData interface
-interface SwarmData {
-  nodes: Node[];
-  edges: Edge[];
-  architecture: SwarmArchitecture;
-  results: TaskResults;
-  groups?: GroupData[];
 }
 
 // Add this type definition near the top with other interfaces
@@ -1285,8 +1292,6 @@ const FlowContent = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [task, setTask] = useState('');
   const [swarmJson, setSwarmJson] = useState('');
-  const [versions, setVersions] = useState<SwarmVersion[]>([]);
-  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
   const [taskResults, setTaskResults] = useState<{ [key: string]: string }>({});
   const [isOptimizing, setIsOptimizing] = useState(false);
   const { toast } = useToast(); 
@@ -1471,7 +1476,7 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
       initialLoadRef.current = false;
 
       // Save new empty flow to get an ID
-      const result = await saveFlowMutation.mutateAsync({
+      const result: any = await saveFlowMutation.mutateAsync({
         nodes: [],
         edges: [],
         architecture: 'Concurrent',
@@ -1988,63 +1993,6 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
     (window as any).updateNodeData = updateNodeData;
   }, []);
 
-  const runConcurrentSwarm = async () => {
-    // Get all agents, both standalone and within groups
-    const allAgents = nodes.reduce((acc: AgentData[], node) => {
-      if (node.type === 'agent') {
-        acc.push(node.data);
-      } else if (node.type === 'group' && node.data.agents) {
-        acc.push(...node.data.agents);
-      }
-      return acc;
-    }, []);
-
-    return await Promise.all(
-      allAgents.map(async (agent) => {
-        const { text } = await generateText({
-          model: registry.languageModel(`openai:${agent.model}`),
-          prompt: `${agent.systemPrompt || ''}
-          
-          Task: ${task}
-          
-          Response:`,
-        });
-        return { id: agent.id, result: text };
-      }),
-    );
-  };
-
-  const runSequentialSwarm = async () => {
-    const results: { id: string; result: string }[] = [];
-    let context: string = '';
-
-    // Get all agents in order, both standalone and within groups
-    const allAgents = nodes.reduce((acc: AgentData[], node) => {
-      if (node.type === 'agent') {
-        acc.push(node.data);
-      } else if (node.type === 'group' && node.data.agents) {
-        acc.push(...node.data.agents);
-      }
-      return acc;
-    }, []);
-
-    for (const agent of allAgents) {
-      const { text } = await generateText({
-        model: registry.languageModel(`openai:${agent.model}`),
-        prompt: `${agent.systemPrompt || ''}
-        
-        Previous context: ${context}
-        
-        Task: ${task}
-        
-        Response:`,
-      });
-      results.push({ id: agent.id, result: text });
-      context += `\n${agent.name}: ${text}`;
-    }
-
-    return results;
-  };
 
    // Add this function inside the component
    const loadVersion = async (flowId: string) => {
@@ -2330,7 +2278,7 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
       } as const; // Use const assertion to preserve literal types
 
       // Save the flow
-      const result = await saveFlowMutation.mutateAsync(flowData);
+      const result: any = await saveFlowMutation.mutateAsync(flowData);
 
       if (!currentFlowId && result.id) {
         const newUrl = new URL(window.location.href);
@@ -2538,56 +2486,12 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
     };
   }, [setNodes]);
 
-  // Update the VersionsTabContent to use the new loadVersion function
-  const VersionsTabContent = () => (
-    <TabsContent value="versions">
-      <h2 className="text-lg font-semibold mb-4">Flows</h2>
-      <div className="max-h-[calc(100vh-340px)] overflow-y-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Flows</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {getAllFlowsQuery.data?.map((flow) => (
-              <TableRow key={flow.id}>
-                <TableCell>{flow.id}</TableCell>
-                <TableCell>
-                  {new Date(flow.created_at).toLocaleString()}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    onClick={() => loadVersion(flow.id)}
-                    disabled={
-                      saveFlowMutation.status === 'pending' ||
-                      setCurrentFlowMutation.status === 'pending'
-                    }
-                  >
-                    Load
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </TabsContent>
-  );
-
-  if (isLoading) {
-    return <LoadingScreen />
-  }
-
   // Replace the existing Versions TabsContent with the new component
   return (
     <div className="w-full h-[calc(100%-10px)] flex flex-col bg-background text-foreground">
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b border-border">
-        <h1 className="text-2xl font-semibold">LLM Agent Swarm</h1>
+        <h1 className="text-2xl font-semibold">Swarms No-Code Builder</h1>
         <div className="flex space-x-2">
           {/* Add this button */}
           <Button
@@ -2893,7 +2797,7 @@ const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {getAllFlowsQuery.data?.map((flow) => (
+                    {getAllFlowsQuery.data?.map((flow: any) => (
                       <TableRow key={flow.id}>
                         <TableCell>{flow.id}</TableCell>
                         <TableCell>
