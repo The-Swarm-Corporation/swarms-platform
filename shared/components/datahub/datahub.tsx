@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react"
 import { Search, Plus, File, FileText, FileSpreadsheet, FileImage, FileIcon, FileJson, Upload } from "lucide-react"
 import { Button } from "../ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/Card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../spread_sheet_swarm/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -18,18 +18,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { ScrollArea } from "../ui/scroll-area"
 import { useDropzone } from "react-dropzone"
 import { createClient } from "@supabase/supabase-js"
-import { useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider } from "react-query"
+import { useQuery, useMutation, useQueryClient } from "react-query"
 import { useToast } from "../ui/Toasts/use-toast"
-import { Toaster } from "../ui/toaster"
 import { Input } from "../ui/Input"
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const supabase = createClient(supabaseUrl, supabaseKey)
-
-// Create a new QueryClient instance
-const queryClient = new QueryClient()
 
 type Document = {
   id: string
@@ -375,12 +371,3 @@ function AddDocumentDialog({ onAddDocument }: { onAddDocument: (doc: Document) =
     </Dialog>
   )
 }
-
-// export default function DataHub() {
-//   return (
-//     <QueryClientProvider client={queryClient}>
-//       <OptimizedDataHubGallery />
-//       <Toaster />
-//     </QueryClientProvider>
-//   )
-// }
