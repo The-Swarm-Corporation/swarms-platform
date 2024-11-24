@@ -1,6 +1,5 @@
 "use client"
 
-import { Metadata } from 'next'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { Toaster } from '@/shared/components/ui/toaster'
 import OptimizedDataHubGallery from '@/shared/components/datahub/datahub'
@@ -8,10 +7,6 @@ import OptimizedDataHubGallery from '@/shared/components/datahub/datahub'
 // Create a new QueryClient instance
 const queryClient = new QueryClient()
 
-export const metadata: Metadata = {
-  title: 'Enterprise Data Hub',
-  description: 'Manage and organize your business documents efficiently.',
-}
 
 export default function DataHubPage() {
   return (
