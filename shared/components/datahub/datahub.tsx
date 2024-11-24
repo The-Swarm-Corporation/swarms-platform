@@ -16,16 +16,19 @@ import {
 import { Label } from "../ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { ScrollArea } from "../ui/scroll-area"
-import { useDropzone } from "react-dropzone"
-import { createClient } from "@supabase/supabase-js"
-import { useQuery, useMutation, useQueryClient } from "react-query"
+import { useQuery, useMutation, useQueryClient, QueryClient } from "react-query"
 import { useToast } from "../ui/Toasts/use-toast"
 import { Input } from "../spread_sheet_swarm/ui/input"
+import { supabase } from "@/lib/supabase"
+import dynamic from "next/dynamic"
+import { DropzoneProps, useDropzone } from "react-dropzone"
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseKey)
+const DynamicDropzone = dynamic<DropzoneProps>(() => import('react-dropzone').then(mod => mod.default), {
+  ssr: false,
+})
+
+// Create a new QueryClient instance
+const queryClient = new QueryClient()
 
 type Document = {
   id: string
@@ -39,16 +42,23 @@ type Document = {
 
 // Supabase functions
 const fetchDocuments = async (): Promise<Document[]> => {
+  if (!supabase) {
+    throw new Error('Supabase client is not initialized')
+  }
+
   const { data, error } = await supabase
     .from("documents")
     .select("*")
     .order("uploadDate", { ascending: false })
-
   if (error) throw error
-  return data
+  return data as Document[] || []
 }
 
 const addDocumentToSupabase = async (document: Document): Promise<Document> => {
+  if (!supabase) {
+    throw new Error('Supabase client is not initialized')
+  }
+
   const { data, error } = await supabase
     .from("documents")
     .insert(document)
@@ -62,12 +72,17 @@ const addDocumentToSupabase = async (document: Document): Promise<Document> => {
 const LOCAL_STORAGE_KEY = "documentHubCache"
 
 const saveToLocalStorage = (documents: Document[]) => {
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(documents))
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(documents))
+  }
 }
 
 const getFromLocalStorage = (): Document[] => {
-  const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
-  return cached ? JSON.parse(cached) : []
+  if (typeof window !== 'undefined') {
+    const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
+    return cached ? JSON.parse(cached) : []
+  }
+  return []
 }
 
 export default function OptimizedDataHubGallery() {
@@ -82,7 +97,8 @@ export default function OptimizedDataHubGallery() {
     fetchDocuments,
     {
       onSuccess: (data) => saveToLocalStorage(data),
-      onError: () => {
+      onError: (error) => {
+        console.error("Error fetching documents:", error)
         toast({
           title: "Error fetching documents",
           description: "Using cached data. Please check your connection and try again.",
@@ -101,7 +117,8 @@ export default function OptimizedDataHubGallery() {
         description: "Your document has been added to the data hub.",
       })
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error adding document:", error)
       toast({
         title: "Error adding document",
         description: "There was a problem adding your document. Please try again.",
@@ -185,26 +202,30 @@ export default function OptimizedDataHubGallery() {
         <Upload className="mx-auto h-12 w-12 text-gray-400" />
         <p className="mt-2 text-sm text-gray-600">Drag 'n' drop some files here, or click to select files</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredDocuments.map((doc) => (
-          <Card key={doc.id} className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow duration-200" onClick={() => setSelectedDocument(doc)}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {getIconForDocumentType(doc.type)}
-                {doc.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">Type: {doc.type}</p>
-              <p className="text-sm text-gray-500">Size: {doc.size}</p>
-              <p className="text-sm text-gray-500">Uploaded by: {doc.uploadedBy}</p>
-            </CardContent>
-            <CardFooter className="text-sm text-gray-400 mt-auto">
-              Uploaded on {new Date(doc.uploadDate).toLocaleDateString()}
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+      {filteredDocuments.length === 0 ? (
+        <div className="text-center text-gray-500">No documents found. Try uploading some!</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredDocuments.map((doc) => (
+            <Card key={doc.id} className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow duration-200" onClick={() => setSelectedDocument(doc)}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {getIconForDocumentType(doc.type)}
+                  {doc.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-500">Type: {doc.type}</p>
+                <p className="text-sm text-gray-500">Size: {doc.size}</p>
+                <p className="text-sm text-gray-500">Uploaded by: {doc.uploadedBy}</p>
+              </CardContent>
+              <CardFooter className="text-sm text-gray-400 mt-auto">
+                Uploaded on {new Date(doc.uploadDate).toLocaleDateString()}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
       {selectedDocument && (
         <DocumentDetailsModal
           document={selectedDocument}
@@ -371,3 +392,12 @@ function AddDocumentDialog({ onAddDocument }: { onAddDocument: (doc: Document) =
     </Dialog>
   )
 }
+
+// export default function App() {
+//   return (
+//     <QueryClientProvider client={queryClient}>
+//       <OptimizedDataHubGallery />
+//       <Toaster />
+//     </QueryClientProvider>
+//   )
+// }
