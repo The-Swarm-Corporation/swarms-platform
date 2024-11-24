@@ -53,6 +53,7 @@ export async function afterSignin(user: User) {
   }
   return PLATFORM.EXPLORER;
 }
+
 export async function checkUserSession() {
   const supabase = createClient();
   const {

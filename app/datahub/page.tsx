@@ -1,38 +1,47 @@
+// app/documents/page.tsx
 "use client"
 
-import { QueryClient, QueryClientProvider } from 'react-query'
+import { Suspense } from 'react'
+import { QueryClientProvider, QueryClient } from 'react-query'
 import { Toaster } from '@/shared/components/ui/toaster'
-import OptimizedDataHubGallery from '@/shared/components/datahub/datahub'
+import EnterpriseDataHub from '@/shared/components/datahub/datahub'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { Loader2 } from 'lucide-react'
 
-// Create a new QueryClient instance
-const queryClient = new QueryClient()
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+})
 
+const Loading = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <Loader2 className="h-8 w-8 animate-spin" />
+  </div>
+)
 
-export default function DataHubPage() {
+const ErrorBoundary = ({ error }: { error: Error }) => (
+  <Alert variant="destructive">
+    <AlertDescription>
+      Error loading document hub: {error.message}
+    </AlertDescription>
+  </Alert>
+)
+
+export default function DocumentHubPage() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-background">
-        <main className="flex-1">
-          <section className="w-full py-12 md:py-24 lg:py-32">
-            <div className="container px-4 md:px-6">
-              <div className="flex flex-col items-center justify-center space-y-4 text-center">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                    Enterprise Data Hub
-                  </h1>
-                  <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-                    Manage and organize all your business documents in one centralized location.
-                  </p>
-                </div>
-              </div>
-              <div className="mx-auto max-w-5xl mt-8">
-                <OptimizedDataHubGallery />
-              </div>
-            </div>
-          </section>
-        </main>
-      </div>
-      <Toaster />
+      <Suspense fallback={<Loading />}>
+        <div className="min-h-screen bg-background">
+          <EnterpriseDataHub />
+          <Toaster />
+        </div>
+      </Suspense>
     </QueryClientProvider>
   )
 }
