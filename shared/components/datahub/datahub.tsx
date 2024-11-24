@@ -20,7 +20,7 @@ import { useDropzone } from "react-dropzone"
 import { createClient } from "@supabase/supabase-js"
 import { useQuery, useMutation, useQueryClient } from "react-query"
 import { useToast } from "../ui/Toasts/use-toast"
-import { Input } from "../ui/Input"
+import { Input } from "../spread_sheet_swarm/ui/input"
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
