@@ -11,6 +11,9 @@ import { useDropzone } from "react-dropzone"
 import { z } from "zod"
 import { v4 as uuidv4 } from 'uuid'
 import { AddDocumentDialog, DocumentCard, DocumentDetailsModal } from "./doccard"
+import { useRouter } from 'next/navigation'
+import { supabaseAdmin } from "@/shared/utils/supabase/admin"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 
 // Constants
@@ -19,6 +22,17 @@ const ALLOWED_FILE_TYPES = ['text/plain', 'text/csv', 'application/pdf', 'image/
 const LOCAL_STORAGE_KEY = "documentHubCache"
 const RETRY_ATTEMPTS = 3
 const RETRY_DELAY = 1000
+
+
+const createClient = () => {
+    return createClientComponentClient({
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    })
+}
+  
+
+const supabase = createClient()
 
 // User Schema
 const UserSchema = z.object({
@@ -294,6 +308,8 @@ export default function EnterpriseDataHub() {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const queryClient = useQueryClient();
+  const router = useRouter();
+  // Removed duplicate declaration of isLoading state
 
   const user: any = session?.user ? {
     id: session.user.id,
@@ -305,6 +321,46 @@ export default function EnterpriseDataHub() {
   const supabaseOperations = createSupabaseOperations(supabaseClient, user);
   const localStorageOperations = user ? createLocalStorageOperations(user.id) : null;
   const logService = createLogService(supabaseClient, user);
+
+
+  // Auth state check
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabaseAdmin.auth.getSession()
+        if (error) throw error
+        if (!session) {
+          router.push('/auth/signin') // Redirect to your sign-in page
+        }
+      } catch (error) {
+        console.error('Auth error:', error)
+        toast({
+          title: "Authentication Error",
+          description: "Please try signing in again.",
+          variant: "destructive",
+        })
+        router.push('/auth/signin')
+      }
+    }
+
+    checkAuth()
+  }, [router, toast])
+
+  // Subscription to auth changes
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabaseAdmin.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.push('/auth/signin')
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [router])
+
+
+  
 
   // Network status monitoring
   useEffect(() => {

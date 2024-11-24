@@ -2397,19 +2397,20 @@ const FlowContent = () => {
           <Button
             variant="outline"
             className="bg-card hover:bg-muted"
-            onClick={() => setIsCreatingGroup(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Group
-          </Button>
-          <Button
-            variant="outline"
-            className="bg-card hover:bg-muted"
             onClick={createNewFlow}
             disabled={saveFlowMutation.isPending}
           >
             <Plus className="w-4 h-4 mr-2" />
             New Flow
+          </Button>
+
+          <Button
+            variant="outline"
+            className="bg-card hover:bg-muted"
+            onClick={() => setIsCreatingGroup(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Swarm
           </Button>
 
           <Dialog>
@@ -2574,7 +2575,7 @@ const FlowContent = () => {
       <Dialog open={isCreatingGroup} onOpenChange={setIsCreatingGroup}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create Agent Group</DialogTitle>
+            <DialogTitle>Create Swarm</DialogTitle>
           </DialogHeader>
           <form onSubmit={(e) => {
             e.preventDefault();
