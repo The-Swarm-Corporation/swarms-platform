@@ -2632,7 +2632,7 @@ const FlowContent = () => {
           <Tabs defaultValue="results" className="h-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="results">Results</TabsTrigger>
-              <TabsTrigger value="versions">Flows</TabsTrigger>
+              <TabsTrigger value="versions">Swarms</TabsTrigger>
             </TabsList>
             <TabsContent value="results">
               <h2 className="text-lg font-semibold mb-4">Task Results</h2>
@@ -2681,7 +2681,7 @@ const FlowContent = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Flows</TableHead>
+                      <TableHead>Swarms</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Action</TableHead>
                     </TableRow>
