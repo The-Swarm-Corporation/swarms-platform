@@ -27,7 +27,9 @@ const AgentConfigSchema = z.object({
       .min(50)
       .describe('A comprehensive and detailed prompt that outlines the agent\'s expected behavior, responsibilities, and objectives'),
     description: z.string()
-      .describe('A concise summary of the agent\'s primary function, highlighting its area of expertise and capabilities')
+      .describe('A concise summary of the agent\'s primary function, highlighting its area of expertise and capabilities'),
+    model: z.enum(['gpt-4o', 'gpt-4o-mini'])
+      .describe('AI model to use for this agent'),
 });
 
 

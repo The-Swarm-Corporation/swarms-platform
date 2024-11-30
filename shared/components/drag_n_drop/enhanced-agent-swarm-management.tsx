@@ -1179,6 +1179,8 @@ const FlowContent = () => {
     enabled: true
   });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoadingFlow, setIsLoadingFlow] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const [swarmArchitecture, setSwarmArchitecture] =
     useState<SwarmArchitecture>('Concurrent');
@@ -2019,39 +2021,42 @@ const FlowContent = () => {
     try {
       // Transform nodes to match the expected schema
       const validNodes: SaveFlowNode[] = nodes.map((node) => {
-        const { id, type, position, data, ...rest } = node;
+        const { id, type, position, data } = node;
+        
+        // Set default values for required fields if they're missing
+        const validatedData = {
+          id: data?.id || id,
+          name: data?.name || '',
+          type: data?.type || type || 'default', // Ensure type is never null
+          model: data?.model || '',
+          systemPrompt: data?.systemPrompt || '',
+          clusterId: data?.clusterId,
+          isProcessing: data?.isProcessing || false,
+          lastResult: data?.lastResult || '',
+          dataSource: data?.dataSource,
+          dataSourceInput: data?.dataSourceInput,
+          ...data,
+        };
+  
         return {
           id,
-          type: type || 'default',
+          type: type || 'default', // Ensure node type is never null
           position: {
             x: position.x,
             y: position.y,
           },
-          data: {
-            id: data?.id || id,
-            name: data?.name || '',
-            type: data?.type || 'default',
-            model: data?.model || '',
-            systemPrompt: data?.systemPrompt || '',
-            clusterId: data?.clusterId,
-            isProcessing: data?.isProcessing || false,
-            lastResult: data?.lastResult || '',
-            dataSource: data?.dataSource,
-            dataSourceInput: data?.dataSourceInput,
-            ...data,
-          },
-          ...rest,
+          data: validatedData,
         };
       });
-
-      // Transform edges to match the expected schema
+  
+      // Rest of the function remains the same...
       const validEdges: any[] = edges.map((edge) => {
         const { id, source, target, ...rest } = edge;
         return {
           id,
           source,
           target,
-          type: rest.type,
+          type: rest.type || 'default',
           animated: rest.animated,
           style: rest.style
             ? {
@@ -2070,42 +2075,31 @@ const FlowContent = () => {
           data: rest.data || { label: 'Connection' },
         };
       });
-
-      // Create the flow data object
+  
       const flowData = {
         flow_id: currentFlowId || undefined,
         nodes: validNodes,
         edges: validEdges,
         architecture: swarmArchitecture,
         results: taskResults || {},
-      } as const; // Use const assertion to preserve literal types
-
-      // Save the flow
+      } as const;
+  
       const result: any = await saveFlowMutation.mutateAsync(flowData);
-
+  
       if (!currentFlowId && result.id) {
         const newUrl = new URL(window.location.href);
         newUrl.searchParams.set('flowId', result.id);
         router.replace(newUrl.pathname + newUrl.search);
         setCurrentFlowId(result.id);
       }
-
+  
       setPopup({ message: 'Flow saved successfully', type: 'success' });
       await getAllFlowsQuery.refetch();
     } catch (error) {
       console.error('Error saving flow:', error);
       setPopup({ message: 'Failed to save flow', type: 'error' });
     }
-  }, [
-    nodes,
-    edges,
-    swarmArchitecture,
-    taskResults,
-    saveFlowMutation,
-    router,
-    currentFlowId,
-    getAllFlowsQuery,
-  ]);
+  }, [nodes, edges, swarmArchitecture, taskResults, saveFlowMutation, router, currentFlowId, getAllFlowsQuery]);
 
 
 
