@@ -1,6 +1,5 @@
 'use client';
 
-
 import { Button } from '@/shared/components/spread_sheet_swarm/ui/button';
 import { cn } from '@/shared/utils/cn';
 import React, { useEffect, useState } from 'react';
@@ -21,7 +20,7 @@ import OrganizationUsage from './components/organization-usage';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 type UsageTab = 'cost' | 'activity';
-type UsageData = UserUsage | null;
+type UsageData = UserUsage | any;
 type OrgUsageData = OrgUsage | null;
 
 export default function Usage() {
@@ -130,7 +129,7 @@ export default function Usage() {
           {usageMutation.isPending ? (
             <LoadingSpinner />
           ) : (
-            <ModelActivity usageData={usageData as UsageData | any} />
+            <ModelActivity usageData={usageData} />
           )}
         </div>
         {organizationUsageData && (
