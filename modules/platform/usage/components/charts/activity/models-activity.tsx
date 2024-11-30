@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import {
   BarChart,
   Bar,
@@ -9,192 +10,305 @@ import {
   Legend,
   Area,
   AreaChart,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
-import CustomTooltip from '../tooltip';
-import { getColorForModel } from '../../helpers/get-color-model';
-import { DailyCost, UserUsage } from '@/shared/utils/api/usage';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+import { UserCheck, Clock, Database, Table } from 'lucide-react';
 
-interface ModelUsageProps {
-  usageData: UserUsage | null;
+// Define explicit types
+export interface ModelUsage {
+  tokens: number;
+  requests: number;
 }
 
-type ModalDataProps = {
-  [model: string]: {
-    requests: { date: string; value: number }[];
-    tokens: { date: string; value: number }[];
-    totalRequests: number;
-    totalTokens: number;
+export interface DailyCost {
+  date: string;
+  model: {
+    [key: string]: ModelUsage;
   };
-};
+}
 
-export default function ModelActivity({ usageData }: ModelUsageProps) {
-  if (!usageData || !usageData?.dailyCosts?.length) {
-    return (
-      <div className="flex flex-col items-center justify-center border rounded-md px-2 sm:px-4 py-4 sm:py-8 text-card-foreground mt-5 mb-8 gap-2 w-full">
-        <h3 className="opacity-60">
-          No activities available for the current month
-        </h3>
-      </div>
-    );
-  }
+export interface UsageData {
+  dailyCosts: DailyCost[];
+}
 
-  const daysInMonth = useMemo(() => {
-    const firstDate = new Date(usageData.dailyCosts[0].date);
-    const year = firstDate.getFullYear();
-    const month = firstDate.getMonth();
-    return new Date(year, month + 1, 0).getDate();
-  }, [usageData]);
+interface SwarmSession {
+  uuid: string;
+  timestamp: string;
+  spreadsheet_name: string;
+  num_agents: number;
+  duration_minutes: number;
+  swarms_spreadsheet_session_agents: Array<{
+    name: string;
+    role: string;
+    platform: string;
+  }>;
+}
 
-  const modelData: ModalDataProps = {};
+interface ModelActivityProps {
+  usageData: UsageData | null;
+}
 
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(usageData.dailyCosts[0].date);
-    date.setDate(day);
-    const dateString = date.toISOString().slice(0, 10);
+interface AnalyticsData {
+  sessions: SwarmSession[];
+  totalAgents: number;
+  totalSessions: number;
+  averageDuration: number;
+  agentDistribution: { name: string; value: number }[];
+  platformUsage: { name: string; value: number }[];
+  sessionTrends: { date: string; count: number }[];
+}
 
-    usageData.dailyCosts.forEach((dailyCost) => {
-      if (dailyCost.date === dateString) {
-        Object.entries(dailyCost.model ?? '').forEach(
-          ([model, { tokens, requests }]) => {
-            if (!modelData[model]) {
-              modelData[model] = {
-                requests: [],
-                tokens: [],
-                totalRequests: 0,
-                totalTokens: 0,
-              };
-            }
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-            const formattedDate = date.toLocaleDateString('en-US', {
-              day: '2-digit',
-              month: 'short',
-            });
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
-            modelData[model].requests.push({
-              date: formattedDate,
-              value: requests,
-            });
-            modelData[model].tokens.push({
-              date: formattedDate,
-              value: tokens,
-            });
-            modelData[model].totalRequests += requests;
-            modelData[model].totalTokens += tokens;
-          },
-        );
-      } else {
-        Object.keys(dailyCost.model ?? '').forEach((model) => {
-          if (!modelData[model]) {
-            modelData[model] = {
-              requests: [],
-              tokens: [],
-              totalRequests: 0,
-              totalTokens: 0,
-            };
-          }
-          const formattedDate = date.toLocaleDateString('en-US', {
-            day: '2-digit',
-            month: 'short',
+export const ModelActivity: React.FC<ModelActivityProps> = ({ usageData }) => {
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchSwarmData() {
+      try {
+        const { data: sessions, error: sessionsError } = await supabase
+          .from('swarms_spreadsheet_sessions')
+          .select(`
+            uuid,
+            timestamp,
+            spreadsheet_name,
+            num_agents,
+            duration_minutes,
+            swarms_spreadsheet_session_agents (
+              name,
+              role,
+              platform
+            )
+          `)
+          .order('timestamp', { ascending: false });
+
+        if (sessionsError) throw sessionsError;
+
+        const processedData: AnalyticsData = {
+          sessions: sessions || [],
+          totalAgents: 0,
+          totalSessions: sessions?.length || 0,
+          averageDuration: 0,
+          agentDistribution: [],
+          platformUsage: [],
+          sessionTrends: []
+        };
+
+        const roleCount: { [key: string]: number } = {};
+        const platformCount: { [key: string]: number } = {};
+        const dateCount: { [key: string]: number } = {};
+        let totalDuration = 0;
+        let totalAgents = 0;
+
+        sessions?.forEach(session => {
+          totalAgents += session.num_agents;
+          totalDuration += session.duration_minutes;
+
+          const date = new Date(session.timestamp).toLocaleDateString();
+          dateCount[date] = (dateCount[date] || 0) + 1;
+
+          session.swarms_spreadsheet_session_agents?.forEach(agent => {
+            roleCount[agent.role] = (roleCount[agent.role] || 0) + 1;
+            platformCount[agent.platform] = (platformCount[agent.platform] || 0) + 1;
           });
-
-          modelData[model].requests.push({ date: formattedDate, value: 0 });
-          modelData[model].tokens.push({ date: formattedDate, value: 0 });
         });
+
+        processedData.totalAgents = totalAgents;
+        processedData.averageDuration = totalDuration / processedData.totalSessions;
+        processedData.agentDistribution = Object.entries(roleCount).map(([name, value]) => ({ name, value }));
+        processedData.platformUsage = Object.entries(platformCount).map(([name, value]) => ({ name, value }));
+        processedData.sessionTrends = Object.entries(dateCount)
+          .map(([date, count]) => ({ date, count }))
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        setAnalyticsData(processedData);
+        setLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        setLoading(false);
       }
-    });
-  }
+    }
+
+    fetchSwarmData();
+  }, []);
+
+  if (loading) return <div className="text-center p-8">Loading analytics...</div>;
+  if (error) return <div className="text-center text-red-500 p-8">Error: {error}</div>;
+  if (!analyticsData) return <div className="text-center p-8">No data available</div>;
 
   return (
-    <div className="model-usage xl:mb-10 gap-8">
-      {Object.keys(modelData).map((modelName) => (
-        <div key={modelName} className="model-chart mb-10">
-          <h4 className="my-6 font-semibold">{modelName}</h4>
-          <div className="grid md:grid-cols-2">
-            {/* API requests */}
-            <div className="chart-section">
-              <h5 className="mb-2">
-                API requests{' '}
-                {modelData[modelName].totalRequests.toLocaleString()}
-              </h5>
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={modelData[modelName].requests}>
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 12 }}
-                    minTickGap={50}
-                  />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    cursor={{ opacity: 0.1, fill: 'white' }}
-                    content={
-                      <CustomTooltip
-                        active={true}
-                        payload={[]}
-                        type="activity"
-                        label={''}
-                        usageData={usageData}
-                      />
-                    }
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                      border: '1px solid #e5e7eb',
-                      color: '#374151',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke={getColorForModel(modelName, usageData)}
-                    fillOpacity={0.3}
-                    fill={getColorForModel(modelName, usageData)}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <UserCheck className="h-8 w-8 text-blue-500" />
+              <div>
+                <p className="text-sm font-medium">Total Sessions</p>
+                <h3 className="text-2xl font-bold">{analyticsData.totalSessions}</h3>
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Tokens */}
-            <div className="chart-section">
-              <h5 className="mb-2 text-gray-300">
-                Tokens {modelData[modelName].totalTokens.toLocaleString()}
-              </h5>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={modelData[modelName].tokens} barSize={15}>
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 12 }}
-                    minTickGap={50}
-                  />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    cursor={{ opacity: 0.1, fill: 'white' }}
-                    content={
-                      <CustomTooltip
-                        active={true}
-                        payload={[]}
-                        type="activity"
-                        label={''}
-                        usageData={usageData}
-                      />
-                    }
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                      border: '1px solid #e5e7eb',
-                      color: '#374151',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Bar
-                    dataKey="value"
-                    fill={getColorForModel(modelName, usageData)}
-                    radius={[2, 2, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Database className="h-8 w-8 text-green-500" />
+              <div>
+                <p className="text-sm font-medium">Total Agents</p>
+                <h3 className="text-2xl font-bold">{analyticsData.totalAgents}</h3>
+              </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Clock className="h-8 w-8 text-orange-500" />
+              <div>
+                <p className="text-sm font-medium">Avg Duration</p>
+                <h3 className="text-2xl font-bold">
+                  {Math.round(analyticsData.averageDuration)} min
+                </h3>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Table className="h-8 w-8 text-purple-500" />
+              <div>
+                <p className="text-sm font-medium">Avg Agents/Session</p>
+                <h3 className="text-2xl font-bold">
+                  {(analyticsData.totalAgents / analyticsData.totalSessions).toFixed(1)}
+                </h3>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      {/* Model Usage Charts */}
+      {usageData && usageData.dailyCosts && usageData.dailyCosts.length > 0 && (
+        <div className="model-usage xl:mb-10 gap-8">
+          {Object.keys(usageData.dailyCosts[0].model || {}).map((modelName) => (
+            <Card key={modelName} className="mb-6">
+              <CardHeader>
+                <CardTitle>{modelName} Usage</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h5 className="mb-2">API Requests</h5>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <AreaChart
+                        data={usageData.dailyCosts.map(cost => ({
+                          date: new Date(cost.date).toLocaleDateString(),
+                          value: cost.model[modelName]?.requests || 0,
+                        }))}
+                      >
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Area
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#8884d8"
+                          fill="#8884d8"
+                          fillOpacity={0.3}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div>
+                    <h5 className="mb-2">Token Usage</h5>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart
+                        data={usageData?.dailyCosts.map(cost => ({
+                          date: new Date(cost.date).toLocaleDateString(),
+                          value: cost.model[modelName]?.tokens || 0,
+                        })) || []}
+                      >
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#8884d8" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      ))}
+      )}
+
+      {/* Agent Distribution */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Agent Roles Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={analyticsData.agentDistribution}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {analyticsData.agentDistribution.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Platform Usage</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={analyticsData.platformUsage}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="#8884d8">
+                  {analyticsData.platformUsage.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+export default ModelActivity;

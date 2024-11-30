@@ -1,6 +1,7 @@
 'use client';
 
-import { Button } from '@/shared/components/ui/Button';
+
+import { Button } from '@/shared/components/spread_sheet_swarm/ui/button';
 import { cn } from '@/shared/utils/cn';
 import React, { useEffect, useState } from 'react';
 import MonthPicker from './components/month-picker';
@@ -129,7 +130,7 @@ export default function Usage() {
           {usageMutation.isPending ? (
             <LoadingSpinner />
           ) : (
-            <ModelActivity usageData={usageData} />
+            <ModelActivity usageData={usageData as UsageData | null} />
           )}
         </div>
         {organizationUsageData && (

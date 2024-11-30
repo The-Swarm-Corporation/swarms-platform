@@ -536,7 +536,7 @@ export function SwarmManagement() {
     try {
       const currentPrompt = isEditing ? editingAgent.systemPrompt : newAgent.systemPrompt;
       const { text } = await generateText({
-        model: registry.languageModel('openai:gpt-4-turbo'),
+        model: registry.languageModel('openai:gpt-4o'),
         prompt: `
         Your task is to optimize the following system prompt for an AI agent. The optimized prompt should be highly reliable, production-grade, and tailored to the specific needs of the agent. Consider the following guidelines:
 
@@ -1003,8 +1003,8 @@ export function SwarmManagement() {
                           <SelectValue placeholder="Select LLM" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="openai:gpt-4-turbo">
-                            GPT-4 Turbo
+                          <SelectItem value="openai:gpt-4o">
+                            GPT-4o
                           </SelectItem>
                           <SelectItem value="anthropic:claude-3-opus-20240229">
                             Claude 3 Opus
@@ -1319,8 +1319,8 @@ export function SwarmManagement() {
                   <SelectValue placeholder="Select LLM" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="openai:gpt-4-turbo">
-                    GPT-4 Turbo
+                  <SelectItem value="openai:gpt-4o-mini">
+                    GPT-4o-Mini
                   </SelectItem>
                   <SelectItem value="anthropic:claude-3-opus-20240229">
                     Claude 3 Opus

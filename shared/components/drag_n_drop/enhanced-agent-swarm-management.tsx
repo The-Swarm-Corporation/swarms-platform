@@ -89,7 +89,7 @@ import debounce from 'lodash/debounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useEnhancedAutosave } from './autosave';
-import SaveStatusIndicator from './save_status';
+import AutoGenerateSwarm from './auto_generate_swarm';
 
 // Create provider registry
 const registry = createProviderRegistry({
@@ -100,8 +100,7 @@ const registry = createProviderRegistry({
 });
 
 type AgentType = 'Worker' | 'Boss';
-type AgentModel = 'gpt-3.5-turbo' | 'gpt-4' | 'claude-2' | 'gpt-4-turbo';
-type DataSource = 'Wikipedia' | 'ArXiv' | 'News API' | 'Custom API';
+type AgentModel = 'gpt-3.5-turbo' | 'gpt-4o' | 'claude-2' | 'gpt-4o-mini';
 type SwarmArchitecture = 'Concurrent' | 'Sequential' | 'Hierarchical';
 type ReactFlowNode = Node<AgentData>;
 
@@ -142,8 +141,6 @@ interface AgentData {
   clusterId?: any; // Made optional but explicit in the type
   isProcessing?: boolean;
   lastResult?: string;
-  dataSource?: DataSource;
-  dataSourceInput?: string;
   hideDeleteButton?: boolean;
 }
 
@@ -227,7 +224,7 @@ export default AgentLoadingOverlay;
 const generateSystemPrompt = async (agentName: string, agentDescription: string) => {
   try {
     const { text } = await generateText({
-      model: registry.languageModel('openai:gpt-4-turbo'),
+      model: registry.languageModel('openai:gpt-4o'),
       prompt: `You are an expert AI prompt engineer specializing in creating advanced system prompts for AI agents in a swarm architecture. Your task is to create a highly effective system prompt for an AI agent with the following details:
 
       Agent Name: ${agentName}
@@ -313,7 +310,7 @@ const optimizePrompt = async (currentPrompt: string): Promise<string> => {
 
   try {
     const { text } = await generateText({
-      model: registry.languageModel('openai:gpt-4-turbo'),
+      model: registry.languageModel('openai:gpt-4o'),
       prompt: `
       Your task is to optimize the following system prompt for an AI agent. The optimized prompt should be highly reliable, production-grade, and tailored to the specific needs of the agent. Consider the following guidelines:
 
@@ -562,9 +559,6 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
               <p>
                 <strong>System Prompt:</strong> {data.systemPrompt}
               </p>
-              <p>
-                <strong>Data Source:</strong> {data.dataSource || 'None'}
-              </p>
               {data.lastResult && (
                 <p>
                   <strong>Last Result:</strong> {data.lastResult}
@@ -608,12 +602,6 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
                     type: formData.get('type') as AgentType,
                     model: formData.get('model') as AgentModel,
                     systemPrompt: formData.get('systemPrompt') as string,
-                    dataSource: formData.get('dataSource') as
-                      | DataSource
-                      | undefined,
-                    dataSourceInput: formData.get('dataSourceInput') as
-                      | string
-                      | undefined,
                   };
                   window.updateNodeData(id, updatedAgent);
                   setIsEditing(false);
@@ -639,10 +627,6 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
                       <SelectTrigger className="bg-card border-border text-card-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-popover border-border">
-                        <SelectItem value="Worker">Worker</SelectItem>
-                        <SelectItem value="Boss">Boss</SelectItem>
-                      </SelectContent>
                     </Select>
                   </div>
                   <div>
@@ -657,8 +641,8 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
                         <SelectItem value="gpt-3.5-turbo">
                           GPT-3.5 Turbo
                         </SelectItem>
-                        <SelectItem value="gpt-4">GPT-4</SelectItem>
-                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                        <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                        <SelectItem value="gpt-4o-mini">GPT-4o-Mini</SelectItem>
                         <SelectItem value="claude-2">Claude 2</SelectItem>
                       </SelectContent>
                     </Select>
@@ -712,39 +696,6 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
                         )}
                       </Button>
                     </div>
-                  </div>
-                  <div>
-                    <Label
-                      htmlFor="dataSource"
-                      className="text-card-foreground"
-                    >
-                      Data Source
-                    </Label>
-                    <Select name="dataSource" defaultValue={data.dataSource}>
-                      <SelectTrigger className="bg-card border-border text-card-foreground">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border-border">
-                        <SelectItem value="Wikipedia">Wikipedia</SelectItem>
-                        <SelectItem value="ArXiv">ArXiv</SelectItem>
-                        <SelectItem value="News API">News API</SelectItem>
-                        <SelectItem value="Custom API">Custom API</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label
-                      htmlFor="dataSourceInput"
-                      className="text-card-foreground"
-                    >
-                      Data Source Input
-                    </Label>
-                    <Input
-                      id="dataSourceInput"
-                      name="dataSourceInput"
-                      defaultValue={data.dataSourceInput}
-                      className="bg-card border-border text-card-foreground"
-                    />
                   </div>
                 </div>
                 <DialogFooter className="mt-6">
@@ -2394,6 +2345,11 @@ const FlowContent = () => {
       <div className="flex justify-between items-center p-4 border-b border-border">
         <h1 className="text-2xl font-semibold">Swarms No-Code Builder</h1>
         <div className="flex space-x-2">
+          <AutoGenerateSwarm 
+            addAgent={addAgent} 
+            setPopup={setPopup}
+            reactFlowInstance={reactFlowInstance}
+          />
           <Button
             variant="outline"
             className="bg-card hover:bg-muted"
@@ -2428,7 +2384,7 @@ const FlowContent = () => {
                 </DialogDescription>
               </DialogHeader>
               <form
-                onSubmit={(e) => {
+                onSubmit={(e: any) => {
                   e.preventDefault();
                   const formData = new FormData(e.target as HTMLFormElement);
                   addAgent({
@@ -2437,12 +2393,6 @@ const FlowContent = () => {
                     type: formData.get('type') as AgentType,
                     model: formData.get('model') as AgentModel,
                     systemPrompt: formData.get('systemPrompt') as string,
-                    dataSource: formData.get('dataSource') as
-                      | DataSource
-                      | undefined,
-                    dataSourceInput: formData.get('dataSourceInput') as
-                      | string
-                      | undefined,
                     description: '',
                   });
                 }}

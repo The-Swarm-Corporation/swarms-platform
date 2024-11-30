@@ -57,7 +57,7 @@ const Dashboard = () => {
           <span className="text-bold text-2xl">Tasks Automated</span>
         </div>
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">
-        <span className="text-bold text-2xl"> Goal: ⭐ {commaSeparated(agentsGoal)} {/* Display the goal with a star emoji */}</span>
+        <span className="text-bold text-md"> Next Goal: ⭐ {commaSeparated(agentsGoal)} {/* Display the goal with a star emoji */}</span>
           {agentsRequests?.isLoading ? (
             <LoadingSpinner />
           ) : (
