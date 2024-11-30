@@ -1,177 +1,249 @@
 import React, { useState } from 'react';
 import { Button } from '../spread_sheet_swarm/ui/button';
 import { Loader2, Sparkles } from 'lucide-react';
-import { generateText, tool } from 'ai';
+import { CoreTool, CoreToolCallUnion, CoreToolResultUnion, tool } from 'ai';
 import { z } from 'zod';
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
+import {
+    experimental_createProviderRegistry as createProviderRegistry,
+    generateText,
+} from 'ai';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../spread_sheet_swarm/ui/dialog';
+import { Label } from '../spread_sheet_swarm/ui/label';
+import { Textarea } from '../spread_sheet_swarm/ui/textarea';
 
-// Define proper types for the popup state
-type PopupState = {
-  message: string;
-  type: 'success' | 'error';
-} | null;
-
-interface AutoGenerateSwarmProps {
-  addAgent: (agent: any) => void;
-  reactFlowInstance: any;
-  setPopup: (popup: PopupState) => void;
-}
-
-const AgentSchema = z.object({
-  name: z.string().describe('Name of the agent reflecting their role'),
-  type: z.enum(['Worker', 'Boss']).describe('Type of agent: Worker or Boss'),
-  model: z.enum(['gpt-4-turbo', 'gpt-3.5-turbo', 'claude-2'])
-    .describe('AI model to use for this agent'),
-  systemPrompt: z.string()
-    .min(50)
-    .describe('Detailed system prompt defining agent behavior and responsibilities'),
-  description: z.string()
-    .describe('Brief description of the agent\'s role and expertise')
+// Create provider registry
+const registry = createProviderRegistry({
+    openai: createOpenAI({
+      apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+    }),
 });
 
-const SwarmSchema = z.array(AgentSchema)
-  .min(4)
-  .max(7)
-  .describe('Array of agent configurations forming a balanced team');
 
+// Define schema for a single agent
+const AgentConfigSchema = z.object({
+    name: z.string().describe('The unique identifier for the agent, reflecting its specific role within the swarm and its role and purpose. Be very specific '),
+    systemPrompt: z.string()
+      .min(50)
+      .describe('A comprehensive and detailed prompt that outlines the agent\'s expected behavior, responsibilities, and objectives'),
+    description: z.string()
+      .describe('A concise summary of the agent\'s primary function, highlighting its area of expertise and capabilities')
+});
+
+
+// Define the swarm generation tool schema
+const SwarmToolSchema = z.object({
+    agents: z.array(AgentConfigSchema)
+    .min(4)
+    .max(7)
+    .describe('Array of agent configurations forming a balanced team')
+});
+  
+// Define types for the swarm generation tool
+type SwarmToolSet = {
+    createSwarm: any
+    // Ensure that the third type argument is provided if required
+};
+  
+  // Define tool call and result types
+type SwarmToolCall = CoreToolCallUnion<SwarmToolSet>;
+type SwarmToolResult = CoreToolResultUnion<SwarmToolSet>;
+  
+  // Define component props
+interface AutoGenerateSwarmProps {
+    addAgent: (agent: any) => void;
+    reactFlowInstance: any;
+    setPopup: (popup: { message: string; type: 'success' | 'error' } | null) => void;
+}
+  
 const AutoGenerateSwarm: React.FC<AutoGenerateSwarmProps> = ({ addAgent, setPopup, reactFlowInstance }) => {
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const calculateOptimalPosition = (index: number, totalAgents: number) => {
-    // Get the viewport dimensions
-    const viewport = reactFlowInstance.getViewport();
-    const { width, height } = reactFlowInstance.getViewport();
-    
-    // Calculate center of viewport
-    const centerX = (-viewport.x + width / 2) / viewport.zoom;
-    const centerY = (-viewport.y + height / 2) / viewport.zoom;
-    
-    // Calculate positions in a circle around the center
-    const radius = Math.min(width, height) / 4;
-    const angle = (2 * Math.PI * index) / totalAgents;
-    
-    return {
-      x: centerX + radius * Math.cos(angle),
-      y: centerY + radius * Math.sin(angle)
-    };
-  };
-
-  const addAgentWithAnimation = (agent: any, position: { x: number, y: number }, index: number) => {
-    // Create the node with initial scale of 0
-    const newNode = {
-      ...agent,
-      id: `auto-${Date.now()}-${index}`,
-      position,
-      data: {
-        ...agent,
-        style: {
-          opacity: 0,
-          scale: 0,
-          transition: {
-            type: 'spring',
-            stiffness: 260,
-            damping: 20,
-            delay: index * 0.2
-          }
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [task, setTask] = useState('');
+  
+    // Create the tool set
+    const swarmTools: SwarmToolSet = {
+      createSwarm: tool({
+        description: 'Generate a balanced team of AI agents with complementary roles',
+        parameters: SwarmToolSchema,
+        execute: async ({ agents }) => {
+          agents.forEach((agent, index) => {
+            const position = calculateOptimalPosition(index, agents.length);
+            addAgentWithAnimation(agent, position, index);
+          });
+          return { success: true, count: agents.length };
         }
-      }
+      })
     };
-
-    // Add the node
-    addAgent(newNode);
-
-    // Animate the node after a short delay
-    setTimeout(() => {
-      const updatedNode = {
-        ...newNode,
+  
+    const calculateOptimalPosition = (index: number, totalAgents: number) => {
+      const viewport = reactFlowInstance.getViewport();
+      const { width, height } = reactFlowInstance.getViewport();
+      const centerX = (-viewport.x + width / 2) / viewport.zoom;
+      const centerY = (-viewport.y + height / 2) / viewport.zoom;
+      const radius = Math.min(width, height) / 4;
+      const angle = (2 * Math.PI * index) / totalAgents;
+      
+      return {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle)
+      };
+    };
+  
+    const addAgentWithAnimation = (
+      agent: z.infer<typeof AgentConfigSchema>,
+      position: { x: number; y: number },
+      index: number
+    ) => {
+      const newNode = {
+        ...agent,
+        id: `auto-${Date.now()}-${index}`,
+        position,
         data: {
-          ...newNode.data,
+          ...agent,
           style: {
-            opacity: 1,
-            scale: 1,
+            opacity: 0,
+            scale: 0,
             transition: {
               type: 'spring',
               stiffness: 260,
-              damping: 20
+              damping: 20,
+              delay: index * 0.2
             }
           }
         }
       };
-      addAgent(updatedNode);
-    }, index * 200);
-  };
-
-  const generateAgentConfig = async () => {
-    setIsGenerating(true);
-    try {
-      const result = await generateText({
-        model: openai('gpt-4o-2024-08-06', { structuredOutputs: true }),
-        tools: {
-          createSwarm: tool({
-            description: 'Generate a balanced team of AI agents with complementary roles',
-            parameters: SwarmSchema,
-            execute: async (agents) => {
-              // Add agents with staggered animations
-              agents.forEach((agent, index) => {
-                const position = calculateOptimalPosition(index, agents.length);
-                addAgentWithAnimation(agent, position, index);
-              });
-              return agents;
+  
+      addAgent(newNode);
+  
+      setTimeout(() => {
+        const updatedNode = {
+          ...newNode,
+          data: {
+            ...newNode.data,
+            style: {
+              opacity: 1,
+              scale: 1,
+              transition: {
+                type: 'spring',
+                stiffness: 260,
+                damping: 20
+              }
             }
-          })
-        },
-        prompt: `Create a production-ready swarm of AI agents that work together effectively. The team should include:
-
-        1. One or two Boss agents for:
-           - Task coordination
-           - Quality oversight
-           - Team management
-        
-        2. Three to four Worker agents with specialized roles such as:
-           - Research and analysis
-           - Content creation
-           - Data processing
-           - Quality assurance
-           - Technical implementation
-        
-        Each agent should have:
-        - A clear and specific role
-        - A detailed system prompt that includes error handling and collaboration protocols
-        - An appropriate model selection based on task complexity
-        
-        Ensure the team is balanced and can handle complex workflows efficiently.`
-      });
-
-      setPopup({
-        message: 'Successfully generated agent swarm',
-        type: 'success'
-      });
-    } catch (error) {
-      console.error('Error generating swarm:', error);
-      setPopup({
-        message: 'Failed to generate swarm: ' + (error instanceof Error ? error.message : 'Unknown error'),
-        type: 'error'
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  return (
-    <Button
-      variant="outline"
-      className="bg-card hover:bg-muted"
-      onClick={generateAgentConfig}
-      disabled={isGenerating}
-    >
-      {isGenerating ? (
-        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-      ) : (
-        <Sparkles className="w-4 h-4 mr-2" />
-      )}
-      Auto-Generate Swarm
-    </Button>
-  );
+          }
+        };
+        addAgent(updatedNode);
+      }, index * 200);
+    };
+  
+    const generateAgentConfig = async (taskDescription: string) => {
+      if (!taskDescription.trim()) {
+        setPopup({
+          message: 'Please provide a task description',
+          type: 'error'
+        });
+        return;
+      }
+  
+      setIsGenerating(true);
+      try {
+        const result = await generateText({
+          model: registry.languageModel('openai:gpt-4-turbo'),
+          tools: swarmTools,
+          prompt: `Analyze this task and create a specialized team of AI agents to accomplish it effectively:
+  
+          Task: "${taskDescription}"
+  
+          Create a production-ready swarm of AI agents that will work together to accomplish this specific task. Design the team considering:
+  
+          1. The specific requirements and challenges of the given task
+          2. Different aspects and stages of the task that need specialized attention
+          3. Required coordination and oversight for task completion
+  
+          For each agent, provide:
+          - A name that reflects their specific role in handling this task
+          - A role-specific system prompt that includes:
+            * Clear definition of their responsibilities for this task
+            * How they should interact with other team members
+            * Specific outputs they should generate
+            * Error handling relevant to their part of the task
+          - An appropriate AI model based on their role complexity
+  
+          The team structure should include:
+          - Boss agent(s) for coordinating the specific aspects of this task
+          - Worker agents with complementary specialties needed for the task
+          - Clear collaboration protocols specific to this task's requirements
+  
+          Call the createSwarm tool with the generated team configuration in the required format.`
+        });
+  
+        setPopup({
+          message: `Successfully generated agent swarm with ${result.toolResults.length} agents`,
+          type: 'success'
+        });
+      } catch (error) {
+        console.error('Error generating swarm:', error);
+        setPopup({
+          message: 'Failed to generate swarm: ' + (error instanceof Error ? error.message : 'Unknown error'),
+          type: 'error'
+        });
+      } finally {
+        setIsGenerating(false);
+        setIsDialogOpen(false);
+        setTask('');
+      }
+    };
+  
+    return (
+      <>
+        <Button
+          variant="outline"
+          className="bg-card hover:bg-muted"
+          onClick={() => setIsDialogOpen(true)}
+          disabled={isGenerating}
+        >
+          {isGenerating ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Sparkles className="w-4 h-4 mr-2" />
+          )}
+          Auto-Generate Swarm
+        </Button>
+  
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Generate Agent Swarm</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="task">Task Description</Label>
+                <Textarea
+                  id="task"
+                  placeholder="Describe the task you want the swarm to accomplish..."
+                  value={task}
+                  onChange={(e) => setTask(e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                onClick={() => generateAgentConfig(task)}
+                disabled={isGenerating || !task.trim()}
+              >
+                {isGenerating ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  'Generate Swarm'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
 };
-
+  
 export default AutoGenerateSwarm;

@@ -130,7 +130,7 @@ export default function Usage() {
           {usageMutation.isPending ? (
             <LoadingSpinner />
           ) : (
-            <ModelActivity usageData={usageData as UsageData | null} />
+            <ModelActivity usageData={usageData as UsageData | any} />
           )}
         </div>
         {organizationUsageData && (

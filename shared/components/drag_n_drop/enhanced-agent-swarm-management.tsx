@@ -419,29 +419,6 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
   }, [id, data.id, setNodes, setEdges]);
 
   // Add the generate prompt handler
-  const handleGeneratePrompt = async () => {
-    if (!data.name) {
-      toast({
-        title: "Error",
-        description: "Agent name is required to generate a prompt",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const generatedPrompt = await generateSystemPrompt(data.name, data.description || '');
-      window.updateNodeData(id, { ...data, systemPrompt: generatedPrompt });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate system prompt",
-        variant: "destructive"
-      });
-    }
-    setIsGenerating(false);
-  };
 
   // Add the optimize prompt handler
   const handleOptimizePrompt = async () => {
@@ -1201,6 +1178,7 @@ const FlowContent = () => {
     maxRetries: 3,
     enabled: true
   });
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const [swarmArchitecture, setSwarmArchitecture] =
     useState<SwarmArchitecture>('Concurrent');
@@ -1743,6 +1721,7 @@ const FlowContent = () => {
       });
     }
   };
+
 
   // Keep the existing processGroupChain function as is
   const processGroupChain = async (groupId: string, currentTask: string, previousResults: string = '', processedGroups = new Set<string>()) => {
@@ -2421,8 +2400,8 @@ const FlowContent = () => {
                         <SelectItem value="gpt-3.5-turbo">
                           GPT-3.5 Turbo
                         </SelectItem>
-                        <SelectItem value="gpt-4">GPT-4</SelectItem>
-                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                        <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                        <SelectItem value="gpt-4o-mini">GPT-4o-Mini</SelectItem>
                         <SelectItem value="claude-2">Claude 2</SelectItem>
                       </SelectContent>
                     </Select>
@@ -2582,7 +2561,7 @@ const FlowContent = () => {
           <Tabs defaultValue="results" className="h-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="results">Results</TabsTrigger>
-              <TabsTrigger value="versions">Swarms</TabsTrigger>
+              <TabsTrigger value="versions">Swarm History</TabsTrigger>
             </TabsList>
             <TabsContent value="results">
               <h2 className="text-lg font-semibold mb-4">Task Results</h2>
