@@ -2,7 +2,26 @@
 
 import { createContext, useContext, useState } from 'react';
 import { CodeEditorProps, EditorType, LanguageType } from '../code-editor/type';
-import { languages, paddings, themes } from '../code-editor/config';
+
+export enum THEMES {
+  LIGHT = 'light',
+  DARK = 'dark',
+  SYSTEM = 'system',
+}
+
+export const themes: THEMES[] = [THEMES.LIGHT, THEMES.DARK];
+
+export const SINGLE = 'single';
+
+export const themeOptions = [
+  { label: 'Single theme', value: SINGLE },
+  { label: 'Sync with your system', value: THEMES.SYSTEM },
+] as const;
+
+export const StrokeColor = {
+  DARK: '#00000068',
+  LIGHT: '#ffffff',
+};
 
 export const EditorContext = createContext<CodeEditorProps>({
   theme: '',
@@ -11,6 +30,14 @@ export const EditorContext = createContext<CodeEditorProps>({
   model: '',
   codeValue: '',
 });
+
+const languages: LanguageType[] = [
+  { name: 'JavaScript', icon: 'js-icon' },
+  { name: 'TypeScript', icon: 'ts-icon' },
+  { name: 'Python', icon: 'py-icon' },
+  // Add other languages as needed
+];
+
 
 export default function EditorProvider({
   children,
@@ -21,6 +48,7 @@ export default function EditorProvider({
 }) {
   const [language, setLanguage] = useState<LanguageType>(languages[0]);
   const [theme, setTheme] = useState<string>(themes[0]);
+  const paddings = ['0', '4px', '8px', '16px']; // Define paddings array
   const [padding, setPadding] = useState(paddings[2]);
   const [codeValue, setCodeValue] = useState<string>('');
 

@@ -8,7 +8,7 @@ import { Copy, Pencil, Share, Star, FileDown } from 'lucide-react'; // Use avail
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '@/shared/components/avatar';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '../ui/button';
 import AgentRequirements, { RequirementProps } from './agent-requirements';
 import ShareModal from '@/modules/platform/explorer/components/share-modal';
 import EditExplorerModal from '@/modules/platform/explorer/components/edit-modal';
