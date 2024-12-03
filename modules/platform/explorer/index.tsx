@@ -10,11 +10,10 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import AddSwarmModal from './components/add-swarm-modal';
-import Input from '@/shared/components/ui/Input';
+import { Input } from '@/shared/components/spread_sheet_swarm/ui/input';
 import useModels from './hook/models';
 import { explorerOptions } from '@/shared/constants/explorer';
 import AddPromptModal from './components/add-prompt-modal';
-import Models from './components/content/models';
 import { Activity } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import AddAgentModal from './components/add-agent-modal';
@@ -106,12 +105,6 @@ const Explorer = () => {
 
   const elements = [
     {
-      key: 'models',
-      content: (
-        <Models filteredModels={filteredModels} isLoading={isModelsLoading} />
-      ),
-    },
-    {
       key: 'prompts',
       content: (
         <Prompts
@@ -192,7 +185,7 @@ const Explorer = () => {
         <div className="flex flex-col">
           <h1 className="text-3xl font-extrabold sm:text-4xl">Explorer</h1>
           <span className="mt-4 text-muted-foreground">
-            Share and Discover Models, Prompts, Agents, and Swarms Within Your
+            Share and Discover Prompts, Agents, and Swarms Within Your
             Organization or With The World.
           </span>
         </div>
@@ -235,7 +228,7 @@ const Explorer = () => {
             <div className="flex items-center gap-3">
               <Input
                 placeholder="Search..."
-                onChange={handleSearchChange}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 value={search}
                 disabled={isDataLoading}
                 className="disabled:cursor-not-allowed disabled:opacity-50"

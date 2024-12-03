@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/spread_sheet_swarm/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
