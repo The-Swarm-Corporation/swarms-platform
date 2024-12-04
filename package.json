@@ -29,6 +29,7 @@
     "@ai-sdk/openai": "^0.0.70",
     "@mermaid-js/mermaid-cli": "^11.2.0",
     "@octokit/rest": "^20.1.0",
+    "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-collapsible": "^1.0.3",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-dropdown-menu": "^2.1.2",

@@ -85,23 +85,31 @@ export default function Footer() {
           <ul className="flex flex-col flex-initial md:flex-1">
             <li className="py-3 md:py-0 md:pb-4">
               <p className="font-bold text-white transition duration-150 ease-in-out hover:text-zinc-200">
-                LEGAL
+                Use-Cases
               </p>
             </li>
             <li className="py-3 md:py-0 md:pb-4">
               <Link
-                href="/"
+                href="https://swarms.world/fintech"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
-                Privacy Policy
+                Swarms for Finance
               </Link>
             </li>
             <li className="py-3 md:py-0 md:pb-4">
               <Link
-                href="/"
+                href="https://swarms.world/healthcare"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
-                Terms of Use
+                Swarms for Healthcare
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://swarms.world/insurance"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Swarms for Insurance
               </Link>
             </li>
           </ul>
