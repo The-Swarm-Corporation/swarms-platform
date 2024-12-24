@@ -114,6 +114,68 @@ export default function Footer() {
             </li>
           </ul>
         </div>
+
+
+
+        <div className="col-span-1 lg:col-span-2">
+          <ul className="flex flex-col flex-initial md:flex-1">
+            <li className="py-3 md:py-0 md:pb-4">
+              <p className="font-bold text-white transition duration-150 ease-in-out hover:text-zinc-200">
+                Social Medias
+              </p>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://x.com/swarms_corp"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Twitter
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://www.linkedin.com/company/swarms-corp"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Linkedin
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://www.threads.net/@swarms_corp"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Threads
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://www.youtube.com/@kyegomez3242"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Youtube
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://discord.gg/jM3Z6M9uMq"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Discord
+              </Link>
+            </li>
+            <li className="py-3 md:py-0 md:pb-4">
+              <Link
+                href="https://github.com/The-Swarm-Corporation"
+                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+              >
+                Github Org Profile
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+
         <div className="flex items-start col-span-1 text-white lg:col-span-6 lg:justify-end">
           <div className="flex items-center h-10 space-x-6">
             <a

@@ -1,6 +1,4 @@
-import LoadingSpinner from '@/shared/components/loading-spinner';
-import { Button } from '@/shared/components/ui/Button';
-import Link from 'next/link';
+import { Button } from '@/shared/components/spread_sheet_swarm/ui/button';
 import React from 'react';
 import InfoCard from '../info-card';
 import { Bot, PencilRuler } from 'lucide-react';
@@ -8,9 +6,8 @@ import { makeUrl } from '@/shared/utils/helpers';
 import { PUBLIC } from '@/shared/constants/links';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
-// import AddNewSwarm  from '@/shared/components/spread_sheet_swarm/add_new_swarm_modal';
 
-// TODO: Add types
+
 export default function Swarms({
   isLoading,
   pendingSwarms,
@@ -63,7 +60,7 @@ export default function Swarms({
         ) : (
           !isLoading && (
             <div className="border p-4 rounded-md text-center">
-              No swarms found
+              Coming Soon...
             </div>
           )
         )}

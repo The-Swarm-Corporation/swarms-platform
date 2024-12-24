@@ -127,7 +127,7 @@ export default function FintechPage() {
               {repositories.map((repo) => (
                 <Card key={repo.name} className="bg-black">
                   <CardHeader>
-                    <CardTitle className="text-xl font-bold">{repo.name}</CardTitle>
+                    <CardTitle className="text-xl font-bold text-white">{repo.name}</CardTitle>
                     <CardDescription className="text-white">{repo.description}</CardDescription>
                   </CardHeader>
                   <CardFooter>
