@@ -33,101 +33,115 @@
 
 ![Swarms Banner](swarms_platform.png)
 
-## Install
+## 🚀 Our Vision
+
+Swarms Platform Marketplace is revolutionizing the AI agent ecosystem by creating the first decentralized marketplace for autonomous agents. We're building the infrastructure that enables developers worldwide to:
+
+- 🛠️ **Create & Deploy**: Build sophisticated AI agents using our robust development framework
+- 💰 **Monetize**: Set your own pricing and earn revenue from your agent creations
+- 🔄 **Share & Exchange**: Connect with other developers and share agent capabilities
+- 🔍 **Discover**: Find and integrate pre-built agents for any task or industry
+- 🤝 **Collaborate**: Join a thriving community of agent developers and innovators
+
+## ✨ Why Swarms Platform?
+
+- **Open Economy**: True ownership and monetization of your AI agents
+- **Composability**: Mix and match agent capabilities to create powerful workflows
+- **Quality Assurance**: Built-in testing and verification systems
+- **Developer-First**: Comprehensive SDK and development tools
+- **Community-Driven**: Active ecosystem of developers and users
+
+## 🛠️ Quick Start
 
 ```bash
 git clone https://github.com/kyegomez/swarms-platform.git
-
 cd swarms-platform
-
 yarn install
-
 yarn run dev
-
 ```
 
-## Envs
+## 🔑 Environment Setup
 
-Environment variables can be found in the `.env.example` file
+Copy `.env.example` to `.env` and configure:
 
 ```env
-
+# Core Configuration
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-# Github
-SUPABASE_AUTH_EXTERNAL_GITHUB_REDIRECT_URI="http://localhost:3000/auth/callback"
+
+# Authentication (GitHub & Google)
 SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID=
 SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET=
-
-# Google
 SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=
 SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=
 
-# These environment variables are used for Supabase Local Dev
+# Database
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 
-# Get these from Stripe dashboard
+# Payments
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
-NEXT_PUBLIC_STRIPE_PAYMENT_PRODUCT_ID=
-NEXT_PUBLIC_STRIPE_SUBSCRIPTION_PRODUCT_ID=
 
-# SMTP Provider
-SMTP_HOST=""
-SMTP_PORT=465
-SMTP_USER=""
-SMTP_PASS=""
-
-# Swarm publisher github
-SWARM_PUBLISHER_GITHUB_ACCESS_TOKEN="xxx"
-SWARM_REPO_OWNER="kyegomez"
-SWARM_REPO_NAME="swarms"
+# Additional settings in .env.example
 ```
 
-## Technologies
+## 🏗️ Technology Stack
 
-- Next.js 14
-- Shadcn
-- Supabase
-- trpc
-- Stripe
-- Vercel
-- React
-- Tailwindcss
+- **Frontend**: Next.js 14, React, Tailwind CSS
+- **UI Components**: shadcn/ui
+- **Backend**: Supabase, tRPC
+- **Payments**: Stripe
+- **Deployment**: Vercel
+- **Type Safety**: TypeScript
 
-## 🫶 Contributions:
+## 🤝 Join the Agent Revolution
 
-For detailed instructions on how to setup project and contribute, please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file.
+We're building the future of autonomous AI agents, and we need developers like you! 
 
-The easiest way to contribute is to pick any issue with the `good first issue` tag 💪. Read the Contributing guidelines [here](/CONTRIBUTING.md). Bug Report? [File here](https://github.com/kyegomez/swarms-platform/issues)
-Swarms is an open-source project, and contributions are VERY welcome. If you want to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/kyegomez/swarms/blob/master/CONTRIBUTING.md) and our [contributing board](https://github.com/users/kyegomez/projects/1) to participate in Roadmap discussions!
+### 💰 Bounty Program
 
-<a href="https://github.com/kyegomez/swarms-platform/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=kyegomez/swarms-platform" />
-</a>
+Every issue in our [GitHub Issues](https://github.com/The-Swarm-Corporation/swarms-platform/issues) has a bounty attached to it! This is your chance to:
+- Earn rewards while contributing to cutting-edge AI technology
+- Get paid for fixing bugs and implementing features
+- Build your portfolio in the AI agents space
+
+Check our [issues page](https://github.com/The-Swarm-Corporation/swarms-platform/issues) to find tasks that match your skills and start earning today!
+
+### Ways to Get Started:
+
+- 🌟 Star this repository to show your support
+- 💸 Pick up a bounty from our [issues page](https://github.com/The-Swarm-Corporation/swarms-platform/issues)
+- 📚 Read our [Contributing Guidelines](CONTRIBUTING.md)
+- 💬 Join our [Discord Community](https://discord.gg/kS3rwKs3ZC)
+- 🗓️ Attend our [Weekly Community Gatherings](https://lu.ma/5p2jnc2v)
+
+## 🌐 Community & Support
+
+Join our growing community of agent developers:
+
+- 📝 [Official Blog](https://docs.swarms.world)
+- 💬 [Discord Server](https://discord.gg/kS3rwKs3ZC)
+- 🐦 [Twitter Updates](https://twitter.com/KyeGomezB)
+- 🔗 [LinkedIn](https://www.linkedin.com/company/the-swarm-corporation)
+- 📺 [YouTube Channel](https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ)
+
+## 📈 Roadmap
+
+- [ ] Enhanced agent testing framework
+- [ ] Advanced agent composability features
+- [ ] Improved documentation and tutorials
+- [ ] Agent performance analytics
+- [ ] Community governance system
+- [ ] Multi-chain integration
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## Community
-
-Join our growing community around the world, for real-time support, ideas, and discussions on Swarms 😊
-
-- View our official [Blog](https://docs.swarms.world)
-- Chat live with us on [Discord](https://discord.gg/kS3rwKs3ZC)
-- Follow us on [Twitter](https://twitter.com/KyeGomezB)
-- Connect with us on [LinkedIn](https://www.linkedin.com/company/the-swarm-corporation)
-- Visit us on [YouTube](https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ)
-- [Join the Swarms community on Discord!](https://discord.gg/AJazBmhKnr)
-- Join our Swarms Community Gathering every Thursday at 1pm NYC Time to unlock the potential of autonomous agents in automating your daily tasks [Sign up here](https://lu.ma/5p2jnc2v)
-
-# Todo
-
-- [ ] Add more tests
-- [ ] Add more documentation
-- [ ] Clean up the code and remove unused files and folders
-- [ ] Add spreadsheet swarm with check to see if user is paid and logged in
-- [ ] Accelerate build time by cutting unused depencies and code optimization, removing unused code
-- [ ] Create documentation for the platform once swarms are up
-- [ ] Merge all modules, shared, components into one folder app/components for simplicity
+<p align="center">
+  <strong>Build the Future of AI Agents with Swarms Platform</strong>
+</p>
