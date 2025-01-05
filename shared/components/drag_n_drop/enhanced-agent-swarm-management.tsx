@@ -19,6 +19,10 @@ import ReactFlow, {
   Position,
   useReactFlow,
   ReactFlowProvider,
+  NodeChange,
+  EdgeChange,
+  applyNodeChanges,
+  applyEdgeChanges,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Button } from '../spread_sheet_swarm/ui/button';
@@ -604,6 +608,10 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
                       <SelectTrigger className="bg-card border-border text-card-foreground">
                         <SelectValue />
                       </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Worker">Worker</SelectItem>
+                        <SelectItem value="Boss">Boss</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
                   <div>
@@ -1168,16 +1176,18 @@ const FlowContent = () => {
   const [systemPrompt, setSystemPrompt] = useState('');
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null); // Move this line above the useEnhancedAutosave call
   const saveFlowMutation = api.dnd.saveFlow.useMutation(); // Move this line above the useEnhancedAutosave call
-  const { lastSaveStatus, forceSave, isSaving } = useEnhancedAutosave({
-    nodes,
-    edges,
-    currentFlowId,
-    taskResults,
-    onSave: saveFlowMutation.mutateAsync,
-    debounceMs: 1000, // Adjust as needed
-    maxRetries: 3,
-    enabled: true
-  });
+  // const { lastSaveStatus } = useEnhancedAutosave({
+  //   nodes,
+  //   edges,
+  //   currentFlowId,
+  //   taskResults,
+  //   onSave: async (data) => {
+  //     //return saveFlowMutation.mutateAsync(data);
+  //   },
+  //   debounceMs: 1000, // Adjust as needed
+  //   maxRetries: 3,
+  //   enabled: true
+  // });
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingFlow, setIsLoadingFlow] = useState(true);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -1713,7 +1723,7 @@ const FlowContent = () => {
         type: 'success'
       });
 
-      await forceSave(); // Save the new results
+      
 
     } catch (error) {
       console.error('Error running task:', error);
@@ -2105,53 +2115,61 @@ const FlowContent = () => {
 
   const useSaveShortcuts = () => {
     useEffect(() => {
-      const handleKeyPress = (e: KeyboardEvent) => {
+      const handleKeyPress = async (e: KeyboardEvent) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 's') {
           e.preventDefault();
-          forceSave();
+          await saveVersionStable();
         }
       };
   
       window.addEventListener('keydown', handleKeyPress);
       return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [forceSave]);
+    }, [saveVersionStable]);
   };
-  
-  const useUnsavedChangesWarning = () => {
-    useEffect(() => {
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        if (isSaving) {
-          const message = 'Changes are being saved. Are you sure you want to leave?';
-          e.returnValue = message;
-          return message;
-        }
-        if (lastSaveStatus === 'error') {
-          const message = 'You have unsaved changes. Are you sure you want to leave?';
-          e.returnValue = message;
-          return message;
-        }
-      };
-  
-      window.addEventListener('beforeunload', handleBeforeUnload);
-      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [isSaving, lastSaveStatus]);
-  };
+
   
 
   useSaveShortcuts();
-  useUnsavedChangesWarning();
 
-  // Update popup handling to show save status
+
+
+  const onNodesChangeDebounced = useMemo(
+    () =>
+      debounce((changes: NodeChange[]) => {
+        setNodes((nds) => applyNodeChanges(changes, nds));
+      }, 0), // Remove debounce delay for smoother dragging
+    [setNodes]
+  );
+  
+  const onEdgesChangeDebounced = useMemo(
+    () =>
+      debounce((changes: EdgeChange[]) => {
+        setEdges((eds) => applyEdgeChanges(changes, eds));
+      }, 0),
+    [setEdges]
+  );
+  
+  // Add these state and refs near other state declarations
+  const [isDragging, setIsDragging] = useState(false);
+  const dragTimeoutRef = useRef<NodeJS.Timeout>();
+  
+  const onNodeDragStart = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+  
+  const onNodeDragStop = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+  
+  
+  // Add this cleanup effect near other useEffect hooks
   useEffect(() => {
-    if (lastSaveStatus === 'error') {
-      setPopup({
-        message: 'Failed to save changes. Click save to retry.',
-        type: 'error'
-      });
-    }
-  }, [lastSaveStatus]);
-
-
+    return () => {
+      if (dragTimeoutRef.current) {
+        clearTimeout(dragTimeoutRef.current);
+      }
+    };
+  }, []);
 
 
   // Replace the existing save-related code with this implementation
@@ -2381,6 +2399,15 @@ const FlowContent = () => {
                     <Label htmlFor="type" className="text-right">
                       Type
                     </Label>
+                    <Select name="type" defaultValue="Worker">
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Worker">Worker</SelectItem>
+                        <SelectItem value="Boss">Boss</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="model" className="text-right">
@@ -2643,8 +2670,12 @@ const FlowContent = () => {
             <ReactFlow
               nodes={nodes}
               edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
+              onNodesChange={onNodesChangeDebounced}
+              onEdgesChange={onEdgesChangeDebounced}
+              nodesDraggable={true}
+              selectNodesOnDrag={false}
+              onNodeDragStart={onNodeDragStart}
+              onNodeDragStop={onNodeDragStop}
               onConnect={onConnect}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
