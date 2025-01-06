@@ -92,7 +92,6 @@ import { trpc as api } from '@/shared/utils/trpc/trpc';
 import debounce from 'lodash/debounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import { useEnhancedAutosave } from './autosave';
 import AutoGenerateSwarm from './auto_generate_swarm';
 
 // Create provider registry
