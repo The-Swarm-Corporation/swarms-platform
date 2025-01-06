@@ -1866,10 +1866,10 @@ type FlowData = {
       model: string
       systemPrompt: string
       clusterId?: string | null
-      isProcessing?: boolean
-      lastResult?: string
-      dataSource?: string
-      dataSourceInput?: string
+      isProcessing?: boolean | null
+      lastResult?: string | null
+      dataSource?: string | null
+      dataSourceInput?: string | null
       [key: string]: unknown
     }
   }>
