@@ -1673,6 +1673,32 @@ export type Database = {
         }
         Relationships: []
       }
+      swarms: {
+        Row: {
+          id: string
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       drag_and_drop_flows: {
         Row: {
           id: string
@@ -1851,6 +1877,8 @@ export type CompositeTypes<
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
+type Architecture = 'Concurrent' | 'Sequential' | 'Hierarchical'
+
 type FlowData = {
   nodes: Array<{
     id: string
@@ -1891,6 +1919,6 @@ type FlowData = {
     }
     [key: string]: unknown
   }>
-  architecture: string
+  architecture: string | Architecture
   results: Record<string, string>
 }
