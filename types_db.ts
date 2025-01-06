@@ -1913,7 +1913,7 @@ type FlowData = {
       stroke: string
     }
     markerEnd?: {
-      type: MarkerType
+      type: string | MarkerType
       color: string
     }
     data?: {
