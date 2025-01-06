@@ -1673,6 +1673,41 @@ export type Database = {
         }
         Relationships: []
       }
+      drag_and_drop_flows: {
+        Row: {
+          id: string
+          user_id: string
+          flow_data: FlowData
+          current: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          flow_data: FlowData
+          current?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          flow_data?: FlowData
+          current?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drag_and_drop_flows_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1815,3 +1850,47 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+type FlowData = {
+  nodes: Array<{
+    id: string
+    type: string
+    position: {
+      x: number
+      y: number
+    }
+    data: {
+      id: string
+      name: string
+      type: string
+      model: string
+      systemPrompt: string
+      clusterId?: string | null
+      isProcessing?: boolean
+      lastResult?: string
+      dataSource?: string
+      dataSourceInput?: string
+      [key: string]: unknown
+    }
+  }>
+  edges: Array<{
+    id: string
+    source: string
+    target: string
+    type?: string
+    animated?: boolean
+    style?: {
+      stroke: string
+    }
+    markerEnd?: {
+      type: string
+      color: string
+    }
+    data?: {
+      label: string
+    }
+    [key: string]: unknown
+  }>
+  architecture: 'Concurrent' | 'Sequential' | 'Hierarchical'
+  results: Record<string, string>
+}
