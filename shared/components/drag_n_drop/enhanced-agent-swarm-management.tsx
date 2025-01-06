@@ -1176,18 +1176,6 @@ const FlowContent = () => {
   const [systemPrompt, setSystemPrompt] = useState('');
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null); // Move this line above the useEnhancedAutosave call
   const saveFlowMutation = api.dnd.saveFlow.useMutation(); // Move this line above the useEnhancedAutosave call
-  // const { lastSaveStatus } = useEnhancedAutosave({
-  //   nodes,
-  //   edges,
-  //   currentFlowId,
-  //   taskResults,
-  //   onSave: async (data) => {
-  //     //return saveFlowMutation.mutateAsync(data);
-  //   },
-  //   debounceMs: 1000, // Adjust as needed
-  //   maxRetries: 3,
-  //   enabled: true
-  // });
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingFlow, setIsLoadingFlow] = useState(true);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -1414,7 +1402,7 @@ const FlowContent = () => {
 
         // Update all relevant state with the loaded flow data
         setNodes(flowData.nodes || []);
-        setEdges(flowData.edges || []);
+        setEdges(flowData.edges as any || []);
         setSwarmArchitecture(flowData.architecture as SwarmArchitecture || 'Concurrent');
         setTaskResults(flowData.results || {});
         setCurrentFlowId(flowId);
@@ -1422,7 +1410,7 @@ const FlowContent = () => {
         // Initialize previous state
         previousStateRef.current = {
           nodes: flowData.nodes as any || [],
-          edges: flowData.edges || [],
+          edges: flowData.edges as any || [],
         };
 
         // Update the JSON representation
@@ -1917,7 +1905,7 @@ const FlowContent = () => {
       if (flowData) {
         // Update all state
         setNodes(flowData.nodes || []);
-        setEdges(flowData.edges || []);
+        setEdges(flowData.edges as any || []);
         setSwarmArchitecture(flowData.architecture as SwarmArchitecture || 'Concurrent');
         setTaskResults(flowData.results || {});
         setCurrentFlowId(flowId);
@@ -1925,7 +1913,7 @@ const FlowContent = () => {
         // Update previous state to prevent immediate save
         previousStateRef.current = {
           nodes: flowData.nodes as any || [],
-          edges: flowData.edges || [],
+          edges: flowData.edges as any || [],
         };
 
         // Update JSON representation
