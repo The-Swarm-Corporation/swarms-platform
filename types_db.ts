@@ -1891,6 +1891,6 @@ type FlowData = {
     }
     [key: string]: unknown
   }>
-  architecture: 'Concurrent' | 'Sequential' | 'Hierarchical'
+  architecture: string
   results: Record<string, string>
 }
