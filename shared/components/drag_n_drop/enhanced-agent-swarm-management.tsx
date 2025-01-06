@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo, useRef, useContext,createContext } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, useContext,createContext, Dispatch, SetStateAction } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -23,6 +23,7 @@ import ReactFlow, {
   EdgeChange,
   applyNodeChanges,
   applyEdgeChanges,
+  useNodes, // Add this import
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Button } from '../spread_sheet_swarm/ui/button';
@@ -133,6 +134,11 @@ type SaveFlowNode = {
   [key: string]: unknown; // Add index signature to match passthrough behavior
 };
 
+type AgentMessage = {
+  from: string;
+  content: string;
+  timestamp: number;
+};
 
 interface AgentData {
   description: string;
@@ -145,6 +151,7 @@ interface AgentData {
   isProcessing?: boolean;
   lastResult?: string;
   hideDeleteButton?: boolean;
+  groupId?: string; // Added groupId property
 }
 
 interface SwarmVersion {
@@ -339,15 +346,21 @@ const optimizePrompt = async (currentPrompt: string): Promise<string> => {
   }
 };
 
-const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }> = ({ data, id, hideDeleteButton }) => {
+// Update the AgentNode component to include connection handles
+const AgentNode: React.FC<NodeProps<AgentData> & { 
+  hideDeleteButton?: boolean;
+  isInGroupDisplay?: boolean; // New prop to indicate if the agent is being displayed inside a group
+}> = ({ data, id, hideDeleteButton, isInGroupDisplay }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [localSystemPrompt, setLocalSystemPrompt] = useState(data.systemPrompt || '');
   const { setNodes, setEdges } = useReactFlow();
-  const { toast } = useToast(); // Add toast import if not already present
-
-
+  const { toast } = useToast();
+  const nodes = useNodes(); 
+  
+  // Check if agent is part of a group or being displayed inside a group
+  const isInGroup = Boolean(data.groupId) || isInGroupDisplay;
 
   useEffect(() => {
     const cleanup = () => {
@@ -472,41 +485,65 @@ const AgentNode: React.FC<NodeProps<AgentData> & { hideDeleteButton?: boolean }>
 
   return (
     <div className="relative">
-      {!hideDeleteButton &&
-      <DeleteButton onClick={handleDelete} />}
+      {!hideDeleteButton && <DeleteButton onClick={handleDelete} />}
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger>
             <div className="relative" onClick={() => setIsEditing(true)}>
-              <svg width="80" height="80" viewBox="0 0 100 100">
-                <AnimatedHexagon
-                  points="50 1 95 25 95 75 50 99 5 75 5 25"
-                  fill={data.type === "Boss" 
-                    ? "hsl(var(--card))" 
-                    : "hsl(var(--secondary))"
-                  }
-                  stroke={document.documentElement.classList.contains('dark') ? "#333" : "hsl(var(--border))"}
-                  strokeWidth="2"
-                  initial={{ scale: 0 }}
-                  animate={{ 
-                    scale: 1,
-                    rotate: data.isProcessing ? 360 : 0 
-                  }}
-                  transition={{ 
-                    duration: 0.5,
-                    repeat: data.isProcessing ? Infinity : 0 
-                  }}
-                  style={{
-                    fill: document.documentElement.classList.contains('dark') 
-                      ? data.type === "Boss" 
-                        ? "#0F0F10" 
-                        : "#1A1A1B"
-                      : data.type === "Boss"
-                        ? "hsl(var(--card))"
-                        : "hsl(var(--secondary))"
-                  }}
+              {!isInGroup && (
+                <Handle
+                  type="target"
+                  position={Position.Left}
+                  className="w-3 h-3 !bg-primary border-2 border-background dark:border-background"
+                  style={{ left: '-10px' }}
                 />
-              </svg>
+              )}
+
+              <motion.div
+                // Add motion.div wrapper for spinning animation
+                animate={{ 
+                  rotate: data.isProcessing ? 360 : 0 
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: data.isProcessing ? Infinity : 0,
+                  ease: "linear"
+                }}
+              >
+                <svg width="80" height="80" viewBox="0 0 100 100">
+                  <AnimatedHexagon
+                    points="50 1 95 25 95 75 50 99 5 75 5 25"
+                    fill={data.type === "Boss" 
+                      ? "hsl(var(--card))" 
+                      : "hsl(var(--secondary))"
+                    }
+                    stroke={document.documentElement.classList.contains('dark') ? "#333" : "hsl(var(--border))"}
+                    strokeWidth="2"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    style={{
+                      fill: document.documentElement.classList.contains('dark') 
+                        ? data.type === "Boss" 
+                          ? "#0F0F10" 
+                          : "#1A1A1B"
+                        : data.type === "Boss"
+                          ? "hsl(var(--card))"
+                          : "hsl(var(--secondary))"
+                    }}
+                  />
+                </svg>
+              </motion.div>
+
+              {!isInGroup && (
+                <Handle
+                  type="source"
+                  position={Position.Right}
+                  className="w-3 h-3 !bg-primary border-2 border-background dark:border-background"
+                  style={{ right: '-10px' }}
+                />
+              )}
+
               <div className="absolute p-2 inset-0 flex flex-col items-center justify-center text-xs">
                 <div className="font-bold text-card-foreground text-[0.6rem]">
                   {data.name}
@@ -711,7 +748,7 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const { setNodes, setEdges } = useReactFlow();
-
+  const nodes = useNodes(); // Get current nodes
   useBodyStyleCleanup(isEditing);
   
   const handleDelete = useCallback(() => {
@@ -745,31 +782,67 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
   }, [id, data.agents, setNodes, setEdges]);
 
   // Add a new function to remove agent from group
-  const removeAgentFromGroup = (groupId: string, agentId: string) => {
-    setNodes(nodes => nodes.map(node => {
-      if (node.id === groupId) {
-        // Remove agent from group's agents array
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            agents: node.data.agents.filter((agent: AgentData) => agent.id !== agentId)
-          }
-        };
-      }
-      if (node.id === agentId) {
-        // Remove group association from agent
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            groupId: undefined
-          }
-        };
-      }
-      return node;
-    }));
-  };
+  const removeAgentFromGroup = useCallback((groupId: string, agentId: string) => {
+    setNodes(nodes => {
+      // First find the agent's data from the group
+      const group = nodes.find(n => n.id === groupId);
+      const agentData = group?.data.agents?.find((a: AgentData) => a.id === agentId);
+      
+      if (!agentData) return nodes;
+
+      // Calculate new position for the agent
+      const groupNode = nodes.find(n => n.id === groupId);
+      const newPosition = {
+        x: (groupNode?.position?.x || 0) + Math.random() * 100,
+        y: (groupNode?.position?.y || 0) + Math.random() * 100
+      };
+
+      return nodes.map(node => {
+        // Remove agent from group
+        if (node.id === groupId && node.type === 'group') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              agents: node.data.agents.filter((a: AgentData) => a.id !== agentId)
+            }
+          };
+        }
+        return node;
+      }).concat({
+        // Add agent back as a standalone node
+        id: agentId,
+        type: 'agent',
+        position: newPosition,
+        data: {
+          ...agentData,
+          groupId: undefined // Remove group association
+        }
+      });
+    });
+
+    // Restore any previous connections that were stored
+    setEdges(edges => {
+      const storedEdges = edges.filter(e => 
+        (e.source === agentId || e.target === agentId) && 
+        e.data?.type === 'agent' &&
+        e.data?.isStored // Check for stored edges
+      );
+
+      return edges
+        .filter(e => !e.data?.isStored) // Remove stored edges from current edges
+        .concat(
+          storedEdges.map(edge => ({
+            ...edge,
+            data: {
+              ...edge.data,
+              isStored: false // Remove stored flag
+            }
+          }))
+        );
+    });
+  }, [setNodes, setEdges]);
+
 
   return (
     <div className="relative">
@@ -844,6 +917,7 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
                     isConnectable={true}
                     dragging={false}
                     hideDeleteButton={true}
+                    isInGroupDisplay={true} // Add this prop
                   />
                 </div>
               </motion.div>
@@ -1033,120 +1107,12 @@ interface GroupData {
 
 // Add this type definition near the top with other interfaces
 interface AddAgentToGroupDialogProps {
-  groupId: string;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  nodes: Node[];
-  setNodes: (nodes: any) => void;
+  groupId: string | null;
+  onClose: () => void;
+  nodes: Node[];  // Add this
+  setNodes: Dispatch<SetStateAction<Node[]>>;  // Add this
 }
-
-// Add this new component before the main component
-const AddAgentToGroupDialog: React.FC<AddAgentToGroupDialogProps> = ({
-  groupId,
-  open,
-  onOpenChange,
-  nodes,
-  setNodes,
-}) => {
-  const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
-  useBodyStyleCleanup(open);
-  // Filter out agents that are already in groups
-  const availableAgents = nodes.filter((node) => 
-    node.type === 'agent' && 
-    !node.data.groupId && 
-    node.id !== groupId
-  );
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    setNodes((currentNodes: Node[]) => 
-      currentNodes.map((node) => {
-        if (node.id === groupId) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              agents: [
-                ...(node.data.agents || []),
-                ...selectedAgents.map(agentId => 
-                  nodes.find(n => n.id === agentId)?.data
-                ).filter(Boolean)
-              ]
-            }
-          };
-        }
-        if (selectedAgents.includes(node.id)) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              groupId
-            }
-          };
-        }
-        return node;
-      })
-    );
-    
-    setSelectedAgents([]);
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open}  onOpenChange={onOpenChange}>
-      <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[425px] bg-background border border-border rounded-lg shadow-lg z-[100]">
-        <DialogHeader>
-          <DialogTitle className="text-left">Add Agents to Group</DialogTitle>
-          <DialogDescription className="text-left">
-            Select agents to add to this group.
-          </DialogDescription>
-        </DialogHeader>
-        {availableAgents.length === 0 ? (
-          <div className="py-6 text-center text-muted-foreground">
-            No available agents to add. Create new agents first.
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="max-h-[300px] overflow-y-auto px-4">
-              {availableAgents.map((agent) => (
-                <div key={agent.id} className="flex items-center gap-2 py-2">
-                  <input
-                    type="checkbox"
-                    id={agent.id}
-                    value={agent.id}
-                    checked={selectedAgents.includes(agent.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedAgents([...selectedAgents, agent.id]);
-                      } else {
-                        setSelectedAgents(selectedAgents.filter(id => id !== agent.id));
-                      }
-                    }}
-                    className="h-4 w-4 rounded border-border"
-                  />
-                  <Label htmlFor={agent.id} className="flex-grow text-left">
-                    {agent.data.name} ({agent.data.type})
-                  </Label>
-                </div>
-              ))}
-            </div>
-            <DialogFooter className="px-4 pb-4">
-              <Button 
-                type="submit" 
-                disabled={selectedAgents.length === 0}
-                className="w-full"
-              >
-                Add Selected Agents
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-};
-
 
    
 // Create a wrapped component for the main content
@@ -1186,6 +1152,135 @@ const FlowContent = () => {
     type: 'success' | 'error';
   } | null>(null);
   useBodyStyleCleanup(isCreatingGroup);
+
+
+  // When adding an agent to a group, store its connections
+  const addAgentToGroup = useCallback((groupId: string, agentId: string) => {
+    // First, get the agent's data before removing it
+    const agentNode = nodes.find(n => n.id === agentId);
+    if (!agentNode) return;
+
+    // Update nodes: add agent to group and remove standalone node
+    setNodes(prevNodes => {
+      // First, remove the standalone agent node
+      const filteredNodes = prevNodes.filter(node => node.id !== agentId);
+
+      // Then, update the group with the new agent
+      return filteredNodes.map(node => {
+        if (node.id === groupId && node.type === 'group') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              agents: [
+                ...(node.data.agents || []),
+                {
+                  ...agentNode.data,
+                  groupId: groupId
+                }
+              ]
+            }
+          };
+        }
+        return node;
+      });
+    });
+
+    // Remove all connections to/from the agent
+    setEdges(edges => 
+      edges.filter(edge => 
+        edge.source !== agentId && 
+        edge.target !== agentId
+      )
+    );
+  }, [nodes, setNodes, setEdges]);
+
+
+// Add this new component before the main component
+const AddAgentToGroupDialog: React.FC<{
+  open: boolean;
+  groupId: string | null;
+  onClose: () => void;
+}> = ({ open, groupId, onClose }) => {
+  const { setNodes, setEdges } = useReactFlow();
+  const nodes = useNodes();
+
+  const addAgentToGroup = useCallback((agentId: string) => {
+    if (!groupId) return;
+
+    // First, get the agent's data before removing it
+    const agentNode = nodes.find(n => n.id === agentId);
+    if (!agentNode) return;
+
+    // Update nodes: add agent to group and remove standalone node
+    setNodes(prevNodes => {
+      // First filter out the standalone agent node
+      const filteredNodes = prevNodes.filter(node => node.id !== agentId);
+
+      // Then update the group with the new agent
+      return filteredNodes.map(node => {
+        if (node.id === groupId && node.type === 'group') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              agents: [
+                ...(node.data.agents || []),
+                {
+                  ...(agentNode?.data as any),
+                  groupId: groupId
+                }
+              ]
+            }
+          };
+        }
+        return node;
+      });
+    });
+
+    // Remove all connections to/from the agent
+    setEdges(edges => 
+      edges.filter(edge => 
+        edge.source !== agentId && 
+        edge.target !== agentId
+      )
+    );
+
+    onClose(); // Close dialog after adding
+  }, [groupId, nodes, setNodes, setEdges, onClose]);
+
+  // Get standalone agents (not in any group)
+  const standaloneAgents = nodes.filter(
+    node => node.type === 'agent' && !(node?.data as any)?.groupId
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={() => onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Agent to Team</DialogTitle>
+          <DialogDescription>
+            Select an agent to add to this team
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4">
+          {standaloneAgents.map((agent) => (
+            <Button
+              key={agent.id}
+              onClick={() => addAgentToGroup(agent.id)}
+              variant="outline"
+              className="justify-start"
+            >
+              {(agent?.data as any)?.name || `Agent ${agent.id}`}
+            </Button>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
   
   const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>) => {
     setGroupProcessingStates(prev => ({
@@ -1442,6 +1537,9 @@ const FlowContent = () => {
     [groupId: string]: GroupProcessingState;
   }>({});
 
+  // Add near other state declarations in FlowContent
+  const [processedAgents] = useState(new Set<string>());
+
   // Add function to check for circular connections
   const hasCircularConnection = (
     source: string,
@@ -1457,7 +1555,7 @@ const FlowContent = () => {
     );
   };
 
-  // Modify onConnect to handle group connections
+  // Modify the onConnect function to handle both group and agent connections
   const onConnect = useCallback(
     (params: Connection) => {
       if (!params.source || !params.target) return;
@@ -1466,39 +1564,79 @@ const FlowContent = () => {
       const sourceNode = nodes.find(n => n.id === params.source);
       const targetNode = nodes.find(n => n.id === params.target);
 
-      // Only allow connections between groups
-      if (sourceNode?.type !== 'group' || targetNode?.type !== 'group') {
-        setPopup({
-          message: 'Only groups can be connected to other groups',
-          type: 'error'
-        });
+      if (!sourceNode || !targetNode) return;
+
+      // Prevent connections if either node is in a group
+      if (sourceNode.type === 'agent' && targetNode.type === 'agent') {
+        if (sourceNode.data.groupId || targetNode.data.groupId) {
+          setPopup({
+            message: 'Agents in teams can only communicate within their team',
+            type: 'error'
+          });
+          return;
+        }
+
+        // Check for circular connections between agents
+        if (hasCircularConnection(params.source, params.target)) {
+          setPopup({
+            message: 'Circular connections between agents are not allowed',
+            type: 'error'
+          });
+          return;
+        }
+
+        const newEdge: Edge = {
+          id: `e${params.source}-${params.target}`,
+          source: params.source,
+          target: params.target,
+          type: 'custom',
+          animated: true,
+          style: { stroke: '#6366F1' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#6366F1',
+          },
+          data: { 
+            label: 'Agent Communication',
+            type: 'agent',
+            messages: []
+          },
+        };
+
+        setEdges((eds) => addEdge(newEdge, eds));
         return;
       }
 
-      // Check for circular connections
-      if (hasCircularConnection(params.source, params.target)) {
-        setPopup({
-          message: 'Circular connections between groups are not allowed',
-          type: 'error'
-        });
+      // Handle group-to-group connections
+      if (sourceNode.type === 'group' && targetNode.type === 'group') {
+        if (hasCircularConnection(params.source, params.target)) {
+          setPopup({
+            message: 'Circular connections between groups are not allowed',
+            type: 'error'
+          });
+          return;
+        }
+
+        const newEdge: Edge = {
+          id: `e${params.source}-${params.target}`,
+          source: params.source,
+          target: params.target,
+          type: 'custom',
+          animated: true,
+          style: { stroke: '#8E8E93' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#8E8E93',
+          },
+          data: { 
+            label: 'Group Flow',
+            type: 'group'
+          },
+        };
+
+        setEdges((eds) => addEdge(newEdge, eds));
         return;
       }
-
-      const newEdge: Edge = {
-        id: `e${params.source}-${params.target}`,
-        source: params.source,
-        target: params.target,
-        type: 'custom', // Set the edge type to custom
-        animated: true,
-        style: { stroke: '#8E8E93' },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#8E8E93',
-        },
-        data: { label: 'Group Flow' },
-      };
-
-      setEdges((eds) => addEdge(newEdge, eds));
     },
     [nodes, edges, setEdges]
   );
@@ -1571,15 +1709,39 @@ const FlowContent = () => {
     [nodes, setNodes, setEdges],
   );
 
+  // Update the updateNodeData function
   const updateNodeData = (id: string, updatedData: AgentData) => {
-    setNodes((nds: Node<ReactFlowNode[], string | undefined>[]) =>
-      nds.map((node) =>
-        node.id === id
-          ? { ...node, data: { ...node.data, ...updatedData } }
-          : node,
-      ),
+    setNodes((nds: Node[]) =>
+      nds.map((node) => {
+        // If this is the standalone agent being updated
+        if (node.id === id) {
+          return { ...node, data: { ...node.data, ...updatedData } };
+        }
+        
+        // If this is a group node, check if it contains the agent being updated
+        if (node.type === 'group' && node.data.agents) {
+          const agentIndex = node.data.agents.findIndex((agent: AgentData) => agent.id === id);
+          if (agentIndex !== -1) {
+            // Create new agents array with updated agent
+            const updatedAgents = [...node.data.agents];
+            updatedAgents[agentIndex] = {
+              ...updatedAgents[agentIndex],
+              ...updatedData
+            };
+            
+            // Return updated group node
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                agents: updatedAgents
+              }
+            };
+          }
+        }
+        return node;
+      })
     );
-    //saveVersion();
   };
 
   // Expose the updateNodeData function to the window object
@@ -1587,130 +1749,127 @@ const FlowContent = () => {
     (window as any).updateNodeData = updateNodeData;
   }, []);
 
-  // Modify runTask to handle both grouped and standalone agents
-  const runTask = async () => {
-    try {
-      // Reset all states
-      setGroupProcessingStates({});
-      setTaskResults({});
+  // Update the processAgent function
+  const processAgent = async (agentId: string, context: string = '') => {
+    if (processedAgents.has(agentId)) return;
+    
+    // Set processing state to true
+    setNodes(nodes => nodes.map(node => 
+      node.id === agentId 
+        ? { ...node, data: { ...node.data, isProcessing: true }} 
+        : node
+    ));
+    
+    const agent = nodes.find(n => n.id === agentId)?.data;
+    if (!agent) return;
 
-      // 1. Process standalone agents based on swarm architecture
-      const standaloneAgents = nodes.filter(node => 
-        node.type === 'agent' && !node.data.groupId
+    // Mark this agent as being processed to prevent cycles
+    processedAgents.add(agentId);
+
+    try {
+      // Get all incoming edges
+      const incomingEdges = edges.filter(e => 
+        e.target === agentId && 
+        e.data?.type === 'agent'
       );
 
-      let standaloneResults: { id: string; result: string }[] = [];
-      
-      if (standaloneAgents.length > 0) {
-        switch (swarmArchitecture) {
-          case 'Concurrent':
-            standaloneResults = await Promise.all(
-              standaloneAgents.map(async (agent) => {
-                const { text } = await generateText({
-                  model: registry.languageModel(`openai:${agent.data.model}`),
-                  prompt: `${agent.data.systemPrompt}
-                  
-                  Task: ${task}
-                  
-                  Response:`,
-                });
-                return { id: agent.id, result: text };
-              })
-            );
-            break;
+      // Process all incoming agents first and collect their results
+      const incomingResults = await Promise.all(
+        incomingEdges.map(async (edge) => {
+          if (!processedAgents.has(edge.source)) {
+            await processAgent(edge.source, '');
+          }
+          const sourceResult = taskResults[edge.source];
+          const sourceName = nodes.find(n => n.id === edge.source)?.data?.name;
+          return sourceResult ? `${sourceName}: ${sourceResult}` : '';
+        })
+      );
 
-          case 'Sequential':
-            let context = '';
-            for (const agent of standaloneAgents) {
-              const { text } = await generateText({
-                model: registry.languageModel(`openai:${agent.data.model}`),
-                prompt: `${agent.data.systemPrompt}
-                
-                Previous context: ${context}
-                
-                Task: ${task}
-                
-                Response:`,
-              });
-              standaloneResults.push({ id: agent.id, result: text });
-              context += `\n${agent.data.name}: ${text}`;
-            }
-            break;
+      // Generate response using all previous results
+      const { text } = await generateText({
+        model: registry.languageModel(`openai:${agent.model}`),
+        prompt: `${agent.systemPrompt}
+        
+        ${context ? `Previous Context: ${context}\n` : ''}
+        ${incomingResults.length > 0 ? `Previous Agents' Results:\n${incomingResults.join('\n')}\n` : ''}
+        
+        Task: ${task}
+        
+        Based on ${incomingResults.length > 0 ? 'the previous agents\' results' : 'the task'}, provide your response:`,
+      });
 
-          case 'Hierarchical':
-            const bosses = standaloneAgents.filter(node => node.data.type === 'Boss');
-            const workers = standaloneAgents.filter(node => node.data.type === 'Worker');
+      // Store result
+      setTaskResults(prev => ({
+        ...prev,
+        [agentId]: text
+      }));
 
-            // Process bosses first
-            const bossPrompts = await Promise.all(
-              bosses.map(async (boss) => {
-                const { text } = await generateText({
-                  model: registry.languageModel(`openai:${boss.data.model}`),
-                  prompt: `${boss.data.systemPrompt}
-                  
-                  You are a Boss agent. Create a subtask based on the following main task:
-                  
-                  Task: ${task}
-                  
-                  Subtask for your team:`,
-                });
-                standaloneResults.push({ id: boss.id, result: text });
-                return { bossId: boss.id, subtask: text };
-              })
-            );
+      // Set processing state to false and update result
+      setNodes(nodes => nodes.map(node => 
+        node.id === agentId 
+          ? { ...node, data: { ...node.data, isProcessing: false, lastResult: text }} 
+          : node
+      ));
 
-            // Then process workers
-            await Promise.all(
-              workers.map(async (worker) => {
-                const boss = bosses.find(b => b.data.clusterId === worker.data.clusterId);
-                if (!boss) return null;
+      // Process next agents in chain with current result
+      const outgoingEdges = edges.filter(e => 
+        e.source === agentId && 
+        e.data?.type === 'agent'
+      );
 
-                const bossPrompt = bossPrompts.find(bp => bp.bossId === boss.id);
-                if (!bossPrompt) return null;
-
-                const { text } = await generateText({
-                  model: registry.languageModel(`openai:${worker.data.model}`),
-                  prompt: `${worker.data.systemPrompt}
-                  
-                  Task from your boss: ${bossPrompt.subtask}
-                  
-                  Response:`,
-                });
-                standaloneResults.push({ id: worker.id, result: text });
-              })
-            );
-            break;
-        }
-
-        // Store standalone results
-        standaloneResults.forEach(({ id, result }) => {
-          setTaskResults(prev => ({
-            ...prev,
-            [id]: result
-          }));
-        });
+      // Process each outgoing connection sequentially, passing the current result
+      for (const edge of outgoingEdges) {
+        await processAgent(edge.target, text);
       }
 
-      // 2. Process connected groups
+      return text;
+    } catch (error) {
+      // Set processing state to false on error
+      setNodes(nodes => nodes.map(node => 
+        node.id === agentId 
+          ? { ...node, data: { ...node.data, isProcessing: false }} 
+          : node
+      ));
+      
+      console.error(`Error processing agent ${agentId}:`, error);
+      throw error;
+    }
+  };
+
+  // Update the runTask function's agent processing section
+  const runTask = async () => {
+    try {
+      setTaskResults({});
+      processedAgents.clear(); // Clear the processed agents set
+
+      // Find starting agents (those with no incoming connections)
+      const startingAgents = nodes.filter(node => 
+        node.type === 'agent' &&
+        !node.data.groupId && // Only process standalone agents
+        !edges.some(e => e.target === node.id && e.data?.type === 'agent')
+      );
+
+      // Process each starting agent and their chains sequentially
+      for (const agent of startingAgents) {
+        await processAgent(agent.id);
+      }
+
+      // Process groups after all agent chains are complete
       const startingGroups = nodes.filter(node => 
         node.type === 'group' && 
         !edges.some(edge => edge.target === node.id)
       );
 
       if (startingGroups.length > 0) {
-        // Process each starting group chain sequentially
         for (const startGroup of startingGroups) {
           await processGroupChain(startGroup.id, task);
         }
       }
-      
 
       setPopup({
         message: 'Task completed successfully',
         type: 'success'
       });
-
-      
 
     } catch (error) {
       console.error('Error running task:', error);
@@ -1721,112 +1880,163 @@ const FlowContent = () => {
     }
   };
 
-
-  // Keep the existing processGroupChain function as is
+  // Update the processGroupChain function to handle team processing better
   const processGroupChain = async (groupId: string, currentTask: string, previousResults: string = '', processedGroups = new Set<string>()) => {
-    // Prevent infinite loops and reprocessing
-    if (processedGroups.has(groupId)) {
-      return;
-    }
+    if (processedGroups.has(groupId)) return;
     processedGroups.add(groupId);
 
     try {
-      updateGroupState(groupId, {
-        isProcessing: true,
-        completedAgents: [],
-      });
+      setGroupProcessingStates(prev => ({
+        ...prev,
+        [groupId]: {
+          isProcessing: true,
+          completedAgents: [],
+        }
+      }));
 
       const group = nodes.find(n => n.id === groupId);
-      if (!group || group.type !== 'group') return;
+      if (!group || group.type !== 'group' || !group.data.agents) return;
 
-      // Create a more detailed context from previous results
-      const contextPrompt = previousResults 
-        ? `Previous Team's Results:
-           ${previousResults}
-           
-           Using these results as context, your team should build upon this work.
-           
-           Main Task: ${currentTask}`
-        : `You are the first team working on this task.
-           
-           Main Task: ${currentTask}`;
+      const groupAgents = group.data.agents;
+      let groupResults: { agentId: string; result: string }[] = [];
 
-      // Process all agents within the group
-      const results = await Promise.all(
-        group.data.agents.map(async (agent: AgentData) => {
-          const { text } = await generateText({
-            model: registry.languageModel(`openai:${agent.model}`),
-            prompt: `${agent.systemPrompt}
+      switch (swarmArchitecture) {
+        case 'Concurrent':
+          groupResults = await Promise.all(
+            groupAgents.map(async (agent: any) => {
+              const { text } = await generateText({
+                model: registry.languageModel(`openai:${agent.model}`),
+                prompt: `${agent.systemPrompt}
+                
+                You are part of team: ${group.data.teamName}
+                Team Type: ${group.data.swarmType}
+                Previous Results: ${previousResults}
+                
+                Task: ${currentTask}
+                
+                Response:`,
+              });
+              return { agentId: agent.id, result: text };
+            })
+          );
+          break;
 
-            Context and Task:
-            ${contextPrompt}
-            
-            Your Role: ${agent.type}
-            Team: ${group.data.teamName}
-            Team Type: ${group.data.swarmType}
-            
-            Provide your specialized contribution based on the context and your role.`,
-          });
+        case 'Sequential':
+          let context = previousResults;
+          for (const agent of groupAgents) {
+            const { text } = await generateText({
+              model: registry.languageModel(`openai:${agent.model}`),
+              prompt: `${agent.systemPrompt}
+              
+              You are part of team: ${group.data.teamName}
+              Team Type: ${group.data.swarmType}
+              Previous Context: ${context}
+              
+              Task: ${currentTask}
+              
+              Response:`,
+            });
+            groupResults.push({ agentId: agent.id, result: text });
+            context += `\n${agent.name}: ${text}`;
+          }
+          break;
 
-          // Update the agent's lastResult in the nodes state
-          setNodes(nodes => nodes.map(node => {
-            if (node.type === 'group' && node.id === groupId) {
-              return {
-                ...node,
-                data: {
-                  ...node.data,
-                  agents: node.data.agents.map((a: AgentData) => 
-                    a.id === agent.id ? { ...a, lastResult: text } : a
-                  )
-                }
-              };
-            }
-            return node;
-          }));
+        case 'Hierarchical':
+          const bosses = groupAgents.filter((a: any) => a.type === 'Boss');
+          const workers = groupAgents.filter((a: any) => a.type === 'Worker');
 
-          updateGroupState(groupId, {
-            completedAgents: [...(groupProcessingStates[groupId]?.completedAgents || []), agent.id],
-          });
+          // Process bosses first
+          const bossResults = await Promise.all(
+            bosses.map(async (boss: any) => {
+              const { text } = await generateText({
+                model: registry.languageModel(`openai:${boss.model}`),
+                prompt: `${boss.systemPrompt}
+                
+                You are a Boss in team: ${group.data.teamName}
+                Previous Results: ${previousResults}
+                
+                Create subtasks for your team based on:
+                Task: ${currentTask}
+                
+                Response:`,
+              });
+              groupResults.push({ agentId: boss.id, result: text });
+              return { bossId: boss.id, subtask: text };
+            })
+          );
 
-          return { agentId: agent.id, result: text };
-        })
-      );
+          // Then process workers
+          await Promise.all(
+            workers.map(async (worker: any) => {
+              const boss = bosses.find((b: any) => b.clusterId === worker.clusterId);
+              if (!boss) return null;
 
-      // Combine results from all agents in the group
-      const groupResult = `Team ${group.data.teamName} Results:\n${results.map(r => r.result).join('\n\n')}`;
+              const bossPrompt = bossResults.find(bp => bp.bossId === boss.id);
+              if (!bossPrompt) return null;
 
-      // Update group state with results
-      updateGroupState(groupId, {
-        isProcessing: false,
-        result: groupResult,
-      });
+              const { text } = await generateText({
+                model: registry.languageModel(`openai:${worker.model}`),
+                prompt: `${worker.systemPrompt}
+                
+                You are a Worker in team: ${group.data.teamName}
+                Task from your boss: ${bossPrompt.subtask}
+                
+                Response:`,
+              });
+              groupResults.push({ agentId: worker.id, result: text });
+            })
+          );
+          break;
+      }
 
-      // Store individual agent results
-      results.forEach(({ agentId, result }) => {
+      // Update individual agent results
+      groupResults.forEach(({ agentId, result }) => {
         setTaskResults(prev => ({
           ...prev,
-          [agentId]: result,
+          [agentId]: result
         }));
       });
 
-      // Find next groups in chain
+      // Create and store the group's combined result
+      const groupResult = `Team ${group.data.teamName} Results:\n${groupResults
+        .map(({ result }) => result)
+        .join('\n\n')}`;
+
+      // Store the group result in taskResults
+      setTaskResults(prev => ({
+        ...prev,
+        [groupId]: groupResult // Store group result with group's ID
+      }));
+
+      // Update group processing state
+      setGroupProcessingStates(prev => ({
+        ...prev,
+        [groupId]: {
+          isProcessing: false,
+          completedAgents: groupResults.map(r => r.agentId),
+          result: groupResult
+        }
+      }));
+
+      // Process next groups in chain
       const nextGroups = edges
         .filter(edge => edge.source === groupId)
         .map(edge => edge.target);
 
-      // Process all next groups in parallel
-      await Promise.all(
-        nextGroups.map(nextGroupId => 
-          processGroupChain(nextGroupId, currentTask, groupResult, processedGroups)
-        )
-      );
+      for (const nextGroupId of nextGroups) {
+        await processGroupChain(nextGroupId, currentTask, groupResult, processedGroups);
+      }
 
     } catch (error) {
       console.error(`Error processing group ${groupId}:`, error);
-      updateGroupState(groupId, {
-        isProcessing: false,
-        error: 'Error processing group',
-      });
+      setGroupProcessingStates(prev => ({
+        ...prev,
+        [groupId]: {
+          ...prev[groupId],
+          isProcessing: false,
+          error: 'Error processing group'
+        }
+      }));
     }
   };
 
@@ -2014,8 +2224,23 @@ const FlowContent = () => {
     }
   };
 
+  // Add this state near other state declarations
+  const [savingStatus, setSavingStatus] = useState<{
+    show: boolean;
+    message: string;
+    type: 'saving' | 'success' | 'error';
+  } | null>(null);
+
+  // Update the saveVersionStable function
   const saveVersionStable = useCallback(async () => {
     try {
+      // Show saving popup
+      setSavingStatus({
+        show: true,
+        message: 'Saving swarm configuration...',
+        type: 'saving'
+      });
+
       // Transform nodes to match the expected schema
       const validNodes: SaveFlowNode[] = nodes.map((node) => {
         const { id, type, position, data } = node;
@@ -2090,15 +2315,35 @@ const FlowContent = () => {
         setCurrentFlowId(result.id);
       }
   
-      setPopup({ message: 'Flow saved successfully', type: 'success' });
+      // Show success popup
+      setSavingStatus({
+        show: true,
+        message: 'Swarm configuration saved successfully',
+        type: 'success'
+      });
+  
       await getAllFlowsQuery.refetch();
     } catch (error) {
       console.error('Error saving flow:', error);
-      setPopup({ message: 'Failed to save flow', type: 'error' });
+      // Show error popup
+      setSavingStatus({
+        show: true,
+        message: 'Failed to save swarm configuration',
+        type: 'error'
+      });
     }
   }, [nodes, edges, swarmArchitecture, taskResults, saveFlowMutation, router, currentFlowId, getAllFlowsQuery]);
 
+  // Add this effect to handle popup timing
+  useEffect(() => {
+    if (savingStatus?.show) {
+      const timer = setTimeout(() => {
+        setSavingStatus(null);
+      }, savingStatus.type === 'saving' ? 30000 : 3000); // Show saving popup longer
 
+      return () => clearTimeout(timer);
+    }
+  }, [savingStatus]);
 
   const useSaveShortcuts = () => {
     useEffect(() => {
@@ -2714,10 +2959,29 @@ const FlowContent = () => {
       <AddAgentToGroupDialog
         groupId={addToGroupDialogState.groupId || ''}
         open={addToGroupDialogState.open}
-        onOpenChange={(open) => setAddToGroupDialogState(prev => ({ ...prev, open }))}
-        nodes={nodes}
-        setNodes={setNodes}
+        onClose={() => setAddToGroupDialogState(prev => ({ ...prev, open: false }))}
       />
+      <AnimatePresence>
+        {savingStatus && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className={`fixed top-4 right-4 p-4 rounded-md shadow-md z-50 flex items-center space-x-2 ${
+              savingStatus.type === 'saving'
+                ? 'bg-primary text-primary-foreground'
+                : savingStatus.type === 'success'
+                ? 'bg-emerald-600 dark:bg-emerald-500 text-white'
+                : 'bg-destructive text-destructive-foreground'
+            }`}
+          >
+            {savingStatus.type === 'saving' && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
+            <span>{savingStatus.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <style jsx global>{`
         /* Light mode styles */
         .react-flow__node {
@@ -2866,6 +3130,57 @@ const FlowContent = () => {
         /* Select dropdown styles */
         .select-dropdown {
           text-align: left;
+        }
+
+        /* Handle styles */
+        .react-flow__handle {
+          width: 12px !important;
+          height: 12px !important;
+          border-radius: 50% !important;
+          background-color: hsl(var(--primary)) !important;
+          border: 2px solid hsl(var(--background)) !important;
+          transition: all 0.2s ease !important;
+        }
+
+        .react-flow__handle:hover {
+          transform: scale(1.2) !important;
+          background-color: hsl(var(--primary)) !important;
+        }
+
+        .react-flow__handle-left {
+          left: -6px !important;
+        }
+
+        .react-flow__handle-right {
+          right: -6px !important;
+        }
+
+        /* Connection line styles */
+        .react-flow__edge-path {
+          stroke-width: 2 !important;
+          animation: flowLine 30s linear infinite;
+        }
+
+        @keyframes flowLine {
+          from {
+            stroke-dashoffset: 24;
+          }
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+
+        .react-flow__edge.selected .react-flow__edge-path {
+          stroke: hsl(var(--primary)) !important;
+        }
+
+        /* Dark mode adjustments */
+        .dark .react-flow__handle {
+          border-color: hsl(var(--background)) !important;
+        }
+
+        .dark .react-flow__edge-path {
+          stroke: hsl(var(--primary)) !important;
         }
       `}</style>
     </div>
