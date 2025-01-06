@@ -96,6 +96,11 @@ const explorerRouter = router({
 
       // rate limiter - 1 swarm per hour
       const user_id = ctx.session.data.session?.user?.id;
+
+      if (!user_id) {
+        throw new Error('User not authenticated');
+      }
+      
       const lastSubmites = await ctx.supabase
         .from('swarms')
         .select('*')
@@ -104,7 +109,7 @@ const explorerRouter = router({
         .limit(1);
       if ((lastSubmites?.data ?? [])?.length > 0) {
         const lastSubmit = lastSubmites.data?.[0];
-        const lastSubmitTime = new Date(lastSubmit.created_at);
+        const lastSubmitTime = new Date(lastSubmit?.created_at || '');
         const currentTime = new Date();
         const diff = currentTime.getTime() - lastSubmitTime.getTime();
         const diffHours = diff / (1000 * 60 * 60); // 1h
