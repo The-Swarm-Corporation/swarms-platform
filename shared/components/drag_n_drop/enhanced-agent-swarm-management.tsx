@@ -1415,13 +1415,13 @@ const FlowContent = () => {
         // Update all relevant state with the loaded flow data
         setNodes(flowData.nodes || []);
         setEdges(flowData.edges || []);
-        setSwarmArchitecture(flowData.architecture || 'Concurrent');
+        setSwarmArchitecture(flowData.architecture as SwarmArchitecture || 'Concurrent');
         setTaskResults(flowData.results || {});
         setCurrentFlowId(flowId);
 
         // Initialize previous state
         previousStateRef.current = {
-          nodes: flowData.nodes || [],
+          nodes: flowData.nodes as any || [],
           edges: flowData.edges || [],
         };
 
@@ -1918,13 +1918,13 @@ const FlowContent = () => {
         // Update all state
         setNodes(flowData.nodes || []);
         setEdges(flowData.edges || []);
-        setSwarmArchitecture(flowData.architecture || 'Concurrent');
+        setSwarmArchitecture(flowData.architecture as SwarmArchitecture || 'Concurrent');
         setTaskResults(flowData.results || {});
         setCurrentFlowId(flowId);
 
         // Update previous state to prevent immediate save
         previousStateRef.current = {
-          nodes: flowData.nodes || [],
+          nodes: flowData.nodes as any || [],
           edges: flowData.edges || [],
         };
 

@@ -1,3 +1,5 @@
+import { MarkerType } from 'reactflow';
+
 export type Json =
   | string
   | number
@@ -1911,12 +1913,14 @@ type FlowData = {
       stroke: string
     }
     markerEnd?: {
-      type: string
+      type: MarkerType
       color: string
     }
     data?: {
       label: string
     }
+    sourceHandle?: string | null
+    targetHandle?: string | null
     [key: string]: unknown
   }>
   architecture: string | Architecture
