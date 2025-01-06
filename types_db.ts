@@ -1851,8 +1851,6 @@ export type CompositeTypes<
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
-type Architecture = 'Concurrent' | 'Sequential' | 'Hierarchical'
-
 type FlowData = {
   nodes: Array<{
     id: string
@@ -1893,6 +1891,6 @@ type FlowData = {
     }
     [key: string]: unknown
   }>
-  architecture: string | Architecture
+  architecture: string
   results: Record<string, string>
 }
