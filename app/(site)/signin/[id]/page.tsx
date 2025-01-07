@@ -56,7 +56,7 @@ export default async function SignIn({
 
   return (
     <div className="flex justify-center height-screen-helper">
-      <div className="flex flex-col justify-between max-w-lg p-3 m-auto w-80 ">
+      <div className="flex flex-col justify-between max-w-lg p-3 m-auto min-w-[320px] w-80">
         <div className="flex justify-center pb-12 ">
           <Logo width={64} height={64} />
         </div>
@@ -70,6 +70,7 @@ export default async function SignIn({
                   ? 'Sign Up'
                   : 'Sign In'
           }
+          className="p-4"
         >
           {viewProp === 'password_signin' && (
             <PasswordSignIn

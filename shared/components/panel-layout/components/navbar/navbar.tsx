@@ -132,11 +132,6 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                           className="w-full p-4"
                           onSubmit={handleSignOut}
                         >
-                          <input
-                            type="hidden"
-                            name="pathName"
-                            value={usePathname()?.toString()}
-                          />
                           <button
                             type="submit"
                             className="flex items-center w-full"
@@ -148,9 +143,10 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
                         <NavItem
                           link="/signin"
                           title="Sign in"
-                          className="p-4"
+                          className="w-full p-4"
                           isIcon
                           icon={<LogIn size={20} />}
+                          showTitle
                         />
                       )
                     ) : (

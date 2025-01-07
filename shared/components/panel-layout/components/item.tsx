@@ -73,7 +73,7 @@ const NavItem = React.forwardRef(function <
         'group flex items-center justify-start outline-none',
         className,
       )}
-      onSubmit={onSubmit}
+      onClick={onSubmit}
       ref={ref as RefObject<HTMLFormElement | HTMLSpanElement>}
       {...props}
     >

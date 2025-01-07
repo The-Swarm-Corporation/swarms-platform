@@ -32,6 +32,8 @@ export const AuthProvider = ({ children, user }: AuthProviderProps) => {
   useEffect(() => {
     if (!user) {
       openModal();
+    } else {
+      closeModal();
     }
   }, [user]);
 
