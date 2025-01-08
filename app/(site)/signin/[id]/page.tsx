@@ -16,12 +16,9 @@ import OauthSignIn from '@/shared/components/ui/AuthForms/OauthSignIn';
 import ForgotPassword from '@/shared/components/ui/AuthForms/ForgotPassword';
 import UpdatePassword from '@/shared/components/ui/AuthForms/UpdatePassword';
 import SignUp from '@/shared/components/ui/AuthForms/Signup';
-import { NextRequest } from 'next/server';
 import crypto from 'crypto';
 
 // Security constants
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 const CSP_HEADER = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
@@ -57,61 +54,9 @@ const checkRateLimit = (ip: string): boolean => {
   return current.count <= maxRequests;
 };
 
-// Login attempt tracking
-const loginAttempts = new Map<string, { count: number; lockUntil?: number }>();
-
-const checkLoginAttempts = (identifier: string): boolean => {
-  const attempts = loginAttempts.get(identifier) || { count: 0 };
-  
-  if (attempts.lockUntil && Date.now() < attempts.lockUntil) {
-    return false;
-  }
-  
-  if (attempts.count >= MAX_ATTEMPTS) {
-    attempts.lockUntil = Date.now() + LOCKOUT_DURATION;
-    loginAttempts.set(identifier, attempts);
-    return false;
-  }
-  
-  return true;
-};
-
-// Input sanitization
-const sanitizeInput = (input: string): string => {
-  return input
-    .replace(/[<>&"']/g, (char) => {
-      const entities: { [key: string]: string } = {
-        '<': '&lt;',
-        '>': '&gt;',
-        '&': '&amp;',
-        '"': '&quot;',
-        "'": '&#x27;'
-      };
-      return entities[char];
-    })
-    .trim()
-    .slice(0, 256); // Limit input length
-};
-
 // CSRF Protection
 const generateCSRFToken = (): string => {
   return crypto.randomBytes(32).toString('hex');
-};
-
-// Secure comparison
-const secureCompare = (a: string, b: string): boolean => {
-  if (typeof a !== 'string' || typeof b !== 'string') {
-    return false;
-  }
-  
-  const buff1 = Buffer.from(a);
-  const buff2 = Buffer.from(b);
-  
-  if (buff1.length !== buff2.length) {
-    return false;
-  }
-  
-  return crypto.timingSafeEqual(buff1, buff2);
 };
 
 export default async function SignIn({
@@ -142,8 +87,8 @@ export default async function SignIn({
 
   // Secure view handling
   let viewProp: string;
-  if (typeof params.id === 'string' && viewTypes.includes(sanitizeInput(params.id))) {
-    viewProp = sanitizeInput(params.id);
+  if (typeof params.id === 'string' && viewTypes.includes(params.id)) {
+    viewProp = params.id;
   } else {
     const preferredSignInView = cookies().get('preferredSignInView')?.value || null;
     viewProp = getDefaultSignInView(preferredSignInView);
@@ -203,8 +148,6 @@ export default async function SignIn({
             <PasswordSignIn
               allowEmail={allowEmail}
               redirectMethod={redirectMethod}
-              onBeforeSubmit={(identifier) => checkLoginAttempts(identifier)}
-              sanitizeInput={sanitizeInput}
             />
           )}
           {viewProp === 'email_signin' && (
@@ -212,7 +155,6 @@ export default async function SignIn({
               allowPassword={allowPassword}
               redirectMethod={redirectMethod}
               disableButton={searchParams.disable_button}
-              sanitizeInput={sanitizeInput}
             />
           )}
           {viewProp === 'forgot_password' && (
@@ -220,21 +162,17 @@ export default async function SignIn({
               allowEmail={allowEmail}
               redirectMethod={redirectMethod}
               disableButton={searchParams.disable_button}
-              sanitizeInput={sanitizeInput}
             />
           )}
           {viewProp === 'update_password' && (
             <UpdatePassword 
               redirectMethod={redirectMethod}
-              enforceStrongPassword={true}
-              sanitizeInput={sanitizeInput}
             />
           )}
           {viewProp === 'signup' && (
             <SignUp 
               allowEmail={allowEmail}
               redirectMethod={redirectMethod}
-              sanitizeInput={sanitizeInput}
             />
           )}
           {viewProp !== 'update_password' &&
