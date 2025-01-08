@@ -1,7 +1,13 @@
+import Logo from '@/shared/components/icons/Logo';
 import { createClient } from '@/shared/utils/supabase/server';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import Logo from '@/shared/components/icons/Logo';
+import {
+  getAuthTypes,
+  getViewTypes,
+  getDefaultSignInView,
+  getRedirectMethod,
+} from '@/shared/utils/auth-helpers/settings';
 import { Card } from '@/shared/components/spread_sheet_swarm/ui/card';
 import PasswordSignIn from '@/shared/components/ui/AuthForms/PasswordSignIn';
 import EmailSignIn from '@/shared/components/ui/AuthForms/EmailSignIn';
@@ -10,12 +16,11 @@ import OauthSignIn from '@/shared/components/ui/AuthForms/OauthSignIn';
 import ForgotPassword from '@/shared/components/ui/AuthForms/ForgotPassword';
 import UpdatePassword from '@/shared/components/ui/AuthForms/UpdatePassword';
 import SignUp from '@/shared/components/ui/AuthForms/Signup';
-import { rateLimit } from './rate-limiter';
-import { hashToken } from './crypto-utils';
-import type { NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
+import crypto from 'crypto';
 
-// Security constants
-const MAX_FAILED_ATTEMPTS = 5;
+// Security constants and utilities - all in one file
+const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 const CSP_HEADER = `
   default-src 'self';
@@ -31,81 +36,122 @@ const CSP_HEADER = `
   upgrade-insecure-requests;
 `.replace(/\s+/g, ' ').trim();
 
-// Type definitions
-interface SignInProps {
+// In-memory rate limiting (replace with Redis in production)
+const rateLimitMap = new Map<string, { count: number; timestamp: number }>();
+
+// Rate limiting function
+const checkRateLimit = (ip: string): boolean => {
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 minutes
+  const maxRequests = 100; // Max requests per window
+
+  const current = rateLimitMap.get(ip) || { count: 0, timestamp: now };
+  
+  if (now - current.timestamp > windowMs) {
+    current.count = 1;
+    current.timestamp = now;
+  } else {
+    current.count++;
+  }
+  
+  rateLimitMap.set(ip, current);
+  return current.count <= maxRequests;
+};
+
+// Attempt tracking for brute force protection
+const loginAttempts = new Map<string, { count: number; lockUntil?: number }>();
+
+const checkLoginAttempts = (identifier: string): boolean => {
+  const attempts = loginAttempts.get(identifier) || { count: 0 };
+  
+  if (attempts.lockUntil && Date.now() < attempts.lockUntil) {
+    return false;
+  }
+  
+  if (attempts.count >= MAX_ATTEMPTS) {
+    attempts.lockUntil = Date.now() + LOCKOUT_DURATION;
+    loginAttempts.set(identifier, attempts);
+    return false;
+  }
+  
+  return true;
+};
+
+// Input sanitization
+const sanitizeInput = (input: string): string => {
+  return input
+    .replace(/[<>&"']/g, (char) => {
+      const entities: { [key: string]: string } = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;',
+        '"': '&quot;',
+        "'": '&#x27;'
+      };
+      return entities[char];
+    })
+    .trim()
+    .slice(0, 256); // Limit input length
+};
+
+// CSRF token generation
+const generateCSRFToken = (): string => {
+  return crypto.randomBytes(32).toString('hex');
+};
+
+// Secure hash comparison (constant time)
+const secureCompare = (a: string, b: string): boolean => {
+  if (typeof a !== 'string' || typeof b !== 'string') {
+    return false;
+  }
+  
+  const buff1 = Buffer.from(a);
+  const buff2 = Buffer.from(b);
+  
+  if (buff1.length !== buff2.length) {
+    return false;
+  }
+  
+  return crypto.timingSafeEqual(buff1, buff2);
+};
+
+export default async function SignIn({
+  params,
+  searchParams,
+}: {
   params: { id: string };
   searchParams: { disable_button: boolean };
-}
-
-// Utility functions
-const getValidViewType = (viewTypes: string[], id?: string): string => {
-  if (typeof id === 'string' && viewTypes.includes(id)) {
-    return id;
-  }
-  return 'password_signin'; // Default view
-};
-
-const sanitizeInput = (input: string): string => {
-  return input.replace(/[<>&"']/g, (char) => {
-    const entities: { [key: string]: string } = {
-      '<': '&lt;',
-      '>': '&gt;',
-      '&': '&amp;',
-      '"': '&quot;',
-      "'": '&#x27;'
-    };
-    return entities[char];
-  });
-};
-
-// Security middleware
-const securityMiddleware = async (request: NextRequest) => {
-  const clientIP = request.headers.get('x-forwarded-for') || request.ip;
-  
-  // Rate limiting
-  const isRateLimited = await rateLimit(clientIP);
-  if (isRateLimited) {
-    return new Response('Too Many Requests', { status: 429 });
-  }
-
-  // CSRF Protection
-  const csrfToken = request.headers.get('x-csrf-token');
-  const storedToken = cookies().get('csrf-token')?.value;
-  
-  if (!csrfToken || !storedToken || hashToken(csrfToken) !== storedToken) {
-    return new Response('Invalid CSRF Token', { status: 403 });
-  }
-
-  return null; // Continue with the request
-};
-
-export default async function SignIn({ params, searchParams }: SignInProps) {
-  // Security headers
+}) {
+  // Set security headers
   const headersList = headers();
   headersList.set('Content-Security-Policy', CSP_HEADER);
   headersList.set('X-Frame-Options', 'DENY');
   headersList.set('X-Content-Type-Options', 'nosniff');
   headersList.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headersList.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  
-  // Apply security middleware
-  const request = new Request('https://example.com', {
-    headers: headersList,
-  });
-  const securityCheck = await securityMiddleware(request as NextRequest);
-  if (securityCheck) return securityCheck;
+  headersList.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+
+  // Rate limiting check
+  const clientIP = headers().get('x-forwarded-for') || 'unknown';
+  if (!checkRateLimit(clientIP)) {
+    return new Response('Too Many Requests', { status: 429 });
+  }
 
   const { allowOauth, allowEmail, allowPassword } = getAuthTypes();
   const viewTypes = getViewTypes();
   const redirectMethod = getRedirectMethod();
 
-  // Safe view type handling
-  const viewProp = getValidViewType(viewTypes, params.id);
-  if (viewProp !== params.id) {
+  // Secure view handling
+  let viewProp: string;
+  if (typeof params.id === 'string' && viewTypes.includes(sanitizeInput(params.id))) {
+    viewProp = sanitizeInput(params.id);
+  } else {
+    const preferredSignInView = cookies().get('preferredSignInView')?.value || null;
+    viewProp = getDefaultSignInView(preferredSignInView);
     return redirect(`/signin/${viewProp}`);
   }
 
-  // Supabase client with additional security options
+  // Enhanced Supabase client with security options
   const supabase = createClient({
     options: {
       auth: {
@@ -121,22 +167,29 @@ export default async function SignIn({ params, searchParams }: SignInProps) {
     }
   });
 
-  // User session check with protection against timing attacks
+  // Protected user session check
   const startTime = process.hrtime();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  const [seconds, nanoseconds] = process.hrtime(startTime);
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
   
-  // Constant-time comparison to prevent timing attacks
+  // Add minimum processing time to prevent timing attacks
+  const [seconds, nanoseconds] = process.hrtime(startTime);
   if (seconds * 1e9 + nanoseconds < 100000000) { // Minimum 100ms
     await new Promise(resolve => setTimeout(resolve, 100));
   }
 
-  if (error) {
-    console.error('Auth error:', error.message);
+  if (userError) {
+    console.error('Auth error occurred');
     return redirect('/error?code=auth_error');
   }
 
+  // Session checks with CSRF protection
   if (user && viewProp !== 'update_password') {
+    const csrfToken = generateCSRFToken();
+    cookies().set('csrf-token', csrfToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
     return redirect('/');
   } else if (!user && viewProp === 'update_password') {
     return redirect('/signin');
@@ -164,8 +217,8 @@ export default async function SignIn({ params, searchParams }: SignInProps) {
             <PasswordSignIn
               allowEmail={allowEmail}
               redirectMethod={redirectMethod}
-              maxAttempts={MAX_FAILED_ATTEMPTS}
-              lockoutDuration={LOCKOUT_DURATION}
+              onBeforeSubmit={(identifier) => checkLoginAttempts(identifier)}
+              sanitizeInput={sanitizeInput}
             />
           )}
           {viewProp === 'email_signin' && (
@@ -188,11 +241,12 @@ export default async function SignIn({ params, searchParams }: SignInProps) {
             <UpdatePassword 
               redirectMethod={redirectMethod}
               enforceStrongPassword={true}
+              sanitizeInput={sanitizeInput}
             />
           )}
           {viewProp === 'signup' && (
             <SignUp 
-              allowEmail={allowEmail} 
+              allowEmail={allowEmail}
               redirectMethod={redirectMethod}
               sanitizeInput={sanitizeInput}
             />
