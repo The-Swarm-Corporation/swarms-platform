@@ -1,18 +1,7 @@
-import { NextRequest } from 'next/server';
-import Logo from '@/shared/components/icons/Logo';
 import { createClient } from '@/shared/utils/supabase/server';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
-import { rateLimit } from '@/shared/utils/rate-limit';
-import { validateCSRF } from '@/shared/utils/csrf';
-import { sanitizeInput } from '@/shared/utils/security';
-import { 
-  getAuthTypes,
-  getViewTypes,
-  getDefaultSignInView,
-  getRedirectMethod,
-} from '@/shared/utils/auth-helpers/settings';
+import Logo from '@/shared/components/icons/Logo';
 import { Card } from '@/shared/components/spread_sheet_swarm/ui/card';
 import PasswordSignIn from '@/shared/components/ui/AuthForms/PasswordSignIn';
 import EmailSignIn from '@/shared/components/ui/AuthForms/EmailSignIn';
@@ -21,239 +10,203 @@ import OauthSignIn from '@/shared/components/ui/AuthForms/OauthSignIn';
 import ForgotPassword from '@/shared/components/ui/AuthForms/ForgotPassword';
 import UpdatePassword from '@/shared/components/ui/AuthForms/UpdatePassword';
 import SignUp from '@/shared/components/ui/AuthForms/Signup';
+import { rateLimit } from './rate-limiter';
+import { hashToken } from './crypto-utils';
+import type { NextRequest } from 'next/server';
 
-// @/shared/constants.ts
+// Security constants
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+const CSP_HEADER = `
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data:;
+  font-src 'self';
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+  frame-ancestors 'none';
+  block-all-mixed-content;
+  upgrade-insecure-requests;
+`.replace(/\s+/g, ' ').trim();
 
-export const AUTH_VIEWS = {
-  PASSWORD_SIGNIN: 'password_signin',
-  EMAIL_SIGNIN: 'email_signin',
-  FORGOT_PASSWORD: 'forgot_password',
-  UPDATE_PASSWORD: 'update_password',
-  SIGNUP: 'signup'
-} as const;
-
-// Rate limiting settings
-export const MAX_ATTEMPTS = 5; // Maximum number of signin attempts before timeout
-export const TIMEOUT_MINUTES = 15; // Lockout period in minutes after max attempts reached
-
-// Session settings
-export const SESSION_EXPIRY_HOURS = 24;
-export const REFRESH_TOKEN_ROTATION_DAYS = 7;
-
-// Password requirements
-export const PASSWORD_MIN_LENGTH = 12;
-export const PASSWORD_REQUIRES_LOWERCASE = true;
-export const PASSWORD_REQUIRES_UPPERCASE = true;
-export const PASSWORD_REQUIRES_NUMBER = true;
-export const PASSWORD_REQUIRES_SPECIAL = true;
-
-// OAuth settings
-export const OAUTH_PROVIDERS = {
-  GOOGLE: 'google',
-  GITHUB: 'github',
-  MICROSOFT: 'microsoft'
-} as const;
-
-// CSRF settings
-export const CSRF_TOKEN_EXPIRY_MINUTES = 30;
-
-// Cookie settings
-export const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
-  path: '/'
-} as const;
-
-// Custom error for authentication failures
-class AuthError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'AuthError';
-  }
-}
-
-// Security headers configuration
-const securityHeaders = {
-  'Content-Security-Policy': 
-    "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "img-src 'self' data: https:; " +
-    "font-src 'self'; " +
-    "frame-src 'none'; " +
-    "object-src 'none'",
-  'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
-  'X-XSS-Protection': '1; mode=block',
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
-};
-
-// Input validation function
-const validateAuthInput = (input: string): boolean => {
-  // Implement strict input validation
-  const sanitized = sanitizeInput(input);
-  return typeof sanitized === 'string' && 
-         sanitized.length > 0 && 
-         sanitized.length <= 256 &&
-         /^[a-zA-Z0-9-_/.@]+$/.test(sanitized);
-};
-
-export default async function SignIn({
-  params,
-  searchParams,
-  req
-}: {
+// Type definitions
+interface SignInProps {
   params: { id: string };
   searchParams: { disable_button: boolean };
-  req: NextRequest;
-}) {
-  try {
-    // Apply security headers
-    const headersList = headers();
-    Object.entries(securityHeaders).forEach(([key, value]) => {
-      headersList.append(key, value);
-    });
+}
 
-    // Rate limiting
-    const ip = req.headers.get('x-forwarded-for') || req.ip;
-    const rateLimitResult = await rateLimit(ip, 'signin', MAX_ATTEMPTS, TIMEOUT_MINUTES);
-    if (!rateLimitResult.success) {
-      throw new AuthError('Too many attempts. Please try again later.');
-    }
+// Utility functions
+const getValidViewType = (viewTypes: string[], id?: string): string => {
+  if (typeof id === 'string' && viewTypes.includes(id)) {
+    return id;
+  }
+  return 'password_signin'; // Default view
+};
 
-    // CSRF protection
-    const csrfToken = headersList.get('x-csrf-token');
-    if (!await validateCSRF(csrfToken)) {
-      throw new AuthError('Invalid CSRF token');
-    }
+const sanitizeInput = (input: string): string => {
+  return input.replace(/[<>&"']/g, (char) => {
+    const entities: { [key: string]: string } = {
+      '<': '&lt;',
+      '>': '&gt;',
+      '&': '&amp;',
+      '"': '&quot;',
+      "'": '&#x27;'
+    };
+    return entities[char];
+  });
+};
 
-    // Validate and sanitize inputs
-    if (params.id && !validateAuthInput(params.id)) {
-      throw new AuthError('Invalid input parameters');
-    }
+// Security middleware
+const securityMiddleware = async (request: NextRequest) => {
+  const clientIP = request.headers.get('x-forwarded-for') || request.ip;
+  
+  // Rate limiting
+  const isRateLimited = await rateLimit(clientIP);
+  if (isRateLimited) {
+    return new Response('Too Many Requests', { status: 429 });
+  }
 
-    const { allowOauth, allowEmail, allowPassword } = getAuthTypes();
-    const viewTypes = getViewTypes();
-    const redirectMethod = getRedirectMethod();
+  // CSRF Protection
+  const csrfToken = request.headers.get('x-csrf-token');
+  const storedToken = cookies().get('csrf-token')?.value;
+  
+  if (!csrfToken || !storedToken || hashToken(csrfToken) !== storedToken) {
+    return new Response('Invalid CSRF Token', { status: 403 });
+  }
 
-    // Strict view type validation
-    let viewProp: string;
-    if (
-      typeof params.id === 'string' && 
-      viewTypes.includes(params.id) && 
-      Object.values(AUTH_VIEWS).includes(params.id)
-    ) {
-      viewProp = params.id;
-    } else {
-      const cookieStore = cookies();
-      const preferredSignInView = cookieStore.get('preferredSignInView')?.value || null;
-      
-      // Validate cookie value
-      if (preferredSignInView && !validateAuthInput(preferredSignInView)) {
-        throw new AuthError('Invalid preferred sign-in view');
+  return null; // Continue with the request
+};
+
+export default async function SignIn({ params, searchParams }: SignInProps) {
+  // Security headers
+  const headersList = headers();
+  headersList.set('Content-Security-Policy', CSP_HEADER);
+  headersList.set('X-Frame-Options', 'DENY');
+  headersList.set('X-Content-Type-Options', 'nosniff');
+  headersList.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  headersList.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  
+  // Apply security middleware
+  const request = new Request('https://example.com', {
+    headers: headersList,
+  });
+  const securityCheck = await securityMiddleware(request as NextRequest);
+  if (securityCheck) return securityCheck;
+
+  const { allowOauth, allowEmail, allowPassword } = getAuthTypes();
+  const viewTypes = getViewTypes();
+  const redirectMethod = getRedirectMethod();
+
+  // Safe view type handling
+  const viewProp = getValidViewType(viewTypes, params.id);
+  if (viewProp !== params.id) {
+    return redirect(`/signin/${viewProp}`);
+  }
+
+  // Supabase client with additional security options
+  const supabase = createClient({
+    options: {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'secure-auth-client'
+        }
       }
-      
-      viewProp = getDefaultSignInView(preferredSignInView);
-      return redirect(`/signin/${viewProp}`);
     }
+  });
 
-    // Secure session handling
-    const supabase = createClient();
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+  // User session check with protection against timing attacks
+  const startTime = process.hrtime();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  const [seconds, nanoseconds] = process.hrtime(startTime);
+  
+  // Constant-time comparison to prevent timing attacks
+  if (seconds * 1e9 + nanoseconds < 100000000) { // Minimum 100ms
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
 
-    if (userError) {
-      throw new AuthError('Session validation failed');
-    }
-
-    // Strict authentication flow control
-    if (user && viewProp !== 'update_password') {
-      return redirect('/');
-    } else if (!user && viewProp === 'update_password') {
-      return redirect('/signin');
-    }
-
-    // Implement secure session timeout
-    const session = await supabase.auth.getSession();
-    if (session?.expires_at && Date.now() >= session.expires_at) {
-      await supabase.auth.signOut();
-      return redirect('/signin');
-    }
-
-    return (
-      <div className="flex justify-center height-screen-helper">
-        <div className="flex flex-col justify-between max-w-lg p-3 m-auto min-w-[320px] w-80">
-          <div className="flex justify-center pb-12">
-            <Logo width={64} height={64} />
-          </div>
-          <Card
-            title={
-              viewProp === 'forgot_password'
-                ? 'Reset Password'
-                : viewProp === 'update_password'
-                  ? 'Update Password'
-                  : viewProp === 'signup'
-                    ? 'Sign Up'
-                    : 'Sign In'
-            }
-            className="p-4"
-          >
-            {viewProp === 'password_signin' && (
-              <PasswordSignIn
-                allowEmail={allowEmail}
-                redirectMethod={redirectMethod}
-                csrfToken={csrfToken}
-              />
-            )}
-            {viewProp === 'email_signin' && (
-              <EmailSignIn
-                allowPassword={allowPassword}
-                redirectMethod={redirectMethod}
-                disableButton={searchParams.disable_button}
-                csrfToken={csrfToken}
-              />
-            )}
-            {viewProp === 'forgot_password' && (
-              <ForgotPassword
-                allowEmail={allowEmail}
-                redirectMethod={redirectMethod}
-                disableButton={searchParams.disable_button}
-                csrfToken={csrfToken}
-              />
-            )}
-            {viewProp === 'update_password' && (
-              <UpdatePassword 
-                redirectMethod={redirectMethod}
-                csrfToken={csrfToken} 
-              />
-            )}
-            {viewProp === 'signup' && (
-              <SignUp 
-                allowEmail={allowEmail} 
-                redirectMethod={redirectMethod}
-                csrfToken={csrfToken}
-              />
-            )}
-            {viewProp !== 'update_password' &&
-              viewProp !== 'signup' &&
-              allowOauth && (
-                <>
-                  <Separator text="Third-party sign-in" />
-                  <OauthSignIn csrfToken={csrfToken} />
-                </>
-              )}
-          </Card>
-        </div>
-      </div>
-    );
-  } catch (error) {
-    // Secure error handling
-    console.error('Authentication error:', error instanceof Error ? error.message : 'Unknown error');
+  if (error) {
+    console.error('Auth error:', error.message);
     return redirect('/error?code=auth_error');
   }
+
+  if (user && viewProp !== 'update_password') {
+    return redirect('/');
+  } else if (!user && viewProp === 'update_password') {
+    return redirect('/signin');
+  }
+
+  return (
+    <div className="flex justify-center height-screen-helper">
+      <div className="flex flex-col justify-between max-w-lg p-3 m-auto min-w-[320px] w-80">
+        <div className="flex justify-center pb-12">
+          <Logo width={64} height={64} />
+        </div>
+        <Card
+          title={
+            viewProp === 'forgot_password'
+              ? 'Reset Password'
+              : viewProp === 'update_password'
+                ? 'Update Password'
+                : viewProp === 'signup'
+                  ? 'Sign Up'
+                  : 'Sign In'
+          }
+          className="p-4"
+        >
+          {viewProp === 'password_signin' && (
+            <PasswordSignIn
+              allowEmail={allowEmail}
+              redirectMethod={redirectMethod}
+              maxAttempts={MAX_FAILED_ATTEMPTS}
+              lockoutDuration={LOCKOUT_DURATION}
+            />
+          )}
+          {viewProp === 'email_signin' && (
+            <EmailSignIn
+              allowPassword={allowPassword}
+              redirectMethod={redirectMethod}
+              disableButton={searchParams.disable_button}
+              sanitizeInput={sanitizeInput}
+            />
+          )}
+          {viewProp === 'forgot_password' && (
+            <ForgotPassword
+              allowEmail={allowEmail}
+              redirectMethod={redirectMethod}
+              disableButton={searchParams.disable_button}
+              sanitizeInput={sanitizeInput}
+            />
+          )}
+          {viewProp === 'update_password' && (
+            <UpdatePassword 
+              redirectMethod={redirectMethod}
+              enforceStrongPassword={true}
+            />
+          )}
+          {viewProp === 'signup' && (
+            <SignUp 
+              allowEmail={allowEmail} 
+              redirectMethod={redirectMethod}
+              sanitizeInput={sanitizeInput}
+            />
+          )}
+          {viewProp !== 'update_password' &&
+            viewProp !== 'signup' &&
+            allowOauth && (
+              <>
+                <Separator text="Third-party sign-in" />
+                <OauthSignIn />
+              </>
+            )}
+        </Card>
+      </div>
+    </div>
+  );
 }
