@@ -5,6 +5,9 @@ const nextConfig = {
       sizeLimit: '500kb',
     },
   },
+  experimental: {
+    ipGeolocation: true,
+  },
   images: {
     remotePatterns: [
       {
