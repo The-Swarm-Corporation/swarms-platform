@@ -19,7 +19,7 @@ import SignUp from '@/shared/components/ui/AuthForms/Signup';
 import { NextRequest } from 'next/server';
 import crypto from 'crypto';
 
-// Security constants and utilities - all in one file
+// Security constants
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 const CSP_HEADER = `
@@ -36,10 +36,9 @@ const CSP_HEADER = `
   upgrade-insecure-requests;
 `.replace(/\s+/g, ' ').trim();
 
-// In-memory rate limiting (replace with Redis in production)
+// In-memory rate limiting
 const rateLimitMap = new Map<string, { count: number; timestamp: number }>();
 
-// Rate limiting function
 const checkRateLimit = (ip: string): boolean => {
   const now = Date.now();
   const windowMs = 15 * 60 * 1000; // 15 minutes
@@ -58,7 +57,7 @@ const checkRateLimit = (ip: string): boolean => {
   return current.count <= maxRequests;
 };
 
-// Attempt tracking for brute force protection
+// Login attempt tracking
 const loginAttempts = new Map<string, { count: number; lockUntil?: number }>();
 
 const checkLoginAttempts = (identifier: string): boolean => {
@@ -94,12 +93,12 @@ const sanitizeInput = (input: string): string => {
     .slice(0, 256); // Limit input length
 };
 
-// CSRF token generation
+// CSRF Protection
 const generateCSRFToken = (): string => {
   return crypto.randomBytes(32).toString('hex');
 };
 
-// Secure hash comparison (constant time)
+// Secure comparison
 const secureCompare = (a: string, b: string): boolean => {
   if (typeof a !== 'string' || typeof b !== 'string') {
     return false;
@@ -131,7 +130,7 @@ export default async function SignIn({
   headersList.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   headersList.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
-  // Rate limiting check
+  // Rate limiting
   const clientIP = headers().get('x-forwarded-for') || 'unknown';
   if (!checkRateLimit(clientIP)) {
     return new Response('Too Many Requests', { status: 429 });
@@ -151,21 +150,8 @@ export default async function SignIn({
     return redirect(`/signin/${viewProp}`);
   }
 
-  // Enhanced Supabase client with security options
-  const supabase = createClient({
-    options: {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false
-      },
-      global: {
-        headers: {
-          'X-Client-Info': 'secure-auth-client'
-        }
-      }
-    }
-  });
+  // Initialize Supabase client
+  const supabase = createClient();
 
   // Protected user session check
   const startTime = process.hrtime();
