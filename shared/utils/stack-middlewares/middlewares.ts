@@ -1,6 +1,71 @@
 import { NextFetchEvent, NextRequest, NextResponse } from 'next/server';
 import { MiddlewareFactory } from './types';
 import { updateSession } from '@/shared/utils/supabase/middleware';
+import { Ratelimit } from '@upstash/ratelimit';
+import { kv } from '@vercel/kv';
+
+/**
+ * Rate limiting configuration for API routes
+ */
+const ratelimit = new Ratelimit({
+  redis: kv,
+  limiter: Ratelimit.slidingWindow(20, '15 s'),
+});
+
+/**
+ * Gets the real IP address from various possible headers
+ */
+const getIpAddress = (request: NextRequest): string => {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+  
+  if (forwarded) {
+    // Get the first IP if there are multiple (proxy chains)
+    const forwardedIp = forwarded.split(',')[0].trim();
+    // Convert localhost IPv6 to IPv4 for consistency
+    if (forwardedIp === '::1') {
+      return '127.0.0.1';
+    }
+    return forwardedIp;
+  }
+  
+  if (realIp) {
+    // Convert localhost IPv6 to IPv4 for consistency
+    if (realIp === '::1') {
+      return '127.0.0.1';
+    }
+    return realIp;
+  }
+
+  const fallbackIp = request.ip || '127.0.0.1';
+  // Convert localhost IPv6 to IPv4 for consistency
+  if (fallbackIp === '::1') {
+    return '127.0.0.1';
+  }
+  return fallbackIp;
+};
+
+/**
+ * Middleware factory for API rate limiting
+ */
+const withRateLimit: MiddlewareFactory = (next) => {
+  return async (request: NextRequest, event: NextFetchEvent) => {
+    // Only apply rate limiting to API routes
+    if (request.nextUrl.pathname.includes('/api')) {
+      const ip = getIpAddress(request);
+      const { success } = await ratelimit.limit(ip);
+
+      if (!success) {
+        return NextResponse.json(
+          { error: 'Too many requests' },
+          { status: 429 }
+        );
+      }
+    }
+
+    return next(request, event);
+  };
+};
 
 const SECURITY_CONFIG = {
   MAX_PAYLOAD_SIZE: 500000, 
@@ -152,4 +217,4 @@ const withUpdateSession: MiddlewareFactory = (next) => {
   };
 };
 
-export const middlewares = [withSecurityChecks, withUpdateSession];
+export const middlewares = [withRateLimit, withSecurityChecks, withUpdateSession];
