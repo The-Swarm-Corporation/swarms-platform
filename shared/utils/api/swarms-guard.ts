@@ -191,7 +191,6 @@ export class SwarmsApiGuard {
       ]);
 
     if (activity.error) {
-      console.log('error', activity.error);
 
       return {
         status: 500,

@@ -27,6 +27,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.53",
     "@ai-sdk/openai": "^0.0.70",
+    "@arcjet/next": "^1.0.0-alpha.34",
     "@mermaid-js/mermaid-cli": "^11.2.0",
     "@octokit/rest": "^20.1.0",
     "@radix-ui/react-accordion": "^1.2.1",

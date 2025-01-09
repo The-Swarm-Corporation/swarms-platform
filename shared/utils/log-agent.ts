@@ -14,7 +14,6 @@ export async function logAgentHandler() {
     });
 
     const result = await response.json();
-    console.log(result);
   } catch (error) {
     console.error('An error has occurred', error);
   }

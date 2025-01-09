@@ -186,7 +186,6 @@ export class BillingService {
       const captureResult = await stripe.invoices.pay(invoice.id);
 
       // Check capture result for success
-      console.log('Invoice payment captured:', captureResult.paid);
 
       const billingTransactions = await supabaseAdmin
         .from('swarm_cloud_billing_transcations')
@@ -208,7 +207,6 @@ export class BillingService {
         throw new Error('Could not insert billing transaction');
       }
 
-      console.log('User successfully charged automatically');
     } catch (error) {
       console.error('Error charging user automatically:', error);
       throw new Error('Could not charge user automatically');

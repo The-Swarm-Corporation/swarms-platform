@@ -63,7 +63,6 @@ export async function checkRateLimit(
     userLimitData.request_count &&
     userLimitData.request_count >= rateLimitMaxRequests
   ) {
-    console.log('User exceeded rate limit:', userId);
     return false;
   }
 

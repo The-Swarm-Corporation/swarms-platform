@@ -115,7 +115,6 @@ export async function calculateRemainingCredit(
       },
     );
 
-    console.log('Remaining credit calculated successfully');
     return {
       status: 200,
       message: 'Remaining credit calculated successfully',

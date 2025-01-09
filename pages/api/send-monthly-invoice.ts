@@ -29,7 +29,6 @@ export default async function handler(
     );
 
     if (currentDate.getDate() === lastMonthDate.getDate()) {
-      console.log('Skipping invoice generation for current month');
       return res
         .status(200)
         .json({ message: 'Skipping invoice generation for current month' });

@@ -71,7 +71,6 @@ export function useInviteModal({
         query?.invites?.refetch();
       }
     } catch (error) {
-      console.log(error);
       if ((error as any)?.message) {
         toast.toast({
           description: (error as any)?.message,

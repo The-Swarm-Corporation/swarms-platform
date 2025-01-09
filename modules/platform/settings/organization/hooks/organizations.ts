@@ -97,7 +97,6 @@ export function useOrganizationMutation() {
 
     try {
       const response = await mutationFunction.mutateAsync(data as T);
-      console.log(response);
       toast.toast({
         description: toastMessage || 'Request is successful',
         style: { color: 'green' },

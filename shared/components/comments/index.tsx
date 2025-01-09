@@ -20,7 +20,6 @@ export default function CommentList({ modelId, title }: CommentListProps) {
   const { user } = useAuthContext();
   const toast = useToast();
 
-  console.log({ id: user?.id });
   const commentsEndRef = useRef<HTMLDivElement>(null);
   const [openEditComment, setOpenEditComment] = useState(false);
   const [openDeleteComment, setOpenDeleteComment] = useState(false);

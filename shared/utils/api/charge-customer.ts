@@ -22,7 +22,6 @@ async function attemptAutomaticCharge(invoiceId: string) {
 
     // Check if invoice is still open (unpaid)
     if (invoice.status !== 'open') {
-      console.log('Invoice already paid:', invoiceId);
       return true;
     }
 
@@ -41,7 +40,6 @@ async function attemptAutomaticCharge(invoiceId: string) {
     const paymentResult = await stripe.invoices.pay(invoiceId);
 
     if (paymentResult.paid) {
-      console.log('Invoice successfully charged automatically:', invoiceId);
       const { error: updateError } = await supabaseAdmin
         .from('swarm_cloud_billing_transcations')
         .update({ payment_successful: true })
