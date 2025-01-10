@@ -79,6 +79,7 @@ import {
   Settings,
   Sparkles,
   Loader2,
+  ChevronLeft,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { anthropic } from '@ai-sdk/anthropic';
@@ -94,6 +95,7 @@ import debounce from 'lodash/debounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import AutoGenerateSwarm from './auto_generate_swarm';
+import { cn } from "@/lib/utils";
 
 // Create provider registry
 const registry = createProviderRegistry({
@@ -1153,6 +1155,8 @@ const FlowContent = () => {
   } | null>(null);
   useBodyStyleCleanup(isCreatingGroup);
 
+  // Add this near other state declarations in FlowContent
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   // When adding an agent to a group, store its connections
   const addAgentToGroup = useCallback((groupId: string, agentId: string) => {
@@ -2809,94 +2813,127 @@ const AddAgentToGroupDialog: React.FC<{
         </DialogContent>
       </Dialog>
       <div className="flex-grow flex overflow-hidden">
-        {/* Sidebar */}
-        <div className="w-96 border-r border-border p-4 overflow-hidden bg-background">
-          <Tabs defaultValue="results" className="h-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="results">Results</TabsTrigger>
-              <TabsTrigger value="versions">Swarm History</TabsTrigger>
-            </TabsList>
-            <TabsContent value="results">
-              <h2 className="text-lg font-semibold mb-4">Task Results</h2>
-              <div className="h-[calc(100vh-340px)] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Agent</TableHead>
-                      <TableHead>Group</TableHead>
-                      <TableHead>Result</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {Object.entries(taskResults).map(([agentId, result]) => {
-                      // Find the agent either as a standalone node or within a group
-                      const agentNode = nodes.find(node => 
-                        node.id === agentId || 
-                        (node.type === 'group' && node.data.agents?.some((a:any) => a.id === agentId))
-                      );
-                      
-                      const agent = agentNode?.type === 'group' 
-                        ? agentNode.data.agents?.find((a:any) => a.id === agentId)
-                        : agentNode?.data;
-
-                      const groupName = agentNode?.type === 'group' 
-                        ? agentNode.data.teamName 
-                        : '-';
-
-                      return (
-                        <TableRow key={agentId}>
-                          <TableCell className="font-medium">
-                            {agent?.name || 'Unknown Agent'}
-                          </TableCell>
-                          <TableCell>{groupName}</TableCell>
-                          <TableCell>{result}</TableCell>
+        {/* Sidebar with transition */}
+        <div
+          className={cn(
+            "border-r border-border bg-background transition-all duration-300 ease-in-out flex",
+            isSidebarExpanded ? "w-[600px]" : "w-96" // Expanded to 600px, default 384px
+          )}
+        >
+          <div className={cn(
+            "overflow-hidden transition-all duration-300 w-full"
+          )}>
+            <div className="p-4">
+              <Tabs defaultValue="results" className="h-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="results">Results</TabsTrigger>
+                  <TabsTrigger value="versions">Swarm History</TabsTrigger>
+                </TabsList>
+                <TabsContent value="results">
+                  <h2 className="text-lg font-semibold mb-4">Task Results</h2>
+                  <div className="h-[calc(100vh-340px)] overflow-y-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Agent</TableHead>
+                          <TableHead>Group</TableHead>
+                          <TableHead>Result</TableHead>
                         </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-            <TabsContent value="versions">
-              <h2 className="text-lg font-semibold mb-4">Flows</h2>
-              <div className="h-[calc(100vh-340px)] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Swarms</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {getAllFlowsQuery.data?.map((flow: any) => (
-                      <TableRow key={flow.id}>
-                        <TableCell>{flow.id}</TableCell>
-                        <TableCell>
-                          {new Date(flow.created_at).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            onClick={() => loadVersion(flow.id)}
-                            disabled={
-                              saveFlowMutation.status === 'pending' ||
-                              setCurrentFlowMutation.status === 'pending'
-                            }
-                          >
-                            Load
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-          </Tabs>
+                      </TableHeader>
+                      <TableBody>
+                        {Object.entries(taskResults).map(([agentId, result]) => {
+                          // Find the agent either as a standalone node or within a group
+                          const agentNode = nodes.find(node => 
+                            node.id === agentId || 
+                            (node.type === 'group' && node.data.agents?.some((a:any) => a.id === agentId))
+                          );
+                          
+                          const agent = agentNode?.type === 'group' 
+                            ? agentNode.data.agents?.find((a:any) => a.id === agentId)
+                            : agentNode?.data;
+
+                          const groupName = agentNode?.type === 'group' 
+                            ? agentNode.data.teamName 
+                            : '-';
+
+                          return (
+                            <TableRow key={agentId}>
+                              <TableCell className="font-medium">
+                                {agent?.name || 'Unknown Agent'}
+                              </TableCell>
+                              <TableCell>{groupName}</TableCell>
+                              <TableCell>{result}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+                <TabsContent value="versions">
+                  <h2 className="text-lg font-semibold mb-4">Flows</h2>
+                  <div className="h-[calc(100vh-340px)] overflow-y-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Swarms</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {getAllFlowsQuery.data?.map((flow: any) => (
+                          <TableRow key={flow.id}>
+                            <TableCell>{flow.id}</TableCell>
+                            <TableCell>
+                              {new Date(flow.created_at).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                onClick={() => loadVersion(flow.id)}
+                                disabled={
+                                  saveFlowMutation.status === 'pending' ||
+                                  setCurrentFlowMutation.status === 'pending'
+                                }
+                              >
+                                Load
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+          
+          {/* Toggle button - positioned at end of left panel */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+            className={cn(
+              "h-12 w-6 absolute top-1/2 -translate-y-1/2 z-50",
+              "border-y border-r border-border bg-background hover:bg-muted",
+              isSidebarExpanded 
+                ? "left-[695px]" 
+                : "left-[480px]" 
+            )}
+          >
+            <ChevronLeft
+              className={cn(
+                "h-4 w-4 transition-transform duration-300",
+                "rotate-180", // Start pointing right
+                isSidebarExpanded && "-rotate-0" // Point left when expanded
+              )}
+            />
+          </Button>
         </div>
 
-        {/* Flow area */}
+        {/* Flow area - will shrink when sidebar expands */}
         <div className="flex-1 relative">
           <GroupNodeContext.Provider value={{ groupProcessingStates }}>
             <ReactFlow
