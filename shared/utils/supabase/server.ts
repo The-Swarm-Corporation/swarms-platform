@@ -26,6 +26,7 @@ export const createClient = () => {
           } catch (error) {
             // If the set method is called from a Server Component, an error may occur
             // This can be ignored if there is middleware refreshing user sessions
+            console.log(error);
           }
         },
         // The remove method is used to delete a cookie by its name
@@ -35,6 +36,7 @@ export const createClient = () => {
           } catch (error) {
             // If the remove method is called from a Server Component, an error may occur
             // This can be ignored if there is middleware refreshing user sessions
+            console.log(error);
           }
         },
       },

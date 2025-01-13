@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import { getStripe } from '@/shared/utils/stripe/client';
 import {
   CardElement,
