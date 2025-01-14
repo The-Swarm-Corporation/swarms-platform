@@ -4,15 +4,8 @@ import AgentModule from '@/modules/agent';
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-// Correctly type the page component with Next.js types
-interface PageProps {
-  params: {
-    id: string;
-  };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
 
-const Agent = async ({ params, searchParams }: PageProps) => {
+const Agent = async ({ params }: any) => {
   return <AgentModule id={params.id} />;
 };
 

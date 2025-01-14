@@ -4,9 +4,7 @@ export const dynamic = 'force-dynamic';
 const Prompt = ({
   params,
 }: {
-  params: {
-    id: string;
-  };
+      params: any;
 }) => {
   return <PromptModule id={params.id} />;
 };
