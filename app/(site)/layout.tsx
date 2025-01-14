@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 export default async function RootLayout({ children }: PropsWithChildren) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
