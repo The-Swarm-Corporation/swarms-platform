@@ -113,7 +113,8 @@ export const updateFreeCreditsOnSignin = async (id: string): Promise<void> => {
     }
 
     // Check for email confirmation
-    const { data } = await createClient().auth.getUser();
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
 
     if (!data?.user?.email_confirmed_at) {
       return; // User email not confirmed
