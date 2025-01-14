@@ -20,10 +20,7 @@ import SignUp from '@/shared/components/ui/AuthForms/Signup';
 export default async function SignIn({
   params,
   searchParams,
-}: {
-  params: { id: string };
-  searchParams: { disable_button: boolean };
-}) {
+}: any) {
   const { allowOauth, allowEmail, allowPassword } = getAuthTypes();
   const viewTypes = getViewTypes();
   const redirectMethod = getRedirectMethod();
@@ -42,7 +39,7 @@ export default async function SignIn({
   }
 
   // Check if the user is already logged in and redirect to the account page if so
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },

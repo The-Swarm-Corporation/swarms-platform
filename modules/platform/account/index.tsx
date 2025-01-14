@@ -10,7 +10,7 @@ import CryptoWallet from './components/crypto-wallet';
 
 export default async function Account() {
   //TODO: SWITCH TO AUTH MODALS INSTEAD
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

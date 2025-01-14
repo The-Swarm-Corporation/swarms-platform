@@ -1,3 +1,5 @@
+'use client';
+
 import EntityComponent from '@/shared/components/entity';
 import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';

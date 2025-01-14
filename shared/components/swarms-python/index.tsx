@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import SwarmsHero from './modules/hero';
 import SwarmsFeatures from './modules/features';

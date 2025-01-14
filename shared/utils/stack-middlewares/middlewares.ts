@@ -37,11 +37,7 @@ const getIpAddress = (request: NextRequest): string => {
     return realIp;
   }
 
-  const fallbackIp = request.ip || '127.0.0.1';
-  // Convert localhost IPv6 to IPv4 for consistency
-  if (fallbackIp === '::1') {
-    return '127.0.0.1';
-  }
+  const fallbackIp = '127.0.0.1';
   return fallbackIp;
 };
 

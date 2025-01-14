@@ -4,11 +4,7 @@ export const dynamic = 'force-dynamic';
 
 const Swarm = ({
   params,
-}: {
-  params: {
-    name: string;
-  };
-}) => {
+}: any) => {
   return <SwarmModule name={params.name} />;
 };
 export default Swarm;

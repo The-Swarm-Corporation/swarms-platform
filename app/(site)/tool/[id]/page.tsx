@@ -3,11 +3,7 @@ export const dynamic = 'force-dynamic';
 
 const Tool = ({
   params,
-}: {
-  params: {
-    id: string;
-  };
-}) => {
+}: any) => {
   return <ToolModule id={params.id} />;
 };
 
