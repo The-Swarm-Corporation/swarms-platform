@@ -4,7 +4,7 @@ import PlatformNavBar from './components/navbar/navbar';
 import LayoutModals from './components/modal';
 
 const PanelLayout = async ({ children }: { children: React.ReactNode }) => {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
