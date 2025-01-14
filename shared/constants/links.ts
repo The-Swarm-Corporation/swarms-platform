@@ -32,6 +32,7 @@ enum NAV_LINKS {
   PRICING = '/pricing',
   DOCS = SWARMS_DOCS,
   GET_DEMO = SWARM_CALENDLY,
+
 }
 
 export const NAVIGATION: { [key in keyof typeof NAV_LINKS]: NAV_LINKS } = {

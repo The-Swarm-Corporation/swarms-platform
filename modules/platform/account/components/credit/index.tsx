@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import useSubscription from '@/shared/hooks/subscription';
 import { trpc } from '@/shared/utils/trpc/trpc';

@@ -36,7 +36,7 @@ export const createClient = async () => {
           } catch (error) {
             // If the remove method is called from a Server Component, an error may occur
             // This can be ignored if there is middleware refreshing user sessions
-            console.log(error);
+            console.log(error)
           }
         },
       },

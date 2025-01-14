@@ -1,4 +1,4 @@
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import CardManager from './components/card-manager';
 import Credit from './components/credit';
 import SubscriptionStatus from './components/subscription-status';

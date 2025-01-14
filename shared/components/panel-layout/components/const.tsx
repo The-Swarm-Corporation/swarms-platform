@@ -12,7 +12,8 @@ import {
   FileText,
   Building,
   FileSpreadsheet,
-  GripVertical
+  GripVertical,
+  History
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/constants/links';
 import Discord from '@/shared/components/icons/Discord';
@@ -112,6 +113,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <CircleGauge size={24} />,
       title: 'Usage',
       link: PLATFORM.USAGE,
+    },
+    {
+      icon: <History size={24} />,
+      title: 'Agent History',
+      link: "platform/accounthistory"
     },
     {
       icon: <Settings size={24} />,
