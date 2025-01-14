@@ -14,7 +14,7 @@ const useSubscription = () => {
   const userCredit = trpc.panel.getUserCredit.useQuery();
 
   const openChargeAccountPortal = () => {
-    chargeAccountPortal.mutateAsync().then((url) => {
+    chargeAccountPortal.mutateAsync().then((url: string) => {
       document.location.href = url;
     });
   };
@@ -26,20 +26,25 @@ const useSubscription = () => {
     trpc.payment.createSubscriptionCheckoutSession.useMutation();
 
   const createSubscriptionPortal = () => {
-    makeSubsctiptionSession.mutateAsync().then(async (sessionId) => {
+    makeSubsctiptionSession.mutateAsync().then(async (sessionId: string) => {
       const stripe = await getStripe();
       if (stripe) stripe.redirectToCheckout({ sessionId });
     });
   };
   const openCustomerPortal = () => {
-    makeCustomerPortal.mutateAsync().then((url) => {
+    makeCustomerPortal.mutateAsync().then((url: string) => {
       document.location.href = url;
     });
+  };
+
+  const refetchCredit = async () => {
+    await userCredit.refetch();
   };
 
   return {
     credit: userCredit.data,
     creditLoading: userCredit.isLoading,
+    refetchCredit,
     data: getSubscription,
     statusLoading: getSubscription.isLoading,
     status: getSubscription.data?.status,

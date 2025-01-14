@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { AUTH } from '@/shared/constants/links';
 import ThemeToggle from '@/shared/components/theme-toggle';
 import { createClient } from '@/shared/utils/supabase/server';
+import CryptoWallet from './components/crypto-wallet';
 
 export default async function Account() {
   //TODO: SWITCH TO AUTH MODALS INSTEAD
@@ -16,10 +17,10 @@ export default async function Account() {
 
   return (
     <section className="w-full mb-32">
-      <div>
+      <div className="flex flex-col md:flex-row">
         <div className="flex flex-col">
           <h1 className="text-3xl font-extrabold sm:text-4xl">Account</h1>
-          <div className="w-full my-8 flex flex-col gap-4 md:w-2/3 xl:w-2/6">
+          <div className="min-w-[320px] w-full my-8 flex flex-col gap-4 md:w-2/3 xl:w-2/6">
             <Credit user={user} />
             {user && (
               <>
@@ -37,6 +38,7 @@ export default async function Account() {
             <ThemeToggle />
           </div>
         </div>
+        <CryptoWallet user={user} />
       </div>
     </section>
   );

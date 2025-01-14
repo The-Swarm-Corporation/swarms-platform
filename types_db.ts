@@ -1736,6 +1736,104 @@ export type Database = {
           }
         ]
       }
+      credit_transactions: {
+        Row: {
+          id: string
+          user_id: string
+          amount_usd: number
+          credits_added: number
+          transaction_type: TransactionType
+          status: TransactionStatus
+          transaction_hash: string | null
+          description: string | null
+          metadata: Json | null
+          created_at: string
+          updated_at: string
+          reference_id: string | null
+          initiated_by: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          amount_usd: number
+          credits_added: number
+          transaction_type: TransactionType
+          status?: TransactionStatus
+          transaction_hash?: string | null
+          description?: string | null
+          metadata?: Json | null
+          created_at?: string
+          updated_at?: string
+          reference_id?: string | null
+          initiated_by?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          amount_usd?: number
+          credits_added?: number
+          transaction_type?: TransactionType
+          status?: TransactionStatus
+          transaction_hash?: string | null
+          description?: string | null
+          metadata?: Json | null
+          created_at?: string
+          updated_at?: string
+          reference_id?: string | null
+          initiated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_transactions_initiated_by_fkey"
+            columns: ["initiated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      wallet_addresses: {
+        Row: {
+          id: string
+          user_id: string
+          wallet_address: string
+          wallet_type: string
+          is_default: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          wallet_address: string
+          wallet_type: string
+          is_default?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          wallet_address?: string
+          wallet_type?: string
+          is_default?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_addresses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1926,3 +2024,22 @@ type FlowData = {
   architecture: string | Architecture
   results: Record<string, string>
 }
+
+export type TransactionType =
+  | "USD_DEPOSIT"        // Regular USD deposit
+  | "CRYPTO_DEPOSIT"     // Purchase of credits
+  | "CREDIT_PURCHASE"    // Usage of credits (API calls, etc)
+  | "CREDIT_REFUND"      // Refund of credits
+  | "PROMOTIONAL_CREDIT" // Promotional or bonus credits
+  | "REFERRAL_BONUS"     // Referral program bonus
+  | "SUBSCRIPTION_CHARGE"// Subscription-based charge
+  | "MANUAL_ADJUSTMENT"  // Manual adjustment by admin
+  | "TRANSFER"          // Transfer between users
+  | "OTHER"             // Other transactions
+
+export type TransactionStatus =
+  | "PENDING"
+  | "completed"
+  | "FAILED"
+  | "CANCELLED"
+  | "REFUNDED"
