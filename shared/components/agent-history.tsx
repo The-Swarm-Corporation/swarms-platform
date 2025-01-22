@@ -9,7 +9,8 @@ import type { User } from '@supabase/supabase-js'
 
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
-import { Input } from './ui/Input'
+import Input from './ui/Input/Input'
+
 import {
   Table,
   TableBody,
