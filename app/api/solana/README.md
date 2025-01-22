@@ -167,15 +167,6 @@ GET /api/solana/get-metrics
 - Token accounts are automatically created for new recipients
 - Transactions use 'processed' commitment level
 
-## Required Environment Variables
-
-```env
-NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS=
-NEXT_PUBLIC_RPC_URL=
-NEXT_PUBLIC_DAO_TREASURY_ADDRESS=
-NEXT_PUBLIC_SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-```
 
 ## Implementation Notes
 
