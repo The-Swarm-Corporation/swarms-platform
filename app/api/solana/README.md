@@ -1,6 +1,6 @@
-# Solana API Documentation
+# Swarms Wallet API Documentation
 
-This documentation covers the Solana API routes for managing wallets, sending tokens, and checking transactions in the Swarms Platform.
+This documentation covers the Swarms Wallet API routes for managing wallets, sending tokens, and checking transactions in the Swarms Platform.
 
 ## Authentication
 
@@ -13,10 +13,11 @@ x-api-key: your_api_key_here
 ## Endpoints
 
 ### Generate Wallet
+
 Creates a new Solana wallet for an AI agent or retrieves an existing one.
 
 ```http
-POST /api/solana/generate-wallet
+POST https://swarms.world/api/solana/generate-wallet
 ```
 
 **Response**
@@ -36,7 +37,7 @@ POST /api/solana/generate-wallet
 Sends SWARMS tokens with automatic tax handling.
 
 ```http
-POST /api/solana/send-tokens
+POST https://swarms.world/api/solana/send-tokens
 ```
 
 **Request Body**
@@ -76,7 +77,7 @@ POST /api/solana/send-tokens
 Verifies token receipt and checks balances.
 
 ```http
-GET /api/solana/check-receipt?amount={amount}
+GET https://swarms.world/api/solana/check-receipt?amount={amount}
 ```
 
 **Response**
@@ -102,7 +103,7 @@ GET /api/solana/check-receipt?amount={amount}
 Retrieves transaction metrics and history.
 
 ```http
-GET /api/solana/get-metrics
+GET https://swarms.world/api/solana/get-metrics
 ```
 
 **Query Parameters**

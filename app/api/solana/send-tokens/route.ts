@@ -293,8 +293,7 @@ export async function POST(req: Request) {
       transaction_hash: signature,
       amount: amount,
       recipient: recipientAddress,
-      status: 'completed',
-      transaction_type: 'send'
+      status: 'completed'
     });
 
     return new Response(

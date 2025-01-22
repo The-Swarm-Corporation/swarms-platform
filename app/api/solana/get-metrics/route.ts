@@ -1,10 +1,93 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 import { Database } from '@/types_db';
 
+// Move function declaration outside
+async function getAgentTransactions(
+  agentId: string,
+  supabase: SupabaseClient<Database>,
+  startDate?: string,
+  endDate?: string,
+  status?: string,
+  type?: string,
+  page: number = 1,
+  pageSize: number = 10
+) {
+  let baseQuery = supabase
+    .from('ai_agent_transactions')
+    .select(`
+      id,
+      transaction_hash,
+      amount,
+      recipient,
+      status,
+      created_at,
+      agent_id
+    `)
+    .or(`agent_id.eq.${agentId},recipient.in.(${
+      supabase
+        .from('ai_agent_wallets')
+        .select('public_key')
+        .eq('agent_id', agentId)
+        .eq('status', 'active')
+    })`);
+
+  // Add filters if provided
+  if (startDate) {
+    baseQuery = baseQuery.gte('created_at', startDate);
+  }
+  if (endDate) {
+    baseQuery = baseQuery.lte('created_at', endDate);
+  }
+  if (status) {
+    baseQuery = baseQuery.eq('status', status);
+  }
+
+  // Add pagination
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  
+  baseQuery = baseQuery
+    .order('created_at', { ascending: false })
+    .range(from, to);
+  const { data: transactions, count } = await baseQuery;
+
+  if (!transactions) {
+    throw new Error('No transactions found');
+  }
+
+  // Transform the results to include the correct transaction type
+  const transformedTransactions = transactions.map((tx: any) => ({
+    ...tx,
+    transaction_type: tx.agent_id === agentId ? 'send' : 'received'
+  }));
+
+  // Apply type filter after transformation if needed
+  const filteredTransactions = type 
+    ? transformedTransactions.filter((tx:any) => tx.transaction_type === type)
+    : transformedTransactions;
+
+  return {
+    transactions: filteredTransactions,
+    pagination: {
+      total: count || 0,
+      page,
+      pageSize,
+      totalPages: count ? Math.ceil(count / pageSize) : 0
+    }
+  };
+}
+
 export async function GET(req: Request) {
   try {
-    // Get API key from headers
+    const { searchParams } = new URL(req.url);
+    const startDate = searchParams.get('startDate') || undefined;
+    const endDate = searchParams.get('endDate') || undefined;
+    const status = searchParams.get('status') || undefined;
+    const type = searchParams.get('type') || undefined;
+    const page = parseInt(searchParams.get('page') || '1');
+    const pageSize = parseInt(searchParams.get('pageSize') || '10');
+
     const headersList = await headers();
     const apiKey = headersList.get('x-api-key');
     
@@ -12,7 +95,6 @@ export async function GET(req: Request) {
       return new Response(
         JSON.stringify({
           error: 'UNAUTHORIZED',
-          code: 'AUTH_001',
           message: 'Missing API key'
         }),
         { status: 401 }
@@ -42,99 +124,46 @@ export async function GET(req: Request) {
       return new Response(
         JSON.stringify({
           error: 'UNAUTHORIZED',
-          code: 'AUTH_002',
           message: 'Invalid API key'
         }),
         { status: 401 }
       );
     }
 
-    // Get pagination parameters from URL
-    const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100); // Max 100 items per page
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const status = searchParams.get('status');
-    const type = searchParams.get('type');
+    const { transactions, pagination } = await getAgentTransactions(
+      agent.id, 
+      supabase, 
+      startDate, 
+      endDate, 
+      status, 
+      type,
+      page,
+      pageSize
+    );
 
-    // Calculate offset
-    const offset = (page - 1) * limit;
-
-    // Build base query
-    let query = supabase
-      .from('ai_agent_transactions')
-      .select('*', { count: 'exact' })
-      .eq('agent_id', agent.id);
-
-    // Add filters if provided
-    if (startDate) {
-      query = query.gte('created_at', startDate);
-    }
-    if (endDate) {
-      query = query.lte('created_at', endDate);
-    }
-    if (status) {
-      query = query.eq('status', status);
-    }
-    if (type) {
-      query = query.eq('transaction_type', type);
-    }
-
-    // Get total metrics (regardless of pagination)
-    const { data: totalMetrics } = await supabase
-      .from('ai_agent_transactions')
-      .select('amount, transaction_type, status')
-      .eq('agent_id', agent.id)
-      .eq('status', 'completed');
-
-    // Calculate metrics
-    const metrics = {
-      totalTransactions: totalMetrics?.length || 0,
-      totalAmountSent: totalMetrics
-        ?.filter(tx => tx.transaction_type === 'send' && tx.status === 'completed')
-        .reduce((sum, tx) => sum + (parseFloat(tx.amount.toString()) || 0), 0) || 0,
-      totalSuccessfulTransactions: totalMetrics
-        ?.filter(tx => tx.status === 'completed').length || 0,
-      totalFailedTransactions: totalMetrics
-        ?.filter(tx => tx.status === 'failed').length || 0
-    };
-
-    // Get paginated transactions
-    const { data: transactions, count, error } = await query
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      return new Response(
-        JSON.stringify({
-          error: 'DATABASE_ERROR',
-          code: 'DB_001',
-          message: 'Failed to fetch transactions'
-        }),
-        { status: 500 }
-      );
-    }
-
-    // Calculate pagination metadata
-    const totalPages = count ? Math.ceil(count / limit) : 0;
-    const hasMore = page < totalPages;
+    // Calculate metrics from the filtered transactions
+    const totalTransactions = transactions.length;
+    const totalAmount = transactions.reduce((sum, tx) => sum + Number(tx.amount), 0);
+    const sentTransactions = transactions.filter(tx => tx.transaction_type === 'send');
+    const receivedTransactions = transactions.filter(tx => tx.transaction_type === 'received');
+    const totalSent = sentTransactions.reduce((sum, tx) => sum + Number(tx.amount), 0);
+    const totalReceived = receivedTransactions.reduce((sum, tx) => sum + Number(tx.amount), 0);
 
     return new Response(
       JSON.stringify({
         success: true,
         data: {
           transactions,
-          pagination: {
-            currentPage: page,
-            totalPages,
-            totalItems: count,
-            itemsPerPage: limit,
-            hasMore
-          },
-          metrics
-        },
-        code: 'SUCCESS_001'
+          pagination,
+          metrics: {
+            totalTransactions,
+            totalAmount,
+            sentTransactions: sentTransactions.length,
+            receivedTransactions: receivedTransactions.length,
+            totalSent,
+            totalReceived
+          }
+        }
       }),
       { status: 200 }
     );
@@ -143,11 +172,11 @@ export async function GET(req: Request) {
     return new Response(
       JSON.stringify({
         error: 'INTERNAL_ERROR',
-        code: 'ERR_001',
         message: 'Failed to get metrics',
         details: error instanceof Error ? error.message : 'Unknown error'
       }),
       { status: 500 }
     );
   }
-} 
+}
+
