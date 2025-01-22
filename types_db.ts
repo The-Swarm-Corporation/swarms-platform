@@ -1834,6 +1834,112 @@ export type Database = {
           }
         ]
       }
+      ai_agents: {
+        Row: {
+          id: string
+          api_key: string
+          name: string | null
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          api_key: string
+          name?: string | null
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          api_key?: string
+          name?: string | null
+          status?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      ai_agent_wallets: {
+        Row: {
+          id: string
+          agent_id: string
+          public_key: string
+          private_key: string
+          wallet_type: string
+          status: string
+          created_at: string
+          iv: string
+        }
+        Insert: {
+          id?: string
+          agent_id: string
+          public_key: string
+          private_key: string
+          wallet_type: string
+          status: string
+          created_at?: string
+          iv: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string
+          public_key?: string
+          private_key?: string
+          wallet_type?: string
+          status?: string
+          created_at?: string
+          iv?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agent_wallets_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      ai_agent_transactions: {
+        Row: {
+          id: string
+          agent_id: string
+          transaction_hash: string
+          amount: number
+          recipient: string
+          status: string
+          transaction_type: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id: string
+          transaction_hash: string
+          amount: number
+          recipient: string
+          status: string
+          transaction_type: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string
+          transaction_hash?: string
+          amount?: number
+          recipient?: string
+          status?: string
+          transaction_type?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agent_transactions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
