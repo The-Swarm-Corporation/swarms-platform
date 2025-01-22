@@ -1907,7 +1907,6 @@ export type Database = {
           amount: number
           recipient: string
           status: string
-          transaction_type: string
           created_at: string
         }
         Insert: {
@@ -1917,7 +1916,6 @@ export type Database = {
           amount: number
           recipient: string
           status: string
-          transaction_type: string
           created_at?: string
         }
         Update: {
@@ -1927,7 +1925,6 @@ export type Database = {
           amount?: number
           recipient?: string
           status?: string
-          transaction_type?: string
           created_at?: string
         }
         Relationships: [

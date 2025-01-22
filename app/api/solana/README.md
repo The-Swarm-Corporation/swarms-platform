@@ -99,7 +99,7 @@ GET /api/solana/check-receipt?amount={amount}
 ```
 
 ### Get Metrics
-Retrieves transaction metrics and history.
+Retrieves transaction metrics and history, including both sent and received transactions.
 
 ```http
 GET /api/solana/get-metrics
@@ -107,11 +107,11 @@ GET /api/solana/get-metrics
 
 **Query Parameters**
 - `page`: Page number (default: 1)
-- `limit`: Items per page (default: 10, max: 100)
-- `startDate`: Filter start date
-- `endDate`: Filter end date
-- `status`: Transaction status filter
-- `type`: Transaction type filter
+- `pageSize`: Items per page (default: 10)
+- `startDate`: Filter start date (ISO format)
+- `endDate`: Filter end date (ISO format)
+- `status`: Transaction status filter ('completed', 'pending', 'failed')
+- `type`: Transaction type filter ('send' or 'received')
 
 **Response**
 ```json
@@ -120,29 +120,29 @@ GET /api/solana/get-metrics
   "data": {
     "transactions": [{
       "id": "string",
-      "agent_id": "string",
       "transaction_hash": "string",
       "amount": "number",
       "recipient": "string",
       "status": "string",
-      "transaction_type": "string",
-      "created_at": "string"
+      "created_at": "string",
+      "agent_id": "string",
+      "transaction_type": "string" // 'send' or 'received'
     }],
     "pagination": {
-      "currentPage": "number",
-      "totalPages": "number",
-      "totalItems": "number",
-      "itemsPerPage": "number",
-      "hasMore": "boolean"
+      "total": "number",
+      "page": "number",
+      "pageSize": "number",
+      "totalPages": "number"
     },
     "metrics": {
       "totalTransactions": "number",
-      "totalAmountSent": "number",
-      "totalSuccessfulTransactions": "number",
-      "totalFailedTransactions": "number"
+      "totalAmount": "number",
+      "sentTransactions": "number",
+      "receivedTransactions": "number",
+      "totalSent": "number",
+      "totalReceived": "number"
     }
-  },
-  "code": "SUCCESS_001"
+  }
 }
 ```
 
@@ -183,4 +183,6 @@ SUPABASE_SERVICE_ROLE_KEY=
 - SOL balances are returned in SOL (not lamports)
 - Token accounts are automatically created for recipients if they don't exist
 - All transactions include automatic tax handling for the DAO treasury
-- Compute budget and priority fees are automatically managed for optimal transaction processing 
+- Compute budget and priority fees are automatically managed for optimal transaction processing
+- Transaction history includes both outgoing (send) and incoming (received) transactions
+- Metrics are calculated based on filtered transactions within the specified date range 
