@@ -1,6 +1,6 @@
-# Solana API Documentation
+# Swarms Wallet API Documentation
 
-This documentation covers the Solana API routes for managing wallets, sending tokens, and checking transactions in the Swarms Platform.
+This documentation covers the Swarms Wallet API routes for managing wallets, sending tokens, and checking transactions in the Swarms Platform.
 
 ## Authentication
 
@@ -13,10 +13,11 @@ x-api-key: your_api_key_here
 ## Endpoints
 
 ### Generate Wallet
+
 Creates a new Solana wallet for an AI agent or retrieves an existing one.
 
 ```http
-POST /api/solana/generate-wallet
+POST https://swarms.world/api/solana/generate-wallet
 ```
 
 **Response**
@@ -36,7 +37,7 @@ POST /api/solana/generate-wallet
 Sends SWARMS tokens with automatic tax handling.
 
 ```http
-POST /api/solana/send-tokens
+POST https://swarms.world/api/solana/send-tokens
 ```
 
 **Request Body**
@@ -76,7 +77,7 @@ POST /api/solana/send-tokens
 Verifies token receipt and checks balances.
 
 ```http
-GET /api/solana/check-receipt?amount={amount}
+GET https://swarms.world/api/solana/check-receipt?amount={amount}
 ```
 
 **Response**
@@ -99,19 +100,19 @@ GET /api/solana/check-receipt?amount={amount}
 ```
 
 ### Get Metrics
-Retrieves transaction metrics and history, including both sent and received transactions.
+Retrieves transaction metrics and history.
 
 ```http
-GET /api/solana/get-metrics
+GET https://swarms.world/api/solana/get-metrics
 ```
 
 **Query Parameters**
 - `page`: Page number (default: 1)
-- `pageSize`: Items per page (default: 10)
-- `startDate`: Filter start date (ISO format)
-- `endDate`: Filter end date (ISO format)
-- `status`: Transaction status filter ('completed', 'pending', 'failed')
-- `type`: Transaction type filter ('send' or 'received')
+- `limit`: Items per page (default: 10, max: 100)
+- `startDate`: Filter start date
+- `endDate`: Filter end date
+- `status`: Transaction status filter
+- `type`: Transaction type filter
 
 **Response**
 ```json
@@ -120,29 +121,29 @@ GET /api/solana/get-metrics
   "data": {
     "transactions": [{
       "id": "string",
+      "agent_id": "string",
       "transaction_hash": "string",
       "amount": "number",
       "recipient": "string",
       "status": "string",
-      "created_at": "string",
-      "agent_id": "string",
-      "transaction_type": "string" // 'send' or 'received'
+      "transaction_type": "string",
+      "created_at": "string"
     }],
     "pagination": {
-      "total": "number",
-      "page": "number",
-      "pageSize": "number",
-      "totalPages": "number"
+      "currentPage": "number",
+      "totalPages": "number",
+      "totalItems": "number",
+      "itemsPerPage": "number",
+      "hasMore": "boolean"
     },
     "metrics": {
       "totalTransactions": "number",
-      "totalAmount": "number",
-      "sentTransactions": "number",
-      "receivedTransactions": "number",
-      "totalSent": "number",
-      "totalReceived": "number"
+      "totalAmountSent": "number",
+      "totalSuccessfulTransactions": "number",
+      "totalFailedTransactions": "number"
     }
-  }
+  },
+  "code": "SUCCESS_001"
 }
 ```
 
@@ -167,15 +168,6 @@ GET /api/solana/get-metrics
 - Token accounts are automatically created for new recipients
 - Transactions use 'processed' commitment level
 
-## Required Environment Variables
-
-```env
-NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS=
-NEXT_PUBLIC_RPC_URL=
-NEXT_PUBLIC_DAO_TREASURY_ADDRESS=
-NEXT_PUBLIC_SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-```
 
 ## Implementation Notes
 
@@ -183,6 +175,4 @@ SUPABASE_SERVICE_ROLE_KEY=
 - SOL balances are returned in SOL (not lamports)
 - Token accounts are automatically created for recipients if they don't exist
 - All transactions include automatic tax handling for the DAO treasury
-- Compute budget and priority fees are automatically managed for optimal transaction processing
-- Transaction history includes both outgoing (send) and incoming (received) transactions
-- Metrics are calculated based on filtered transactions within the specified date range 
+- Compute budget and priority fees are automatically managed for optimal transaction processing 
