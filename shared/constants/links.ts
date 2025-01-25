@@ -10,6 +10,7 @@ export const PLATFORM = {
   EXPLORER: '/',
   SETTINGS: '/platform/organization',
   ORGANIZATION: '/platform/organization',
+  CHAT: '/platform/chat',
 };
 
 export const AUTH = {

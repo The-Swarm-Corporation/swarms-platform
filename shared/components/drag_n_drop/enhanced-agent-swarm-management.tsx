@@ -527,7 +527,7 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
                     style={{
                       fill: document.documentElement.classList.contains('dark') 
                         ? data.type === "Boss" 
-                          ? "#0F0F10" 
+                          ? "#000000" 
                           : "#1A1A1B"
                         : data.type === "Boss"
                           ? "hsl(var(--card))"
@@ -3083,11 +3083,11 @@ const AddAgentToGroupDialog: React.FC<{
 
         /* Controls - Dark mode */
         .dark .react-flow__panel.react-flow__controls {
-          background: #0F0F10;
+          background: ;
         }
 
         .dark .react-flow__controls-button {
-          background: #0F0F10 !important;
+          background: #000000 !important;
           border: 1px solid white !important;
         }
 

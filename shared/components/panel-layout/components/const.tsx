@@ -1,3 +1,6 @@
+
+import React from 'react';
+
 import {
   Blocks,
   CircleGauge,
@@ -10,10 +13,9 @@ import {
   CandlestickChart,
   BookOpenText,
   FileText,
-  Building,
   FileSpreadsheet,
   GripVertical,
-  History
+  MessageSquare,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/constants/links';
 import Discord from '@/shared/components/icons/Discord';
@@ -104,6 +106,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       title: 'Drag & Drop',
       link: PLATFORM.DRAG_N_DROP,
     },
+    // {
+    //   icon: <MessageSquare size={24} />,
+    //   title: 'Chat',
+    //   link: PLATFORM.CHAT,
+    // },
     {
       icon: <LockKeyhole size={24} />,
       title: 'API Keys',
@@ -113,11 +120,6 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <CircleGauge size={24} />,
       title: 'Usage',
       link: PLATFORM.USAGE,
-    },
-    {
-      icon: <History size={24} />,
-      title: 'Agent History',
-      link: "platform/accounthistory"
     },
     {
       icon: <Settings size={24} />,

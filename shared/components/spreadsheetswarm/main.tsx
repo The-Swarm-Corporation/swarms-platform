@@ -5,10 +5,9 @@ import { useState, useEffect } from 'react';
 
 // Third-party libraries
 import { generateText } from 'ai';
-import { v4 as uuidv4 } from 'uuid';
 
 // UI Components
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 import {
   Card,
   CardContent,
@@ -30,7 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../spread_sheet_swarm/ui/dropdown-menu';
-import Input from '../ui/Input';
+import { Input } from '../spread_sheet_swarm/ui/input';
 import { Label } from '../spread_sheet_swarm/ui/label';
 import {
   Table,
@@ -951,7 +950,7 @@ export function SwarmManagement() {
                       <Input
                         id="description"
                         value={newAgent.description || ''}
-                        onChange={(description) =>
+                        onChange={(description: any) =>
                           setNewAgent({ ...newAgent, description })
                         }
                         className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-white dark:bg-black  ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-0 "
@@ -1254,7 +1253,7 @@ export function SwarmManagement() {
               <Input
                 id="edit-name"
                 value={editingAgent.name || ''}
-                onChange={(name) => setEditingAgent({ ...editingAgent, name })}
+                onChange={(name: any) => setEditingAgent({ ...editingAgent, name })}
                 className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
               />
             </div>
@@ -1266,7 +1265,7 @@ export function SwarmManagement() {
               <Input
                 id="edit-description"
                 value={editingAgent.description || ''}
-                onChange={(description) =>
+                onChange={(description: any) =>
                   setEditingAgent({ ...editingAgent, description })
                 }
                 className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
