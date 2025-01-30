@@ -222,6 +222,7 @@ const explorerOptionsRouter = router({
           .insert([{ item_id: itemId, item_type: itemType, user_id }]);
 
         if (error) {
+          console.log({ error });
           if (error.code === '23505') {
             throw new TRPCError({
               code: 'INTERNAL_SERVER_ERROR',
