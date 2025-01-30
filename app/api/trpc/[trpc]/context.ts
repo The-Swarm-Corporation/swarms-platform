@@ -5,9 +5,10 @@ import { Database } from '@/types_db';
 import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 
 const createContext = async function (opts: FetchCreateContextFnOptions) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
+  
   const supabase = createRouteHandlerClient<Database>({
-    cookies: () => cookieStore,
+    cookies: () => cookieStore as any,
   });
   const session = await supabase.auth.getSession();
 

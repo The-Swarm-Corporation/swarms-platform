@@ -195,10 +195,10 @@ const Explorer = () => {
           innerZ={10}
           onStateChange={handleStateChange}
           className={cn(
-    'sticky-inner-list',
-    isFixed && 'shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'
-  )}
-          
+            'sticky-inner-list',
+            isFixed &&
+              'shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
+          )}
         >
           <div className="mt-8 pb-4 bg-white dark:bg-black">
             <ul className="p-0 mb-2  flex items-center flex-wrap gap-3">
@@ -263,7 +263,9 @@ const Explorer = () => {
               : 'translate-y-0',
           )}
         >
-          {reorderedElements.map(({ content }) => content)}
+          {reorderedElements.map(({ key, content }) => (
+            <div key={key}>{content}</div>
+          ))}
         </div>
       </div>
     </>
