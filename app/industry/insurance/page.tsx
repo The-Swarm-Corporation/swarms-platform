@@ -3,7 +3,7 @@
 import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import { ArrowRight, Shield, FileText, Clock, DollarSign, BarChart, Users, PhoneCall, Zap, Brain, Lock, Globe, Briefcase, Car, Home, Umbrella, HeartPulse, Plane } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/spread_sheet_swarm/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/shared/components/ui/accordion'
 
 const inter = Inter({ subsets: ['latin'] })

@@ -3,7 +3,7 @@ import {
   router,
   userProcedure,
 } from '@/app/api/trpc/trpc-router';
-import { PUBLIC } from '@/shared/constants/links';
+import { PUBLIC } from '@/shared/utils/constants';
 import { makeUrl } from '@/shared/utils/helpers';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
@@ -131,7 +131,6 @@ const mainRouter = router({
       string,
       { title: string; link: string; type: string }[]
     > = {
-      Models: [],
       Agents: [],
       Prompts: [],
       Tools: [],
@@ -144,23 +143,6 @@ const mainRouter = router({
     ) => {
       items[category] = newItems;
     };
-
-    // Fetch models
-    const models = await ctx.supabase
-      .from('swarms_cloud_models')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (models.data) {
-      addItems(
-        'Models',
-        models.data.map((model) => ({
-          title: model.name || '',
-          link: makeUrl(PUBLIC.MODEL, { slug: model.slug }),
-          type: 'model',
-        })),
-      );
-    }
 
     // Fetch agents
     const agents = await ctx.supabase

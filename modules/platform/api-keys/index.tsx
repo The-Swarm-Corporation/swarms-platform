@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@/shared/components/ui/Button';
-import Input from '@/shared/components/ui/Input';
+import { Button } from '@/shared/components/ui/button';
+import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import {
   Dialog,
@@ -32,7 +32,7 @@ import {
 import { useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
 import Link from 'next/link';
-import { PLATFORM } from '@/shared/constants/links';
+import { PLATFORM } from '@/shared/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';

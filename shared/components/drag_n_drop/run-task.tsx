@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Play, Check, Loader2 } from 'lucide-react';
-import { Button } from '../spread_sheet_swarm/ui/button';
+import { Button } from '../ui/button';
 
 interface AnimatedRunButtonProps {
   onRun: () => Promise<void>;

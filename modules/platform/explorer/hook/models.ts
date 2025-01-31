@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { defaultOptions, explorerOptions } from '@/shared/constants/explorer';
+import { defaultOptions, explorerOptions } from '@/shared/utils/constants';
 import { useSearchParams } from 'next/navigation';
 
 const promptLimit = 6;
@@ -16,7 +16,6 @@ export default function useModels() {
   const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
   const [search, setSearch] = useState('');
 
-  const modelsQuery = trpc.explorer.getModels.useQuery();
   const toolsQuery = trpc.explorer.getAllTools.useQuery();
   const swarmsQuery = trpc.explorer.getAllApprovedSwarms.useQuery();
   const promptsQuery = trpc.explorer.getAllPrompts.useQuery({
@@ -28,7 +27,6 @@ export default function useModels() {
   const pendingSwarms = trpc.explorer.getMyPendingSwarms.useQuery();
 
   const isDataLoading =
-    modelsQuery.isLoading &&
     swarmsQuery.isLoading &&
     promptsQuery.isLoading &&
     agentsQuery.isLoading;
@@ -92,10 +90,6 @@ export default function useModels() {
     [search, filterOption],
   );
 
-  const filteredModels = useMemo(
-    () => filterData(modelsQuery.data?.data, 'models'),
-    [modelsQuery.data, filterData],
-  );
   const filteredSwarms = useMemo(
     () => filterData(swarmsQuery.data?.data, 'swarms'),
     [swarmsQuery.data, filterData],
@@ -123,7 +117,6 @@ export default function useModels() {
   );
 
   return {
-    filteredModels,
     filteredSwarms,
     filteredPrompts,
     filteredAgents,
@@ -133,7 +126,6 @@ export default function useModels() {
     allAgents: agentsQuery,
     allTools: toolsQuery,
     isPromptLoading: promptsQuery.isLoading,
-    isModelsLoading: modelsQuery.isLoading,
     isAgentsLoading: agentsQuery.isLoading,
     isSwarmsLoading: swarmsQuery.isLoading || pendingSwarms.isLoading,
     isToolsLoading: toolsQuery.isLoading,

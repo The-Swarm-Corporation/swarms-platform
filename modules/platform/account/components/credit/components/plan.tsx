@@ -8,7 +8,7 @@ import {
   DialogTrigger,
   DialogDescription,
 } from '@/shared/components/ui/dialog';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/utils/cn';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { Plan } from '..';

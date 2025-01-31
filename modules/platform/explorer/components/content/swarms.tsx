@@ -1,9 +1,9 @@
-import { Button } from '@/shared/components/spread_sheet_swarm/ui/button';
+import { Button } from '@/shared/components/ui/button';
 import React from 'react';
 import InfoCard from '../info-card';
-import { Bot, PencilRuler } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { makeUrl } from '@/shared/utils/helpers';
-import { PUBLIC } from '@/shared/constants/links';
+import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 

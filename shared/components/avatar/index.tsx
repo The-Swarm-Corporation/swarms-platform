@@ -26,9 +26,9 @@ export default function Avatar({
   const { data } = trpc.main.getUserById.useQuery({
     userId: userId,
   });
-  const avatar = (user ? user.user_metadata?.avatar_url : data?.avatar) || '';
+  const avatar = (user ? user?.user_metadata?.avatar_url : data?.avatar) || '';
   const username = user
-    ? user.user_metadata.user_name || profileName
+    ? user?.user_metadata?.user_name || profileName
     : data?.username;
 
   return (

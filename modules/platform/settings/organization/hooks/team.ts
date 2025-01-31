@@ -3,7 +3,7 @@ import { useOrganizationStore } from '@/shared/stores/organization';
 import { debounce } from '@/shared/utils/helpers';
 import { useCallback, useMemo, useState } from 'react';
 import { ExcludeOwner } from '../types';
-import { ROLES } from '@/shared/constants/organization';
+import { ROLES } from '@/shared/utils/constants';
 import { useOrganizationMutation, useQueryMutation } from './organizations';
 import { trpc } from '@/shared/utils/trpc/trpc';
 

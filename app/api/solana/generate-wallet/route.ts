@@ -7,7 +7,7 @@ import {
   createAssociatedTokenAccountInstruction,
   TOKEN_PROGRAM_ID 
 } from '@solana/spl-token';
-import { encrypt, decrypt } from '@/utils/encryption';
+import { encrypt, decrypt } from '@/shared/utils/encryption';
 
 const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL as string;

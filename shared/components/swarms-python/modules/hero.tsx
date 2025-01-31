@@ -1,8 +1,8 @@
 import React from 'react';
-import { Button } from '../../spread_sheet_swarm/ui/button';
+import { Button } from '../../ui/button';
 import { Github, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
-import { DISCORD, SWARMS_GITHUB } from '@/shared/constants/links';
+import { DISCORD, SWARMS_GITHUB } from '@/shared/utils/constants';
 
 export default function SwarmsHero() {
   return (

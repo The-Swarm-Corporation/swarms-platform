@@ -1,10 +1,14 @@
 'use client';
 
 import Logo from '@/shared/components/icons/Logo';
-import { Dialog, DialogContent } from '@/shared/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
 import React from 'react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
@@ -15,7 +19,7 @@ const pathnames = [
   '/pricing',
   '/prompt/',
   '/tool/',
-  '/swarms'
+  '/swarms',
 ];
 function AuthModal() {
   const { isAuthModalOpen } = useAuthContext();
@@ -40,9 +44,9 @@ function AuthModal() {
             <div className="flex justify-center pb-8 ">
               <Logo width={50} height={50} />
             </div>
-            <h2 className="text-lg md:text-2xl">
+            <DialogTitle className="text-lg md:text-2xl">
               Welcome To The Agent Marketplace
-            </h2>
+            </DialogTitle>
             <p className="mt-2 text-sm md:text-lg text-gray-400">
               Sign in or Sign Up to enter The Agent Marketplace.
             </p>

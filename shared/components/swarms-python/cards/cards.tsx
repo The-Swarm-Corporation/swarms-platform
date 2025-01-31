@@ -5,7 +5,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from '@/shared/components/ui/Cards';
+} from '@/shared/components/ui/card';
 import { CardProps, CodePrismCardProps } from '../types';
 
 function FeatureCard({ title, description }: CardProps) {

@@ -1,8 +1,8 @@
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import Modal from '@/shared/components/modal';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
-import { Button } from '@/shared/components/ui/Button';
-import Input from '@/shared/components/ui/Input';
+import { Button } from '@/shared/components/ui/button';
+import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce, launchConfetti } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';

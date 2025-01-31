@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/rest';
-import { makeId } from '../random';
+import { makeId } from '../helpers';
 
 interface Options {
   name: string;

@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { getUserOrganizationRole } from '@/shared/utils/api/organization';
 import { Enums, Tables } from '@/types_db';
-import { ORG_MEMBER_INVITE_TIMEOUT } from '@/shared/constants/common';
+import { ORG_MEMBER_INVITE_TIMEOUT } from '@/shared/utils/constants';
 
 const organizationRouter = router({
   // get user organization info

@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FormEvent, RefObject, useState } from 'react';
 import { Textarea } from '@/shared/components/ui/textarea';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';

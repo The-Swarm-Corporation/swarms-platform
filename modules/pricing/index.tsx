@@ -3,7 +3,7 @@
 import pricingData from '@/shared/data/pricing.json';
 import { cn } from '@/shared/utils/cn';
 import { useState } from 'react';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import PricingCard, { PricingCardProps } from './components/card';
 
 type PricingTab = 'annually' | 'monthly';

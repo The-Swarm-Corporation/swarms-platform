@@ -15,7 +15,7 @@ import NavItem from '../item';
 import NavbarSearch from './components/search';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import Avatar from '@/shared/components/avatar';
-import { NAVIGATION, SWARMS_GITHUB } from '@/shared/constants/links';
+import { NAVIGATION, SWARMS_GITHUB } from '@/shared/utils/constants';
 
 export default function PlatformNavBar({ user }: { user: User | null }) {
   const dropdownRef = useRef(null);

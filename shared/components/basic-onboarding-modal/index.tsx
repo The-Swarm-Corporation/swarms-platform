@@ -3,8 +3,8 @@
 import useOnboardingHelper from '@/shared/hooks/onboarding-helper';
 import Modal from '../modal';
 import React, { useEffect, useState } from 'react';
-import Input from '../ui/Input';
-import { Button } from '../ui/Button';
+import Input from '../ui/Input/Input';
+import { Button } from '../ui/button';
 import {
   Select,
   SelectContent,
@@ -14,7 +14,7 @@ import {
 } from '../ui/select';
 import { useToast } from '../ui/Toasts/use-toast';
 import Link from 'next/link';
-import { SWARM_CALENDLY } from '@/shared/constants/links';
+import { SWARM_CALENDLY } from '@/shared/utils/constants';
 import { ArrowLeft } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import axios from 'axios';

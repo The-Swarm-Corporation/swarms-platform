@@ -15,12 +15,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/shared/components/ui/dialog';
-import { Button } from '@/shared/components/ui/Button';
-import Input from '@/shared/components/ui/Input';
+import { Button } from '@/shared/components/ui/button';
+import Input from '@/shared/components/ui/Input/Input';
 import { cn } from '@/shared/utils/cn';
 import { useOrganizationStore } from '@/shared/stores/organization';
 import LoadingSpinner from '@/shared/components/loading-spinner';
-import { ROLES } from '@/shared/constants/organization';
+import { ROLES } from '@/shared/utils/constants';
 import { useInviteModal } from '../../../hooks/invite';
 import { UserOrganizationsProps } from '../../../types';
 

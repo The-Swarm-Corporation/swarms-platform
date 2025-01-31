@@ -1,4 +1,4 @@
-import { PLATFORM } from '@/shared/constants/links';
+import { PLATFORM } from '@/shared/utils/constants';
 import { submitInviteCode } from '@/shared/utils/api/organization';
 import { Database } from '@/types_db';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';

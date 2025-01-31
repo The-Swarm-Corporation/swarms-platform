@@ -12,7 +12,7 @@ import {
   getErrorRedirect,
   calculateTrialEndUnixTimestamp,
 } from '@/shared/utils/helpers';
-import { PLATFORM } from '@/shared/constants/links';
+import { PLATFORM } from '@/shared/utils/constants';
 import { ProductPrice } from '@/shared/models/db-types';
 import { User } from '@supabase/supabase-js';
 import { SubscriptionWithPriceAndProduct } from '@/shared/models/supscription';

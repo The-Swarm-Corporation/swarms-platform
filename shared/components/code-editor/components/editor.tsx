@@ -99,4 +99,6 @@ const CodeEditor = forwardRef(
   },
 );
 
+CodeEditor.displayName = "CodeEditor"
+
 export default CodeEditor;

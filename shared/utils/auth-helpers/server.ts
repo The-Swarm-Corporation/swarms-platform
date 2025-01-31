@@ -9,7 +9,7 @@ import {
   getStatusRedirect,
 } from '@/shared/utils/helpers';
 import { getAuthTypes } from '@/shared/utils/auth-helpers/settings';
-import { PLATFORM } from '@/shared/constants/links';
+import { PLATFORM } from '@/shared/utils/constants';
 import { User } from '@supabase/supabase-js';
 import { createOrRetrieveStripeCustomer } from '../supabase/admin';
 import {

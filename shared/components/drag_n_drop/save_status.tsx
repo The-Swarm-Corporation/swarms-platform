@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, X, Check } from 'lucide-react';
-// import { Button } from '@/components/spread_sheet_swarm/ui/button';
+// import { Button } from '@/components/ui/button';
 import { Button } from '../ui/button';
 
 interface SaveStatusIndicatorProps {

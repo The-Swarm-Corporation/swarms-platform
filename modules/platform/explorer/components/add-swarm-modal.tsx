@@ -1,7 +1,7 @@
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import Modal from '@/shared/components/modal';
-import { Button } from '@/shared/components/ui/Button';
-import Input from '@/shared/components/ui/Input';
+import { Button } from '@/shared/components/ui/button';
+import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
@@ -143,9 +143,9 @@ const AddSwarmModal = ({ isOpen, onClose, onAddSuccessfuly }: Props) => {
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
           <div className={className} style={style}>
             {tokens.map((line, i) => (
-              <div {...getLineProps({ line, key: i })}>
+              <div key={i} {...getLineProps({ line, key: i })}>
                 {line.map((token, key) => (
-                  <span {...getTokenProps({ token, key })} />
+                  <span key={key} {...getTokenProps({ token, key })} />
                 ))}
               </div>
             ))}

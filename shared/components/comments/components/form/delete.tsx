@@ -7,7 +7,7 @@ import {
   DialogClose,
 } from '@/shared/components/ui/dialog';
 import { Dispatch, SetStateAction } from 'react';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 
 interface DeleteContentProps {

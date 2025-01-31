@@ -4,7 +4,7 @@ import { useOrganizationStore } from '@/shared/stores/organization';
 import { ExcludeOwner } from '../types';
 import { FormEvent, SyntheticEvent, useState } from 'react';
 import { emailRegExp } from '../components/team/components/const';
-import { ROLES } from '@/shared/constants/organization';
+import { ROLES } from '@/shared/utils/constants';
 import { useQueryMutation } from './organizations';
 
 export function useInviteModal({

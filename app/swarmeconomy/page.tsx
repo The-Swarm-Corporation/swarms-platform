@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 
 import { motion } from "framer-motion"
-import { Button } from "@/shared/components/spread_sheet_swarm/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/spread_sheet_swarm/ui/card"
+import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { Bot, Coins, Network, Lock, Zap, Users, Brain, Rocket, Award } from 'lucide-react'
 import { Copy, ExternalLink, Twitter, DiscIcon as Discord } from 'lucide-react'
 import Link from "next/link"

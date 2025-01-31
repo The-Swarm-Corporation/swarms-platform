@@ -3,7 +3,7 @@ import { supabaseAdmin } from '../supabase/admin';
 import { getUserOrganizationRole } from './organization';
 import { checkRateLimit } from './rate-limit';
 import { getBillingLimit } from './usage';
-import { currentMonth } from '@/shared/constants/date';
+import { currentMonth } from '@/shared/utils/constants';
 
 type Options = {
   apiKey: string | null;

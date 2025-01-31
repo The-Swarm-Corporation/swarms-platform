@@ -1,5 +1,5 @@
 'use client';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import useSubscription from '@/shared/hooks/subscription';
 import { formatDate } from '@/shared/utils/helpers';
 import { useSearchParams } from 'next/navigation';

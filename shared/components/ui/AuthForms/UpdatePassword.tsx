@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import { updatePassword } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
 import { useRouter } from 'next/navigation';

@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import { SINGLE, themeOptions, themes, THEMES } from '@/shared/constants/theme';
+import { SINGLE, themeOptions, themes, THEMES } from '@/shared/utils/constants';
 
 const ThemeCard = dynamic(() => import('./components/theme-card'), {
   ssr: false,

@@ -3,7 +3,6 @@ import { ThemeProvider } from '@/shared/components/ui/theme-provider';
 import { helvetica } from '@/shared/styles/fonts';
 import { TrpcProvider } from '@/shared/utils/trpc/trpc-provider';
 import { Viewport } from 'next';
-import { Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/shared/components/ui/auth.provider';
 import { createClient } from '@/shared/utils/supabase/server';
@@ -21,6 +20,8 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
+  'use server';
+
   const supabase = await createClient();
 
   const {
@@ -42,9 +43,7 @@ export default async function Layout({
             </TrpcProvider>
           </AuthProvider>
         </ThemeProvider>
-        <Suspense>
-          <Toaster />
-        </Suspense>
+        <Toaster />
         <Analytics />
       </body>
     </html>

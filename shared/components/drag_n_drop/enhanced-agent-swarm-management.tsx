@@ -26,7 +26,7 @@ import ReactFlow, {
   useNodes, // Add this import
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Button } from '../spread_sheet_swarm/ui/button';
+import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import {
   Dialog,
@@ -67,7 +67,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../spread_sheet_swarm/ui/dropdown-menu';
+} from '../ui/dropdown-menu';
 import {
   Plus,
   Send,
@@ -88,14 +88,14 @@ import {
   experimental_createProviderRegistry as createProviderRegistry,
   generateText,
 } from 'ai';
-import { Card } from '../spread_sheet_swarm/ui/card';
-import { Input } from '../spread_sheet_swarm/ui/input';
+import { Card } from '../ui/card';
+import { Input } from '../ui/input';
 import { trpc as api } from '@/shared/utils/trpc/trpc';
 import debounce from 'lodash/debounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import AutoGenerateSwarm from './auto_generate_swarm';
-import { cn } from "@/lib/utils";
+import { cn } from '@/shared/utils/cn';
 
 // Create provider registry
 const registry = createProviderRegistry({

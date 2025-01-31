@@ -10,9 +10,9 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import AddSwarmModal from './components/add-swarm-modal';
-import { Input } from '@/shared/components/spread_sheet_swarm/ui/input';
+import { Input } from '@/shared/components/ui/input';
 import useModels from './hook/models';
-import { explorerOptions } from '@/shared/constants/explorer';
+import { explorerOptions } from '@/shared/utils/constants';
 import AddPromptModal from './components/add-prompt-modal';
 import { Activity } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
@@ -55,7 +55,6 @@ const Explorer = () => {
     allPrompts,
     allTools,
     pendingSwarms,
-    filteredModels,
     filteredSwarms,
     filteredPrompts,
     filteredAgents,
@@ -68,7 +67,6 @@ const Explorer = () => {
     filterOption,
     isDataLoading,
     isPromptLoading,
-    isModelsLoading,
     isAgentsLoading,
     isSwarmsLoading,
     isToolsLoading,
