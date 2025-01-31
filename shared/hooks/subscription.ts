@@ -49,7 +49,7 @@ const useSubscription = () => {
     statusLoading: getSubscription.isLoading,
     status: getSubscription.data?.status,
     isLoading: getSubscription.isLoading,
-    isSubscribed: getSubscription.data?.status === 'active' ?? false,
+    isSubscribed: getSubscription.data?.status === 'active' || false,
     isCanceled: getSubscription.data?.isCanceled,
     createSubscriptionPortalLoading: makeSubsctiptionSession.isPending,
     createSubscriptionPortal,
