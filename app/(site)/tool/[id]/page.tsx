@@ -1,10 +1,11 @@
 import ToolModule from '@/modules/tool';
 export const dynamic = 'force-dynamic';
 
-const Tool = ({
+const Tool = async ({
   params,
 }: any) => {
-  return <ToolModule id={params.id} />;
+  const resolvedParams = await params;
+  return <ToolModule id={resolvedParams.id} />;
 };
 
 export default Tool;

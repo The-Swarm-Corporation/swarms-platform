@@ -6,7 +6,8 @@ export const dynamic = 'force-dynamic';
 
 
 const Agent = async ({ params }: any) => {
-  return <AgentModule id={params.id} />;
+  const resolvedParams = await params;
+  return <AgentModule id={resolvedParams?.id} />;
 };
 
 export default Agent;
