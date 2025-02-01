@@ -569,7 +569,6 @@ export default function AgentWallet() {
                         <div>
                           <h3 className="text-xl font-bold text-red-50">{wallet.name}</h3>
                           <div className="space-y-1">
-                            <p className="text-sm text-red-500 font-mono">ID: {wallet.id}</p>
                             <AddressDisplay address={wallet.address} />
                           </div>
                         </div>
