@@ -881,7 +881,7 @@ export function SwarmManagement() {
                 className='shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'
                   placeholder="Enter task for agents..."
                   value={task}
-                  onChange={(newTask) => setTask(newTask)}
+                  onChange={(newTask: any) => setTask(newTask)}
                 />
               </div>
               <Button
@@ -938,7 +938,7 @@ export function SwarmManagement() {
                       <Input
                         id="name"
                         value={newAgent.name || ''}
-                        onChange={(name) => setNewAgent({ ...newAgent, name })}
+                        onChange={(name: any) => setNewAgent({ ...newAgent, name })}
                         className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-0 "
                       />
                     </div>

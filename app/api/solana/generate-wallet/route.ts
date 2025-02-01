@@ -14,7 +14,6 @@ const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL as string;
 
 export async function POST(req: Request) {
   try {
-    // Get API key from headers
     const headersList = await headers();
     const apiKey = headersList.get('x-api-key');
     
@@ -29,7 +28,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Initialize Supabase client with service role
     const supabase = createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -40,14 +38,14 @@ export async function POST(req: Request) {
       }
     );
     
-    const { data: agent } = await supabase
+    // Get all active agents for this API key
+    const { data: agents, error: agentsError } = await supabase
       .from('ai_agents')
       .select('id')
       .eq('api_key', apiKey)
-      .eq('status', 'active')
-      .single();
+      .eq('status', 'active');
 
-    if (!agent) {
+    if (agentsError || !agents?.length) {
       return new Response(
         JSON.stringify({
           error: 'UNAUTHORIZED',
@@ -58,123 +56,110 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check for existing active wallet
-    const { data: existingWallet } = await supabase
-      .from('ai_agent_wallets')
-      .select('public_key, private_key')
-      .eq('agent_id', agent.id)
-      .eq('status', 'active')
-      .eq('wallet_type', 'solana')
-      .single();
+    const results = [];
 
-    if (existingWallet) {
-      // Get current balance for existing wallet
-      const connection = new Connection(RPC_URL, {
-        commitment: 'confirmed',
-        confirmTransactionInitialTimeout: 60000
-      });
-      
-      const publicKey = new PublicKey(existingWallet.public_key);
-      const balance = await connection.getBalance(publicKey);
+    // Create wallets for each agent that doesn't have one
+    for (const agent of agents) {
+      // Check for existing wallet
+      const { data: existingWallet } = await supabase
+        .from('ai_agent_wallets')
+        .select('public_key, private_key')
+        .eq('agent_id', agent.id)
+        .eq('status', 'active')
+        .eq('wallet_type', 'solana')
+        .single();
 
-      // Decrypt private key if needed (commented out as in original)
-      // const decryptedPrivateKey = decrypt(existingWallet.private_key, existingWallet.iv);
+      if (existingWallet) {
+        // Get balance for existing wallet
+        const connection = new Connection(RPC_URL, {
+          commitment: 'confirmed',
+          confirmTransactionInitialTimeout: 60000
+        });
+        
+        const publicKey = new PublicKey(existingWallet.public_key);
+        const balance = await connection.getBalance(publicKey);
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            public_key: existingWallet.public_key,
-            // private_key: decryptedPrivateKey,
+        results.push({
+          agent_id: agent.id,
+          public_key: existingWallet.public_key,
+          wallet_type: 'solana',
+          sol_balance: balance / LAMPORTS_PER_SOL,
+          status: 'existing'
+        });
+        continue;
+      }
+
+      // Generate new wallet if none exists
+      try {
+        const wallet = Keypair.generate();
+        const connection = new Connection(RPC_URL, {
+          commitment: 'confirmed',
+          confirmTransactionInitialTimeout: 60000
+        });
+
+        // Create SWARMS token account
+        const swarmsATA = await getAssociatedTokenAddress(
+          SWARMS_TOKEN_ADDRESS,
+          wallet.publicKey
+        );
+
+        const transaction = new Transaction().add(
+          createAssociatedTokenAccountInstruction(
+            wallet.publicKey,
+            swarmsATA,
+            wallet.publicKey,
+            SWARMS_TOKEN_ADDRESS
+          )
+        );
+
+        const { blockhash } = await connection.getLatestBlockhash('confirmed');
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = wallet.publicKey;
+        transaction.sign(wallet);
+
+        try {
+          const signature = await connection.sendRawTransaction(
+            transaction.serialize(),
+            { maxRetries: 3 }
+          );
+          await connection.confirmTransaction(signature, 'confirmed');
+        } catch (error) {
+          console.error(`Failed to create SWARMS token account for agent ${agent.id}:`, error);
+        }
+
+        // Store wallet
+        const privateKeyBase64 = Buffer.from(wallet.secretKey).toString('base64');
+        const { encryptedData, iv } = encrypt(privateKeyBase64);
+
+        const { error: walletError } = await supabase
+          .from('ai_agent_wallets')
+          .insert({
+            agent_id: agent.id,
+            public_key: wallet.publicKey.toString(),
+            private_key: encryptedData,
+            iv: iv,
             wallet_type: 'solana',
-            sol_balance: balance / LAMPORTS_PER_SOL,
-            message: 'Existing wallet retrieved'
-          },
-          code: 'SUCCESS_003'
-        }),
-        { status: 200 }
-      );
-    }
+            status: 'active',
+          });
 
-    // Generate new Solana wallet
-    const wallet = Keypair.generate();
-    
-    // Setup Solana connection
-    const connection = new Connection(RPC_URL, {
-      commitment: 'confirmed',
-      confirmTransactionInitialTimeout: 60000
-    });
-
-    // Create associated token account for SWARMS
-    const swarmsATA = await getAssociatedTokenAddress(
-      SWARMS_TOKEN_ADDRESS,
-      wallet.publicKey
-    );
-
-    // Create and send transaction to create ATA
-    const transaction = new Transaction().add(
-      createAssociatedTokenAccountInstruction(
-        wallet.publicKey,
-        swarmsATA,
-        wallet.publicKey,
-        SWARMS_TOKEN_ADDRESS
-      )
-    );
-
-    const { blockhash } = await connection.getLatestBlockhash('confirmed');
-    transaction.recentBlockhash = blockhash;
-    transaction.feePayer = wallet.publicKey;
-    
-    // Sign and send the transaction
-    transaction.sign(wallet);
-    
-    try {
-      const signature = await connection.sendRawTransaction(
-        transaction.serialize(),
-        { maxRetries: 3 }
-      );
-      await connection.confirmTransaction(signature, 'confirmed');
-    } catch (error) {
-      console.error('Failed to create SWARMS token account:', error);
-      // Continue even if ATA creation fails - it can be created later
-    }
-    
-    // When storing new wallet
-    const privateKeyBase64 = Buffer.from(wallet.secretKey).toString('base64');
-    const { encryptedData, iv } = encrypt(privateKeyBase64);
-
-    // Store wallet info in Supabase with encrypted private key
-    const { error } = await supabase
-      .from('ai_agent_wallets')
-      .insert({
-        agent_id: agent.id,
-        public_key: wallet.publicKey.toString(),
-        private_key: encryptedData,
-        iv: iv,
-        wallet_type: 'solana',
-        status: 'active',
-      });
-
-    if (error) {
-        console.error('Failed to store wallet:', error);
-      return new Response(
-        JSON.stringify({
-          error: 'DATABASE_ERROR',
-          code: 'DB_001',
-          message: 'Failed to store wallet'
-        }),
-        { status: 500 }
-      );
+        if (!walletError) {
+          results.push({
+            agent_id: agent.id,
+            public_key: wallet.publicKey.toString(),
+            wallet_type: 'solana',
+            swarms_token_address: swarmsATA.toString(),
+            status: 'created'
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to create wallet for agent ${agent.id}:`, error);
+      }
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        data: {
-          public_key: wallet.publicKey.toString(),
-          wallet_type: 'solana',
-          swarms_token_address: swarmsATA.toString()
-        },
+        data: results,
         code: 'SUCCESS_001'
       }),
       { status: 200 }
