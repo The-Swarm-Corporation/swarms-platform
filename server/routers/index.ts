@@ -8,6 +8,7 @@ import { organizationRouter } from './organization';
 import dashboardRouter from './dashboard';
 import explorerOptionsRouter from './explorer-options';
 import { dndRouter } from './dnd';
+import { walletRouter } from './wallet';
 
 export const appRouter = router({
   main: mainRouter,
@@ -19,5 +20,6 @@ export const appRouter = router({
   organization: organizationRouter,
   dashboard: dashboardRouter,
   dnd: dndRouter,
+  wallet: walletRouter,
 });
 export type AppRouter = typeof appRouter;
