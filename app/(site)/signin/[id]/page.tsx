@@ -8,7 +8,7 @@ import {
   getDefaultSignInView,
   getRedirectMethod,
 } from '@/shared/utils/auth-helpers/settings';
-import { Card } from '@/shared/components/spread_sheet_swarm/ui/card';
+import { Card } from '@/shared/components/ui/card';
 import PasswordSignIn from '@/shared/components/ui/AuthForms/PasswordSignIn';
 import EmailSignIn from '@/shared/components/ui/AuthForms/EmailSignIn';
 import Separator from '@/shared/components/ui/AuthForms/Separator';
@@ -21,6 +21,9 @@ export default async function SignIn({
   params,
   searchParams,
 }: any) {
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+
   const { allowOauth, allowEmail, allowPassword } = getAuthTypes();
   const viewTypes = getViewTypes();
   const redirectMethod = getRedirectMethod();
@@ -29,8 +32,8 @@ export default async function SignIn({
   let viewProp: string;
 
   // Assign url id to 'viewProp' if it's a valid string and ViewTypes includes it
-  if (typeof params.id === 'string' && viewTypes.includes(params.id)) {
-    viewProp = params.id;
+  if (typeof resolvedParams.id === 'string' && viewTypes.includes(resolvedParams.id)) {
+    viewProp = resolvedParams.id;
   } else {
     const preferredSignInView =
       (await cookies()).get('preferredSignInView')?.value || null;
@@ -79,14 +82,14 @@ export default async function SignIn({
             <EmailSignIn
               allowPassword={allowPassword}
               redirectMethod={redirectMethod}
-              disableButton={searchParams.disable_button}
+              disableButton={Boolean(resolvedSearchParams.disable_button)}
             />
           )}
           {viewProp === 'forgot_password' && (
             <ForgotPassword
               allowEmail={allowEmail}
               redirectMethod={redirectMethod}
-              disableButton={searchParams.disable_button}
+              disableButton={Boolean(resolvedSearchParams.disable_button)}
             />
           )}
           {viewProp === 'update_password' && (

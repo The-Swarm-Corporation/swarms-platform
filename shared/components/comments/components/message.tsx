@@ -9,7 +9,7 @@ import { Comment as CommentType, Reply as ReplyType } from '../types';
 import Image from 'next/image';
 import dayjs from 'dayjs';
 import { AArrowDown, AArrowUp, MessageSquare } from 'lucide-react';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import useToggle from '@/shared/hooks/toggle';
 import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 import { cn } from '@/shared/utils/cn';

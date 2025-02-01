@@ -1,13 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  api: {
-    bodyParser: {
-      sizeLimit: '500kb',
-    },
-  },
-  experimental: {
-    ipGeolocation: true,
-  },
   images: {
     remotePatterns: [
       {

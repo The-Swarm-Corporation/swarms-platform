@@ -1,11 +1,18 @@
 'use client';
 
-import CodePlayground from '@/shared/components/code-editor';
 import { languages } from '@/shared/components/code-editor/config';
 import EditorProvider, {
   useEditorContext,
 } from '@/shared/components/ui/editor.provider';
+import dynamic from 'next/dynamic';
 import React, { useEffect } from 'react';
+
+const CodePlayground = dynamic(
+  () => import('@/shared/components/code-editor'),
+  {
+    ssr: false,
+  },
+);
 
 interface PlaygroundProps {
   language: string;

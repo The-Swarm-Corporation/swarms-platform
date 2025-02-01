@@ -1,7 +1,7 @@
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import Modal from '@/shared/components/modal';
-import { Button } from '@/shared/components/ui/Button';
-import Input from '@/shared/components/ui/Input';
+import { Button } from '@/shared/components/ui/button';
+import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { useMemo, useState } from 'react';
-import { languageOptions } from '@/shared/constants/explorer';
+import { languageOptions } from '@/shared/utils/constants';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 interface Props {

@@ -1,5 +1,5 @@
 import { router, userProcedure } from '@/app/api/trpc/trpc-router';
-import { PLATFORM } from '@/shared/constants/links';
+import { PLATFORM } from '@/shared/utils/constants';
 import { getURL } from '@/shared/utils/helpers';
 import { createPaymentSession } from '@/shared/utils/stripe/client';
 import { stripe } from '@/shared/utils/stripe/config';

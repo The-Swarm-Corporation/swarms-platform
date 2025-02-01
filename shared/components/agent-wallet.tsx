@@ -3,13 +3,13 @@
 import { useState, useEffect} from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { BarChart3, CircuitBoard, Wallet, Search, ArrowLeft, ArrowRight, ArrowUpRight, ArrowDownLeft, Plus, Copy, X } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./spread_sheet_swarm/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
 import { Button } from "./ui/button"
 import { trpc } from '@/shared/utils/trpc/trpc'
 import { Label } from "./ui/label"
 import { Badge } from "./ui/badge"
-import { Card, CardContent } from "./spread_sheet_swarm/ui/card"
+import { Card, CardContent } from "./ui/card"
 
 // Add these component definitions after the imports and before the other components
 const RadioGroup = RadioGroupPrimitive.Root
@@ -459,7 +459,7 @@ export default function AgentWallet() {
       animate={{ opacity: 1, y: 0 }}
       className="col-span-full p-8 text-center border border-red-500/30 rounded-lg bg-black/40 backdrop-blur-sm"
     >
-      <div className="text-red-500 mb-2">No agents found matching "{searchQuery}"</div>
+      <div className="text-red-500 mb-2">{`No agents found matching "${searchQuery}"`}</div>
       <div className="text-red-400/60 text-sm">
         Try adjusting your search terms or clear the search to see all agents
       </div>

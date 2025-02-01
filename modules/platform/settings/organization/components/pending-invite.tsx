@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react';
 import { ShieldX } from 'lucide-react';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import InviteModal from './team/components/invite-modal';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';

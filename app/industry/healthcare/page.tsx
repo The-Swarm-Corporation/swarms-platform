@@ -3,7 +3,7 @@
 import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import { ArrowRight, Brain, Microscope, Dna, Stethoscope, HeartPulse, Syringe, PhoneCall } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/spread_sheet_swarm/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import React from 'react'
 
 const inter = Inter({ subsets: ['latin'] })

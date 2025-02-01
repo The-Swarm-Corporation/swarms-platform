@@ -2,16 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { Button } from '../spread_sheet_swarm/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../spread_sheet_swarm/ui/card"
+import { Button } from '../ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Award, Calendar, ChevronDown, DollarSign, Zap } from 'lucide-react'
-import { useTheme } from 'next-themes'
 
 export default function EvangelistProgram() {
   const [scrollY, setScrollY] = useState(0)
-  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY)
@@ -85,7 +82,7 @@ export default function EvangelistProgram() {
       {/* Content We're Looking For */}
       <section id="content" className="py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold mb-12 text-center">Content We're Looking For</h2>
+          <h2 className="text-4xl font-bold mb-12 text-center">Content We&apos;re Looking For</h2>
           <div className="grid md:grid-cols-2 gap-8">
             {[
               "In-depth tutorials on implementing Swarms in various AI applications",

@@ -7,13 +7,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import Input from '@/shared/components/ui/Input';
+import Input from '@/shared/components/ui/Input/Input';
 import TeamMember from './components/member';
 import InviteModal from './components/invite-modal';
 import { cn } from '@/shared/utils/cn';
 import { isEmpty } from '@/shared/utils/helpers';
 import LoadingSpinner from '@/shared/components/loading-spinner';
-import { ROLES } from '@/shared/constants/organization';
+import { ROLES } from '@/shared/utils/constants';
 import { useOrganizationTeam } from '../../hooks/team';
 import { User } from '@supabase/supabase-js';
 import { UserOrganizationsProps } from '../../types';

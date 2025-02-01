@@ -1,12 +1,13 @@
 import PromptModule from '@/modules/prompt';
 export const dynamic = 'force-dynamic';
 
-const Prompt = ({
+const Prompt = async ({
   params,
 }: {
       params: any;
 }) => {
-  return <PromptModule id={params.id} />;
+  const resolvedParams = await params;
+  return <PromptModule id={resolvedParams.id} />;
 };
 
 export default Prompt;

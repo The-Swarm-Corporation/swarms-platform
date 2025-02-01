@@ -13,7 +13,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from '../spread_sheet_swarm/ui/card';
+} from '../ui/card';
 import {
   Dialog,
   DialogContent,
@@ -28,9 +28,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../spread_sheet_swarm/ui/dropdown-menu';
-import { Input } from '../spread_sheet_swarm/ui/input';
-import { Label } from '../spread_sheet_swarm/ui/label';
+} from '../ui/dropdown-menu';
+import Input from '../ui/Input/Input';
+import { Label } from '../ui/label';
 import {
   Table,
   TableBody,
@@ -38,7 +38,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../spread_sheet_swarm/ui/table';
+} from '../ui/table';
 import { Textarea } from '../ui/textarea';
 import { registry } from '@/shared/utils/registry';
 
@@ -72,7 +72,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 import { createQueryString, isEmpty } from '@/shared/utils/helpers';
-import { PLATFORM } from '@/shared/constants/links';
+import { PLATFORM } from '@/shared/utils/constants';
 import { useAuthContext } from '../ui/auth.provider';
 import { Tables } from '@/types_db';
 import LoadingSpinner from '../loading-spinner';
@@ -792,7 +792,7 @@ export function SwarmManagement() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="flex flex-col items-center space-y-4">
           <LoadingSpinner size={40} />
           <p className="text-muted-foreground">Loading Spreadsheet Swarm...</p>

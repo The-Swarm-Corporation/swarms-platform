@@ -9,7 +9,7 @@ import {
   DrawerContent,
   DrawerTrigger,
 } from '@/shared/components/ui/drawer';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import { NavMenuPropsKeys, SIDE_BAR_MENU } from '../../const';
 import {
   Collapsible,
@@ -17,7 +17,7 @@ import {
   CollapsibleTrigger,
 } from '@/shared/components/ui/collapsible';
 import NavItem from '../../item';
-import { NAVIGATION, SWARMS_GITHUB } from '@/shared/constants/links';
+import { NAVIGATION, SWARMS_GITHUB } from '@/shared/utils/constants';
 
 const SidebarMobile = () => {
   const path = usePathname();

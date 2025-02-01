@@ -1,5 +1,9 @@
-import SpreadSheetSwarm from "@/app/spreadsheetswarm/page";
+import { SwarmManagement } from '@/shared/components/spreadsheetswarm/main';
 
 export default async function OrganizationPage() {
-  return <SpreadSheetSwarm />;
+  return (
+    <div className="flex flex-1 flex-col gap-4">
+      <SwarmManagement />
+    </div>
+  );
 }

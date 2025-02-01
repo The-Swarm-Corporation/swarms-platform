@@ -1,0 +1,29 @@
+.code-editor {
+  width: 100% !important;
+
+  background-color: #00000080;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.2);
+
+  border: 2px solid #f9f9f914;
+  border-top: none;
+
+  font-weight: 500 !important;
+  line-height: 1.5rem !important;
+  overflow: auto;
+}
+
+.code-editor :global(.ace_content) {
+  width: 100% !important;
+  top: 12px !important;
+  left: 12px !important;
+}
+
+.code-editor :global(.ace_scrollbar) {
+  display: none !important;
+}
+
+.code-editor :global(.ace_scroller) {
+  width: 100% !important;
+}

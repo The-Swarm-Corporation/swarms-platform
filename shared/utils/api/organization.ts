@@ -1,4 +1,4 @@
-import { ORG_MEMBER_INVITE_TIMEOUT } from '@/shared/constants/common';
+import { ORG_MEMBER_INVITE_TIMEOUT } from '@/shared/utils/constants';
 import { supabaseAdmin } from '../supabase/admin';
 
 type UserAccessType = 'owner' | 'reader' | 'manager';

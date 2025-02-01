@@ -96,6 +96,8 @@ export async function updateTwentyCrmUser(id: string, data: any) {
 }
 
 export const updateFreeCreditsOnSignin = async (id: string): Promise<void> => {
+  "use server";
+  
   if (!id) {
     return; // Early return for invalid input
   }
@@ -106,7 +108,7 @@ export const updateFreeCreditsOnSignin = async (id: string): Promise<void> => {
       .from('users')
       .select('had_free_credits')
       .eq('id', id)
-      .single();
+      .single(); 
 
     if (user?.had_free_credits) {
       return; // User already has free credits

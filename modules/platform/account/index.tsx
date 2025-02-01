@@ -3,13 +3,14 @@ import CardManager from './components/card-manager';
 import Credit from './components/credit';
 import SubscriptionStatus from './components/subscription-status';
 import Link from 'next/link';
-import { AUTH } from '@/shared/constants/links';
+import { AUTH } from '@/shared/utils/constants';
 import ThemeToggle from '@/shared/components/theme-toggle';
 import { createClient } from '@/shared/utils/supabase/server';
 import CryptoWallet from './components/crypto-wallet';
 
 export default async function Account() {
-  //TODO: SWITCH TO AUTH MODALS INSTEAD
+  "use server";
+  
   const supabase = await createClient();
   const {
     data: { user },

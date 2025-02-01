@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from '@/shared/components/ui/dialog';
 import { Dispatch, PropsWithChildren, SetStateAction } from 'react';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 
 interface ModalPromptProps extends PropsWithChildren {

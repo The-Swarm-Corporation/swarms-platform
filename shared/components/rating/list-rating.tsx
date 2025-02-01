@@ -3,7 +3,11 @@ import dayjs from 'dayjs';
 import ReactStars from 'react-rating-star-with-type';
 import Image from 'next/image';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { Dialog, DialogContent } from '@/shared/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
 
 export interface ReviewProps {
   comment: string;
@@ -35,7 +39,7 @@ export default function ListReview({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg flex flex-col gap-2 h-[400px] overflow-y-auto">
-        <h1 className="font-bold text-2xl mb-4">Reviews</h1>
+        <DialogTitle className="font-bold text-2xl mb-4">Reviews</DialogTitle>
         <div className="mt-2">
           {(reviews || []).map((review, i) => (
             <div key={`${review.id}-${i}`}>

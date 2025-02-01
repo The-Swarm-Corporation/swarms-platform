@@ -7,8 +7,12 @@ import React, {
 } from 'react';
 import { Textarea } from '@/shared/components/ui/textarea';
 
-import { Dialog, DialogContent } from '@/shared/components/ui/dialog';
-import { Button } from '@/shared/components/ui/Button';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
+import { Button } from '@/shared/components/ui/button';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { trpc } from '@/shared/utils/trpc/trpc';
@@ -93,7 +97,9 @@ export default function ReplyForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-md flex flex-col gap-2">
-        <h2 className="font-medium text-xl">Reply this {modelType} comment</h2>
+        <DialogTitle className="font-medium text-xl">
+          Reply this {modelType} comment
+        </DialogTitle>
 
         <form onSubmit={handleSubmit} className="mt-5">
           <Textarea

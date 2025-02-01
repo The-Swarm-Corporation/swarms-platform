@@ -13,7 +13,7 @@ import 'ace-builds/src-noconflict/theme-cobalt';
 import 'ace-builds/src-noconflict/theme-dracula';
 import 'ace-builds/src-noconflict/theme-monokai';
 
-import '../styles.css';
+import styles from "../styles.module.css";
 import Image from 'next/image';
 import { getEditorCode, getLangFileName } from '../config';
 import { useEditorContext } from '../../ui/editor.provider';
@@ -44,7 +44,7 @@ const CodeEditor = forwardRef(
 
     return (
       <div className="code-container" style={{ padding: 'auto' }}>
-        <div className="code-title h-[52px] px-4 flex items-center justify-between bg-black bg-opacity-80">
+        <div className="rounded-tl-lg rounded-tr-lg border-2 border-[#f9f9f914] shadow-[0_3px_10px_rgba(0,0,0,0.2)] h-[52px] px-4 flex items-center justify-between bg-black bg-opacity-80">
           <div className="dots flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-[#ff5656]"></div>
             <div className="w-3 h-3 rounded-full bg-[#ffbc6a] "></div>
@@ -92,11 +92,13 @@ const CodeEditor = forwardRef(
           onChange={handleCodeValueChange}
           showPrintMargin={false}
           editorProps={{ $blockScrolling: true }}
-          className="code-editor"
+          className={styles['code-editor']}
         />
       </div>
     );
   },
 );
+
+CodeEditor.displayName = "CodeEditor"
 
 export default CodeEditor;

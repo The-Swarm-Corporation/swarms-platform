@@ -18,7 +18,7 @@ import {
   MessageSquare,
   Wallet,
 } from 'lucide-react';
-import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/constants/links';
+import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
 
 type MenuProps = {

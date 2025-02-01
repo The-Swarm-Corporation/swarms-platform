@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import LoadingSpinner from '@/shared/components/loading-spinner';
-import Input from '@/shared/components/ui/Input';
+import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import useToggle from '@/shared/hooks/toggle';
 import { cn } from '@/shared/utils/cn';
@@ -10,7 +10,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 import { createQueryString } from '@/shared/utils/helpers';
 import { useRouter } from 'next/navigation';
-import { PLATFORM } from '@/shared/constants/links';
+import { PLATFORM } from '@/shared/utils/constants';
 
 export default function NavbarSearch() {
   const searchRef = useRef(null);

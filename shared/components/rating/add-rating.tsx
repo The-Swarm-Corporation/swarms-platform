@@ -3,8 +3,12 @@
 import React, { Dispatch, SetStateAction, useState } from 'react';
 import ReactStarsRating from 'react-awesome-stars-rating';
 
-import { Dialog, DialogContent } from '@/shared/components/ui/dialog';
-import Input from '@/shared/components/ui/Input';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
+import Input from '@/shared/components/ui/Input/Input';
 import { Button } from '@/shared/components/ui/button';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useAuthContext } from '../ui/auth.provider';
@@ -73,9 +77,9 @@ export default function AddRatingModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-sm flex flex-col gap-2">
-        <h1 className="font-bold text-2xl text-primary">
+        <DialogTitle className="font-bold text-2xl text-primary">
           Rate this {modelType}
-        </h1>
+        </DialogTitle>
         <div className="rating">
           <ReactStarsRating
             value={rating}

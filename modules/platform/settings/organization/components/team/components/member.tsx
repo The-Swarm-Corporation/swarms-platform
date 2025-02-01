@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import useToggle from '@/shared/hooks/toggle';
 import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 import { cn } from '@/shared/utils/cn';
@@ -12,7 +12,7 @@ import {
 import { useOrganizationStore } from '@/shared/stores/organization';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import ModalPrompt from '../../prompt';
-import { ROLES } from '@/shared/constants/organization';
+import { ROLES } from '@/shared/utils/constants';
 import { useOrganizationTeam } from '../../../hooks/team';
 import { User } from '@supabase/supabase-js';
 import { useOrganizationMutation } from '../../../hooks/organizations';

@@ -8,10 +8,10 @@ import Logo from '@/shared/components/icons/Logo';
 import { usePathname, useRouter } from 'next/navigation';
 import { getRedirectMethod } from '@/shared/utils/auth-helpers/settings';
 import s from './Navbar.module.css';
-import { DISCORD, PLATFORM, SWARMS_GITHUB } from '@/shared/constants/links';
+import { DISCORD, PLATFORM, SWARMS_GITHUB } from '@/shared/utils/constants';
 import { cn } from '@/shared/utils/cn';
 import { Drawer, DrawerContent, DrawerTrigger, DrawerClose } from '../drawer';
-import { Button } from '../Button';
+import { Button } from '../button';
 import { Menu, X } from 'lucide-react';
 
 interface NavlinksProps {

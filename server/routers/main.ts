@@ -3,7 +3,7 @@ import {
   router,
   userProcedure,
 } from '@/app/api/trpc/trpc-router';
-import { PUBLIC } from '@/shared/constants/links';
+import { PUBLIC } from '@/shared/utils/constants';
 import { makeUrl } from '@/shared/utils/helpers';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
@@ -131,7 +131,6 @@ const mainRouter = router({
       string,
       { title: string; link: string; type: string }[]
     > = {
-      Models: [],
       Agents: [],
       Prompts: [],
       Tools: [],

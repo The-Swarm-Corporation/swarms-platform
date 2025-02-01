@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from '../spread_sheet_swarm/ui/button';
+import { Button } from '../ui/button';
 import { Loader2, Sparkles } from 'lucide-react';
 import { CoreTool, CoreToolCallUnion, CoreToolResultUnion, tool } from 'ai';
 import { z } from 'zod';
@@ -8,9 +8,9 @@ import {
     experimental_createProviderRegistry as createProviderRegistry,
     generateText,
 } from 'ai';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../spread_sheet_swarm/ui/dialog';
-import { Label } from '../spread_sheet_swarm/ui/label';
-import { Textarea } from '../spread_sheet_swarm/ui/textarea';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
 
 // Create provider registry
 const registry = createProviderRegistry({

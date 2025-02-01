@@ -7,7 +7,7 @@ import EditReplyForm from './form/edit-reply';
 import DeleteContent from './form/delete';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import { Button } from '../../ui/Button';
+import { Button } from '../../ui/button';
 
 interface CommentProps {
   comment: CommentType;

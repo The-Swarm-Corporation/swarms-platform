@@ -2,7 +2,7 @@
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { Button } from '@/shared/components/ui/button';
-import { DISCORD, PLATFORM, SWARM_CALENDLY } from '@/shared/constants/links';
+import { DISCORD, PLATFORM, SWARM_CALENDLY } from '@/shared/utils/constants';
 import useSubscription from '@/shared/hooks/subscription';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { commaSeparated, formatSpentTime } from '@/shared/utils/helpers';

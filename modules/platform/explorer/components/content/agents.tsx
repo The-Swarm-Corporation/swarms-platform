@@ -1,12 +1,12 @@
 'use client';
 
 import LoadingSpinner from '@/shared/components/loading-spinner';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
 import { Bot } from 'lucide-react';
-import { PUBLIC } from '@/shared/constants/links';
+import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 

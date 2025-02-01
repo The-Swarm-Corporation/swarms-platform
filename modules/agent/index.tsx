@@ -1,15 +1,9 @@
-'use client';
-
 import EntityComponent from '@/shared/components/entity';
 import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
 
-import dynamic from 'next/dynamic';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
-
-const AgentPlayground = dynamic(() => import('./components/agent-playground'), {
-  ssr: false,
-});
+import AgentPlayground from './components/agent-playground';
 
 const Agent = async ({ id }: { id: string }) => {
   await checkUserSession();

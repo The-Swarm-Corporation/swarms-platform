@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/shared/components/spread_sheet_swarm/ui/button';
+import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/utils/cn';
 import React, { useEffect, useState } from 'react';
 import MonthPicker from './components/month-picker';

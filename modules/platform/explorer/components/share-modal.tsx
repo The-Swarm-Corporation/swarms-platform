@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import Modal from '@/shared/components/modal';
 import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 
 interface ShareModalProps {

@@ -1,6 +1,6 @@
 import Modal from '@/shared/components/modal';
-import { Button } from '@/shared/components/ui/Button';
-import Input from '@/shared/components/ui/Input';
+import { Button } from '@/shared/components/ui/button';
+import Input from '@/shared/components/ui/Input/Input';
 import {
   Select,
   SelectContent,
@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import { languageOptions } from '@/shared/constants/explorer';
+import { languageOptions } from '@/shared/utils/constants';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import useEditModal from '@/shared/hooks/edit-modal';
 import { Plus } from 'lucide-react';
