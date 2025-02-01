@@ -390,13 +390,17 @@ export default function AgentWallet() {
     data: wallets,
     isLoading: isLoadingWallets,
     error: walletsError
-  } = trpc.wallet.getAgentWallets.useQuery();
+  } = trpc.wallet.getAgentWallets.useQuery(undefined, {
+    enabled: !!agents
+  });
   
   const {
     data: transactions,
     isLoading: isLoadingTransactions,
     error: transactionsError
-  } = trpc.wallet.getAgentTransactions.useQuery();
+  } = trpc.wallet.getAgentTransactions.useQuery(undefined, {
+    enabled: !!agents && !!wallets
+  });
 
   // Process the data with proper typing
   const processedWallets = agents?.map((agent) => {
@@ -479,10 +483,26 @@ export default function AgentWallet() {
     );
   }
 
-  if (agentsError || walletsError || transactionsError) {
+  if (agentsError) {
     return (
       <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
-        <div className="text-red-500">Error loading data</div>
+        <div className="text-red-500">Error loading agents: {agentsError.message}</div>
+      </div>
+    );
+  }
+
+  if (walletsError) {
+    return (
+      <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
+        <div className="text-red-500">Error loading wallets: {walletsError.message}</div>
+      </div>
+    );
+  }
+
+  if (transactionsError) {
+    return (
+      <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
+        <div className="text-red-500">Error loading transactions: {transactionsError.message}</div>
       </div>
     );
   }

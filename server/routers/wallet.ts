@@ -72,12 +72,17 @@ const walletRouter = router({
       .eq('user_id', user.id)
       .eq('is_deleted', false);
 
-    if (apiKeysError || !apiKeys) {
+    if (apiKeysError) {
       throw new Error('Failed to fetch API keys');
+    }
+
+    if (!apiKeys?.length) {
+      return [];
     }
 
     // Get all active agents with their API keys
     const { data: agents, error: agentsError } = await ctx.supabase
+
       .from('ai_agents')
       .select('id, api_key')
       .in('api_key', apiKeys.map(k => k.key))
