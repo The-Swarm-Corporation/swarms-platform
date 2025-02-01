@@ -5,7 +5,7 @@ import ReactStarsRating from 'react-awesome-stars-rating';
 
 import { Dialog, DialogContent } from '@/shared/components/ui/dialog';
 import Input from '@/shared/components/ui/Input';
-import { Button } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/button';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useAuthContext } from '../ui/auth.provider';
 import { useToast } from '../ui/Toasts/use-toast';
