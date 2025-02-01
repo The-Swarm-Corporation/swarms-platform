@@ -145,23 +145,6 @@ const mainRouter = router({
       items[category] = newItems;
     };
 
-    // Fetch models
-    const models = await ctx.supabase
-      .from('swarms_cloud_models')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (models.data) {
-      addItems(
-        'Models',
-        models.data.map((model) => ({
-          title: model.name || '',
-          link: makeUrl(PUBLIC.MODEL, { slug: model.slug }),
-          type: 'model',
-        })),
-      );
-    }
-
     // Fetch agents
     const agents = await ctx.supabase
       .from('swarms_cloud_agents')

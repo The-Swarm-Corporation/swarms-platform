@@ -65,7 +65,7 @@ export async function userAPICluster(
     const { data: userActivities, error: userError } = await supabaseAdmin
       .from('swarms_cloud_api_activities')
       .select(
-        'invoice_total_cost,total_cost,created_at,input_tokens,output_tokens,request_count,model_id,swarms_cloud_models(name)',
+        'invoice_total_cost,total_cost,created_at,input_tokens,output_tokens,request_count,model_id',
       )
       .eq('user_id', userId)
       .is('organization_id', null)
@@ -98,7 +98,6 @@ export async function userAPICluster(
           output_tokens,
           request_count,
           organization_id,
-          swarms_cloud_models(name),
           swarms_cloud_organizations!inner(owner_user_id)
         `,
       )
@@ -137,7 +136,6 @@ export async function userAPICluster(
 
     for (const activity of allActivities) {
       const activityDate = activity.created_at.slice(0, 10);
-      const modelName = activity.swarms_cloud_models?.name || '';
 
       let existingDailyCost = userDailyCosts.find(
         (cost) => cost.date === activityDate,
@@ -147,7 +145,6 @@ export async function userAPICluster(
         existingDailyCost = {
           date: activityDate,
           totalCost: 0,
-          model: {},
         };
         userDailyCosts.push(existingDailyCost);
       }
@@ -155,28 +152,6 @@ export async function userAPICluster(
       // Update total costs
       existingDailyCost.totalCost +=
         (activity.total_cost || 0) + (activity.invoice_total_cost || 0);
-
-      // Update model costs, tokens and requests
-      if (
-        activity.request_count ||
-        activity.input_tokens ||
-        activity.output_tokens
-      ) {
-        existingDailyCost.model = existingDailyCost.model || {};
-        existingDailyCost.model[modelName] = {
-          tokens:
-            (existingDailyCost.model[modelName]?.tokens || 0) +
-            (activity.input_tokens || 0) +
-            (activity.output_tokens || 0),
-          requests:
-            (existingDailyCost.model[modelName]?.requests || 0) +
-            (activity.request_count || 0),
-          costs:
-            (existingDailyCost.model[modelName]?.costs || 0) +
-            (activity.total_cost || 0) +
-            (activity.invoice_total_cost || 0),
-        };
-      }
     }
 
     return {
@@ -278,7 +253,6 @@ export async function getOrganizationUsage(
         user_id,
         request_count,
         model_id,
-        swarms_cloud_models(name),
         users(email)
       `,
       )
@@ -304,8 +278,6 @@ export async function getOrganizationUsage(
     // Aggregate request counts per model
     const modelRequestCounts: ModelRequestCounts = orgActivities.reduce(
       (acc: ModelRequestCounts, activity) => {
-        const modelName = activity.swarms_cloud_models?.name || 'unknown';
-        acc[modelName] = (acc[modelName] || 0) + activity.request_count;
         return acc;
       },
       {} as ModelRequestCounts,
@@ -331,11 +303,6 @@ export async function getOrganizationUsage(
         (activity) => activity.user_id === userId,
       );
 
-      const modelsUsed = userActivities.reduce((acc: UserModels, activity) => {
-        const modelName = activity.swarms_cloud_models?.name ?? '';
-        acc[modelName] = (acc[modelName] || 0) + activity.request_count;
-        return acc;
-      }, {});
 
       const email = userActivities[0]?.users?.email ?? '';
       const totalRequests = userRequestCounts[userId];
@@ -343,7 +310,6 @@ export async function getOrganizationUsage(
       return {
         email,
         totalRequests,
-        modelsUsed,
       };
     });
 
@@ -355,7 +321,6 @@ export async function getOrganizationUsage(
         publicId: organizationData.public_id ?? '',
         models: modelRequestCounts,
         totalReqCount,
-        users: topUsers,
       },
     };
   } catch (error) {
