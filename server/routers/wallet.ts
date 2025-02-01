@@ -224,67 +224,87 @@ const walletRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.data.session?.user as User;
-
-      // Get user's API key
-      const { data: apiKeys, error: apiKeyError } = await ctx.supabase
-        .from('swarms_cloud_api_keys')
-        .select('key')
-        .eq('user_id', user.id)
-        .eq('is_deleted', false)
-        .limit(1);
-
-      if (apiKeyError || !apiKeys?.length) {
-        throw new Error('No API key found');
-      }
-
-      // Create new agent with all required fields
-      const { data: agent, error: agentError } = await ctx.supabase
-        .from('ai_agents')
-        .insert({
-          name: input.name,
-          api_key: apiKeys[0].key,
-          status: 'active',
-          created_at: new Date().toISOString()
-        })
-        .select('id, name, api_key, status, created_at')  // Explicitly select all fields we need
-        .single();
-
-      if (agentError || !agent) {
-        throw new Error('Failed to create agent');
-      }
-
-      // Generate wallet for the agent using the agent's ID
       try {
-        const response = await fetch(`${getURL()}/api/solana/generate-wallet`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': agent.api_key
-          },
-          body: JSON.stringify({ agent_id: agent.id }) // Pass agent_id in request body
-        });
+        const user = ctx.session.data.session?.user as User;
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to generate wallet');
+        // Get user's API key
+        const { data: apiKeys, error: apiKeyError } = await ctx.supabase
+          .from('swarms_cloud_api_keys')
+          .select('key')
+          .eq('user_id', user.id)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (apiKeyError) {
+          throw new Error('Failed to fetch API key');
         }
 
-        const walletData = await response.json();
-        if (!walletData.success) {
-          throw new Error(walletData.message || 'Failed to generate wallet');
+        if (!apiKeys?.length) {
+          throw new Error('No API key found. Please create an API key first.');
+        }
+
+        // Create new agent with all required fields
+        const { data: agent, error: agentError } = await ctx.supabase
+          .from('ai_agents')
+          .insert({
+            name: input.name,
+            api_key: apiKeys[0].key,
+            status: 'active',
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (agentError || !agent) {
+          throw new Error('Failed to create agent');
+        }
+
+        // Generate wallet for the agent using the agent's ID
+        try {
+          const response = await fetch(`${getURL()}/api/solana/generate-wallet`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': agent.api_key
+            }
+          });
+
+          if (!response.ok) {
+            // Delete the agent if wallet creation fails
+            await ctx.supabase
+              .from('ai_agents')
+              .delete()
+              .eq('id', agent.id);
+            
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to generate wallet');
+          }
+
+          const walletData = await response.json();
+          if (!walletData.success) {
+            // Delete the agent if wallet creation fails
+            await ctx.supabase
+              .from('ai_agents')
+              .delete()
+              .eq('id', agent.id);
+            
+            throw new Error(walletData.message || 'Failed to generate wallet');
+          }
+
+          return agent;
+        } catch (error) {
+          // Delete the agent if wallet creation fails
+          await ctx.supabase
+            .from('ai_agents')
+            .delete()
+            .eq('id', agent.id);
+          
+          throw new Error(error instanceof Error ? error.message : 'Failed to setup agent wallet');
         }
       } catch (error) {
-        // If wallet creation fails, delete the agent
-        await ctx.supabase
-          .from('ai_agents')
-          .delete()
-          .eq('id', agent.id);
-        
-        throw new Error('Failed to setup agent wallet');
+        console.error('Deploy agent error:', error);
+        throw new Error(error instanceof Error ? error.message : 'Failed to deploy agent');
       }
-
-      return agent;
     }),
 
   // Add this new procedure to walletRouter

@@ -14,9 +14,9 @@ async function GET(req: Request) {
     return new Response('Invalid code', { status: 400 });
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createRouteHandlerClient<Database>({
-    cookies: () => cookieStore,
+    cookies: () => cookieStore as any,
   });
   const session = await supabase.auth.getSession();
 
