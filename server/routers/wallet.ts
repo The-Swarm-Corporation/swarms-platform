@@ -150,8 +150,13 @@ const walletRouter = router({
       .eq('user_id', user.id)
       .eq('is_deleted', false);
 
-    if (apiKeysError || !apiKeys?.length) {
+    if (apiKeysError) {
       throw new Error('Failed to fetch API keys');
+    }
+
+    // Return empty array if no API keys
+    if (!apiKeys?.length) {
+      return [];
     }
 
     // Get all active agents for all API keys
@@ -161,34 +166,55 @@ const walletRouter = router({
       .in('api_key', apiKeys.map(k => k.key))
       .eq('status', 'active');
 
-    if (agentsError || !agents) {
+    if (agentsError) {
       throw new Error('Failed to fetch agents');
     }
 
-    // Update transaction history for each API key
-    await Promise.all(apiKeys.map(async ({ key }) => {
-      await fetch(`${getURL()}/api/solana/check-account-history`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-api-key': key
+    // Return empty array if no agents
+    if (!agents?.length) {
+      return [];
+    }
+
+    try {
+      // Update transaction history for each agent
+      await Promise.allSettled(agents.map(async (agent) => {
+        try {
+          const response = await fetch(`${getURL()}/api/solana/check-account-history`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-api-key': agent.api_key
+            }
+          });
+          if (!response.ok) {
+            console.error(`Failed to update history for agent ${agent.id}: ${response.statusText}`);
+          }
+        } catch (error) {
+          console.error(`Error updating history for agent ${agent.id}:`, error);
         }
-      });
-    }));
+      }));
+    } catch (error) {
+      console.error('Error updating transaction history:', error);
+      // Continue execution even if history update fails
+    }
 
     // Get all transactions for these agents
-    const { data: transactions } = await ctx.supabase
+    const { data: transactions, error: txError } = await ctx.supabase
       .from('ai_agent_transactions')
       .select('*')
       .in('agent_id', agents.map(agent => agent.id))
       .order('created_at', { ascending: false });
 
-    // Return empty array if no transactions
+    if (txError) {
+      throw new Error('Failed to fetch transactions');
+    }
+
+    // Return empty array if no transactions, otherwise map the transactions
     return transactions?.map(tx => ({
       ...tx,
       status: tx.status as 'COMPLETED' | 'PENDING' | 'FAILED',
       transaction_type: 'send' as 'send' | 'received'
-    })) as Transaction[] || [];
+    })) || [];
   }),
 
   deployAgent: userProcedure
