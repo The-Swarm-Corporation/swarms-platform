@@ -359,6 +359,22 @@ const MetricsSummary = ({ transactions, agentId, wallets }: {
     );
   };
 
+// Add this component to handle the empty state
+const EmptyState = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="col-span-full p-12 text-center border border-red-500/30 rounded-lg bg-black/40 backdrop-blur-sm"
+  >
+    <CircuitBoard className="h-12 w-12 text-red-500 mx-auto mb-4" />
+    <h3 className="text-xl font-bold text-red-50 mb-2">No Agents Deployed</h3>
+    <p className="text-red-400/60 mb-6">
+      Get started by deploying your first agent using the button below
+    </p>
+    <CreateWalletModal />
+  </motion.div>
+);
+
 export default function AgentWallet() {
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -447,13 +463,15 @@ export default function AgentWallet() {
   );
 
   useEffect(() => {
-    if (filteredWallets.length > 0 && !selectedWallet) {
-      setSelectedWallet(filteredWallets[0].id)
+    if (!isLoadingAgents && !isLoadingWallets && !isLoadingTransactions) {
+      if (filteredWallets.length > 0 && !selectedWallet) {
+        setSelectedWallet(filteredWallets[0].id);
+      }
+      setIsLoaded(true);
     }
-    setIsLoaded(true)
-  }, [filteredWallets, selectedWallet])
+  }, [filteredWallets, selectedWallet, isLoadingAgents, isLoadingWallets, isLoadingTransactions]);
 
-  if (isLoadingAgents || isLoadingWallets || isLoadingTransactions) {
+  if ((isLoadingAgents || isLoadingWallets || isLoadingTransactions) && !isLoaded) {
     return (
       <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
         <div className="text-red-500">Loading...</div>
@@ -525,31 +543,35 @@ export default function AgentWallet() {
                   ACTIVE AGENTS
                 </h2>
                 <div className="flex items-center gap-4">
-                  <div className="relative flex-1 md:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
-                    <input
-                      type="text"
-                      placeholder="Search by name, ID, or address..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 bg-black/50 border border-red-500/30 text-red-50 placeholder:text-red-500/50 focus:border-red-500 transition-colors rounded-md p-2"
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500/50 hover:text-red-500 transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
+                  {processedWallets.length > 0 && (
+                    <div className="relative flex-1 md:w-64">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
+                      <input
+                        type="text"
+                        placeholder="Search by name, ID, or address..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-9 bg-black/50 border border-red-500/30 text-red-50 placeholder:text-red-500/50 focus:border-red-500 transition-colors rounded-md p-2"
+                      />
+                      {searchQuery && (
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500/50 hover:text-red-500 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <CreateWalletModal />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredWallets.length > 0 ? (
-                  filteredWallets.map((wallet: { id: string; name: string; address: string}, i: number) => (
+                {processedWallets.length === 0 ? (
+                  <EmptyState />
+                ) : filteredWallets.length > 0 ? (
+                  filteredWallets.map((wallet, i) => (
                     <motion.div
                       key={wallet.id}
                       initial={{ scale: 0.9, opacity: 0 }}
@@ -583,7 +605,7 @@ export default function AgentWallet() {
         </motion.div>
 
         {/* Transactions for Selected Wallet */}
-        {selectedWallet && (
+        {selectedWallet && processedWallets.length > 0 && (
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
