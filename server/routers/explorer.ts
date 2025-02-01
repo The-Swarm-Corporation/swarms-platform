@@ -840,6 +840,9 @@ const explorerRouter = router({
         });
       }
     }),
+  getModels: userProcedure.query(async ({ ctx }) => {
+    // Implementation here
+  })
 });
 
 export default explorerRouter;
