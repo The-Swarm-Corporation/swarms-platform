@@ -17,6 +17,8 @@ export default function Prompts({
   loadMorePrompts,
   hasMorePrompts,
   setAddPromptModalOpen,
+  usersMap,
+  reviewsMap
 }: any) {
   async function handlePromptModal() {
     await checkUserSession();
@@ -45,6 +47,8 @@ export default function Prompts({
                   <InfoCard
                     id={prompt.id ?? ''}
                     title={prompt.name || ''}
+                    usersMap={usersMap}
+                    reviewsMap={reviewsMap}
                     description={prompt.description || ''}
                     icon={<NotepadText />}
                     className="w-full h-full"

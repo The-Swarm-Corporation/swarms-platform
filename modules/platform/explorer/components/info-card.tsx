@@ -7,9 +7,6 @@ import Link from 'next/link';
 import { Share2 } from 'lucide-react';
 import Avatar from '@/shared/components/avatar';
 import ShareModal from './share-modal';
-import { trpc } from '@/shared/utils/trpc/trpc';
-import { ReviewProps } from '@/shared/components/rating/list-rating';
-import { getReviewRating } from '@/shared/components/rating/helper';
 import ReactStars from 'react-rating-star-with-type';
 
 interface Props {
@@ -25,6 +22,8 @@ interface Props {
   link: string;
   userId?: string;
   id?: string;
+  usersMap: any;
+  reviewsMap: any;
 }
 
 const InfoCard = ({
@@ -38,11 +37,11 @@ const InfoCard = ({
   userId,
   id,
   link,
+  usersMap,
+  reviewsMap,
 }: Props) => {
-  const reviews = id ? trpc.explorer.getReviews.useQuery(id ?? '') : null;
-  const { modelRating } = getReviewRating(
-    (reviews?.data as ReviewProps[]) || [],
-  );
+  const review = reviewsMap?.[id as string];
+  const user = usersMap?.[userId as string];
 
   const [isButtonHover, setIsButtonHover] = useState(false);
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
@@ -73,9 +72,9 @@ const InfoCard = ({
         {id && (
           <div className="mt-3 relative flex items-center justify-center gap-1 xl:hidden">
             <div className="mb-0.5">
-              <ReactStars value={modelRating} isEdit={false} count={1} />
+              <ReactStars value={review?.rating} isEdit={false} count={1} />
             </div>
-            <span className="text-xs font-semibold">{modelRating || 0}/5</span>
+            <span className="text-xs font-semibold">{review?.rating || 0}/5</span>
           </div>
         )}
       </div>
@@ -83,7 +82,7 @@ const InfoCard = ({
         <div className="flex flex-col gap-2 flex-grow">
           <h1 className="text-xl sm:text-2xl font-bold">{title}</h1>
 
-          <Avatar userId={userId} showUsername showBorder />
+          <Avatar explorerUser={user} showUsername showBorder />
           <span title={description} className="text-sm">
             {getTruncatedString(description, 100)}
           </span>
@@ -100,9 +99,9 @@ const InfoCard = ({
       {id && (
         <div className="bottom-2 left-4 absolute items-center justify-center gap-1 hidden xl:flex">
           <div className="mb-0.5">
-            <ReactStars value={modelRating} isEdit={false} count={1} />
+            <ReactStars value={review?.rating} isEdit={false} count={1} />
           </div>
-          <span className="text-sm font-semibold">{modelRating || 0}/5</span>
+          <span className="text-sm font-semibold">{review?.rating || 0}/5</span>
         </div>
       )}
 

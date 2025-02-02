@@ -734,9 +734,50 @@ const explorerRouter = router({
         });
       }
     }),
-  getModels: userProcedure.query(async ({ ctx }) => {
-    // Implementation here
-  }),
+  getReviewsByIds: publicProcedure
+    .input(z.object({ modelIds: z.array(z.string()) }))
+    .query(async ({ input, ctx }) => {
+      const { modelIds } = input;
+
+      try {
+        const { data: reviews, error: reviewsError } = await ctx.supabase
+          .from('swarms_cloud_reviews')
+          .select(
+            `
+            id,
+            comment,
+            model_id,
+            user_id,
+            model_type,
+            created_at,
+            rating,
+            users (
+              full_name,
+              username,
+              email,
+              avatar_url
+            )
+          `,
+          )
+          .in('model_id', modelIds)
+          .order('created_at', { ascending: false });
+
+        if (reviewsError) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while fetching reviews',
+          });
+        }
+
+        return reviews;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to fetch reviews`,
+        });
+      }
+    }),
 });
 
 export default explorerRouter;

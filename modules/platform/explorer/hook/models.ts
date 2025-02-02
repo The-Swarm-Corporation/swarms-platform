@@ -80,6 +80,49 @@ export default function useModels() {
     [debouncedSearch],
   );
 
+  const allItems = [
+    ...(data?.prompts || []),
+    ...(data?.agents || []),
+    ...(data?.tools || []),
+  ];
+
+  const userIds = Array.from(new Set(allItems.map((item) => item.user_id)));
+  const modelIds = Array.from(new Set(allItems.map((item) => item.id)));
+
+  const { data: users } =
+    trpc.main.getUsersByIds.useQuery(
+      { userIds },
+      { enabled: userIds.length > 0 },
+    );
+
+  const { data: reviews } =
+    trpc.explorer.getReviewsByIds.useQuery(
+      { modelIds },
+      { enabled: modelIds.length > 0 },
+    );
+
+  const usersMap = useMemo(() => {
+    return users?.reduce(
+      (acc, user) => {
+        acc[user.id] = user;
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+  }, [users]);
+
+  const reviewsMap = useMemo(() => {
+    return reviews?.reduce(
+      (acc, review) => {
+        if (review.model_id) {
+          acc[review.model_id] = review;
+        }
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+  }, [reviews]);
+
   // TODO: Add types
   const filterData = useCallback(
     (data: any, key: string) => {
@@ -130,6 +173,8 @@ export default function useModels() {
     filteredTools,
     search,
     options,
+    usersMap,
+    reviewsMap,
     hasMorePrompts: prompts.length > promptOffset,
     filterOption,
     isLoading,

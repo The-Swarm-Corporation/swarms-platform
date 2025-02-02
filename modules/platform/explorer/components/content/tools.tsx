@@ -14,6 +14,8 @@ export default function Tools({
   isLoading,
   filteredTools,
   setAddToolModalOpen,
+  usersMap,
+  reviewsMap
 }: any) {
   async function handleToolModal() {
     await checkUserSession();
@@ -41,6 +43,8 @@ export default function Tools({
                   <InfoCard
                     id={tool.id || ''}
                     title={tool.name || ''}
+                    usersMap={usersMap}
+                    reviewsMap={reviewsMap}
                     description={tool.description || ''}
                     icon={<Hammer />}
                     className="w-full h-full"

@@ -51,6 +51,8 @@ const Explorer = () => {
     hasMorePrompts,
     search,
     options,
+    usersMap,
+    reviewsMap,
     filterOption,
     isLoading,
     refetch,
@@ -72,6 +74,8 @@ const Explorer = () => {
             loadMorePrompts,
             isFetchingPrompts,
             hasMorePrompts,
+            usersMap,
+            reviewsMap,
           }}
           isLoading={isAllLoading}
         />
@@ -81,7 +85,7 @@ const Explorer = () => {
       key: 'agents',
       content: (
         <Agents
-          {...{ filteredAgents, setAddAgentModalOpen }}
+          {...{ filteredAgents, setAddAgentModalOpen, usersMap, reviewsMap }}
           isLoading={isLoading}
         />
       ),
@@ -90,7 +94,7 @@ const Explorer = () => {
       key: 'tools',
       content: (
         <Tools
-          {...{ filteredTools, setAddToolModalOpen }}
+          {...{ filteredTools, setAddToolModalOpen, usersMap, reviewsMap }}
           isLoading={isLoading}
         />
       ),
