@@ -12,7 +12,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
 const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
 
-const GRADUATION_FEE_SOL = 6 * 1_000_000_000; // 6 SOL in lamports
+const GRADUATION_FEE_SWARMS = 30000; // Example: 6000 SWARMS tokens required to graduate
 
 export async function POST(req: Request) {
   try {
@@ -20,11 +20,10 @@ export async function POST(req: Request) {
     if (!tokenMint) {
       return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400 });
     }
-    // Fetch Token Data
+    // Fetch Token Data with swarms_reserve
     const { data: tokenData } = await supabase
       .from("ai_tokens")
-
-      .select("bonding_curve_address, sol_reserve, graduated")
+      .select("bonding_curve_address, swarms_reserve, graduated")
       .eq("mint_address", tokenMint)
       .single();
 
@@ -49,10 +48,10 @@ export async function POST(req: Request) {
       new PublicKey(tokenData.bonding_curve_address)
     );
 
-    // Deduct 6 SOL Fee
-    const solAfterFees = tokenData.sol_reserve - GRADUATION_FEE_SOL;
-    if (solAfterFees <= 0) {
-      return new Response(JSON.stringify({ error: "Insufficient SOL for graduation" }), { status: 400 });
+    // Deduct SWARMS Fee
+    const swarmsAfterFees = tokenData.swarms_reserve - GRADUATION_FEE_SWARMS;
+    if (swarmsAfterFees <= 0) {
+      return new Response(JSON.stringify({ error: "Insufficient SWARMS for graduation" }), { status: 400 });
     }
 
     // Create combined transaction
@@ -63,13 +62,13 @@ export async function POST(req: Request) {
       SystemProgram.transfer({
         fromPubkey: new PublicKey(tokenData.bonding_curve_address),
         toPubkey: DAO_TREASURY_ADDRESS,
-        lamports: GRADUATION_FEE_SOL
+        lamports: GRADUATION_FEE_SWARMS
       })
     );
 
     // Get deposit quote
     const { poolTokenAmountOut, tokenAInAmount, tokenBInAmount } = meteoraPool.getDepositQuote(
-      BN(solAfterFees * 10 ** 9),
+      BN(swarmsAfterFees * 10 ** 9),
       BN(Number(bondingCurveAccount.amount)),
       false,
       0.01

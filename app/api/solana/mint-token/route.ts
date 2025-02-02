@@ -5,6 +5,7 @@ import {
   createMint,
   getOrCreateAssociatedTokenAccount,
   mintTo,
+  getAssociatedTokenAddress,
 } from "@solana/spl-token";
 
 
@@ -15,9 +16,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
 
 const TOKEN_DECIMALS = 6;
-const SOL_MINIMUM_BUY_IN = 1 * LAMPORTS_PER_SOL; // Minimum SOL required to mint
-const SOL_RESERVE = 30;
-const GRADUATION_CAP = 69_000;
+const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
 
 export async function POST(req: Request) {
   try {
@@ -38,12 +37,21 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: "Transaction meta data not found" }), { status: 400 });
     }
 
+    // Get user's SWARMS token account
+    const userTokenAccount = await getAssociatedTokenAddress(
+      SWARMS_TOKEN_ADDRESS,
+      new PublicKey(userPublicKey)
+    );
 
-    const solPaid = transaction.meta?.preBalances?.[0] - transaction.meta?.postBalances?.[0];
-    if (!solPaid || solPaid < SOL_MINIMUM_BUY_IN) {
-      return new Response(JSON.stringify({ error: "Minimum SOL buy-in not met" }), { status: 400 });
+    // Verify SWARMS transfer amount
+    const preBalance = await connection.getTokenAccountBalance(userTokenAccount);
+    const postBalance = await connection.getTokenAccountBalance(userTokenAccount);
+    const swarmsPaid = preBalance.value.uiAmount! - postBalance.value.uiAmount!;
+
+    const SWARMS_MINIMUM_BUY_IN = 1000; // Set minimum SWARMS required
+    if (swarmsPaid < SWARMS_MINIMUM_BUY_IN) {
+      return new Response(JSON.stringify({ error: "Minimum SWARMS buy-in not met" }), { status: 400 });
     }
-
 
     // 1. Create Token Mint with DAO as authority
     const payer = Keypair.generate();
@@ -74,19 +82,19 @@ export async function POST(req: Request) {
       Number(fullSupply)
     );
 
-    // Calculate initial SOL reserve from the transaction
-    const initialReserve = transaction.meta?.preBalances?.[0] - transaction.meta?.postBalances?.[0];
+    // Calculate initial SWARMS reserve from the transaction
+    const initialReserve = swarmsPaid;
     if (!initialReserve) {
       throw new Error("Could not calculate initial reserve");
     }
 
-    // 4. Store Token in Database with initial reserve
+    // 4. Store Token in Database with initial SWARMS reserve
     await supabase.from("ai_tokens").insert({
       token_name: tokenName,
       ticker_symbol: tickerSymbol,
       mint_address: tokenMint.toBase58(),
       bonding_curve_address: bondingCurveAccount.address.toBase58(),
-      sol_reserve: initialReserve, // Track initial SOL reserve from transaction
+      swarms_reserve: initialReserve, // Track SWARMS instead of SOL
       graduated: false,
       created_by: userPublicKey,
       created_at: new Date(),
