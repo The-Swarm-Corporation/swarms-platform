@@ -16,20 +16,29 @@ export default function useModels() {
   const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
   const [search, setSearch] = useState('');
 
-  const toolsQuery = trpc.explorer.getAllTools.useQuery();
-  const swarmsQuery = trpc.explorer.getAllApprovedSwarms.useQuery();
-  const promptsQuery = trpc.explorer.getAllPrompts.useQuery({
-    limit: promptLimit,
-    offset: promptOffset,
-    search: searchQuery || search,
-  });
-  const agentsQuery = trpc.explorer.getAllAgents.useQuery();
-  const pendingSwarms = trpc.explorer.getMyPendingSwarms.useQuery();
+  const { data, isLoading, refetch } = trpc.explorer.getExplorerData.useQuery(
+    {
+      limit: 6,
+      offset: 0,
+      search: searchQuery || search,
+    },
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
 
-  const isDataLoading =
-    swarmsQuery.isLoading &&
-    promptsQuery.isLoading &&
-    agentsQuery.isLoading;
+  const promptsQuery = trpc.explorer.getExplorerData.useQuery(
+    {
+      includeAgents: false,
+      includeTools: false,
+      limit: 6,
+      offset: promptOffset,
+      search: searchQuery || search,
+    },
+    {
+      enabled: promptOffset > 0,
+    },
+  );
 
   const [options, setOptions] = useState(defaultOptions);
   const [filterOption, setFilterOption] = useState<string>(
@@ -44,15 +53,17 @@ export default function useModels() {
   }, [searchQuery, categoryQuery]);
 
   useEffect(() => {
-    if (promptsQuery.data?.data) {
-      if (promptOffset === 0) {
-        setPrompts(promptsQuery.data?.data);
-      } else {
-        setPrompts((prev) => [...prev, ...promptsQuery.data?.data]);
-      }
+    if (data?.prompts) {
+      setPrompts(data.prompts);
+    }
+  }, [data?.prompts]);
+
+  useEffect(() => {
+    if (promptsQuery.data?.prompts) {
+      setPrompts((prev) => [...prev, ...promptsQuery.data.prompts]);
       setIsFetchingPrompts(false);
     }
-  }, [promptsQuery.data?.data, promptOffset]);
+  }, [promptsQuery.data?.prompts]);
 
   const loadMorePrompts = useCallback(() => {
     setPromptOffset((prevOffset) => prevOffset + promptLimit);
@@ -68,6 +79,49 @@ export default function useModels() {
     },
     [debouncedSearch],
   );
+
+  const allItems = [
+    ...(data?.prompts || []),
+    ...(data?.agents || []),
+    ...(data?.tools || []),
+  ];
+
+  const userIds = Array.from(new Set(allItems.map((item) => item.user_id)));
+  const modelIds = Array.from(new Set(allItems.map((item) => item.id)));
+
+  const { data: users } =
+    trpc.main.getUsersByIds.useQuery(
+      { userIds },
+      { enabled: userIds.length > 0 },
+    );
+
+  const { data: reviews } =
+    trpc.explorer.getReviewsByIds.useQuery(
+      { modelIds },
+      { enabled: modelIds.length > 0 },
+    );
+
+  const usersMap = useMemo(() => {
+    return users?.reduce(
+      (acc, user) => {
+        acc[user.id] = user;
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+  }, [users]);
+
+  const reviewsMap = useMemo(() => {
+    return reviews?.reduce(
+      (acc, review) => {
+        if (review.model_id) {
+          acc[review.model_id] = review;
+        }
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+  }, [reviews]);
 
   // TODO: Add types
   const filterData = useCallback(
@@ -90,51 +144,42 @@ export default function useModels() {
     [search, filterOption],
   );
 
-  const filteredSwarms = useMemo(
-    () => filterData(swarmsQuery.data?.data, 'swarms'),
-    [swarmsQuery.data, filterData],
-  );
   const filteredPrompts = useMemo(
     () => filterData(prompts, 'prompts'),
     [prompts, filterData],
   );
   const filteredAgents = useMemo(
-    () => filterData(agentsQuery.data?.data, 'agents'),
-    [agentsQuery.data, filterData],
+    () => filterData(data?.agents, 'agents'),
+    [data?.agents, filterData],
   );
   const filteredTools = useMemo(
-    () => filterData(toolsQuery.data?.data, 'tools'),
-    [toolsQuery.data, filterData],
+    () => filterData(data?.tools, 'tools'),
+    [data?.tools, filterData],
   );
 
   const handleOptionChange = useCallback(
     (value: string) => {
-      if (isDataLoading) return;
+      if (isLoading || promptsQuery.isLoading) return;
 
       setFilterOption(value);
     },
-    [isDataLoading],
+    [isLoading, promptsQuery.isLoading],
   );
 
   return {
-    filteredSwarms,
+    promptsQuery,
     filteredPrompts,
     filteredAgents,
     filteredTools,
-    pendingSwarms,
-    allPrompts: promptsQuery,
-    allAgents: agentsQuery,
-    allTools: toolsQuery,
-    isPromptLoading: promptsQuery.isLoading,
-    isAgentsLoading: agentsQuery.isLoading,
-    isSwarmsLoading: swarmsQuery.isLoading || pendingSwarms.isLoading,
-    isToolsLoading: toolsQuery.isLoading,
     search,
     options,
+    usersMap,
+    reviewsMap,
     hasMorePrompts: prompts.length > promptOffset,
     filterOption,
-    isDataLoading,
+    isLoading,
     isFetchingPrompts,
+    refetch,
     loadMorePrompts,
     handleSearchChange,
     handleOptionChange,

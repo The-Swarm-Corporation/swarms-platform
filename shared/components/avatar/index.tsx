@@ -8,6 +8,7 @@ import React from 'react';
 
 interface AvatarProps {
   user?: User;
+  explorerUser?: any;
   userId?: string;
   showUsername?: boolean;
   showBorder?: boolean;
@@ -19,17 +20,30 @@ export default function Avatar({
   userId = '',
   user,
   title,
+  explorerUser,
   showBorder,
   profileName,
   showUsername,
 }: AvatarProps) {
-  const { data } = trpc.main.getUserById.useQuery({
-    userId: userId,
-  });
-  const avatar = (user ? user?.user_metadata?.avatar_url : data?.avatar) || '';
-  const username = user
-    ? user?.user_metadata?.user_name || profileName
-    : data?.username;
+  const shouldFetchUser = !explorerUser && !user && Boolean(userId);
+
+  const { data } = trpc.main.getUserById.useQuery(
+    { userId },
+    { enabled: shouldFetchUser },
+  );
+
+  const avatar =
+    explorerUser?.avatar_url ||
+    user?.user_metadata?.avatar_url ||
+    data?.avatar ||
+    '';
+
+  const username =
+    explorerUser?.username ||
+    user?.user_metadata?.user_name ||
+    profileName ||
+    data?.username ||
+    '';
 
   return (
     <div title={title} className="flex items-center">

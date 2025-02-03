@@ -1,7 +1,6 @@
 'use client';
 
-import { trpc } from '@/shared/utils/trpc/trpc';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -9,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import AddSwarmModal from './components/add-swarm-modal';
 import { Input } from '@/shared/components/ui/input';
 import useModels from './hook/models';
 import { explorerOptions } from '@/shared/utils/constants';
@@ -30,13 +28,7 @@ const Agents = dynamic(() => import('./components/content/agents'), {
 const Tools = dynamic(() => import('./components/content/tools'), {
   ssr: false,
 });
-const Swarms = dynamic(() => import('./components/content/swarms'), {
-  ssr: false,
-});
 const Explorer = () => {
-  const reloadSwarmStatus = trpc.explorer.reloadSwarmStatus.useMutation();
-
-  const [addSwarModalOpen, setAddSwarmModalOpen] = useState(false);
   const [addPromptModalOpen, setAddPromptModalOpen] = useState(false);
   const [addAgentModalOpen, setAddAgentModalOpen] = useState(false);
   const [addToolModalOpen, setAddToolModalOpen] = useState(false);
@@ -51,55 +43,25 @@ const Explorer = () => {
   };
 
   const {
-    allAgents,
-    allPrompts,
-    allTools,
-    pendingSwarms,
-    filteredSwarms,
     filteredPrompts,
     filteredAgents,
     filteredTools,
-    loadMorePrompts,
+    promptsQuery,
     isFetchingPrompts,
     hasMorePrompts,
     search,
     options,
+    usersMap,
+    reviewsMap,
     filterOption,
-    isDataLoading,
-    isPromptLoading,
-    isAgentsLoading,
-    isSwarmsLoading,
-    isToolsLoading,
+    isLoading,
+    refetch,
+    loadMorePrompts,
     handleSearchChange,
     handleOptionChange,
   } = useModels();
 
-  useEffect(() => {
-    if (!pendingSwarms.isLoading && pendingSwarms.data) {
-      pendingSwarms.data?.data?.forEach((swarm) => {
-        reloadSwarmStatus.mutateAsync(swarm.id).then((res) => {
-          if (res != swarm.status) {
-            pendingSwarms.refetch();
-          }
-        });
-      });
-    }
-  }, [pendingSwarms.isLoading]);
-  const onAddSuccessfuly = () => {
-    pendingSwarms.refetch();
-  };
-
-  const onAddPrompt = () => {
-    allPrompts.refetch();
-  };
-
-  const onAddAgent = () => {
-    allAgents.refetch();
-  };
-
-  const onAddTool = () => {
-    allTools.refetch();
-  };
+  const isAllLoading = isLoading || promptsQuery.isLoading;
 
   const elements = [
     {
@@ -112,8 +74,10 @@ const Explorer = () => {
             loadMorePrompts,
             isFetchingPrompts,
             hasMorePrompts,
+            usersMap,
+            reviewsMap,
           }}
-          isLoading={isPromptLoading}
+          isLoading={isAllLoading}
         />
       ),
     },
@@ -121,8 +85,8 @@ const Explorer = () => {
       key: 'agents',
       content: (
         <Agents
-          {...{ filteredAgents, setAddAgentModalOpen }}
-          isLoading={isAgentsLoading}
+          {...{ filteredAgents, setAddAgentModalOpen, usersMap, reviewsMap }}
+          isLoading={isLoading}
         />
       ),
     },
@@ -130,21 +94,8 @@ const Explorer = () => {
       key: 'tools',
       content: (
         <Tools
-          {...{ filteredTools, setAddToolModalOpen }}
-          isLoading={isToolsLoading}
-        />
-      ),
-    },
-    {
-      key: 'swarms',
-      content: (
-        <Swarms
-          {...{
-            isLoading: isSwarmsLoading,
-            pendingSwarms,
-            filteredSwarms,
-            setAddSwarmModalOpen,
-          }}
+          {...{ filteredTools, setAddToolModalOpen, usersMap, reviewsMap }}
+          isLoading={isLoading}
         />
       ),
     },
@@ -159,23 +110,18 @@ const Explorer = () => {
 
   return (
     <>
-      <AddSwarmModal
-        onAddSuccessfuly={onAddSuccessfuly}
-        isOpen={addSwarModalOpen}
-        onClose={() => setAddSwarmModalOpen(false)}
-      />
       <AddPromptModal
-        onAddSuccessfully={onAddPrompt}
+        onAddSuccessfully={() => promptsQuery.refetch()}
         isOpen={addPromptModalOpen}
         onClose={() => setAddPromptModalOpen(false)}
       />
       <AddAgentModal
-        onAddSuccessfully={onAddAgent}
+        onAddSuccessfully={refetch}
         isOpen={addAgentModalOpen}
         onClose={() => setAddAgentModalOpen(false)}
       />
       <AddToolModal
-        onAddSuccessfully={onAddTool}
+        onAddSuccessfully={refetch}
         isOpen={addToolModalOpen}
         onClose={() => setAddToolModalOpen(false)}
       />
@@ -200,7 +146,7 @@ const Explorer = () => {
           <div className="mt-8 pb-4 bg-white dark:bg-black">
             <ul className="p-0 mb-2  flex items-center flex-wrap gap-3">
               {options.map((option) => {
-                const colorSelector = isDataLoading
+                const colorSelector = isAllLoading
                   ? 'text-primary'
                   : filterOption === option || filterOption === 'all'
                     ? 'text-green-500'
@@ -227,7 +173,7 @@ const Explorer = () => {
                 placeholder="Search..."
                 onChange={(e) => handleSearchChange(e.target.value)}
                 value={search}
-                disabled={isDataLoading}
+                disabled={isAllLoading}
                 className="disabled:cursor-not-allowed disabled:opacity-50"
               />
 
@@ -235,7 +181,7 @@ const Explorer = () => {
                 onValueChange={(value) => {
                   handleOptionChange(value);
                 }}
-                disabled={isDataLoading}
+                disabled={isAllLoading}
                 value={filterOption}
               >
                 <SelectTrigger className="w-1/2 xl:w-1/4 cursor-pointer">

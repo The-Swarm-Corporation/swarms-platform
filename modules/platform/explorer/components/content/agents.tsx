@@ -1,6 +1,5 @@
 'use client';
 
-import LoadingSpinner from '@/shared/components/loading-spinner';
 import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
@@ -15,6 +14,8 @@ export default function Agents({
   isLoading,
   filteredAgents,
   setAddAgentModalOpen,
+  usersMap,
+  reviewsMap
 }: any) {
   async function handleAgentModal() {
     await checkUserSession();
@@ -42,6 +43,8 @@ export default function Agents({
                   <InfoCard
                     id={agent.id || ''}
                     title={agent.name || ''}
+                    usersMap={usersMap}
+                    reviewsMap={reviewsMap}
                     description={agent.description || ''}
                     icon={<Bot />}
                     className="w-full h-full"

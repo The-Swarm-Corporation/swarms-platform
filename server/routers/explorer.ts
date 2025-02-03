@@ -3,127 +3,84 @@ import {
   router,
   userProcedure,
 } from '@/app/api/trpc/trpc-router';
-import {
-  getSwarmPullRequestStatus,
-  publishSwarmToGithub,
-} from '@/shared/utils/api/swarm-publisher-github';
 import { Tables } from '@/types_db';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 const explorerRouter = router({
-  // swarm
-  validateSwarmName: userProcedure
-    .input(z.string())
-    .mutation(async ({ ctx, input }) => {
-      const name = input;
-      // name validation
-      // only a-z, 0-9, _
-      if (!/^[a-zA-Z0-9_ ]+$/.test(name)) {
-        return {
-          error: 'Invalid name, only a-z, 0-9, _ are allowed',
-          valid: false,
-        };
-      }
-      // at least 5 characters
-      if (name.length < 5) {
-        return {
-          error: 'Name should be at least 5 characters',
-          valid: false,
-        };
-      }
-
-      const user_id = ctx.session.data.session?.user?.id || '';
-      const swarm = await ctx.supabase
-        .from('swarms_cloud_user_swarms')
-        .select('*')
-        .eq('name', name)
-        .eq('user_id', user_id);
-      const exists = (swarm.data ?? [])?.length > 0;
-      return {
-        valid: !exists,
-        error: exists ? 'Name already exists' : '',
-      };
-    }),
-  addSwarm: userProcedure
+  getExplorerData: publicProcedure
     .input(
       z.object({
-        name: z.string(),
-        description: z.string().optional(),
-        useCases: z.array(z.any()),
-        tags: z.string().optional(),
-        code: z.string(),
+        includePrompts: z.boolean().default(true),
+        includeAgents: z.boolean().default(true),
+        includeTools: z.boolean().default(true),
+        limit: z.number().default(6),
+        offset: z.number().default(0),
+        search: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      let name = input.name;
+    .query(async ({ ctx, input }) => {
+      const {
+        includePrompts,
+        includeAgents,
+        includeTools,
+        limit,
+        offset,
+        search,
+      } = input;
 
-      const ownerEmail = ctx.session.data.session?.user?.email || '';
-      // convert email to name , fully , replace any non a-z, 0-9, _ with _
-      const ownerName = ownerEmail.replace(/[^a-zA-Z0-9_]/g, '_');
+      // Define empty arrays to ensure valid default types
+      let prompts: any[] = [];
+      let agents: any[] = [];
+      let tools: any[] = [];
 
-      // validate name , it should be a valid directroy name, a-z, 0-9, _
-      if (!/^[a-zA-Z0-9_ ]+$/.test(name)) {
-        throw 'Invalid name, only a-z, 0-9, _ are allowed';
-      }
-      // replace none a-z 0-9 space,  with _
-      name = name.replace(/[^a-zA-Z0-9_]/g, '_');
-      name = name.replace(' ', '_');
+      // Fetch Prompts
+      if (includePrompts) {
+        let query = ctx.supabase
+          .from('swarms_cloud_prompts')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      // rate limiter - 1 swarm per hour
-      const user_id = ctx.session.data.session?.user?.id;
-
-      if (!user_id) {
-        throw new Error('User not authenticated');
-      }
-      
-      const lastSubmites = await ctx.supabase
-        .from('swarms')
-        .select('*')
-        .eq('user_id', user_id)
-        .order('created_at', { ascending: false })
-        .limit(1);
-      if ((lastSubmites?.data ?? [])?.length > 0) {
-        const lastSubmit = lastSubmites.data?.[0];
-        const lastSubmitTime = new Date(lastSubmit?.created_at || '');
-        const currentTime = new Date();
-        const diff = currentTime.getTime() - lastSubmitTime.getTime();
-        const diffHours = diff / (1000 * 60 * 60); // 1h
-        if (diffHours < 1) {
-          throw 'You can only submit one swarm per hour';
+        if (search) {
+          query = query
+            .ilike('name', `%${search}%`)
+            .or(`prompt.ilike.%${search}%`);
         }
-      }
-      // github stuff , make branch , add commits , create PR
-      try {
-        const res = await publishSwarmToGithub({
-          name,
-          code: input.code,
-          ownerName,
-          ownerEmail,
-        });
 
-        const swarm = await ctx.supabase
-          .from('swarms_cloud_user_swarms')
-          .insert([
-            {
-              name: name,
-              use_cases: input.useCases,
-              user_id: user_id,
-              code: input.code,
-              tags: input.tags,
-              pr_id: res?.number || '',
-              pr_link: res?._links.issue.href || '',
-              description: input.description,
-              status: 'pending',
-            } as Tables<'swarms_cloud_user_swarms'>,
-          ]);
-        if (swarm.error) {
-          throw swarm.error;
+        const { data, error } = await query.range(offset, offset + limit - 1);
+        if (error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
         }
-        return true;
-      } catch (e) {
-        console.error(e);
+        prompts = data ?? []; // Ensure it's always an array
       }
+
+      // Fetch Agents
+      if (includeAgents) {
+        const { data, error } = await ctx.supabase
+          .from('swarms_cloud_agents')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+        }
+        agents = data ?? [];
+      }
+
+      // Fetch Tools
+      if (includeTools) {
+        const { data, error } = await ctx.supabase
+          .from('swarms_cloud_tools')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+        }
+        tools = data ?? [];
+      }
+
+      return { prompts, agents, tools };
     }),
   // Validate prompt
   validatePrompt: userProcedure
@@ -300,69 +257,6 @@ const explorerRouter = router({
         .single();
       return model.data;
     }),
-
-  reloadSwarmStatus: userProcedure
-    .input(z.string())
-    .mutation(async ({ ctx, input }) => {
-      const swarm = await ctx.supabase
-        .from('swarms_cloud_user_swarms')
-        .select('*')
-        .eq('id', input);
-      if (swarm.data?.length === 0) {
-        throw 'Swarm not found';
-      }
-      // if its already approved, no need to check
-      const oldStatus = swarm.data?.[0].status;
-      if (oldStatus === 'approved') {
-        return 'approved';
-      }
-      const pr_id = swarm.data?.[0].pr_id;
-      if (!pr_id) {
-        throw 'PR not found';
-      }
-      const pr_status = await getSwarmPullRequestStatus(pr_id);
-      let status: 'approved' | 'pending' | 'rejected' = 'pending';
-      if (typeof pr_status != 'boolean' && pr_status.closed_at) {
-        if (pr_status.merged) {
-          status = 'approved';
-        } else {
-          status = 'rejected';
-        }
-      }
-      // update status
-      await ctx.supabase
-        .from('swarms_cloud_user_swarms')
-        .update({ status })
-        .eq('id', input);
-      return status;
-    }),
-  getMyPendingSwarms: userProcedure.query(async ({ ctx }) => {
-    const user_id = ctx.session.data.session?.user?.id || '';
-    const swarms = await ctx.supabase
-      .from('swarms_cloud_user_swarms')
-      .select('*')
-      .eq('user_id', user_id)
-      .eq('status', 'pending');
-    return swarms;
-  }),
-  getAllApprovedSwarms: userProcedure.query(async ({ ctx }) => {
-    const swarms = await ctx.supabase
-      .from('swarms_cloud_user_swarms')
-      .select('id,name,description')
-      .eq('status', 'approved');
-    return swarms;
-  }),
-  getSwarmByName: publicProcedure
-    .input(z.string())
-    .query(async ({ ctx, input }) => {
-      const swarm = await ctx.supabase
-        .from('swarms_cloud_user_swarms')
-        .select('id,name,description,use_cases,tags,status, user_id')
-        .eq('name', input)
-        .eq('status', 'approved');
-      return swarm.data?.[0];
-    }),
-  //agents
   validateAgent: userProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
@@ -840,9 +734,50 @@ const explorerRouter = router({
         });
       }
     }),
-  getModels: userProcedure.query(async ({ ctx }) => {
-    // Implementation here
-  })
+  getReviewsByIds: publicProcedure
+    .input(z.object({ modelIds: z.array(z.string()) }))
+    .query(async ({ input, ctx }) => {
+      const { modelIds } = input;
+
+      try {
+        const { data: reviews, error: reviewsError } = await ctx.supabase
+          .from('swarms_cloud_reviews')
+          .select(
+            `
+            id,
+            comment,
+            model_id,
+            user_id,
+            model_type,
+            created_at,
+            rating,
+            users (
+              full_name,
+              username,
+              email,
+              avatar_url
+            )
+          `,
+          )
+          .in('model_id', modelIds)
+          .order('created_at', { ascending: false });
+
+        if (reviewsError) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error while fetching reviews',
+          });
+        }
+
+        return reviews;
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to fetch reviews`,
+        });
+      }
+    }),
 });
 
 export default explorerRouter;

@@ -42,10 +42,9 @@ export const explorerOptions = [
   { label: 'Agents', value: 'agents' },
   { label: 'Prompts', value: 'prompts' },
   { label: 'Tools', value: 'tools' },
-  { label: 'Swarms', value: 'swarms' },
 ];
 
-export const defaultOptions = ['agents', 'prompts', 'tools', 'swarms'];
+export const defaultOptions = ['agents', 'prompts', 'tools'];
 
 export const languageOptions = [
   'python',
