@@ -1,14 +1,21 @@
-"use client"
+'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
-import { Button } from "../ui/button";
+import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
+import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { ScrollArea } from "../ui/scroll-area";
-import { Switch } from "../ui/switch";
-import { Textarea } from "../ui/textarea";
-import { Settings, Share2, Download, Send, Plus, MessageSquare } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import { ScrollArea } from '../ui/scroll-area';
+import { Switch } from '../ui/switch';
+import { Textarea } from '../ui/textarea';
+import {
+  Settings,
+  Share2,
+  Download,
+  Send,
+  Plus,
+  MessageSquare,
+} from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle, DialogFooter } from '../ui/dialog';
 
 interface Agent {
   id: number;
@@ -33,6 +40,21 @@ interface Chat {
   messages: Message[];
 }
 
+const generateChatTitle = async (message: string): Promise<string> => {
+  try {
+    const res = await fetch('/api/generateTitle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    });
+    const data = await res.json();
+    return data.title || 'New Chat';
+  } catch (error) {
+    console.error('Error generating chat title:', error);
+    return 'New Chat';
+  }
+};
+
 const ChatInterface = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -41,25 +63,26 @@ const ChatInterface = () => {
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [newChatTitle, setNewChatTitle] = useState('');
   const [agents, setAgents] = useState<Agent[]>([
-    { 
-      id: 1, 
-      name: 'Assistant', 
+    {
+      id: 1,
+      name: 'Assistant',
       model: 'gpt-4',
       systemPrompt: 'You are a helpful assistant.',
-      active: true
-    }
+      active: true,
+    },
   ]);
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
+  const [mode, setMode] = useState<
+    'concurrent' | 'hierarchical' | 'sequential'
+  >('concurrent');
 
   useEffect(() => {
-    // Load chats from localStorage
     const savedChats = localStorage.getItem('chats');
     if (savedChats) {
       setChats(JSON.parse(savedChats));
     }
 
-    // Load dark mode preference
     const savedDarkMode = localStorage.getItem('darkMode');
     if (savedDarkMode) {
       setDarkMode(JSON.parse(savedDarkMode));
@@ -67,12 +90,10 @@ const ChatInterface = () => {
   }, []);
 
   useEffect(() => {
-    // Save chats to localStorage whenever they change
     localStorage.setItem('chats', JSON.stringify(chats));
   }, [chats]);
 
   useEffect(() => {
-    // Save dark mode preference
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
@@ -83,42 +104,55 @@ const ChatInterface = () => {
       id: crypto.randomUUID(),
       text: input,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
-    
-    // Update chat in storage
-    if (selectedChat) {
-      const updatedChats = chats.map(chat => 
-        chat.id === selectedChat 
+    setIsLoading(true);
+
+    if (!selectedChat) {
+      // Create a new chat and generate a title
+      try {
+        const title = await generateChatTitle(input);
+        const newChat = {
+          id: Date.now(),
+          title,
+          timestamp: new Date().toLocaleTimeString(),
+          messages: updatedMessages,
+        };
+
+        setChats([newChat, ...chats]);
+        setSelectedChat(newChat.id);
+      } catch (error) {
+        console.error('Error generating chat title:', error);
+      }
+    } else {
+      // Update existing chat
+      const updatedChats = chats.map((chat) =>
+        chat.id === selectedChat
           ? { ...chat, messages: updatedMessages }
-          : chat
+          : chat,
       );
       setChats(updatedChats);
     }
 
-    setInput('');
-    setIsLoading(true);
-
     try {
-      const activeAgents = agents.filter(agent => agent.active);
+      const activeAgents = agents.filter((agent) => agent.active);
       const responses = await Promise.all(
-        activeAgents.map(agent => 
+        activeAgents.map((agent) =>
           fetch('/api/chat', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               message: input,
               agentId: agent.id,
               model: agent.model,
               systemPrompt: agent.systemPrompt,
+              mode, // Pass the selected mode to the API
             }),
-          }).then(res => res.json())
-        )
+          }).then((res) => res.json()),
+        ),
       );
 
       const newMessages = [...updatedMessages];
@@ -128,19 +162,16 @@ const ChatInterface = () => {
           text: response.text,
           sender: 'agent',
           agentId: activeAgents[index].id,
-          timestamp: new Date()
+          timestamp: new Date(),
         };
         newMessages.push(agentMessage);
       });
 
       setMessages(newMessages);
-      
-      // Update chat in storage
+
       if (selectedChat) {
-        const updatedChats = chats.map(chat => 
-          chat.id === selectedChat 
-            ? { ...chat, messages: newMessages }
-            : chat
+        const updatedChats = chats.map((chat) =>
+          chat.id === selectedChat ? { ...chat, messages: newMessages } : chat,
         );
         setChats(updatedChats);
       }
@@ -149,16 +180,17 @@ const ChatInterface = () => {
     } finally {
       setIsLoading(false);
     }
-  };
 
+    setInput('');
+  };
   const createNewChat = () => {
     if (!newChatTitle.trim()) return;
-    
+
     const newChat = {
       id: Date.now(),
       title: newChatTitle,
       timestamp: new Date().toLocaleTimeString(),
-      messages: []
+      messages: [],
     };
     setChats([newChat, ...chats]);
     setSelectedChat(newChat.id);
@@ -167,38 +199,10 @@ const ChatInterface = () => {
     setShowNewChatDialog(false);
   };
 
-  const AgentConfig = ({ agent }: { agent: Agent }) => (
-    <div className="space-y-4 p-4 border rounded-lg dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
-      <div className="flex items-center justify-between">
-        <Input
-          placeholder="Agent Name"
-          value={agent.name}
-          onChange={(e) => updateAgent(agent.id, { name: e.target.value })}
-          className="w-48"
-        />
-        <Switch
-          checked={agent.active}
-          onCheckedChange={(checked) => updateAgent(agent.id, { active: checked })}
-        />
-      </div>
-      <Input
-        placeholder="Model"
-        value={agent.model}
-        onChange={(e) => updateAgent(agent.id, { model: e.target.value })}
-      />
-      <Textarea
-        placeholder="System Prompt"
-        value={agent.systemPrompt}
-        onChange={(e) => updateAgent(agent.id, { systemPrompt: e.target.value })}
-        className="h-24"
-      />
-    </div>
-  );
-
   const updateAgent = (id: number, updates: Partial<Agent>) => {
-    setAgents(prev => prev.map(agent =>
-      agent.id === id ? { ...agent, ...updates } : agent
-    ));
+    setAgents((prev) =>
+      prev.map((agent) => (agent.id === id ? { ...agent, ...updates } : agent)),
+    );
   };
 
   return (
@@ -207,7 +211,7 @@ const ChatInterface = () => {
         {/* Left Sidebar - Chat List */}
         <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all">
           <div className="p-4">
-            <Button 
+            <Button
               className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white shadow-sm transition-all"
               onClick={() => setShowNewChatDialog(true)}
             >
@@ -215,13 +219,15 @@ const ChatInterface = () => {
             </Button>
           </div>
           <ScrollArea className="h-[calc(100vh-80px)]">
-            {chats.map(chat => (
+            {chats.map((chat) => (
               <div
                 key={chat.id}
                 className={`mx-2 mb-2 p-3 rounded-lg cursor-pointer transition-all
-                  ${selectedChat === chat.id 
-                    ? 'bg-blue-50 dark:bg-blue-900/20' 
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                  ${
+                    selectedChat === chat.id
+                      ? 'bg-blue-50 dark:bg-blue-900/20'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
                 onClick={() => {
                   setSelectedChat(chat.id);
                   setMessages(chat.messages || []);
@@ -230,8 +236,12 @@ const ChatInterface = () => {
                 <div className="flex items-center">
                   <MessageSquare className="h-4 w-4 mr-2 text-blue-500" />
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{chat.title}</div>
-                    <div className="text-sm text-gray-500">{chat.timestamp}</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                      {chat.title}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {chat.timestamp}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -242,17 +252,31 @@ const ChatInterface = () => {
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col bg-white dark:bg-gray-800">
           <div className="border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between bg-white dark:bg-gray-800 shadow-sm">
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Multi-Agent Chat</h1>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              Multi-Agent Chat
+            </h1>
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" className="hover:bg-gray-100 dark:hover:bg-gray-700">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
                 <Download className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-gray-100 dark:hover:bg-gray-700">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
                 <Share2 className="h-4 w-4" />
               </Button>
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
                     <Settings className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
@@ -267,27 +291,54 @@ const ChatInterface = () => {
                           onCheckedChange={setDarkMode}
                         />
                       </div>
-                      
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <h4 className="font-medium">Agents</h4>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setAgents([...agents, {
-                              id: Date.now(),
-                              name: '',
-                              model: '',
-                              systemPrompt: '',
-                              active: true
-                            }])}
+                            onClick={() =>
+                              setAgents([
+                                ...agents,
+                                {
+                                  id: Date.now(),
+                                  name: '',
+                                  model: '',
+                                  systemPrompt: '',
+                                  active: true,
+                                },
+                              ])
+                            }
                           >
                             Add Agent
                           </Button>
                         </div>
-                        {agents.map(agent => (
-                          <AgentConfig key={agent.id} agent={agent} />
+                        {agents.map((agent) => (
+                          <AgentConfig
+                            key={agent.id}
+                            agent={agent}
+                            updateAgent={updateAgent}
+                          />
                         ))}
+                      </div>
+                      <div className="space-y-4">
+                        <h4 className="font-medium">Mode</h4>
+                        <select
+                          value={mode}
+                          onChange={(e) =>
+                            setMode(
+                              e.target.value as
+                                | 'concurrent'
+                                | 'hierarchical'
+                                | 'sequential',
+                            )
+                          }
+                          className="w-full p-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700"
+                        >
+                          <option value="concurrent">Concurrent</option>
+                          <option value="hierarchical">Hierarchical</option>
+                          <option value="sequential">Sequential</option>
+                        </select>
                       </div>
                     </div>
                   </ScrollArea>
@@ -313,7 +364,7 @@ const ChatInterface = () => {
                   >
                     {message.agentId && (
                       <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        {agents.find(a => a.id === message.agentId)?.name}
+                        {agents.find((a) => a.id === message.agentId)?.name}
                       </div>
                     )}
                     {message.text}
@@ -334,8 +385,8 @@ const ChatInterface = () => {
                 className="flex-1 bg-gray-50 dark:bg-gray-900"
                 disabled={isLoading}
               />
-              <Button 
-                onClick={handleSend} 
+              <Button
+                onClick={handleSend}
                 disabled={isLoading}
                 className="bg-blue-500 hover:bg-blue-600 text-white"
               >
@@ -349,9 +400,8 @@ const ChatInterface = () => {
       {/* New Chat Dialog */}
       <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>New Chat</DialogTitle>
-          </DialogHeader>
+          <DialogTitle>New Chat</DialogTitle>
+
           <div className="grid gap-4 py-4">
             <Input
               placeholder="Enter chat title..."
@@ -361,7 +411,7 @@ const ChatInterface = () => {
             />
           </div>
           <DialogFooter>
-            <Button 
+            <Button
               onClick={createNewChat}
               disabled={!newChatTitle.trim()}
               className="bg-blue-500 hover:bg-blue-600 text-white"
@@ -374,5 +424,41 @@ const ChatInterface = () => {
     </div>
   );
 };
+
+const AgentConfig = ({
+  agent,
+  updateAgent,
+}: {
+  agent: Agent;
+  updateAgent: (id: number, updates: Partial<Agent>) => void;
+}) => (
+  <div className="space-y-4 p-4 border rounded-lg dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+    <div className="flex items-center justify-between">
+      <Input
+        placeholder="Agent Name"
+        value={agent.name}
+        onChange={(e) => updateAgent(agent.id, { name: e.target.value })}
+        className="w-48"
+      />
+      <Switch
+        checked={agent.active}
+        onCheckedChange={(checked) =>
+          updateAgent(agent.id, { active: checked })
+        }
+      />
+    </div>
+    <Input
+      placeholder="Model"
+      value={agent.model}
+      onChange={(e) => updateAgent(agent.id, { model: e.target.value })}
+    />
+    <Textarea
+      placeholder="System Prompt"
+      value={agent.systemPrompt}
+      onChange={(e) => updateAgent(agent.id, { systemPrompt: e.target.value })}
+      className="h-24"
+    />
+  </div>
+);
 
 export default ChatInterface;
