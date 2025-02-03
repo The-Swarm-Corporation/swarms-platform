@@ -43,7 +43,7 @@ const SHARED_LINKS: MenuProps[] = [
   },
   {
     icon: <BookOpenText />,
-    title: 'Get demo',
+    title: 'Customer Support',
     link: NAVIGATION.GET_DEMO,
   },
   {
@@ -113,11 +113,6 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       link: PLATFORM.WALLET,
     },
 
-    // {
-    //   icon: <MessageSquare size={24} />,
-    //   title: 'Chat',
-    //   link: PLATFORM.CHAT,
-    // },
     {
       icon: <LockKeyhole size={24} />,
       title: 'API Keys',

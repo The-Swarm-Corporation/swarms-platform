@@ -181,10 +181,9 @@ const Explorer = () => {
       />
       <div className="w-full flex flex-col h-full">
         <div className="flex flex-col">
-          <h1 className="text-3xl font-extrabold sm:text-4xl">Explorer</h1>
+          <h1 className="text-3xl font-extrabold sm:text-4xl">Marketplace</h1>
           <span className="mt-4 text-muted-foreground">
-            Share and Discover Prompts, Agents, and Swarms Within Your
-            Organization or With The World.
+            Search and discover tools, agents, and prompts.
           </span>
         </div>
         <Sticky

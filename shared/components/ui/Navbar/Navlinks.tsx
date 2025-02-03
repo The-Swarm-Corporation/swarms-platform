@@ -127,7 +127,7 @@ export default function Navlinks({ user }: NavlinksProps) {
           </Link>
         )}
         <Link href="https://calendly.com/swarm-corp/30min" className={s.link}>
-          Get Demo
+          Customer Support
         </Link>
       </div>
     </div>
