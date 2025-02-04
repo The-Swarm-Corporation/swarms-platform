@@ -1,11 +1,5 @@
-import React, { useState } from 'react';
-import {
-  Send,
-  Edit2,
-  Trash2,
-  Maximize,
-  MoreHorizontal,
-} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Send, Edit2, Trash2, Maximize, MoreHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
@@ -18,15 +12,7 @@ import { Button } from '../ui/button';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Separator from '../ui/AuthForms/Separator';
-
-interface ChatMessage {
-  id: string;
-  text: string;
-  sender: 'user' | 'assistant';
-  createdAt: string;
-  promptId: string;
-  userId: string;
-}
+import { Tables } from '@/types_db';
 
 interface ChatComponentProps {
   promptId: string;
@@ -43,8 +29,13 @@ const ChatComponent = ({
 }: ChatComponentProps) => {
   const [input, setInput] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
-  const [messages, setMessages] = useState<any>([]);
+  const [messages, setMessages] = useState<
+    Tables<'swarms_cloud_prompts_chat_test'>[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [streamedResponse, setStreamedResponse] = useState('');
+
+  const latestMessageRef = useRef<HTMLDivElement | null>(null);
 
   const fetchMessages = trpc.explorer.getPromptChats.useQuery(
     { promptId, userId },
@@ -53,14 +44,32 @@ const ChatComponent = ({
   const fetchMutation = trpc.explorer.savePromptChat.useMutation();
   const deleteMutation = trpc.explorer.deletePromptChat.useMutation();
 
-  // Load messages only on user interaction
-  const loadChat = () => {
+  useEffect(() => {
+    if (streamedResponse) {
+      setMessages((prev) =>
+        prev.map((m, index) =>
+          index === prev.length - 1 ? { ...m, text: streamedResponse } : m,
+        ),
+      );
+    }
+  }, [streamedResponse]);
+
+  useEffect(() => {
     if (!messages.length) {
       fetchMessages.refetch().then(({ data }) => {
         if (data) setMessages(data);
       });
     }
-  };
+  }, [fetchMessages, messages]);
+
+  useEffect(() => {
+    if (latestMessageRef.current) {
+      latestMessageRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'end',
+      });
+    }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -71,8 +80,18 @@ const ChatComponent = ({
       sender: 'user',
       prompt_id: promptId,
       user_id: userId,
-    };
-    setMessages((prev: any) => [...prev, newUserMessage]);
+    } as Tables<'swarms_cloud_prompts_chat_test'>;
+
+    setMessages((prev) => [...prev, newUserMessage]);
+
+    const aiResponse = {
+      text: '',
+      sender: 'agent',
+      prompt_id: promptId,
+      user_id: userId,
+    } as Tables<'swarms_cloud_prompts_chat_test'>;
+
+    setMessages((prev) => [...prev, aiResponse]);
 
     try {
       const response = await fetch('/api/chat/create', {
@@ -81,20 +100,24 @@ const ChatComponent = ({
         body: JSON.stringify({ message: input, systemPrompt }),
       });
 
-      const { text } = await response.json();
-      const aiResponse = {
-        text,
-        sender: 'agent',
-        prompt_id: promptId,
-        user_id: userId,
-      };
-      setMessages((prev: any) => [...prev, aiResponse]);
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let completeText = '';
 
-      // Store in Supabase
-      fetchMutation
-        .mutateAsync([newUserMessage, aiResponse])
-        .then((res) => console.log(res))
-        .catch((e) => console.error(e));
+      while (reader) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        completeText += chunk;
+
+        setStreamedResponse(completeText);
+      }
+
+      fetchMutation.mutateAsync([
+        { ...newUserMessage },
+        { ...aiResponse, text: completeText },
+      ]);
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
@@ -132,12 +155,13 @@ const ChatComponent = ({
         <div className={`${isExpanded ? 'h-[600px]' : 'h-20'} flex flex-col`}>
           <div className="flex-1 overflow-y-auto px-4 space-y-7">
             <AnimatePresence>
-              {messages?.map((message: ChatMessage) => (
+              {messages?.map((message, index) => (
                 <motion.div
                   key={message?.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
+                  ref={index === messages.length - 1 ? latestMessageRef : null}
                   className={`flex items-center gap-4 relative ${
                     message?.sender === 'user' ? 'justify-end' : 'justify-start'
                   }`}
@@ -178,7 +202,7 @@ const ChatComponent = ({
                           <Edit2 className="w-4 h-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
-                        <Separator text="" className='py-0' />
+                        <Separator text="" className="py-0" />
                         <DropdownMenuItem
                           className="flex items-center w-full p-2 text-red-500 rounded-none cursor-pointer"
                           onClick={() => handleDeleteMessage(message?.id)}
