@@ -1,5 +1,3 @@
-import { MarkerType } from 'reactflow';
-
 export type Json =
   | string
   | number
@@ -11,6 +9,348 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      access_logs: {
+        Row: {
+          access_time: string
+          action: string
+          id: string
+          table_name: string
+          user_name: string
+        }
+        Insert: {
+          access_time?: string
+          action: string
+          id?: string
+          table_name: string
+          user_name: string
+        }
+        Update: {
+          access_time?: string
+          action?: string
+          id?: string
+          table_name?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
+      activity_logs: {
+        Row: {
+          action: string
+          category: string
+          created_at: string
+          details: Json
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          level: string
+          user_id: string | null
+          wallet_address: string | null
+        }
+        Insert: {
+          action: string
+          category: string
+          created_at?: string
+          details?: Json
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          level: string
+          user_id?: string | null
+          wallet_address?: string | null
+        }
+        Update: {
+          action?: string
+          category?: string
+          created_at?: string
+          details?: Json
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          level?: string
+          user_id?: string | null
+          wallet_address?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "web3users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_prices: {
+        Row: {
+          agent_id: string | null
+          id: string
+          market_cap: number
+          price: number
+          timestamp: string
+          volume_24h: number
+        }
+        Insert: {
+          agent_id?: string | null
+          id?: string
+          market_cap?: number
+          price: number
+          timestamp?: string
+          volume_24h?: number
+        }
+        Update: {
+          agent_id?: string | null
+          id?: string
+          market_cap?: number
+          price?: number
+          timestamp?: string
+          volume_24h?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_prices_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_statistics"
+            referencedColumns: ["agent_id"]
+          },
+          {
+            foreignKeyName: "agent_prices_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "web3agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_trades: {
+        Row: {
+          agent_id: string | null
+          amount: number
+          created_at: string
+          id: string
+          price: number
+          total_value: number
+          trade_type: string
+          trader_id: string | null
+          transaction_signature: string
+        }
+        Insert: {
+          agent_id?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          price: number
+          total_value: number
+          trade_type: string
+          trader_id?: string | null
+          transaction_signature: string
+        }
+        Update: {
+          agent_id?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          price?: number
+          total_value?: number
+          trade_type?: string
+          trader_id?: string | null
+          transaction_signature?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_trades_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_statistics"
+            referencedColumns: ["agent_id"]
+          },
+          {
+            foreignKeyName: "agent_trades_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "web3agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_trades_trader_id_fkey"
+            columns: ["trader_id"]
+            isOneToOne: false
+            referencedRelation: "web3users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agent_transactions: {
+        Row: {
+          agent_id: string
+          amount: number
+          created_at: string
+          id: number
+          recipient: string
+          status: string
+          transaction_hash: string
+        }
+        Insert: {
+          agent_id: string
+          amount: number
+          created_at?: string
+          id?: number
+          recipient: string
+          status: string
+          transaction_hash: string
+        }
+        Update: {
+          agent_id?: string
+          amount?: number
+          created_at?: string
+          id?: number
+          recipient?: string
+          status?: string
+          transaction_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agent_transactions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agent_wallets: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          iv: string
+          private_key: string
+          public_key: string
+          status: string
+          wallet_type: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          iv?: string
+          private_key: string
+          public_key: string
+          status: string
+          wallet_type: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          iv?: string
+          private_key?: string
+          public_key?: string
+          status?: string
+          wallet_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agent_wallets_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agents: {
+        Row: {
+          api_key: string
+          created_at: string
+          id: string
+          name: string | null
+          status: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          id?: string
+          name?: string | null
+          status?: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          id?: string
+          name?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agents_api_key_fkey"
+            columns: ["api_key"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_api_keys"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      ai_tokens: {
+        Row: {
+          bonding_curve_address: string
+          created_at: string
+          created_by: string
+          graduated: boolean
+          id: number
+          mint_address: string
+          pool_address: string | null
+          swarms_reserve: string
+          ticker_symbol: string
+          token_name: string
+        }
+        Insert: {
+          bonding_curve_address: string
+          created_at?: string
+          created_by: string
+          graduated?: boolean
+          id?: number
+          mint_address: string
+          pool_address?: string | null
+          swarms_reserve: string
+          ticker_symbol: string
+          token_name: string
+        }
+        Update: {
+          bonding_curve_address?: string
+          created_at?: string
+          created_by?: string
+          graduated?: boolean
+          id?: number
+          mint_address?: string
+          pool_address?: string | null
+          swarms_reserve?: string
+          ticker_symbol?: string
+          token_name?: string
+        }
+        Relationships: []
+      }
+      auth_nonces: {
+        Row: {
+          attempts: number
+          created_at: string
+          nonce: string
+          timestamp: number
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          nonce: string
+          timestamp: number
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          nonce?: string
+          timestamp?: number
+        }
+        Relationships: []
+      }
       create_now_accounts: {
         Row: {
           created_at: string
@@ -106,6 +446,42 @@ export type Database = {
         }
         Relationships: []
       }
+      create_now_gen_history_nsfw_creators: {
+        Row: {
+          created_at: string
+          gen_type: string
+          id: number
+          link: string | null
+          metadata: Json
+          model: string
+          prompt: string | null
+          public_state: boolean
+          run_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          gen_type: string
+          id: number
+          link?: string | null
+          metadata: Json
+          model: string
+          prompt?: string | null
+          public_state?: boolean
+          run_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          gen_type?: string
+          id?: number
+          link?: string | null
+          metadata?: Json
+          model?: string
+          prompt?: string | null
+          public_state?: boolean
+          run_id?: string | null
+        }
+        Relationships: []
+      }
       create_now_gen_types: {
         Row: {
           gentype: string
@@ -165,6 +541,50 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          credits_added: number
+          id: string
+          status: string
+          transaction_hash: string | null
+          transaction_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          credits_added: number
+          id?: string
+          status?: string
+          transaction_hash?: string | null
+          transaction_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          credits_added?: number
+          id?: string
+          status?: string
+          transaction_hash?: string | null
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           id: string
@@ -178,7 +598,50 @@ export type Database = {
           id?: string
           stripe_customer_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "public_customers_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drag_and_drop_flows: {
+        Row: {
+          created_at: string
+          current: boolean | null
+          flow_data: Json
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current?: boolean | null
+          flow_data: Json
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current?: boolean | null
+          flow_data?: Json
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drag_and_drop_flows_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoices: {
         Row: {
@@ -413,6 +876,13 @@ export type Database = {
             columns: ["price_id"]
             isOneToOne: false
             referencedRelation: "prices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
             referencedColumns: ["id"]
           },
         ]
@@ -745,6 +1215,66 @@ export type Database = {
           },
           {
             foreignKeyName: "swarms_cloud_comments_replies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_hosted_agents: {
+        Row: {
+          api_key: string | null
+          autoscaling: boolean | null
+          code: string | null
+          created_at: string
+          description: string | null
+          envs: string | null
+          id: number
+          is_active: boolean | null
+          name: string | null
+          requirements: string | null
+          updated_now: string | null
+          user_id: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          autoscaling?: boolean | null
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          envs?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string | null
+          requirements?: string | null
+          updated_now?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          autoscaling?: boolean | null
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          envs?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string | null
+          requirements?: string | null
+          updated_now?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_hosted_agents_api_key_fkey"
+            columns: ["api_key"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_api_keys"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_hosted_agents_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -1114,6 +1644,48 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_prompts_chat_test: {
+        Row: {
+          created_at: string
+          id: string
+          prompt_id: string
+          sender: string
+          text: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prompt_id: string
+          sender: string
+          text: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prompt_id?: string
+          sender?: string
+          text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_prompts_chat_test_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_prompts_chat_test_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       swarms_cloud_rate_limits: {
         Row: {
           created_at: string
@@ -1181,6 +1753,48 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_services: {
+        Row: {
+          api_key: string | null
+          charge_credit: number | null
+          created_at: string
+          id: number
+          product_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          charge_credit?: number | null
+          created_at?: string
+          id?: number
+          product_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          charge_credit?: number | null
+          created_at?: string
+          id?: number
+          product_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_services_api_key_fkey"
+            columns: ["api_key"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_api_keys"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_services_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_users_credits"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1489,30 +2103,6 @@ export type Database = {
         }
         Relationships: []
       }
-      swarms_newsletter_subscribers: {
-        Row: {
-          created_at: string
-          email: string
-          id: number
-          is_subscribed: boolean | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: number
-          is_subscribed?: boolean | null
-          user_id?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: number
-          is_subscribed?: boolean | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       swarms_spreadsheet_session_agents: {
         Row: {
           created_at: string | null
@@ -1526,6 +2116,7 @@ export type Database = {
           status: string | null
           system_prompt: string | null
           updated_at: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
@@ -1539,6 +2130,7 @@ export type Database = {
           status?: string | null
           system_prompt?: string | null
           updated_at?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string | null
@@ -1552,6 +2144,7 @@ export type Database = {
           status?: string | null
           system_prompt?: string | null
           updated_at?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -1566,6 +2159,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "swarms_spreadsheet_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_spreadsheet_session_agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1607,7 +2207,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "swarms_spreadsheet_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
@@ -1673,275 +2281,211 @@ export type Database = {
           twenty_crm_id?: string | null
           username?: string | null
         }
-        Relationships: []
-      }
-      swarms: {
-        Row: {
-          id: string
-          user_id: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          created_at?: string
-        }
         Relationships: [
           {
-            foreignKeyName: "swarms_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
+            foreignKeyName: "users_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "safe_users"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
-      drag_and_drop_flows: {
+      web3agents: {
         Row: {
-          id: string
-          user_id: string
-          flow_data: FlowData
-          current: boolean
+          bonding_curve_address: string | null
           created_at: string
+          creator_id: string | null
+          creator_wallet: string | null
+          description: string
+          discord_server: string | null
+          graduated: boolean
+          id: string
+          image_url: string | null
+          initial_supply: number
+          is_verified: boolean
+          liquidity_pool_size: number
+          mint_address: string
+          name: string
+          pool_address: string | null
+          telegram_group: string | null
+          token_symbol: string
+          twitter_handle: string | null
           updated_at: string
         }
         Insert: {
-          id?: string
-          user_id: string
-          flow_data: FlowData
-          current?: boolean
+          bonding_curve_address?: string | null
           created_at?: string
+          creator_id?: string | null
+          creator_wallet?: string | null
+          description: string
+          discord_server?: string | null
+          graduated?: boolean
+          id?: string
+          image_url?: string | null
+          initial_supply: number
+          is_verified?: boolean
+          liquidity_pool_size: number
+          mint_address: string
+          name: string
+          pool_address?: string | null
+          telegram_group?: string | null
+          token_symbol: string
+          twitter_handle?: string | null
           updated_at?: string
         }
         Update: {
-          id?: string
-          user_id?: string
-          flow_data?: FlowData
-          current?: boolean
+          bonding_curve_address?: string | null
           created_at?: string
+          creator_id?: string | null
+          creator_wallet?: string | null
+          description?: string
+          discord_server?: string | null
+          graduated?: boolean
+          id?: string
+          image_url?: string | null
+          initial_supply?: number
+          is_verified?: boolean
+          liquidity_pool_size?: number
+          mint_address?: string
+          name?: string
+          pool_address?: string | null
+          telegram_group?: string | null
+          token_symbol?: string
+          twitter_handle?: string | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "drag_and_drop_flows_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "web3agents_creator_id_fkey"
+            columns: ["creator_id"]
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      credit_transactions: {
-        Row: {
-          id: string
-          user_id: string
-          amount_usd: number
-          credits_added: number
-          transaction_type: TransactionType
-          status: TransactionStatus
-          transaction_hash: string | null
-          description: string | null
-          metadata: Json | null
-          created_at: string
-          updated_at: string
-          reference_id: string | null
-          initiated_by: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          amount_usd: number
-          credits_added: number
-          transaction_type: TransactionType
-          status?: TransactionStatus
-          transaction_hash?: string | null
-          description?: string | null
-          metadata?: Json | null
-          created_at?: string
-          updated_at?: string
-          reference_id?: string | null
-          initiated_by?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          amount_usd?: number
-          credits_added?: number
-          transaction_type?: TransactionType
-          status?: TransactionStatus
-          transaction_hash?: string | null
-          description?: string | null
-          metadata?: Json | null
-          created_at?: string
-          updated_at?: string
-          reference_id?: string | null
-          initiated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "credit_transactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "web3users"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "credit_transactions_initiated_by_fkey"
-            columns: ["initiated_by"]
+            foreignKeyName: "web3agents_creator_wallet_fkey"
+            columns: ["creator_wallet"]
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
+            referencedRelation: "web3users"
+            referencedColumns: ["wallet_address"]
+          },
         ]
       }
-      wallet_addresses: {
+      web3users: {
         Row: {
-          id: string
-          user_id: string
-          wallet_address: string
-          wallet_type: string
-          is_default: boolean
+          avatar_url: string | null
           created_at: string
+          email: string | null
+          id: string
+          last_login_at: string | null
+          metadata: Json | null
+          total_trades: number | null
+          total_volume: number | null
+          updated_at: string
+          username: string | null
+          wallet_address: string
         }
         Insert: {
-          id?: string
-          user_id: string
-          wallet_address: string
-          wallet_type: string
-          is_default?: boolean
+          avatar_url?: string | null
           created_at?: string
+          email?: string | null
+          id?: string
+          last_login_at?: string | null
+          metadata?: Json | null
+          total_trades?: number | null
+          total_volume?: number | null
+          updated_at?: string
+          username?: string | null
+          wallet_address: string
         }
         Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
           id?: string
-          user_id?: string
+          last_login_at?: string | null
+          metadata?: Json | null
+          total_trades?: number | null
+          total_volume?: number | null
+          updated_at?: string
+          username?: string | null
           wallet_address?: string
-          wallet_type?: string
-          is_default?: boolean
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wallet_addresses_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      ai_agents: {
-        Row: {
-          id: string
-          api_key: string
-          name: string | null
-          status: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          api_key: string
-          name?: string | null
-          status?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          api_key?: string
-          name?: string | null
-          status?: string
-          created_at?: string
         }
         Relationships: []
       }
-      ai_agent_wallets: {
-        Row: {
-          id: string
-          agent_id: string
-          public_key: string
-          private_key: string
-          wallet_type: string
-          status: string
-          created_at: string
-          iv: string
-        }
-        Insert: {
-          id?: string
-          agent_id: string
-          public_key: string
-          private_key: string
-          wallet_type: string
-          status: string
-          created_at?: string
-          iv: string
-        }
-        Update: {
-          id?: string
-          agent_id?: string
-          public_key?: string
-          private_key?: string
-          wallet_type?: string
-          status?: string
-          created_at?: string
-          iv?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_agent_wallets_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "ai_agents"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      ai_agent_transactions: {
-        Row: {
-          id: string
-          agent_id: string
-          transaction_hash: string
-          amount: number
-          recipient: string
-          status: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          agent_id: string
-          transaction_hash: string
-          amount: number
-          recipient: string
-          status: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          agent_id?: string
-          transaction_hash?: string
-          amount?: number
-          recipient?: string
-          status?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_agent_transactions_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "ai_agents"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
     }
     Views: {
-      [_ in never]: never
+      agent_statistics: {
+        Row: {
+          agent_id: string | null
+          current_price: number | null
+          name: string | null
+          token_symbol: string | null
+          total_buy_volume: number | null
+          total_sell_volume: number | null
+          total_trades: number | null
+          unique_traders: number | null
+        }
+        Relationships: []
+      }
+      safe_cloud_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string | null
+          model_id: string | null
+          model_type: string | null
+          rating: number | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          model_id?: string | null
+          model_type?: string | null
+          rating?: number | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          model_id?: string | null
+          model_type?: string | null
+          rating?: number | null
+        }
+        Relationships: []
+      }
+      safe_users: {
+        Row: {
+          avatar: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar?: never
+          created_at?: string | null
+          full_name?: never
+          id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar?: never
+          created_at?: string | null
+          full_name?: never
+          id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      cleanup_expired_nonces: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_user_id_by_email: {
         Args: {
           email: string
@@ -2079,70 +2623,3 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
-type Architecture = 'Concurrent' | 'Sequential' | 'Hierarchical'
-
-type FlowData = {
-  nodes: Array<{
-    id: string
-    type: string
-    position: {
-      x: number
-      y: number
-    }
-    data: {
-      id: string
-      name: string
-      type: string
-      model: string
-      systemPrompt: string
-      clusterId?: string | null
-      isProcessing?: boolean | null
-      lastResult?: string | null
-      dataSource?: string | null
-      dataSourceInput?: string | null
-      [key: string]: unknown
-    }
-  }>
-  edges: Array<{
-    id: string
-    source: string
-    target: string
-    type?: string
-    animated?: boolean
-    style?: {
-      stroke: string
-    }
-    markerEnd?: {
-      type: string | MarkerType
-      color: string
-    }
-    data?: {
-      label: string
-    }
-    sourceHandle?: string | null
-    targetHandle?: string | null
-    [key: string]: unknown
-  }>
-  architecture: string | Architecture
-  results: Record<string, string>
-}
-
-export type TransactionType =
-  | "USD_DEPOSIT"        // Regular USD deposit
-  | "CRYPTO_DEPOSIT"     // Purchase of credits
-  | "CREDIT_PURCHASE"    // Usage of credits (API calls, etc)
-  | "CREDIT_REFUND"      // Refund of credits
-  | "PROMOTIONAL_CREDIT" // Promotional or bonus credits
-  | "REFERRAL_BONUS"     // Referral program bonus
-  | "SUBSCRIPTION_CHARGE"// Subscription-based charge
-  | "MANUAL_ADJUSTMENT"  // Manual adjustment by admin
-  | "TRANSFER"          // Transfer between users
-  | "OTHER"             // Other transactions
-
-export type TransactionStatus =
-  | "PENDING"
-  | "completed"
-  | "FAILED"
-  | "CANCELLED"
-  | "REFUNDED"

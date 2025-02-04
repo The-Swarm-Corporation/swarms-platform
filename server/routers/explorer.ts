@@ -778,6 +778,50 @@ const explorerRouter = router({
         });
       }
     }),
+  getPromptChats: userProcedure
+    .input(z.object({ promptId: z.string(), userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { promptId, userId } = input;
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_prompts_chat_test')
+        .select('*')
+        .eq('prompt_id', promptId)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw new Error(error.message);
+      return data;
+    }),
+
+  savePromptChat: userProcedure
+    .input(
+      z.array(
+        z.object({
+          text: z.string(),
+          sender: z.string(),
+          prompt_id: z.string(),
+          user_id: z.string(),
+        }),
+      ),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase
+        .from('swarms_cloud_prompts_chat_test')
+        .insert(input);
+      if (error) throw new Error(error.message);
+      return { success: true };
+    }),
+
+  deletePromptChat: userProcedure
+    .input(z.object({ messageId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase
+        .from('swarms_cloud_prompts_chat_test')
+        .delete()
+        .eq('id', input.messageId);
+      if (error) throw new Error(error.message);
+      return { success: true };
+    }),
 });
 
 export default explorerRouter;

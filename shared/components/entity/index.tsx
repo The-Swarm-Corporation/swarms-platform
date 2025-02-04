@@ -30,6 +30,7 @@ import {
 import remarkGfm from 'remark-gfm';
 import { stripMarkdown } from './helper';
 import CommentList from '@/shared/components/comments';
+import ChatComponent from '../chat/prompt';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -335,6 +336,14 @@ export default function EntityComponent({
             requirements={requirements as RequirementProps[]}
           />
         ))}
+
+      {entityTitle === 'prompt' && prompt && (
+        <ChatComponent
+          promptId={id ?? ''}
+          userId={userId ?? ''}
+          systemPrompt={prompt}
+        />
+      )}
       {prompt && (
         <div className="relative my-10">
           <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar">
