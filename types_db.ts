@@ -351,6 +351,60 @@ export type Database = {
         }
         Relationships: []
       }
+      bonding_curve_keys: {
+        Row: {
+          agent_id: string | null
+          created_at: string
+          encrypted_private_key: string
+          id: string
+          metadata: Json | null
+          pool_keys: string | null
+          pool_signature: string | null
+          public_key: string
+          token_signature: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string
+          encrypted_private_key: string
+          id?: string
+          metadata?: Json | null
+          pool_keys?: string | null
+          pool_signature?: string | null
+          public_key: string
+          token_signature?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string
+          encrypted_private_key?: string
+          id?: string
+          metadata?: Json | null
+          pool_keys?: string | null
+          pool_signature?: string | null
+          public_key?: string
+          token_signature?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bonding_curve_keys_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_statistics"
+            referencedColumns: ["agent_id"]
+          },
+          {
+            foreignKeyName: "bonding_curve_keys_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "web3agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       create_now_accounts: {
         Row: {
           created_at: string
@@ -2350,12 +2404,14 @@ export type Database = {
           graduated: boolean
           id: string
           image_url: string | null
-          initial_supply: number
+          initial_supply: number | null
           is_verified: boolean
-          liquidity_pool_size: number
+          liquidity_pool_size: number | null
+          metadata: Json | null
           mint_address: string
           name: string
           pool_address: string | null
+          swarms_reserve: string | null
           telegram_group: string | null
           token_symbol: string
           twitter_handle: string | null
@@ -2371,12 +2427,14 @@ export type Database = {
           graduated?: boolean
           id?: string
           image_url?: string | null
-          initial_supply: number
+          initial_supply?: number | null
           is_verified?: boolean
-          liquidity_pool_size: number
+          liquidity_pool_size?: number | null
+          metadata?: Json | null
           mint_address: string
           name: string
           pool_address?: string | null
+          swarms_reserve?: string | null
           telegram_group?: string | null
           token_symbol: string
           twitter_handle?: string | null
@@ -2392,12 +2450,14 @@ export type Database = {
           graduated?: boolean
           id?: string
           image_url?: string | null
-          initial_supply?: number
+          initial_supply?: number | null
           is_verified?: boolean
-          liquidity_pool_size?: number
+          liquidity_pool_size?: number | null
+          metadata?: Json | null
           mint_address?: string
           name?: string
           pool_address?: string | null
+          swarms_reserve?: string | null
           telegram_group?: string | null
           token_symbol?: string
           twitter_handle?: string | null
@@ -2532,6 +2592,13 @@ export type Database = {
     Functions: {
       cleanup_expired_nonces: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      deduct_credit: {
+        Args: {
+          user_id: string
+          amount: number
+        }
         Returns: undefined
       }
       get_user_id_by_email: {

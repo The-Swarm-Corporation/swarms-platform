@@ -1,5 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Send, Edit2, Trash2, Maximize, MoreHorizontal } from 'lucide-react';
+import React from 'react';
+import {
+  Send,
+  Edit2,
+  Trash2,
+  Maximize,
+  MoreHorizontal,
+  OctagonMinus,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
@@ -7,17 +14,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { trpc } from '@/shared/utils/trpc/trpc';
 import { Button } from '../ui/button';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Separator from '../ui/AuthForms/Separator';
-import { Tables } from '@/types_db';
-import { v4 as uuidv4 } from 'uuid';
-import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
-import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { cn } from '@/shared/utils/cn';
+import usePromptChat from './hook';
 
-interface ChatComponentProps {
+export interface ChatComponentProps {
   promptId: string;
   systemPrompt: string;
   userId: string;
@@ -30,201 +34,28 @@ const ChatComponent = ({
   userId,
   model = 'gpt-4',
 }: ChatComponentProps) => {
-  const [input, setInput] = useState('');
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [messages, setMessages] = useState<
-    Tables<'swarms_cloud_prompts_chat_test'>[]
-  >([]);
-  const toast = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [streamedResponse, setStreamedResponse] = useState('');
-  const [editingMessageId, setEditingMessageId] = useState('');
-  const [editInput, setEditInput] = useState('');
-
-  const latestMessageRef = useRef<HTMLDivElement | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
-  const fetchMessages = trpc.explorer.getPromptChats.useQuery(
-    { promptId, userId },
-    { enabled: false },
-  );
-  const fetchMutation = trpc.explorer.savePromptChat.useMutation();
-  const editMutation = trpc.explorer.editPromptChat.useMutation();
-  const deleteMutation = trpc.explorer.deletePromptChat.useMutation();
-
-  const messageId = uuidv4();
-
-  const handleInputBlur = () => {
-    setEditInput('');
-    setEditingMessageId('');
-  };
-
-  useOnClickOutside(textareaRef, handleInputBlur);
-
-  useEffect(() => {
-    if (streamedResponse) {
-      if (!editingMessageId) {
-        setMessages((prev) =>
-          prev.map((m, index) =>
-            index === prev.length - 1 ? { ...m, text: streamedResponse } : m,
-          ),
-        );
-      } else {
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.response_id === `${editingMessageId}_agent`
-              ? { ...m, text: streamedResponse }
-              : m,
-          ),
-        );
-      }
-    }
-  }, [streamedResponse, editingMessageId]);
-
-  useEffect(() => {
-    if (!messages.length) {
-      fetchMessages.refetch().then(({ data }) => {
-        if (data) setMessages(data);
-      });
-    }
-  }, [fetchMessages, messages]);
-
-  useEffect(() => {
-    if (latestMessageRef.current) {
-      latestMessageRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'end',
-      });
-    }
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-    setIsLoading(true);
-
-    const newUserMessage = {
-      text: input,
-      sender: 'user',
-      prompt_id: promptId,
-      user_id: userId,
-      response_id: `${messageId}`,
-    } as Tables<'swarms_cloud_prompts_chat_test'>;
-
-    setMessages((prev) => [...prev, newUserMessage]);
-
-    const aiResponse = {
-      text: '',
-      sender: 'agent',
-      prompt_id: promptId,
-      user_id: userId,
-      response_id: `${messageId}_agent`,
-    } as Tables<'swarms_cloud_prompts_chat_test'>;
-
-    setMessages((prev) => [...prev, aiResponse]);
-
-    try {
-      const response = await fetch('/api/chat/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input, systemPrompt }),
-      });
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let completeText = '';
-
-      while (reader) {
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        completeText += chunk;
-
-        setStreamedResponse(completeText);
-      }
-
-      fetchMutation.mutateAsync([
-        { ...newUserMessage },
-        { ...aiResponse, text: completeText },
-      ]);
-    } catch (error) {
-      toast.toast({
-        title: 'Error editing message',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-      setInput('');
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setInput(e.target.value);
-
-  const handleEditMessage = (responseId: string) => {
-    setEditingMessageId(responseId);
-
-    const messageToEdit = messages.find((m) => m.response_id === responseId);
-    setEditInput(messageToEdit?.text || '');
-  };
-
-  const handleSendEdit = async (responseId: string) => {
-    if (!editInput.trim() || !responseId || isLoading) return;
-    setIsLoading(true);
-
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.response_id === responseId ? { ...m, text: editInput } : m,
-      ),
-    );
-
-    try {
-      const response = await fetch('/api/chat/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: editInput, systemPrompt }),
-      });
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let completeText = '';
-
-      while (reader) {
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        completeText += chunk;
-
-        setStreamedResponse(completeText);
-      }
-
-      editMutation.mutateAsync({
-        promptId,
-        responseId,
-        userId,
-        userText: editInput,
-        agentText: completeText,
-      });
-    } catch (error) {
-      console.error('Error editing message:', error);
-      toast.toast({
-        title: 'Error editing message',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-      handleInputBlur();
-    }
-  };
-
-  const handleDeleteMessage = async (messageId: string) => {
-    setMessages((prev: any) => prev.filter((m: any) => m.id !== messageId));
-    await deleteMutation.mutateAsync({ messageId, promptId, userId });
-  };
+  const {
+    input,
+    isExpanded,
+    isLoading,
+    editInput,
+    isStreaming,
+    messages,
+    textareaRef,
+    editingMessageId,
+    latestMessageRef,
+    handleSend,
+    handleStop,
+    handleSendEdit,
+    setEditInput,
+    setIsExpanded,
+    handleEditMessage,
+    handleInputChange,
+    handleDeleteMessage,
+  } = usePromptChat({ promptId, systemPrompt, userId, model });
 
   return (
-    <div className="relative mx-auto bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-10 mt-10 rounded-lg leading-normal overflow-hidden no-scrollbar w-full">
+    <div className="relative mx-auto bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-10 rounded-lg leading-normal overflow-hidden no-scrollbar w-full">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="absolute right-4 top-4 z-10"
@@ -247,7 +78,7 @@ const ChatComponent = ({
               {messages?.map((message, index) => {
                 return (
                   <motion.div
-                    key={message?.id}
+                    key={`${message?.id}-${index}`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -281,7 +112,7 @@ const ChatComponent = ({
                           className="bg-inherit text-inherit resize-none border-none outline-none w-full h-fit"
                         />
                       ) : (
-                        <Markdown className="prose" remarkPlugins={[remarkGfm]}>
+                        <Markdown className="prose w-full" remarkPlugins={[remarkGfm]}>
                           {message?.text || ''}
                         </Markdown>
                       )}
@@ -326,16 +157,29 @@ const ChatComponent = ({
               <input
                 value={input}
                 onChange={handleInputChange}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
                 placeholder="Type your message..."
                 className="flex-1 p-4 py-3 border rounded-lg bg-gray-500/10 border-primary outline-none"
                 disabled={isLoading}
               />
               <Button
-                disabled={isLoading}
-                onClick={handleSend}
-                className="p-2 py-3 bg-blue-500 text-white rounded-lg"
+                // disabled={isLoading}
+                onClick={isStreaming ? handleStop : handleSend}
+                className={cn(
+                  'p-2 py-3 text-white rounded-lg',
+                  isStreaming ? 'bg-primary' : 'bg-destructive',
+                )}
               >
-                <Send className="w-5 h-5" />
+                {isStreaming ? (
+                  <OctagonMinus className="w-5 h-5" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
               </Button>
             </div>
           </div>

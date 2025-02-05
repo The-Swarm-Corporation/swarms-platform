@@ -865,6 +865,22 @@ const explorerRouter = router({
       if (error) throw new Error(error.message);
       return { success: true };
     }),
+
+  deductCredit: userProcedure
+    .input(z.object({ userId: z.string(), amount: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase.rpc('deduct_credit', {
+        user_id: input.userId,
+        amount: input.amount,
+      });
+
+      if (error) {
+        console.error(`Error deducting credit: ${error.message}`);
+        throw new Error('Failed to deduct user credit');
+      }
+
+      return { success: true };
+    }),
 });
 
 export default explorerRouter;
