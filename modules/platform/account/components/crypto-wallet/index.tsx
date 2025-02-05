@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/shared/components/ui/button';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';

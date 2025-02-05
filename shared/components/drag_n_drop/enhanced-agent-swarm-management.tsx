@@ -1189,9 +1189,6 @@ const FlowContent = () => {
   const [systemPrompt, setSystemPrompt] = useState('');
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null); // Move this line above the useEnhancedAutosave call
   const saveFlowMutation = api.dnd.saveFlow.useMutation(); // Move this line above the useEnhancedAutosave call
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isLoadingFlow, setIsLoadingFlow] = useState(true);
-  const [hasInitialized, setHasInitialized] = useState(false);
 
   const [swarmArchitecture, setSwarmArchitecture] =
     useState<SwarmArchitecture>('Concurrent');

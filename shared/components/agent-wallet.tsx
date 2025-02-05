@@ -75,7 +75,7 @@ export function CreateWalletModal() {
       <DialogTrigger asChild>
         <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500/20 hover:text-red-400">
           <Plus className="mr-2 h-4 w-4" />
-          Deploy New Agent
+          Deploy New Agent Wallet
         </Button>
       </DialogTrigger>
       <DialogContent 
@@ -84,7 +84,7 @@ export function CreateWalletModal() {
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-red-50 flex items-center gap-2">
             <Plus className="h-6 w-6 text-red-500" />
-            Deploy New Agent
+            Deploy New Agent Wallet
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-6 py-4">
@@ -369,7 +369,7 @@ const EmptyState = () => (
     <CircuitBoard className="h-12 w-12 text-red-500 mx-auto mb-4" />
     <h3 className="text-xl font-bold text-red-50 mb-2">No Agents Deployed</h3>
     <p className="text-red-400/60 mb-6">
-      Get started by deploying your first agent using the button below
+      Get started by deploying your first agent wallet using the button below
     </p>
     <CreateWalletModal />
   </motion.div>
@@ -538,7 +538,7 @@ export default function AgentWallet() {
           <CircuitBoard className="h-12 w-12 text-red-500" />
           Swarms Wallet <span className="text-sm text-red-500 mt-1 font-mono">v2.077</span>
         </h1>
-        <p className="text-red-500 text-lg mt-2 font-mono">SECURE AGENT INTERFACE</p>
+        <p className="text-red-500 text-lg mt-2 font-mono">SECURE AGENT WALLET INTERFACE</p>
       </motion.div>
 
       {/* Main Content */}

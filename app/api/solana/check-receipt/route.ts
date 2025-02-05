@@ -1,6 +1,5 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { headers } from 'next/headers';
 import { Database } from '@/types_db';
 import { createClient } from '@supabase/supabase-js';

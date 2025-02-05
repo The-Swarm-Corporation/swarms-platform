@@ -5,12 +5,11 @@ import {
   createAssociatedTokenAccountInstruction,
   getAccount
 } from '@solana/spl-token';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { headers } from 'next/headers';
 import { Database } from '@/types_db';
 import { ComputeBudgetProgram, TransactionInstruction } from '@solana/web3.js';
 import { createClient } from '@supabase/supabase-js';
-import { encrypt, decrypt } from '@/shared/utils/encryption';
+import { decrypt } from '@/shared/utils/encryption';
 
 const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL as string;

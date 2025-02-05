@@ -1,13 +1,12 @@
 import { Keypair, Connection, LAMPORTS_PER_SOL, PublicKey, Transaction } from '@solana/web3.js';
 import { createClient } from '@supabase/supabase-js';
-import { cookies, headers } from 'next/headers';
+import { headers } from 'next/headers';
 import { Database } from '@/types_db';
 import { 
   getAssociatedTokenAddress, 
   createAssociatedTokenAccountInstruction,
-  TOKEN_PROGRAM_ID 
 } from '@solana/spl-token';
-import { encrypt, decrypt } from '@/shared/utils/encryption';
+import { encrypt } from '@/shared/utils/encryption';
 
 const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL as string;
