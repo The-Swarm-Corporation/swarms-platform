@@ -139,8 +139,6 @@ export default function usePromptChat({
       const headerToken = Number(response.headers.get('X-Used-Tokens')) || 0;
       setUsedTokens(headerToken);
 
-      console.log({ headerToken, userId });
-
       if (headerToken) {
         deductCredit.mutateAsync({ userId, amount: headerToken });
       }
