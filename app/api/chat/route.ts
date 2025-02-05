@@ -1,23 +1,16 @@
+import { OpenAI } from 'openai';
 import { getUserCredit } from '@/shared/utils/supabase/admin';
 
 export const runtime = 'edge';
 
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
 export async function POST(req: Request) {
   const { message, systemPrompt, model = 'gpt-4o', userId } = await req.json();
 
-  // Dynamically import OpenAI only when POST is called
-  const { OpenAI } = await import('openai');
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
   const MILLION_INPUT = 1000000;
-  // Initialize encoder dynamically
-  const getTikToken = async () => {
-    const { encodingForModel } = await import('js-tiktoken');
-    return encodingForModel('gpt-4');
-  };
 
-  const encoder = await getTikToken();
-  const estimateTokens = (text: string) => encoder.encode(text).length;
+  const estimateTokens = (text: string) => Math.ceil(text.length / 4);
 
   const userTokens = estimateTokens(message) / MILLION_INPUT || 0;
   const systemTokens = estimateTokens(systemPrompt) / MILLION_INPUT || 0;
@@ -67,6 +60,7 @@ export async function POST(req: Request) {
 
     const totalUsedCost =
       estimatedInputCost + usedOutputTokens * outputTokenCost;
+    console.log({ totalUsedCost });
 
     return new Response(stream, {
       headers: {
