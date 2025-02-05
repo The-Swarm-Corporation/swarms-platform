@@ -13,6 +13,9 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Separator from '../ui/AuthForms/Separator';
 import { Tables } from '@/types_db';
+import { v4 as uuidv4 } from 'uuid';
+import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 
 interface ChatComponentProps {
   promptId: string;
@@ -32,27 +35,51 @@ const ChatComponent = ({
   const [messages, setMessages] = useState<
     Tables<'swarms_cloud_prompts_chat_test'>[]
   >([]);
+  const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [streamedResponse, setStreamedResponse] = useState('');
+  const [editingMessageId, setEditingMessageId] = useState('');
+  const [editInput, setEditInput] = useState('');
 
   const latestMessageRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const fetchMessages = trpc.explorer.getPromptChats.useQuery(
     { promptId, userId },
     { enabled: false },
   );
   const fetchMutation = trpc.explorer.savePromptChat.useMutation();
+  const editMutation = trpc.explorer.editPromptChat.useMutation();
   const deleteMutation = trpc.explorer.deletePromptChat.useMutation();
+
+  const messageId = uuidv4();
+
+  const handleInputBlur = () => {
+    setEditInput('');
+    setEditingMessageId('');
+  };
+
+  useOnClickOutside(textareaRef, handleInputBlur);
 
   useEffect(() => {
     if (streamedResponse) {
-      setMessages((prev) =>
-        prev.map((m, index) =>
-          index === prev.length - 1 ? { ...m, text: streamedResponse } : m,
-        ),
-      );
+      if (!editingMessageId) {
+        setMessages((prev) =>
+          prev.map((m, index) =>
+            index === prev.length - 1 ? { ...m, text: streamedResponse } : m,
+          ),
+        );
+      } else {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.response_id === `${editingMessageId}_agent`
+              ? { ...m, text: streamedResponse }
+              : m,
+          ),
+        );
+      }
     }
-  }, [streamedResponse]);
+  }, [streamedResponse, editingMessageId]);
 
   useEffect(() => {
     if (!messages.length) {
@@ -80,6 +107,7 @@ const ChatComponent = ({
       sender: 'user',
       prompt_id: promptId,
       user_id: userId,
+      response_id: `${messageId}`,
     } as Tables<'swarms_cloud_prompts_chat_test'>;
 
     setMessages((prev) => [...prev, newUserMessage]);
@@ -89,6 +117,7 @@ const ChatComponent = ({
       sender: 'agent',
       prompt_id: promptId,
       user_id: userId,
+      response_id: `${messageId}_agent`,
     } as Tables<'swarms_cloud_prompts_chat_test'>;
 
     setMessages((prev) => [...prev, aiResponse]);
@@ -119,7 +148,10 @@ const ChatComponent = ({
         { ...aiResponse, text: completeText },
       ]);
     } catch (error) {
-      console.error('Error sending message:', error);
+      toast.toast({
+        title: 'Error editing message',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
       setInput('');
@@ -129,9 +161,66 @@ const ChatComponent = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setInput(e.target.value);
 
+  const handleEditMessage = (responseId: string) => {
+    setEditingMessageId(responseId);
+
+    const messageToEdit = messages.find((m) => m.response_id === responseId);
+    setEditInput(messageToEdit?.text || '');
+  };
+
+  const handleSendEdit = async (responseId: string) => {
+    if (!editInput.trim() || !responseId || isLoading) return;
+    setIsLoading(true);
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.response_id === responseId ? { ...m, text: editInput } : m,
+      ),
+    );
+
+    try {
+      const response = await fetch('/api/chat/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: editInput, systemPrompt }),
+      });
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let completeText = '';
+
+      while (reader) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        completeText += chunk;
+
+        setStreamedResponse(completeText);
+      }
+
+      editMutation.mutateAsync({
+        promptId,
+        responseId,
+        userId,
+        userText: editInput,
+        agentText: completeText,
+      });
+    } catch (error) {
+      console.error('Error editing message:', error);
+      toast.toast({
+        title: 'Error editing message',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+      handleInputBlur();
+    }
+  };
+
   const handleDeleteMessage = async (messageId: string) => {
     setMessages((prev: any) => prev.filter((m: any) => m.id !== messageId));
-    await deleteMutation.mutateAsync({ messageId });
+    await deleteMutation.mutateAsync({ messageId, promptId, userId });
   };
 
   return (
@@ -150,59 +239,73 @@ const ChatComponent = ({
 
       <motion.div
         animate={{ height: isExpanded ? 'auto' : '4rem' }}
-        className="bg-transparent rounded-lg shadow-lg mt-7"
+        className="bg-transparent rounded-lg shadow-lg mt-5"
       >
         <div className={`${isExpanded ? 'h-[600px]' : 'h-20'} flex flex-col`}>
           <div className="flex-1 overflow-y-auto px-4 space-y-7">
             <AnimatePresence>
-              {messages?.map((message, index) => (
-                <motion.div
-                  key={message?.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  ref={index === messages.length - 1 ? latestMessageRef : null}
-                  className={`flex items-center gap-4 relative ${
-                    message?.sender === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  <div
-                    className={`flex p-3 rounded-lg ${
+              {messages?.map((message, index) => {
+                return (
+                  <motion.div
+                    key={message?.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    ref={
+                      index === messages.length - 1 ? latestMessageRef : null
+                    }
+                    className={`flex items-center gap-4 relative ${
                       message?.sender === 'user'
-                        ? 'bg-zinc-700 text-white max-w-[75%]'
-                        : 'bg-gray-700 text-white max-w-[100%] my-4'
+                        ? 'justify-end'
+                        : 'justify-start'
                     }`}
                   >
-                    {/* {editingMessageId === message.id ? (
-                      <input
-                        value={editInput}
-                        onChange={(e) => setEditInput(e.target.value)}
-                        className="w-full p-1 rounded border"
-                      />
-                    ) : (
-                      message.content
-                    )} */}
-                    <Markdown className="prose" remarkPlugins={[remarkGfm]}>
-                      {message?.text || ''}
-                    </Markdown>
-                  </div>
-                  {message?.sender === 'user' && (
+                    <div
+                      className={`flex p-3 rounded-lg w-full ${
+                        message?.sender === 'user'
+                          ? 'bg-zinc-700 text-white max-w-[50%]'
+                          : 'bg-gray-700 text-white max-w-full my-4'
+                      }`}
+                    >
+                      {editingMessageId === message?.response_id ? (
+                        <textarea
+                          value={editInput}
+                          ref={textareaRef}
+                          onChange={(e) => setEditInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleSendEdit(message?.response_id ?? '');
+                            }
+                          }}
+                          className="bg-inherit text-inherit resize-none border-none outline-none w-full h-fit"
+                        />
+                      ) : (
+                        <Markdown className="prose" remarkPlugins={[remarkGfm]}>
+                          {message?.text || ''}
+                        </Markdown>
+                      )}
+                    </div>
+
                     <DropdownMenu>
                       <DropdownMenuTrigger className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-zinc-500">
                         <MoreHorizontal size={16} />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="absolute -top-4 right-0 mt-1 bg-white shadow-lg rounded-md p-0">
-                        <DropdownMenuItem
-                          className="flex items-center w-full p-2 rounded-none cursor-pointer text-black"
-                          //   onClick={() => {
-                          //     setEditingMessageId(message.id);
-                          //     setEditInput(message.content);
-                          //   }}
-                        >
-                          <Edit2 className="w-4 h-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <Separator text="" className="py-0" />
+                        {message?.sender === 'user' && (
+                          <>
+                            <DropdownMenuItem
+                              className="flex items-center w-full p-2 rounded-none cursor-pointer text-black"
+                              onClick={() =>
+                                handleEditMessage(message?.response_id || '')
+                              }
+                            >
+                              <Edit2 className="w-4 h-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <Separator text="" className="py-0" />
+                          </>
+                        )}
                         <DropdownMenuItem
                           className="flex items-center w-full p-2 text-red-500 rounded-none cursor-pointer"
                           onClick={() => handleDeleteMessage(message?.id)}
@@ -212,9 +315,9 @@ const ChatComponent = ({
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  )}
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
 

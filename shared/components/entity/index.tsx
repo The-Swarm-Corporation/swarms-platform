@@ -30,7 +30,7 @@ import {
 import remarkGfm from 'remark-gfm';
 import { stripMarkdown } from './helper';
 import CommentList from '@/shared/components/comments';
-import ChatComponent from '../chat/prompt';
+import dynamic from 'next/dynamic';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -49,9 +49,9 @@ interface Entity extends PropsWithChildren {
   userId?: string | null;
 }
 
-// const CommentList = dynamic(() => import('@/shared/components/comments'), {
-//   ssr: false,
-// });
+const ChatComponent = dynamic(() => import('../chat/prompt'), {
+  ssr: false,
+});
 
 function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
   return (

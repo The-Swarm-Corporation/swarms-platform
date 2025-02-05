@@ -1649,6 +1649,7 @@ export type Database = {
           created_at: string
           id: string
           prompt_id: string
+          response_id: string | null
           sender: string
           text: string
           user_id: string
@@ -1657,6 +1658,7 @@ export type Database = {
           created_at?: string
           id?: string
           prompt_id: string
+          response_id?: string | null
           sender: string
           text: string
           user_id?: string
@@ -1665,6 +1667,7 @@ export type Database = {
           created_at?: string
           id?: string
           prompt_id?: string
+          response_id?: string | null
           sender?: string
           text?: string
           user_id?: string
@@ -1682,6 +1685,51 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_prompts_chats: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          prompt_id: string | null
+          role: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          prompt_id?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          prompt_id?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_prompts_chats_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_prompts_chats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
             referencedColumns: ["id"]
           },
         ]
