@@ -438,19 +438,19 @@ export default function AgentWallet() {
 
   // Filter and process transactions for selected wallet
   const selectedWalletTransactions = transactions?.map(tx => {
-    const agentWallet = wallets?.find(w => w.agent_id === selectedWallet);
-    if (!agentWallet) return null;
-    
-    const isReceived = tx.recipient === agentWallet.public_key;
-    const isSent = tx.agent_id === selectedWallet;
-    
-    if (!isReceived && !isSent) return null;
-    
+    const agentWallet = wallets?.find(w => w.agent_id === selectedWallet)
+    if (!agentWallet) return null
+
+    const isReceived = tx.recipient === agentWallet.public_key
+    const isSent = tx.agent_id === selectedWallet
+
+    if (!isReceived && !isSent) return null
+
     return {
       ...tx,
       transaction_type: isReceived ? 'received' : 'send'
-    };
-  }).filter(Boolean) as Transaction[] || [];
+    }
+  }).filter(Boolean) as unknown as Transaction[] || [];
 
   // Add a "no results" state
   const NoResults = () => (

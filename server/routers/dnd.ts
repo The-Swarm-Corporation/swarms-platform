@@ -84,7 +84,7 @@ export const dndRouter = router({
           const { data, error } = await ctx.supabase
             .from('drag_and_drop_flows')
             .update({
-              flow_data,
+              flow_data: flow_data as any,
               current: true,
               updated_at: new Date().toISOString(),
             })
@@ -107,7 +107,7 @@ export const dndRouter = router({
             .from('drag_and_drop_flows')
             .insert({
               user_id,
-              flow_data,
+              flow_data: flow_data as any,
               current: true,
             })
             .select()

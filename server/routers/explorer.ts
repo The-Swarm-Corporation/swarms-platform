@@ -778,6 +778,109 @@ const explorerRouter = router({
         });
       }
     }),
+  getPromptChats: userProcedure
+    .input(z.object({ promptId: z.string(), userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { promptId, userId } = input;
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_prompts_chat_test')
+        .select('*')
+        .eq('prompt_id', promptId)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw new Error(error.message);
+      return data;
+    }),
+
+  savePromptChat: userProcedure
+    .input(
+      z.array(
+        z.object({
+          text: z.string(),
+          sender: z.string(),
+          prompt_id: z.string(),
+          user_id: z.string(),
+          response_id: z.any(),
+        }),
+      ),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase
+        .from('swarms_cloud_prompts_chat_test')
+        .insert(input);
+      if (error) throw new Error(error.message);
+      return { success: true };
+    }),
+
+  editPromptChat: userProcedure
+    .input(
+      z.object({
+        responseId: z.string(),
+        userText: z.string(),
+        agentText: z.string(),
+        promptId: z.string(),
+        userId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { responseId, userText, agentText, promptId, userId } = input;
+
+      const { error: updateError } = await ctx.supabase
+        .from('swarms_cloud_prompts_chat_test')
+        .update({ text: userText })
+        .eq('response_id', responseId)
+        .eq('prompt_id', promptId)
+        .eq('user_id', userId);
+
+      if (updateError) throw new Error(updateError.message);
+
+      const { error: agentUpdateError } = await ctx.supabase
+        .from('swarms_cloud_prompts_chat_test')
+        .update({ text: agentText })
+        .eq('response_id', `${responseId}_agent`)
+        .eq('prompt_id', promptId)
+        .eq('user_id', userId);
+
+      if (agentUpdateError) throw new Error(agentUpdateError.message);
+
+      return { success: true };
+    }),
+
+  deletePromptChat: userProcedure
+    .input(
+      z.object({
+        messageId: z.string(),
+        promptId: z.string(),
+        userId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase
+        .from('swarms_cloud_prompts_chat_test')
+        .delete()
+        .eq('id', input.messageId)
+        .eq('prompt_id', input.promptId)
+        .eq('user_id', input.userId);
+      if (error) throw new Error(error.message);
+      return { success: true };
+    }),
+
+  deductCredit: userProcedure
+    .input(z.object({ userId: z.string(), amount: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { error } = await ctx.supabase.rpc('deduct_credit', {
+        user_id: input.userId,
+        amount: input.amount,
+      });
+
+      if (error) {
+        console.error(`Error deducting credit: ${error.message}`);
+        throw new Error('Failed to deduct user credit');
+      }
+
+      return { success: true };
+    }),
 });
 
 export default explorerRouter;

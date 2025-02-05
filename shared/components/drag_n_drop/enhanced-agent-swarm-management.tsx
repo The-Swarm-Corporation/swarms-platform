@@ -1,6 +1,18 @@
+// @ts-nocheck
+
 'use client';
 
-import { useState, useCallback, useEffect, useMemo, useRef, useContext,createContext, Dispatch, SetStateAction } from 'react';
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useContext,
+  createContext,
+  Dispatch,
+  SetStateAction,
+} from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -187,9 +199,9 @@ const AnimatedHexagon = motion.polygon;
 
 // Add this new component for the delete button
 const DeleteButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <Button 
-    variant="ghost" 
-    size="icon" 
+  <Button
+    variant="ghost"
+    size="icon"
     onClick={(e) => {
       e.stopPropagation();
       onClick();
@@ -200,19 +212,18 @@ const DeleteButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   </Button>
 );
 
-
 const AgentLoadingOverlay = () => {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center"
     >
       <div className="flex flex-col items-center space-y-4">
-        <motion.div 
+        <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           className="relative"
         >
           <div className="w-16 h-16">
@@ -233,7 +244,10 @@ const AgentLoadingOverlay = () => {
 
 export default AgentLoadingOverlay;
 
-const generateSystemPrompt = async (agentName: string, agentDescription: string) => {
+const generateSystemPrompt = async (
+  agentName: string,
+  agentDescription: string,
+) => {
   try {
     const { text } = await generateText({
       model: registry.languageModel('openai:gpt-4o'),
@@ -284,7 +298,7 @@ const generateSystemPrompt = async (agentName: string, agentDescription: string)
 
       Return only the optimized system prompt without any additional text or explanations.`,
     });
-    
+
     return text;
   } catch (error) {
     console.error('Failed to generate system prompt:', error);
@@ -313,7 +327,6 @@ const useBodyStyleCleanup = (isOpen: boolean) => {
   }, [isOpen]);
 };
 
-
 // Add this utility function near the top with other utility functions
 const optimizePrompt = async (currentPrompt: string): Promise<string> => {
   if (!currentPrompt?.trim()) {
@@ -340,7 +353,7 @@ const optimizePrompt = async (currentPrompt: string): Promise<string> => {
       Please provide an optimized version of this prompt, incorporating the guidelines mentioned above. Only return the optimized prompt, no other text or comments.
       `,
     });
-    
+
     return text;
   } catch (error) {
     console.error('Failed to optimize prompt:', error);
@@ -349,18 +362,22 @@ const optimizePrompt = async (currentPrompt: string): Promise<string> => {
 };
 
 // Update the AgentNode component to include connection handles
-const AgentNode: React.FC<NodeProps<AgentData> & { 
-  hideDeleteButton?: boolean;
-  isInGroupDisplay?: boolean; // New prop to indicate if the agent is being displayed inside a group
-}> = ({ data, id, hideDeleteButton, isInGroupDisplay }) => {
+const AgentNode: React.FC<
+  NodeProps<AgentData> & {
+    hideDeleteButton?: boolean;
+    isInGroupDisplay?: boolean; // New prop to indicate if the agent is being displayed inside a group
+  }
+> = ({ data, id, hideDeleteButton, isInGroupDisplay }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
-  const [localSystemPrompt, setLocalSystemPrompt] = useState(data.systemPrompt || '');
+  const [localSystemPrompt, setLocalSystemPrompt] = useState(
+    data.systemPrompt || '',
+  );
   const { setNodes, setEdges } = useReactFlow();
   const { toast } = useToast();
-  const nodes = useNodes(); 
-  
+  const nodes = useNodes();
+
   // Check if agent is part of a group or being displayed inside a group
   const isInGroup = Boolean(data.groupId) || isInGroupDisplay;
 
@@ -372,16 +389,16 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
         cleanupBodyStyles();
       }
     };
-  
+
     // Listen for escape key
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         cleanup();
       }
     };
-  
+
     window.addEventListener('keydown', handleEscape);
-    
+
     // Add a mutation observer to detect DOM changes
     const observer = new MutationObserver(() => {
       // Check if any dialog was removed
@@ -390,12 +407,12 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
         cleanup();
       }
     });
-  
+
     observer.observe(document.body, {
       childList: true,
       subtree: true,
     });
-  
+
     return () => {
       window.removeEventListener('keydown', handleEscape);
       observer.disconnect();
@@ -411,29 +428,33 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
   }, [data.systemPrompt]);
 
   const handleDelete = useCallback(() => {
-    setNodes(nodes => {
+    setNodes((nodes) => {
       // Create a new array of nodes
-      return nodes.map(node => {
-        // If this is a group node, check if it contains the agent
-        if (node.type === 'group' && node.data.agents) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              // Remove the agent from the group's agents array
-              agents: node.data.agents.filter((agent: AgentData) => agent.id !== data.id)
-            }
-          };
-        }
-        // Remove the agent node itself
-        return node.id !== id ? node : null;
-      }).filter(Boolean) as Node[];
+      return nodes
+        .map((node) => {
+          // If this is a group node, check if it contains the agent
+          if (node.type === 'group' && node.data.agents) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                // Remove the agent from the group's agents array
+                agents: node.data.agents.filter(
+                  (agent: AgentData) => agent.id !== data.id,
+                ),
+              },
+            };
+          }
+          // Remove the agent node itself
+          return node.id !== id ? node : null;
+        })
+        .filter(Boolean) as Node[];
     });
 
     // Remove any edges connected to this agent
-    setEdges(edges => edges.filter(edge => 
-      edge.source !== id && edge.target !== id
-    ));
+    setEdges((edges) =>
+      edges.filter((edge) => edge.source !== id && edge.target !== id),
+    );
   }, [id, data.id, setNodes, setEdges]);
 
   // Add the generate prompt handler
@@ -442,9 +463,9 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
   const handleOptimizePrompt = async () => {
     if (!localSystemPrompt) {
       toast({
-        title: "Error",
-        description: "System prompt is required for optimization",
-        variant: "destructive"
+        title: 'Error',
+        description: 'System prompt is required for optimization',
+        variant: 'destructive',
       });
       return;
     }
@@ -452,10 +473,10 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
     setIsOptimizing(true);
     try {
       const optimizedPrompt = await optimizePrompt(localSystemPrompt);
-      
+
       // Update both local state and node data
       setLocalSystemPrompt(optimizedPrompt);
-      
+
       // Update the node data in the flow
       setNodes((nodes) =>
         nodes.map((node) => {
@@ -469,17 +490,17 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
             };
           }
           return node;
-        })
+        }),
       );
 
       toast({
-        description: "System prompt optimized successfully",
+        description: 'System prompt optimized successfully',
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to optimize system prompt",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to optimize system prompt',
+        variant: 'destructive',
       });
     }
     setIsOptimizing(false);
@@ -503,35 +524,40 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
 
               <motion.div
                 // Add motion.div wrapper for spinning animation
-                animate={{ 
-                  rotate: data.isProcessing ? 360 : 0 
+                animate={{
+                  rotate: data.isProcessing ? 360 : 0,
                 }}
-                transition={{ 
+                transition={{
                   duration: 2,
                   repeat: data.isProcessing ? Infinity : 0,
-                  ease: "linear"
+                  ease: 'linear',
                 }}
               >
                 <svg width="80" height="80" viewBox="0 0 100 100">
                   <AnimatedHexagon
                     points="50 1 95 25 95 75 50 99 5 75 5 25"
-                    fill={data.type === "Boss" 
-                      ? "hsl(var(--card))" 
-                      : "hsl(var(--secondary))"
+                    fill={
+                      data.type === 'Boss'
+                        ? 'hsl(var(--card))'
+                        : 'hsl(var(--secondary))'
                     }
-                    stroke={document.documentElement.classList.contains('dark') ? "#333" : "hsl(var(--border))"}
+                    stroke={
+                      document.documentElement.classList.contains('dark')
+                        ? '#333'
+                        : 'hsl(var(--border))'
+                    }
                     strokeWidth="2"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.5 }}
                     style={{
-                      fill: document.documentElement.classList.contains('dark') 
-                        ? data.type === "Boss" 
-                          ? "#000000" 
-                          : "#1A1A1B"
-                        : data.type === "Boss"
-                          ? "hsl(var(--card))"
-                          : "hsl(var(--secondary))"
+                      fill: document.documentElement.classList.contains('dark')
+                        ? data.type === 'Boss'
+                          ? '#000000'
+                          : '#1A1A1B'
+                        : data.type === 'Boss'
+                          ? 'hsl(var(--card))'
+                          : 'hsl(var(--secondary))',
                     }}
                   />
                 </svg>
@@ -588,15 +614,15 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
         </Tooltip>
       </TooltipProvider>
       <AnimatePresence>
-      {isEditing && (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 0.9 }}
-    className="fixed inset-0 z-50 flex items-center justify-center bg-background/95"
-  >
-    <Card className="w-96 min-w-[500px] bg-card text-card-foreground p-6 rounded-lg shadow-xl border-border relative z-[60]">
-     <div className="flex justify-between items-center mb-4">
+        {isEditing && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/95"
+          >
+            <Card className="w-96 min-w-[500px] bg-card text-card-foreground p-6 rounded-lg shadow-xl border-border relative z-[60]">
+              <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-card-foreground antialiased">
                   Edit Agent
                 </h3>
@@ -698,7 +724,7 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
                                 };
                               }
                               return node;
-                            })
+                            }),
                           );
                         }}
                         className="pr-12 min-h-[100px] bg-card border-border text-card-foreground"
@@ -709,7 +735,11 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
                         variant="ghost"
                         onClick={handleOptimizePrompt}
                         disabled={isOptimizing || !localSystemPrompt}
-                        title={!localSystemPrompt ? "System prompt required" : "Optimize prompt"}
+                        title={
+                          !localSystemPrompt
+                            ? 'System prompt required'
+                            : 'Optimize prompt'
+                        }
                         className="absolute right-2 top-2 h-8 w-8 p-0"
                       >
                         {isOptimizing ? (
@@ -738,7 +768,6 @@ const AgentNode: React.FC<NodeProps<AgentData> & {
   );
 };
 
-
 // Make groupProcessingStates available globally for the GroupNode component
 const GroupNodeContext = createContext<{
   groupProcessingStates: any;
@@ -752,99 +781,110 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
   const { setNodes, setEdges } = useReactFlow();
   const nodes = useNodes(); // Get current nodes
   useBodyStyleCleanup(isEditing);
-  
+
   const handleDelete = useCallback(() => {
-    setNodes(nodes => {
+    setNodes((nodes) => {
       // Get all agent IDs in this group
-      const agentIds = data.agents?.map(agent => agent.id) || [];
-      
+      const agentIds = data.agents?.map((agent) => agent.id) || [];
+
       // Update nodes: Remove the group and update agents to be standalone
-      return nodes.map(node => {
-        if (node.id === id) {
-          // Remove the group
-          return null;
-        }
-        if (agentIds.includes(node.id)) {
-          // Update agent to remove group association
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              groupId: undefined
-            }
-          };
-        }
-        return node;
-      }).filter(Boolean) as Node[];
+      return nodes
+        .map((node) => {
+          if (node.id === id) {
+            // Remove the group
+            return null;
+          }
+          if (agentIds.includes(node.id)) {
+            // Update agent to remove group association
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                groupId: undefined,
+              },
+            };
+          }
+          return node;
+        })
+        .filter(Boolean) as Node[];
     });
-    
-    setEdges(edges => edges.filter(edge => 
-      edge.source !== id && edge.target !== id
-    ));
+
+    setEdges((edges) =>
+      edges.filter((edge) => edge.source !== id && edge.target !== id),
+    );
   }, [id, data.agents, setNodes, setEdges]);
 
   // Add a new function to remove agent from group
-  const removeAgentFromGroup = useCallback((groupId: string, agentId: string) => {
-    setNodes(nodes => {
-      // First find the agent's data from the group
-      const group = nodes.find(n => n.id === groupId);
-      const agentData = group?.data.agents?.find((a: AgentData) => a.id === agentId);
-      
-      if (!agentData) return nodes;
-
-      // Calculate new position for the agent
-      const groupNode = nodes.find(n => n.id === groupId);
-      const newPosition = {
-        x: (groupNode?.position?.x || 0) + Math.random() * 100,
-        y: (groupNode?.position?.y || 0) + Math.random() * 100
-      };
-
-      return nodes.map(node => {
-        // Remove agent from group
-        if (node.id === groupId && node.type === 'group') {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              agents: node.data.agents.filter((a: AgentData) => a.id !== agentId)
-            }
-          };
-        }
-        return node;
-      }).concat({
-        // Add agent back as a standalone node
-        id: agentId,
-        type: 'agent',
-        position: newPosition,
-        data: {
-          ...agentData,
-          groupId: undefined // Remove group association
-        }
-      });
-    });
-
-    // Restore any previous connections that were stored
-    setEdges(edges => {
-      const storedEdges = edges.filter(e => 
-        (e.source === agentId || e.target === agentId) && 
-        e.data?.type === 'agent' &&
-        e.data?.isStored // Check for stored edges
-      );
-
-      return edges
-        .filter(e => !e.data?.isStored) // Remove stored edges from current edges
-        .concat(
-          storedEdges.map(edge => ({
-            ...edge,
-            data: {
-              ...edge.data,
-              isStored: false // Remove stored flag
-            }
-          }))
+  const removeAgentFromGroup = useCallback(
+    (groupId: string, agentId: string) => {
+      setNodes((nodes) => {
+        // First find the agent's data from the group
+        const group = nodes.find((n) => n.id === groupId);
+        const agentData = group?.data.agents?.find(
+          (a: AgentData) => a.id === agentId,
         );
-    });
-  }, [setNodes, setEdges]);
 
+        if (!agentData) return nodes;
+
+        // Calculate new position for the agent
+        const groupNode = nodes.find((n) => n.id === groupId);
+        const newPosition = {
+          x: (groupNode?.position?.x || 0) + Math.random() * 100,
+          y: (groupNode?.position?.y || 0) + Math.random() * 100,
+        };
+
+        return nodes
+          .map((node) => {
+            // Remove agent from group
+            if (node.id === groupId && node.type === 'group') {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  agents: node.data.agents.filter(
+                    (a: AgentData) => a.id !== agentId,
+                  ),
+                },
+              };
+            }
+            return node;
+          })
+          .concat({
+            // Add agent back as a standalone node
+            id: agentId,
+            type: 'agent',
+            position: newPosition,
+            data: {
+              ...agentData,
+              groupId: undefined, // Remove group association
+            },
+          });
+      });
+
+      // Restore any previous connections that were stored
+      setEdges((edges) => {
+        const storedEdges = edges.filter(
+          (e) =>
+            (e.source === agentId || e.target === agentId) &&
+            e.data?.type === 'agent' &&
+            e.data?.isStored, // Check for stored edges
+        );
+
+        return edges
+          .filter((e) => !e.data?.isStored) // Remove stored edges from current edges
+          .concat(
+            storedEdges.map((edge) => ({
+              ...edge,
+              data: {
+                ...edge.data,
+                isStored: false, // Remove stored flag
+              },
+            })),
+          );
+      });
+    },
+    [setNodes, setEdges],
+  );
 
   return (
     <div className="relative">
@@ -852,20 +892,22 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
       <div className="min-w-[300px] min-h-[200px] relative">
         {/* Semi-transparent backdrop with more visible styling */}
         <div className="absolute inset-0 bg-card/80 dark:bg-background/80 backdrop-blur-sm border-2 border-border dark:border-gray-800 rounded-lg shadow-lg" />
-        
+
         {/* Input handle */}
         <Handle
           type="target"
           position={Position.Left}
           className="w-2 h-2 !bg-muted-foreground"
         />
-        
+
         {/* Group Content */}
         <div className="relative p-4">
           {/* Group Header */}
           <div className="flex justify-between items-center mb-4 border-b border-border pb-2">
             <div>
-              <h3 className="font-semibold text-lg text-card-foreground">{data.teamName}</h3>
+              <h3 className="font-semibold text-lg text-card-foreground">
+                {data.teamName}
+              </h3>
               <p className="text-sm text-muted-foreground">{data.swarmType}</p>
             </div>
             <DropdownMenu>
@@ -943,21 +985,25 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
                 Make changes to the group configuration here.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.target as HTMLFormElement);
-              const updatedData = {
-                ...data,
-                teamName: formData.get('teamName') as string,
-                swarmType: formData.get('swarmType') as string,
-                description: formData.get('description') as string,
-              };
-              window.updateGroupData?.(id, updatedData);
-              setIsEditing(false);
-            }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target as HTMLFormElement);
+                const updatedData = {
+                  ...data,
+                  teamName: formData.get('teamName') as string,
+                  swarmType: formData.get('swarmType') as string,
+                  description: formData.get('description') as string,
+                };
+                window.updateGroupData?.(id, updatedData);
+                setIsEditing(false);
+              }}
+            >
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="teamName" className="text-left">Team Name</Label>
+                  <Label htmlFor="teamName" className="text-left">
+                    Team Name
+                  </Label>
                   <Input
                     id="teamName"
                     name="teamName"
@@ -966,7 +1012,9 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="swarmType" className="text-left">Swarm Type</Label>
+                  <Label htmlFor="swarmType" className="text-left">
+                    Swarm Type
+                  </Label>
                   <Select name="swarmType" defaultValue={data.swarmType}>
                     <SelectTrigger className="col-span-3 text-left">
                       <SelectValue />
@@ -981,7 +1029,9 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
                   </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description" className="text-left">Description</Label>
+                  <Label htmlFor="description" className="text-left">
+                    Description
+                  </Label>
                   <Textarea
                     id="description"
                     name="description"
@@ -1003,7 +1053,7 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
             <div className="text-primary-foreground">Processing...</div>
           </div>
         )}
-        
+
         {/* Add completion indicator */}
         {processingState?.result && (
           <div className="absolute top-2 right-2">
@@ -1012,16 +1062,13 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
 };
 
- 
-
 // eslint-disable-next-line react-hooks/rules-of-hooks
-const nodeTypes ={
+const nodeTypes = {
   agent: AgentNode,
   group: GroupNode,
 };
@@ -1039,7 +1086,7 @@ const CustomEdge = ({
   markerEnd,
 }: EdgeProps) => {
   const { setEdges } = useReactFlow();
-  
+
   // Calculate midpoint for the delete button
   const midX = (sourceX + targetX) / 2;
   const midY = (sourceY + targetY) / 2;
@@ -1112,11 +1159,10 @@ interface AddAgentToGroupDialogProps {
   open: boolean;
   groupId: string | null;
   onClose: () => void;
-  nodes: Node[];  // Add this
-  setNodes: Dispatch<SetStateAction<Node[]>>;  // Add this
+  nodes: Node[]; // Add this
+  setNodes: Dispatch<SetStateAction<Node[]>>; // Add this
 }
 
-   
 // Create a wrapped component for the main content
 const FlowContent = () => {
   const router = useRouter();
@@ -1131,7 +1177,7 @@ const FlowContent = () => {
     groupId: string | null;
   }>({
     open: false,
-    groupId: null
+    groupId: null,
   });
   // const [nodes, setNodes, onNodesChange] = useNodesState<AgentData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -1139,7 +1185,7 @@ const FlowContent = () => {
   const [swarmJson, setSwarmJson] = useState('');
   const [taskResults, setTaskResults] = useState<{ [key: string]: string }>({});
   const [isOptimizing, setIsOptimizing] = useState(false);
-  const { toast } = useToast(); 
+  const { toast } = useToast();
   const [systemPrompt, setSystemPrompt] = useState('');
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null); // Move this line above the useEnhancedAutosave call
   const saveFlowMutation = api.dnd.saveFlow.useMutation(); // Move this line above the useEnhancedAutosave call
@@ -1159,140 +1205,144 @@ const FlowContent = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   // When adding an agent to a group, store its connections
-  const addAgentToGroup = useCallback((groupId: string, agentId: string) => {
-    // First, get the agent's data before removing it
-    const agentNode = nodes.find(n => n.id === agentId);
-    if (!agentNode) return;
+  const addAgentToGroup = useCallback(
+    (groupId: string, agentId: string) => {
+      // First, get the agent's data before removing it
+      const agentNode = nodes.find((n) => n.id === agentId);
+      if (!agentNode) return;
 
-    // Update nodes: add agent to group and remove standalone node
-    setNodes(prevNodes => {
-      // First, remove the standalone agent node
-      const filteredNodes = prevNodes.filter(node => node.id !== agentId);
+      // Update nodes: add agent to group and remove standalone node
+      setNodes((prevNodes) => {
+        // First, remove the standalone agent node
+        const filteredNodes = prevNodes.filter((node) => node.id !== agentId);
 
-      // Then, update the group with the new agent
-      return filteredNodes.map(node => {
-        if (node.id === groupId && node.type === 'group') {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              agents: [
-                ...(node.data.agents || []),
-                {
-                  ...agentNode.data,
-                  groupId: groupId
-                }
-              ]
-            }
-          };
-        }
-        return node;
+        // Then, update the group with the new agent
+        return filteredNodes.map((node) => {
+          if (node.id === groupId && node.type === 'group') {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                agents: [
+                  ...(node.data.agents || []),
+                  {
+                    ...agentNode.data,
+                    groupId: groupId,
+                  },
+                ],
+              },
+            };
+          }
+          return node;
+        });
       });
-    });
 
-    // Remove all connections to/from the agent
-    setEdges(edges => 
-      edges.filter(edge => 
-        edge.source !== agentId && 
-        edge.target !== agentId
-      )
-    );
-  }, [nodes, setNodes, setEdges]);
-
-
-// Add this new component before the main component
-const AddAgentToGroupDialog: React.FC<{
-  open: boolean;
-  groupId: string | null;
-  onClose: () => void;
-}> = ({ open, groupId, onClose }) => {
-  const { setNodes, setEdges } = useReactFlow();
-  const nodes = useNodes();
-
-  const addAgentToGroup = useCallback((agentId: string) => {
-    if (!groupId) return;
-
-    // First, get the agent's data before removing it
-    const agentNode = nodes.find(n => n.id === agentId);
-    if (!agentNode) return;
-
-    // Update nodes: add agent to group and remove standalone node
-    setNodes(prevNodes => {
-      // First filter out the standalone agent node
-      const filteredNodes = prevNodes.filter(node => node.id !== agentId);
-
-      // Then update the group with the new agent
-      return filteredNodes.map(node => {
-        if (node.id === groupId && node.type === 'group') {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              agents: [
-                ...(node.data.agents || []),
-                {
-                  ...(agentNode?.data as any),
-                  groupId: groupId
-                }
-              ]
-            }
-          };
-        }
-        return node;
-      });
-    });
-
-    // Remove all connections to/from the agent
-    setEdges(edges => 
-      edges.filter(edge => 
-        edge.source !== agentId && 
-        edge.target !== agentId
-      )
-    );
-
-    onClose(); // Close dialog after adding
-  }, [groupId, nodes, setNodes, setEdges, onClose]);
-
-  // Get standalone agents (not in any group)
-  const standaloneAgents = nodes.filter(
-    node => node.type === 'agent' && !(node?.data as any)?.groupId
+      // Remove all connections to/from the agent
+      setEdges((edges) =>
+        edges.filter(
+          (edge) => edge.source !== agentId && edge.target !== agentId,
+        ),
+      );
+    },
+    [nodes, setNodes, setEdges],
   );
 
-  return (
-    <Dialog open={open} onOpenChange={() => onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Agent to Team</DialogTitle>
-          <DialogDescription>
-            Select an agent to add to this team
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4">
-          {standaloneAgents.map((agent) => (
-            <Button
-              key={agent.id}
-              onClick={() => addAgentToGroup(agent.id)}
-              variant="outline"
-              className="justify-start"
-            >
-              {(agent?.data as any)?.name || `Agent ${agent.id}`}
-            </Button>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+  // Add this new component before the main component
+  const AddAgentToGroupDialog: React.FC<{
+    open: boolean;
+    groupId: string | null;
+    onClose: () => void;
+  }> = ({ open, groupId, onClose }) => {
+    const { setNodes, setEdges } = useReactFlow();
+    const nodes = useNodes();
 
+    const addAgentToGroup = useCallback(
+      (agentId: string) => {
+        if (!groupId) return;
 
-  
-  const updateGroupState = (groupId: string, update: Partial<GroupProcessingState>) => {
-    setGroupProcessingStates(prev => ({
+        // First, get the agent's data before removing it
+        const agentNode = nodes.find((n) => n.id === agentId);
+        if (!agentNode) return;
+
+        // Update nodes: add agent to group and remove standalone node
+        setNodes((prevNodes) => {
+          // First filter out the standalone agent node
+          const filteredNodes = prevNodes.filter((node) => node.id !== agentId);
+
+          // Then update the group with the new agent
+          return filteredNodes.map((node) => {
+            if (node.id === groupId && node.type === 'group') {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  agents: [
+                    ...(node.data.agents || []),
+                    {
+                      ...(agentNode?.data as any),
+                      groupId: groupId,
+                    },
+                  ],
+                },
+              };
+            }
+            return node;
+          });
+        });
+
+        // Remove all connections to/from the agent
+        setEdges((edges) =>
+          edges.filter(
+            (edge) => edge.source !== agentId && edge.target !== agentId,
+          ),
+        );
+
+        onClose(); // Close dialog after adding
+      },
+      [groupId, nodes, setNodes, setEdges, onClose],
+    );
+
+    // Get standalone agents (not in any group)
+    const standaloneAgents = nodes.filter(
+      (node) => node.type === 'agent' && !(node?.data as any)?.groupId,
+    );
+
+    return (
+      <Dialog open={open} onOpenChange={() => onClose()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Agent to Team</DialogTitle>
+            <DialogDescription>
+              Select an agent to add to this team
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            {standaloneAgents.map((agent) => (
+              <Button
+                key={agent.id}
+                onClick={() => addAgentToGroup(agent.id)}
+                variant="outline"
+                className="justify-start"
+              >
+                {(agent?.data as any)?.name || `Agent ${agent.id}`}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const updateGroupState = (
+    groupId: string,
+    update: Partial<GroupProcessingState>,
+  ) => {
+    setGroupProcessingStates((prev) => ({
       ...prev,
       [groupId]: {
         ...prev[groupId],
-        ...update
-      }
+        ...update,
+      },
     }));
   };
 
@@ -1310,8 +1360,11 @@ const AddAgentToGroupDialog: React.FC<{
     if (getCurrentFlowQuery.data) {
       const swarmData = {
         nodes: getCurrentFlowQuery.data.nodes,
+
         edges: getCurrentFlowQuery.data.edges,
+
         architecture: getCurrentFlowQuery.data.architecture,
+
         results: getCurrentFlowQuery.data.results,
       };
       setSwarmJson(JSON.stringify(swarmData, null, 2));
@@ -1351,25 +1404,25 @@ const AddAgentToGroupDialog: React.FC<{
   const handleOptimizePrompt = async () => {
     if (!systemPrompt) {
       toast({
-        title: "Error",
-        description: "System prompt is required for optimization",
-        variant: "destructive"
+        title: 'Error',
+        description: 'System prompt is required for optimization',
+        variant: 'destructive',
       });
       return;
     }
-  
+
     setIsOptimizing(true);
     try {
       const optimizedPrompt = await optimizePrompt(systemPrompt);
       setSystemPrompt(optimizedPrompt);
       toast({
-        description: "System prompt optimized successfully",
+        description: 'System prompt optimized successfully',
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to optimize system prompt",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to optimize system prompt',
+        variant: 'destructive',
       });
     }
     setIsOptimizing(false);
@@ -1377,26 +1430,30 @@ const AddAgentToGroupDialog: React.FC<{
 
   const saveInProgressRef = useRef(false);
 
-
   useEffect(() => {
-    const mainWrapperElements = document.getElementsByClassName('main-wrapper-all');
-    const panelLayoutElements = document.getElementsByClassName('panel-layout-wrapper');
+    const mainWrapperElements =
+      document.getElementsByClassName('main-wrapper-all');
+    const panelLayoutElements = document.getElementsByClassName(
+      'panel-layout-wrapper',
+    );
     const originalClasses: { [key: string]: string[] } = {
       mainWrapper: [],
-      panelLayout: []
+      panelLayout: [],
     };
 
     // Save original classes
     for (let i = 0; i < mainWrapperElements.length; i++) {
       originalClasses.mainWrapper[i] = mainWrapperElements[i].className;
     }
-    
+
     for (let i = 0; i < panelLayoutElements.length; i++) {
       originalClasses.panelLayout[i] = panelLayoutElements[i].className;
       // Remove specific classes from panel layout
       const classes = panelLayoutElements[i].className
         .split(' ')
-        .filter(cls => !['w-screen', 'h-screen', 'min-h-screen'].includes(cls))
+        .filter(
+          (cls) => !['w-screen', 'h-screen', 'min-h-screen'].includes(cls),
+        )
         .join(' ');
       panelLayoutElements[i].className = classes;
     }
@@ -1404,7 +1461,8 @@ const AddAgentToGroupDialog: React.FC<{
     const timer = setTimeout(() => {
       if (mainWrapperElements.length >= 1) {
         for (let i = 0; i < mainWrapperElements.length; i++) {
-          mainWrapperElements[i].className = 'main-wrapper-all spreadsheet-swarm';
+          mainWrapperElements[i].className =
+            'main-wrapper-all spreadsheet-swarm';
         }
       }
       // Set loading to false after classes are updated
@@ -1416,9 +1474,12 @@ const AddAgentToGroupDialog: React.FC<{
     // Restore original classes on unmount
     return () => {
       clearTimeout(timer);
-      const mainWrapperElements = document.getElementsByClassName('main-wrapper-all');
-      const panelLayoutElements = document.getElementsByClassName('panel-layout-wrapper');
-      
+      const mainWrapperElements =
+        document.getElementsByClassName('main-wrapper-all');
+      const panelLayoutElements = document.getElementsByClassName(
+        'panel-layout-wrapper',
+      );
+
       for (let i = 0; i < mainWrapperElements.length; i++) {
         if (mainWrapperElements[i]) {
           mainWrapperElements[i].className = originalClasses.mainWrapper[i];
@@ -1432,7 +1493,6 @@ const AddAgentToGroupDialog: React.FC<{
       }
     };
   }, []);
-
 
   // Add new function to handle new flow creation
   const createNewFlow = useCallback(async () => {
@@ -1500,15 +1560,17 @@ const AddAgentToGroupDialog: React.FC<{
 
         // Update all relevant state with the loaded flow data
         setNodes(flowData.nodes || []);
-        setEdges(flowData.edges as any || []);
-        setSwarmArchitecture(flowData.architecture as SwarmArchitecture || 'Concurrent');
+        setEdges((flowData.edges as any) || []);
+        setSwarmArchitecture(
+          (flowData.architecture as SwarmArchitecture) || 'Concurrent',
+        );
         setTaskResults(flowData.results || {});
         setCurrentFlowId(flowId);
 
         // Initialize previous state
         previousStateRef.current = {
-          nodes: flowData.nodes as any || [],
-          edges: flowData.edges as any || [],
+          nodes: (flowData.nodes as any) || [],
+          edges: (flowData.edges as any) || [],
         };
 
         // Update the JSON representation
@@ -1548,14 +1610,14 @@ const AddAgentToGroupDialog: React.FC<{
   const hasCircularConnection = (
     source: string,
     target: string,
-    visitedGroups = new Set<string>()
+    visitedGroups = new Set<string>(),
   ): boolean => {
     if (visitedGroups.has(target)) return true;
     visitedGroups.add(source);
 
-    const outgoingEdges = edges.filter(edge => edge.source === target);
-    return outgoingEdges.some(edge =>
-      hasCircularConnection(target, edge.target, new Set(visitedGroups))
+    const outgoingEdges = edges.filter((edge) => edge.source === target);
+    return outgoingEdges.some((edge) =>
+      hasCircularConnection(target, edge.target, new Set(visitedGroups)),
     );
   };
 
@@ -1565,8 +1627,8 @@ const AddAgentToGroupDialog: React.FC<{
       if (!params.source || !params.target) return;
 
       // Get source and target nodes
-      const sourceNode = nodes.find(n => n.id === params.source);
-      const targetNode = nodes.find(n => n.id === params.target);
+      const sourceNode = nodes.find((n) => n.id === params.source);
+      const targetNode = nodes.find((n) => n.id === params.target);
 
       if (!sourceNode || !targetNode) return;
 
@@ -1575,7 +1637,7 @@ const AddAgentToGroupDialog: React.FC<{
         if (sourceNode.data.groupId || targetNode.data.groupId) {
           setPopup({
             message: 'Agents in teams can only communicate within their team',
-            type: 'error'
+            type: 'error',
           });
           return;
         }
@@ -1584,7 +1646,7 @@ const AddAgentToGroupDialog: React.FC<{
         if (hasCircularConnection(params.source, params.target)) {
           setPopup({
             message: 'Circular connections between agents are not allowed',
-            type: 'error'
+            type: 'error',
           });
           return;
         }
@@ -1600,10 +1662,10 @@ const AddAgentToGroupDialog: React.FC<{
             type: MarkerType.ArrowClosed,
             color: '#6366F1',
           },
-          data: { 
+          data: {
             label: 'Agent Communication',
             type: 'agent',
-            messages: []
+            messages: [],
           },
         };
 
@@ -1616,7 +1678,7 @@ const AddAgentToGroupDialog: React.FC<{
         if (hasCircularConnection(params.source, params.target)) {
           setPopup({
             message: 'Circular connections between groups are not allowed',
-            type: 'error'
+            type: 'error',
           });
           return;
         }
@@ -1632,9 +1694,9 @@ const AddAgentToGroupDialog: React.FC<{
             type: MarkerType.ArrowClosed,
             color: '#8E8E93',
           },
-          data: { 
+          data: {
             label: 'Group Flow',
-            type: 'group'
+            type: 'group',
           },
         };
 
@@ -1642,7 +1704,7 @@ const AddAgentToGroupDialog: React.FC<{
         return;
       }
     },
-    [nodes, edges, setEdges]
+    [nodes, edges, setEdges],
   );
 
   const addAgent = useCallback(
@@ -1650,10 +1712,10 @@ const AddAgentToGroupDialog: React.FC<{
       const newNode: ReactFlowNode = {
         id: `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Generate unique ID
         type: 'agent',
-        position: { 
+        position: {
           // Get viewport center for better positioning
-          x: Math.random() * 500, 
-          y: Math.random() * 300 
+          x: Math.random() * 500,
+          y: Math.random() * 300,
         },
         data: agent,
       };
@@ -1721,30 +1783,32 @@ const AddAgentToGroupDialog: React.FC<{
         if (node.id === id) {
           return { ...node, data: { ...node.data, ...updatedData } };
         }
-        
+
         // If this is a group node, check if it contains the agent being updated
         if (node.type === 'group' && node.data.agents) {
-          const agentIndex = node.data.agents.findIndex((agent: AgentData) => agent.id === id);
+          const agentIndex = node.data.agents.findIndex(
+            (agent: AgentData) => agent.id === id,
+          );
           if (agentIndex !== -1) {
             // Create new agents array with updated agent
             const updatedAgents = [...node.data.agents];
             updatedAgents[agentIndex] = {
               ...updatedAgents[agentIndex],
-              ...updatedData
+              ...updatedData,
             };
-            
+
             // Return updated group node
             return {
               ...node,
               data: {
                 ...node.data,
-                agents: updatedAgents
-              }
+                agents: updatedAgents,
+              },
             };
           }
         }
         return node;
-      })
+      }),
     );
   };
 
@@ -1756,15 +1820,17 @@ const AddAgentToGroupDialog: React.FC<{
   // Update the processAgent function
   const processAgent = async (agentId: string, context: string = '') => {
     if (processedAgents.has(agentId)) return;
-    
+
     // Set processing state to true
-    setNodes(nodes => nodes.map(node => 
-      node.id === agentId 
-        ? { ...node, data: { ...node.data, isProcessing: true }} 
-        : node
-    ));
-    
-    const agent = nodes.find(n => n.id === agentId)?.data;
+    setNodes((nodes) =>
+      nodes.map((node) =>
+        node.id === agentId
+          ? { ...node, data: { ...node.data, isProcessing: true } }
+          : node,
+      ),
+    );
+
+    const agent = nodes.find((n) => n.id === agentId)?.data;
     if (!agent) return;
 
     // Mark this agent as being processed to prevent cycles
@@ -1772,9 +1838,8 @@ const AddAgentToGroupDialog: React.FC<{
 
     try {
       // Get all incoming edges
-      const incomingEdges = edges.filter(e => 
-        e.target === agentId && 
-        e.data?.type === 'agent'
+      const incomingEdges = edges.filter(
+        (e) => e.target === agentId && e.data?.type === 'agent',
       );
 
       // Process all incoming agents first and collect their results
@@ -1784,9 +1849,10 @@ const AddAgentToGroupDialog: React.FC<{
             await processAgent(edge.source, '');
           }
           const sourceResult = taskResults[edge.source];
-          const sourceName = nodes.find(n => n.id === edge.source)?.data?.name;
+          const sourceName = nodes.find((n) => n.id === edge.source)?.data
+            ?.name;
           return sourceResult ? `${sourceName}: ${sourceResult}` : '';
-        })
+        }),
       );
 
       // Generate response using all previous results
@@ -1799,26 +1865,30 @@ const AddAgentToGroupDialog: React.FC<{
         
         Task: ${task}
         
-        Based on ${incomingResults.length > 0 ? 'the previous agents\' results' : 'the task'}, provide your response:`,
+        Based on ${incomingResults.length > 0 ? "the previous agents' results" : 'the task'}, provide your response:`,
       });
 
       // Store result
-      setTaskResults(prev => ({
+      setTaskResults((prev) => ({
         ...prev,
-        [agentId]: text
+        [agentId]: text,
       }));
 
       // Set processing state to false and update result
-      setNodes(nodes => nodes.map(node => 
-        node.id === agentId 
-          ? { ...node, data: { ...node.data, isProcessing: false, lastResult: text }} 
-          : node
-      ));
+      setNodes((nodes) =>
+        nodes.map((node) =>
+          node.id === agentId
+            ? {
+                ...node,
+                data: { ...node.data, isProcessing: false, lastResult: text },
+              }
+            : node,
+        ),
+      );
 
       // Process next agents in chain with current result
-      const outgoingEdges = edges.filter(e => 
-        e.source === agentId && 
-        e.data?.type === 'agent'
+      const outgoingEdges = edges.filter(
+        (e) => e.source === agentId && e.data?.type === 'agent',
       );
 
       // Process each outgoing connection sequentially, passing the current result
@@ -1829,12 +1899,14 @@ const AddAgentToGroupDialog: React.FC<{
       return text;
     } catch (error) {
       // Set processing state to false on error
-      setNodes(nodes => nodes.map(node => 
-        node.id === agentId 
-          ? { ...node, data: { ...node.data, isProcessing: false }} 
-          : node
-      ));
-      
+      setNodes((nodes) =>
+        nodes.map((node) =>
+          node.id === agentId
+            ? { ...node, data: { ...node.data, isProcessing: false } }
+            : node,
+        ),
+      );
+
       console.error(`Error processing agent ${agentId}:`, error);
       throw error;
     }
@@ -1847,10 +1919,11 @@ const AddAgentToGroupDialog: React.FC<{
       processedAgents.clear(); // Clear the processed agents set
 
       // Find starting agents (those with no incoming connections)
-      const startingAgents = nodes.filter(node => 
-        node.type === 'agent' &&
-        !node.data.groupId && // Only process standalone agents
-        !edges.some(e => e.target === node.id && e.data?.type === 'agent')
+      const startingAgents = nodes.filter(
+        (node) =>
+          node.type === 'agent' &&
+          !node.data.groupId && // Only process standalone agents
+          !edges.some((e) => e.target === node.id && e.data?.type === 'agent'),
       );
 
       // Process each starting agent and their chains sequentially
@@ -1859,9 +1932,10 @@ const AddAgentToGroupDialog: React.FC<{
       }
 
       // Process groups after all agent chains are complete
-      const startingGroups = nodes.filter(node => 
-        node.type === 'group' && 
-        !edges.some(edge => edge.target === node.id)
+      const startingGroups = nodes.filter(
+        (node) =>
+          node.type === 'group' &&
+          !edges.some((edge) => edge.target === node.id),
       );
 
       if (startingGroups.length > 0) {
@@ -1872,33 +1946,37 @@ const AddAgentToGroupDialog: React.FC<{
 
       setPopup({
         message: 'Task completed successfully',
-        type: 'success'
+        type: 'success',
       });
-
     } catch (error) {
       console.error('Error running task:', error);
       setPopup({
         message: 'Error processing task',
-        type: 'error'
+        type: 'error',
       });
     }
   };
 
   // Update the processGroupChain function to handle team processing better
-  const processGroupChain = async (groupId: string, currentTask: string, previousResults: string = '', processedGroups = new Set<string>()) => {
+  const processGroupChain = async (
+    groupId: string,
+    currentTask: string,
+    previousResults: string = '',
+    processedGroups = new Set<string>(),
+  ) => {
     if (processedGroups.has(groupId)) return;
     processedGroups.add(groupId);
 
     try {
-      setGroupProcessingStates(prev => ({
+      setGroupProcessingStates((prev) => ({
         ...prev,
         [groupId]: {
           isProcessing: true,
           completedAgents: [],
-        }
+        },
       }));
 
-      const group = nodes.find(n => n.id === groupId);
+      const group = nodes.find((n) => n.id === groupId);
       if (!group || group.type !== 'group' || !group.data.agents) return;
 
       const groupAgents = group.data.agents;
@@ -1921,7 +1999,7 @@ const AddAgentToGroupDialog: React.FC<{
                 Response:`,
               });
               return { agentId: agent.id, result: text };
-            })
+            }),
           );
           break;
 
@@ -1966,16 +2044,20 @@ const AddAgentToGroupDialog: React.FC<{
               });
               groupResults.push({ agentId: boss.id, result: text });
               return { bossId: boss.id, subtask: text };
-            })
+            }),
           );
 
           // Then process workers
           await Promise.all(
             workers.map(async (worker: any) => {
-              const boss = bosses.find((b: any) => b.clusterId === worker.clusterId);
+              const boss = bosses.find(
+                (b: any) => b.clusterId === worker.clusterId,
+              );
               if (!boss) return null;
 
-              const bossPrompt = bossResults.find(bp => bp.bossId === boss.id);
+              const bossPrompt = bossResults.find(
+                (bp) => bp.bossId === boss.id,
+              );
               if (!bossPrompt) return null;
 
               const { text } = await generateText({
@@ -1988,16 +2070,16 @@ const AddAgentToGroupDialog: React.FC<{
                 Response:`,
               });
               groupResults.push({ agentId: worker.id, result: text });
-            })
+            }),
           );
           break;
       }
 
       // Update individual agent results
       groupResults.forEach(({ agentId, result }) => {
-        setTaskResults(prev => ({
+        setTaskResults((prev) => ({
           ...prev,
-          [agentId]: result
+          [agentId]: result,
         }));
       });
 
@@ -2007,39 +2089,43 @@ const AddAgentToGroupDialog: React.FC<{
         .join('\n\n')}`;
 
       // Store the group result in taskResults
-      setTaskResults(prev => ({
+      setTaskResults((prev) => ({
         ...prev,
-        [groupId]: groupResult // Store group result with group's ID
+        [groupId]: groupResult, // Store group result with group's ID
       }));
 
       // Update group processing state
-      setGroupProcessingStates(prev => ({
+      setGroupProcessingStates((prev) => ({
         ...prev,
         [groupId]: {
           isProcessing: false,
-          completedAgents: groupResults.map(r => r.agentId),
-          result: groupResult
-        }
+          completedAgents: groupResults.map((r) => r.agentId),
+          result: groupResult,
+        },
       }));
 
       // Process next groups in chain
       const nextGroups = edges
-        .filter(edge => edge.source === groupId)
-        .map(edge => edge.target);
+        .filter((edge) => edge.source === groupId)
+        .map((edge) => edge.target);
 
       for (const nextGroupId of nextGroups) {
-        await processGroupChain(nextGroupId, currentTask, groupResult, processedGroups);
+        await processGroupChain(
+          nextGroupId,
+          currentTask,
+          groupResult,
+          processedGroups,
+        );
       }
-
     } catch (error) {
       console.error(`Error processing group ${groupId}:`, error);
-      setGroupProcessingStates(prev => ({
+      setGroupProcessingStates((prev) => ({
         ...prev,
         [groupId]: {
           ...prev[groupId],
           isProcessing: false,
-          error: 'Error processing group'
-        }
+          error: 'Error processing group',
+        },
       }));
     }
   };
@@ -2048,18 +2134,18 @@ const AddAgentToGroupDialog: React.FC<{
   const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
     const { groupProcessingStates } = useContext(GroupNodeContext);
     const processingState = groupProcessingStates[id];
-    
+
     return (
       <div className="min-w-[300px] min-h-[200px] relative">
         {/* Existing group node code ... */}
-        
+
         {/* Add processing indicator */}
         {processingState?.isProcessing && (
           <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex items-center justify-center">
             <div className="text-primary-foreground">Processing...</div>
           </div>
         )}
-        
+
         {/* Add completion indicator */}
         {processingState?.result && (
           <div className="absolute top-2 right-2">
@@ -2068,7 +2154,7 @@ const AddAgentToGroupDialog: React.FC<{
             </div>
           </div>
         )}
-        
+
         {/* Show group result if available */}
         {processingState?.result && (
           <div className="mt-2 p-2 bg-muted/50 rounded text-sm">
@@ -2078,7 +2164,7 @@ const AddAgentToGroupDialog: React.FC<{
             </div>
           </div>
         )}
-        
+
         {/* Existing group node content ... */}
       </div>
     );
@@ -2089,9 +2175,8 @@ const AddAgentToGroupDialog: React.FC<{
     (window as any).updateNodeData = updateNodeData;
   }, []);
 
-
-   // Add this function inside the component
-   const loadVersion = async (flowId: string) => {
+  // Add this function inside the component
+  const loadVersion = async (flowId: string) => {
     try {
       // Prevent loading if a save is in progress
       if (saveInProgressRef.current) {
@@ -2118,15 +2203,17 @@ const AddAgentToGroupDialog: React.FC<{
       if (flowData) {
         // Update all state
         setNodes(flowData.nodes || []);
-        setEdges(flowData.edges as any || []);
-        setSwarmArchitecture(flowData.architecture as SwarmArchitecture || 'Concurrent');
+        setEdges((flowData.edges as any) || []);
+        setSwarmArchitecture(
+          (flowData.architecture as SwarmArchitecture) || 'Concurrent',
+        );
         setTaskResults(flowData.results || {});
         setCurrentFlowId(flowId);
 
         // Update previous state to prevent immediate save
         previousStateRef.current = {
-          nodes: flowData.nodes as any || [],
-          edges: flowData.edges as any || [],
+          nodes: (flowData.nodes as any) || [],
+          edges: (flowData.edges as any) || [],
         };
 
         // Update JSON representation
@@ -2155,7 +2242,6 @@ const AddAgentToGroupDialog: React.FC<{
       saveInProgressRef.current = false;
     }
   };
-
 
   const updateSwarmJson = () => {
     const swarmData = {
@@ -2242,13 +2328,13 @@ const AddAgentToGroupDialog: React.FC<{
       setSavingStatus({
         show: true,
         message: 'Saving swarm configuration...',
-        type: 'saving'
+        type: 'saving',
       });
 
       // Transform nodes to match the expected schema
       const validNodes: SaveFlowNode[] = nodes.map((node) => {
         const { id, type, position, data } = node;
-        
+
         // Set default values for required fields if they're missing
         const validatedData = {
           id: data?.id || id,
@@ -2263,7 +2349,7 @@ const AddAgentToGroupDialog: React.FC<{
           dataSourceInput: data?.dataSourceInput,
           ...data,
         };
-  
+
         return {
           id,
           type: type || 'default', // Ensure node type is never null
@@ -2274,7 +2360,7 @@ const AddAgentToGroupDialog: React.FC<{
           data: validatedData,
         };
       });
-  
+
       // Rest of the function remains the same...
       const validEdges: any[] = edges.map((edge) => {
         const { id, source, target, ...rest } = edge;
@@ -2301,7 +2387,7 @@ const AddAgentToGroupDialog: React.FC<{
           data: rest.data || { label: 'Connection' },
         };
       });
-  
+
       const flowData = {
         flow_id: currentFlowId || undefined,
         nodes: validNodes,
@@ -2309,23 +2395,23 @@ const AddAgentToGroupDialog: React.FC<{
         architecture: swarmArchitecture,
         results: taskResults || {},
       } as const;
-  
+
       const result: any = await saveFlowMutation.mutateAsync(flowData);
-  
+
       if (!currentFlowId && result.id) {
         const newUrl = new URL(window.location.href);
         newUrl.searchParams.set('flowId', result.id);
         router.replace(newUrl.pathname + newUrl.search);
         setCurrentFlowId(result.id);
       }
-  
+
       // Show success popup
       setSavingStatus({
         show: true,
         message: 'Swarm configuration saved successfully',
-        type: 'success'
+        type: 'success',
       });
-  
+
       await getAllFlowsQuery.refetch();
     } catch (error) {
       console.error('Error saving flow:', error);
@@ -2333,17 +2419,29 @@ const AddAgentToGroupDialog: React.FC<{
       setSavingStatus({
         show: true,
         message: 'Failed to save swarm configuration',
-        type: 'error'
+        type: 'error',
       });
     }
-  }, [nodes, edges, swarmArchitecture, taskResults, saveFlowMutation, router, currentFlowId, getAllFlowsQuery]);
+  }, [
+    nodes,
+    edges,
+    swarmArchitecture,
+    taskResults,
+    saveFlowMutation,
+    router,
+    currentFlowId,
+    getAllFlowsQuery,
+  ]);
 
   // Add this effect to handle popup timing
   useEffect(() => {
     if (savingStatus?.show) {
-      const timer = setTimeout(() => {
-        setSavingStatus(null);
-      }, savingStatus.type === 'saving' ? 30000 : 3000); // Show saving popup longer
+      const timer = setTimeout(
+        () => {
+          setSavingStatus(null);
+        },
+        savingStatus.type === 'saving' ? 30000 : 3000,
+      ); // Show saving popup longer
 
       return () => clearTimeout(timer);
     }
@@ -2357,47 +2455,42 @@ const AddAgentToGroupDialog: React.FC<{
           await saveVersionStable();
         }
       };
-  
+
       window.addEventListener('keydown', handleKeyPress);
       return () => window.removeEventListener('keydown', handleKeyPress);
     }, [saveVersionStable]);
   };
 
-  
-
   useSaveShortcuts();
-
-
 
   const onNodesChangeDebounced = useMemo(
     () =>
       debounce((changes: NodeChange[]) => {
         setNodes((nds) => applyNodeChanges(changes, nds));
       }, 0), // Remove debounce delay for smoother dragging
-    [setNodes]
+    [setNodes],
   );
-  
+
   const onEdgesChangeDebounced = useMemo(
     () =>
       debounce((changes: EdgeChange[]) => {
         setEdges((eds) => applyEdgeChanges(changes, eds));
       }, 0),
-    [setEdges]
+    [setEdges],
   );
-  
+
   // Add these state and refs near other state declarations
   const [isDragging, setIsDragging] = useState(false);
   const dragTimeoutRef = useRef<NodeJS.Timeout>();
-  
+
   const onNodeDragStart = useCallback(() => {
     setIsDragging(true);
   }, []);
-  
+
   const onNodeDragStop = useCallback(() => {
     setIsDragging(false);
   }, []);
-  
-  
+
   // Add this cleanup effect near other useEffect hooks
   useEffect(() => {
     return () => {
@@ -2406,7 +2499,6 @@ const AddAgentToGroupDialog: React.FC<{
       }
     };
   }, []);
-
 
   // Replace the existing save-related code with this implementation
   const debouncedSave = useMemo(
@@ -2509,21 +2601,23 @@ const AddAgentToGroupDialog: React.FC<{
   const createGroup = (groupData: Omit<GroupData, 'agents'>) => {
     // Get viewport info safely
     const viewport = reactFlowInstance?.getViewport();
-    
+
     // Default position if viewport is not available
     let position = { x: 100, y: 100 };
-    
+
     if (viewport) {
       // Calculate center position with safety checks
-      const centerX = (-viewport.x / viewport.zoom) + ((window.innerWidth / 2) / viewport.zoom);
-      const centerY = (-viewport.y / viewport.zoom) + ((window.innerHeight / 2) / viewport.zoom);
-      
+      const centerX =
+        -viewport.x / viewport.zoom + window.innerWidth / 2 / viewport.zoom;
+      const centerY =
+        -viewport.y / viewport.zoom + window.innerHeight / 2 / viewport.zoom;
+
       position = {
         x: Math.max(0, centerX - 150), // Prevent negative positions
-        y: Math.max(0, centerY - 100)
+        y: Math.max(0, centerY - 100),
       };
     }
-    
+
     // Create new group with unique ID
     const newGroup = {
       id: `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -2538,9 +2632,9 @@ const AddAgentToGroupDialog: React.FC<{
         height: 200,
       },
     };
-    
+
     // Update nodes state using functional update
-    setNodes(prevNodes => [...prevNodes, newGroup]);
+    setNodes((prevNodes) => [...prevNodes, newGroup]);
     setIsCreatingGroup(false);
   };
 
@@ -2556,11 +2650,11 @@ const AddAgentToGroupDialog: React.FC<{
         ),
       );
     };
-  
+
     window.addAgentToGroup = (groupId: string) => {
       setAddToGroupDialogState({
         open: true,
-        groupId
+        groupId,
       });
     };
   }, [setNodes]);
@@ -2572,8 +2666,8 @@ const AddAgentToGroupDialog: React.FC<{
       <div className="flex justify-between items-center p-4 border-b border-border">
         <h1 className="text-2xl font-semibold">Swarms No-Code Builder</h1>
         <div className="flex space-x-2">
-          <AutoGenerateSwarm 
-            addAgent={addAgent} 
+          <AutoGenerateSwarm
+            addAgent={addAgent}
             setPopup={setPopup}
             reactFlowInstance={reactFlowInstance}
           />
@@ -2664,34 +2758,38 @@ const AddAgentToGroupDialog: React.FC<{
                     </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="systemPrompt" className="text-right">
-                    System Prompt
-                  </Label>
-                  <div className="relative col-span-3">
-                    <Textarea
-                      id="systemPrompt"
-                      name="systemPrompt"
-                      value={systemPrompt}
-                      onChange={(e) => setSystemPrompt(e.target.value)}
-                      className="pr-12"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleOptimizePrompt}
-                      disabled={isOptimizing || !systemPrompt}
-                      title={!systemPrompt ? "System prompt required" : "Optimize prompt"}
-                      className="absolute right-2 top-2 h-8 w-8 p-0"
-                    >
-                      {isOptimizing ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-4 w-4" />
-                      )}
-                    </Button>
+                    <Label htmlFor="systemPrompt" className="text-right">
+                      System Prompt
+                    </Label>
+                    <div className="relative col-span-3">
+                      <Textarea
+                        id="systemPrompt"
+                        name="systemPrompt"
+                        value={systemPrompt}
+                        onChange={(e) => setSystemPrompt(e.target.value)}
+                        className="pr-12"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleOptimizePrompt}
+                        disabled={isOptimizing || !systemPrompt}
+                        title={
+                          !systemPrompt
+                            ? 'System prompt required'
+                            : 'Optimize prompt'
+                        }
+                        className="absolute right-2 top-2 h-8 w-8 p-0"
+                      >
+                        {isOptimizing ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                </div>
                 </div>
                 <DialogFooter>
                   <Button type="submit">Add Agent</Button>
@@ -2763,18 +2861,22 @@ const AddAgentToGroupDialog: React.FC<{
           <DialogHeader>
             <DialogTitle>Create Team</DialogTitle>
           </DialogHeader>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target as HTMLFormElement);
-            createGroup({
-              teamName: formData.get('teamName') as string,
-              swarmType: formData.get('swarmType') as string,
-              description: formData.get('description') as string,
-            });
-          }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.target as HTMLFormElement);
+              createGroup({
+                teamName: formData.get('teamName') as string,
+                swarmType: formData.get('swarmType') as string,
+                description: formData.get('description') as string,
+              });
+            }}
+          >
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="teamName" className="text-right">Team Name</Label>
+                <Label htmlFor="teamName" className="text-right">
+                  Team Name
+                </Label>
                 <Input
                   id="teamName"
                   name="teamName"
@@ -2783,7 +2885,9 @@ const AddAgentToGroupDialog: React.FC<{
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="swarmType" className="text-right">Swarm Type</Label>
+                <Label htmlFor="swarmType" className="text-right">
+                  Swarm Type
+                </Label>
                 <Select name="swarmType" required>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select type" />
@@ -2798,7 +2902,9 @@ const AddAgentToGroupDialog: React.FC<{
                 </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">Description</Label>
+                <Label htmlFor="description" className="text-right">
+                  Description
+                </Label>
                 <Textarea
                   id="description"
                   name="description"
@@ -2816,13 +2922,13 @@ const AddAgentToGroupDialog: React.FC<{
         {/* Sidebar with transition */}
         <div
           className={cn(
-            "border-r border-border bg-background transition-all duration-300 ease-in-out flex",
-            isSidebarExpanded ? "w-[600px]" : "w-96" // Expanded to 600px, default 384px
+            'border-r border-border bg-background transition-all duration-300 ease-in-out flex',
+            isSidebarExpanded ? 'w-[600px]' : 'w-96', // Expanded to 600px, default 384px
           )}
         >
-          <div className={cn(
-            "overflow-hidden transition-all duration-300 w-full"
-          )}>
+          <div
+            className={cn('overflow-hidden transition-all duration-300 w-full')}
+          >
             <div className="p-4">
               <Tabs defaultValue="results" className="h-full">
                 <TabsList className="grid w-full grid-cols-2">
@@ -2841,31 +2947,41 @@ const AddAgentToGroupDialog: React.FC<{
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {Object.entries(taskResults).map(([agentId, result]) => {
-                          // Find the agent either as a standalone node or within a group
-                          const agentNode = nodes.find(node => 
-                            node.id === agentId || 
-                            (node.type === 'group' && node.data.agents?.some((a:any) => a.id === agentId))
-                          );
-                          
-                          const agent = agentNode?.type === 'group' 
-                            ? agentNode.data.agents?.find((a:any) => a.id === agentId)
-                            : agentNode?.data;
+                        {Object.entries(taskResults).map(
+                          ([agentId, result]) => {
+                            // Find the agent either as a standalone node or within a group
+                            const agentNode = nodes.find(
+                              (node) =>
+                                node.id === agentId ||
+                                (node.type === 'group' &&
+                                  node.data.agents?.some(
+                                    (a: any) => a.id === agentId,
+                                  )),
+                            );
 
-                          const groupName = agentNode?.type === 'group' 
-                            ? agentNode.data.teamName 
-                            : '-';
+                            const agent =
+                              agentNode?.type === 'group'
+                                ? agentNode.data.agents?.find(
+                                    (a: any) => a.id === agentId,
+                                  )
+                                : agentNode?.data;
 
-                          return (
-                            <TableRow key={agentId}>
-                              <TableCell className="font-medium">
-                                {agent?.name || 'Unknown Agent'}
-                              </TableCell>
-                              <TableCell>{groupName}</TableCell>
-                              <TableCell>{result}</TableCell>
-                            </TableRow>
-                          );
-                        })}
+                            const groupName =
+                              agentNode?.type === 'group'
+                                ? agentNode.data.teamName
+                                : '-';
+
+                            return (
+                              <TableRow key={agentId}>
+                                <TableCell className="font-medium">
+                                  {agent?.name || 'Unknown Agent'}
+                                </TableCell>
+                                <TableCell>{groupName}</TableCell>
+                                <TableCell>{result}</TableCell>
+                              </TableRow>
+                            );
+                          },
+                        )}
                       </TableBody>
                     </Table>
                   </div>
@@ -2909,25 +3025,23 @@ const AddAgentToGroupDialog: React.FC<{
               </Tabs>
             </div>
           </div>
-          
+
           {/* Toggle button - positioned at end of left panel */}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
             className={cn(
-              "h-12 w-6 absolute top-1/2 -translate-y-1/2 z-50",
-              "border-y border-r border-border bg-background hover:bg-muted",
-              isSidebarExpanded 
-                ? "left-[695px]" 
-                : "left-[480px]" 
+              'h-12 w-6 absolute top-1/2 -translate-y-1/2 z-50',
+              'border-y border-r border-border bg-background hover:bg-muted',
+              isSidebarExpanded ? 'left-[695px]' : 'left-[480px]',
             )}
           >
             <ChevronLeft
               className={cn(
-                "h-4 w-4 transition-transform duration-300",
-                "rotate-180", // Start pointing right
-                isSidebarExpanded && "-rotate-0" // Point left when expanded
+                'h-4 w-4 transition-transform duration-300',
+                'rotate-180', // Start pointing right
+                isSidebarExpanded && '-rotate-0', // Point left when expanded
               )}
             />
           </Button>
@@ -2950,9 +3064,13 @@ const AddAgentToGroupDialog: React.FC<{
               edgeTypes={edgeTypes}
               fitView
             >
-              <Background 
-                color={document?.documentElement.classList.contains('dark') ? "#333" : "#ccc"} 
-                gap={16} 
+              <Background
+                color={
+                  document?.documentElement.classList.contains('dark')
+                    ? '#333'
+                    : '#ccc'
+                }
+                gap={16}
               />
               <Controls />
             </ReactFlow>
@@ -2996,7 +3114,9 @@ const AddAgentToGroupDialog: React.FC<{
       <AddAgentToGroupDialog
         groupId={addToGroupDialogState.groupId || ''}
         open={addToGroupDialogState.open}
-        onClose={() => setAddToGroupDialogState(prev => ({ ...prev, open: false }))}
+        onClose={() =>
+          setAddToGroupDialogState((prev) => ({ ...prev, open: false }))
+        }
       />
       <AnimatePresence>
         {savingStatus && (
@@ -3008,8 +3128,8 @@ const AddAgentToGroupDialog: React.FC<{
               savingStatus.type === 'saving'
                 ? 'bg-primary text-primary-foreground'
                 : savingStatus.type === 'success'
-                ? 'bg-emerald-600 dark:bg-emerald-500 text-white'
-                : 'bg-destructive text-destructive-foreground'
+                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white'
+                  : 'bg-destructive text-destructive-foreground'
             }`}
           >
             {savingStatus.type === 'saving' && (
@@ -3083,7 +3203,7 @@ const AddAgentToGroupDialog: React.FC<{
 
         /* Controls - Dark mode */
         .dark .react-flow__panel.react-flow__controls {
-          background: ;
+          background:;
         }
 
         .dark .react-flow__controls-button {
@@ -3092,7 +3212,7 @@ const AddAgentToGroupDialog: React.FC<{
         }
 
         .dark .react-flow__controls-button:hover {
-          background: #1A1A1B !important;
+          background: #1a1a1b !important;
         }
 
         .dark .react-flow__controls-button svg path {
@@ -3222,7 +3342,7 @@ const AddAgentToGroupDialog: React.FC<{
       `}</style>
     </div>
   );
-}
+};
 
 // Update the main component to use the provider
 export function EnhancedAgentSwarmManagementComponent() {

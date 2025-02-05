@@ -29,7 +29,7 @@ import {
 } from '@/shared/components/ui/tabs';
 import remarkGfm from 'remark-gfm';
 import { stripMarkdown } from './helper';
-import CommentList from '@/shared/components/comments';
+import dynamic from 'next/dynamic';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -48,9 +48,12 @@ interface Entity extends PropsWithChildren {
   userId?: string | null;
 }
 
-// const CommentList = dynamic(() => import('@/shared/components/comments'), {
-//   ssr: false,
-// });
+const CommentList = dynamic(() => import('@/shared/components/comments'), {
+  ssr: false,
+});
+const ChatComponent = dynamic(() => import('@/shared/components/chat/prompt'), {
+  ssr: false,
+});
 
 function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
   return (
@@ -335,6 +338,7 @@ export default function EntityComponent({
             requirements={requirements as RequirementProps[]}
           />
         ))}
+
       {prompt && (
         <div className="relative my-10">
           <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar">
@@ -394,6 +398,19 @@ export default function EntityComponent({
         onClose={handleCloseModal}
         link={pathName ?? ''}
       />
+
+      {entityTitle === 'prompt' && prompt && (
+        <div className="mt-10 lg:mt-20 flex flex-col items-end">
+          <div className="w-full lg:w-[90%]">
+            <h2 className="mb-5">Prompt Agent Chat</h2>
+            <ChatComponent
+              promptId={id ?? ''}
+              userId={userId ?? ''}
+              systemPrompt={prompt}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="mt-20">
         {id && <CommentList modelId={id} title={title} />}
