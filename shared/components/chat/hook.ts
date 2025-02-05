@@ -80,13 +80,13 @@ export default function usePromptChat({
   }, [fetchMessages, messages]);
 
   useEffect(() => {
-    if (latestMessageRef.current && isExpanded) {
+    if (latestMessageRef.current) {
       latestMessageRef.current.scrollIntoView({
         behavior: 'smooth',
-        block: 'end',
+        block: 'nearest',
       });
     }
-  }, [isExpanded]);
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
