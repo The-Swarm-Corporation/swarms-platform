@@ -1,27 +1,34 @@
 import { OpenAI } from 'openai';
 import { getUserCredit } from '@/shared/utils/supabase/admin';
-import { encodingForModel } from 'js-tiktoken';
 
 export const runtime = 'edge';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const encoder = encodingForModel('gpt-4');
-
 export async function POST(req: Request) {
-  const { message, systemPrompt, model = 'gpt-4', userId } = await req.json();
+  const { message, systemPrompt, model = 'gpt-4o', userId } = await req.json();
 
+  const MILLION_INPUT = 1000000;
+  // Initialize encoder dynamically
+  const getTikToken = async () => {
+    const { encodingForModel } = await import('js-tiktoken');
+    return encodingForModel('gpt-4');
+  };
+
+  const encoder = await getTikToken();
   const estimateTokens = (text: string) => encoder.encode(text).length;
 
-  const userTokens = estimateTokens(message);
-  const systemTokens = estimateTokens(systemPrompt);
+  const userTokens = estimateTokens(message) / MILLION_INPUT || 0;
+  const systemTokens = estimateTokens(systemPrompt) / MILLION_INPUT || 0;
   const totalInputTokens = userTokens + systemTokens;
+
+  console.log({ userTokens, systemTokens });
 
   const { credit, free_credit } = await getUserCredit(userId);
   const totalCredit = credit + free_credit;
 
-  const inputTokenCost = 0.001;
-  const outputTokenCost = 0.0015;
+  const inputTokenCost = 5;
+  const outputTokenCost = 10;
   const estimatedInputCost = totalInputTokens * inputTokenCost;
 
   if (totalCredit < estimatedInputCost) {
