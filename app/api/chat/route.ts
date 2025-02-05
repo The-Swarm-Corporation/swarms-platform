@@ -8,20 +8,19 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 export async function POST(req: Request) {
   const { message, systemPrompt, model = 'gpt-4o', userId } = await req.json();
 
-  const MILLION_INPUT = 1000000;
-
   const estimateTokens = (text: string) => Math.ceil(text.length / 4);
 
-  const userTokens = estimateTokens(message) / MILLION_INPUT || 0;
-  const systemTokens = estimateTokens(systemPrompt) / MILLION_INPUT || 0;
+  const inputCostPerThousand = 0.005; // $5 per million tokens = $0.005 per 1,000
+  const outputCostPerThousand = 0.01; // $10 per million tokens = $0.01 per 1,000
+
+  const userTokens = estimateTokens(message);
+  const systemTokens = estimateTokens(systemPrompt);
   const totalInputTokens = userTokens + systemTokens;
+
+  const estimatedInputCost = (totalInputTokens / 1000) * inputCostPerThousand;
 
   const { credit, free_credit } = await getUserCredit(userId);
   const totalCredit = credit + free_credit;
-
-  const inputTokenCost = 5;
-  const outputTokenCost = 10;
-  const estimatedInputCost = totalInputTokens * inputTokenCost;
 
   if (totalCredit < estimatedInputCost) {
     return new Response(JSON.stringify({ error: 'Insufficient credit' }), {
@@ -45,27 +44,31 @@ export async function POST(req: Request) {
 
     const stream = new ReadableStream({
       async start(controller) {
-        for await (const chunk of response) {
-          const text = chunk.choices[0]?.delta?.content || '';
-          usedOutputTokens += estimateTokens(text);
-          completeResponse += text;
-          controller.enqueue(textEncoder.encode(text));
+        try {
+          for await (const chunk of response) {
+            const text = chunk.choices[0]?.delta?.content || '';
+            usedOutputTokens += estimateTokens(text);
+            completeResponse += text;
+            controller.enqueue(textEncoder.encode(text));
+          }
+          controller.close();
+        } catch (error) {
+          console.error('Stream Error:', error);
+          controller.error(error);
         }
-        controller.close();
       },
-      cancel() {
-        console.log('Stream aborted');
+      cancel(reason) {
+        console.log('Stream aborted:', reason);
       },
     });
 
-    const totalUsedCost =
-      estimatedInputCost + usedOutputTokens * outputTokenCost;
-    console.log({ totalUsedCost });
+    const outputCost = (usedOutputTokens / 1000) * outputCostPerThousand;
+    const totalCost = estimatedInputCost + outputCost;
 
     return new Response(stream, {
       headers: {
         'Content-Type': 'text/event-stream',
-        'X-Used-Tokens': totalUsedCost.toString(),
+        'X-Used-Tokens': totalCost.toString(),
       },
     });
   } catch (error) {

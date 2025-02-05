@@ -120,6 +120,15 @@ export default function usePromptChat({
         body: JSON.stringify({ message: input, systemPrompt, userId }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.toast({
+          title: errorData.error || 'An error has occurred',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const reader = response.body?.getReader();
       setAbortReader(reader ?? null);
 
@@ -152,7 +161,11 @@ export default function usePromptChat({
       } else {
         console.error('Error:', error);
         toast.toast({
-          title: error?.error || 'Error fetching response',
+          title:
+            error?.error ||
+            error ||
+            error?.message ||
+            'Error fetching response',
           variant: 'destructive',
         });
       }
@@ -201,8 +214,17 @@ export default function usePromptChat({
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: editInput, systemPrompt }),
+        body: JSON.stringify({ message: editInput, systemPrompt, userId }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.toast({
+          title: errorData.error || 'An error has occurred',
+          variant: 'destructive',
+        });
+        return;
+      }
 
       const reader = response.body?.getReader();
       setAbortReader(reader ?? null);
@@ -240,7 +262,8 @@ export default function usePromptChat({
       } else {
         console.error('Error editing message:', error);
         toast.toast({
-          title: error.error || 'Error editing message',
+          title:
+            error?.error || error || error?.message || 'Error editing message',
           variant: 'destructive',
         });
       }
