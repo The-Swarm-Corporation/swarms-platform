@@ -11,7 +11,6 @@ export const PLATFORM = {
   SETTINGS: '/platform/organization',
   ORGANIZATION: '/platform/organization',
   WALLET: '/platform/wallet',
-  CHAT: '/platform/chat',
 };
 
 export const AUTH = {
@@ -27,7 +26,7 @@ export const PUBLIC = {
 
 const SWARMS_DOCS = 'https://docs.swarms.world/en/latest/';
 export const SWARMS_GITHUB = 'https://github.com/kyegomez/swarms';
-export const DISCORD = 'https://discord.gg/gRXy5mpFHz';
+export const DISCORD = 'https://discord.gg/swarms';
 export const SWARM_CALENDLY = 'https://calendly.com/swarm-corp/30min';
 
 enum NAV_LINKS {
