@@ -779,14 +779,16 @@ const explorerRouter = router({
       }
     }),
   getPromptChats: userProcedure
-    .input(z.object({ promptId: z.string(), userId: z.string() }))
+    .input(z.object({ promptId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const { promptId, userId } = input;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+
+      const { promptId } = input;
       const { data, error } = await ctx.supabase
         .from('swarms_cloud_prompts_chat_test')
         .select('*')
         .eq('prompt_id', promptId)
-        .eq('user_id', userId)
+        .eq('user_id', user_id)
         .order('created_at', { ascending: true });
 
       if (error) throw new Error(error.message);
@@ -800,15 +802,22 @@ const explorerRouter = router({
           text: z.string(),
           sender: z.string(),
           prompt_id: z.string(),
-          user_id: z.string(),
           response_id: z.any(),
         }),
       ),
     )
     .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+
+      const formattedInput = input.map((entry) => ({
+        ...entry,
+        user_id,
+      }));
+
       const { error } = await ctx.supabase
         .from('swarms_cloud_prompts_chat_test')
-        .insert(input);
+        .insert(formattedInput);
+
       if (error) throw new Error(error.message);
       return { success: true };
     }),
@@ -820,18 +829,18 @@ const explorerRouter = router({
         userText: z.string(),
         agentText: z.string(),
         promptId: z.string(),
-        userId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { responseId, userText, agentText, promptId, userId } = input;
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const { responseId, userText, agentText, promptId } = input;
 
       const { error: updateError } = await ctx.supabase
         .from('swarms_cloud_prompts_chat_test')
         .update({ text: userText })
         .eq('response_id', responseId)
         .eq('prompt_id', promptId)
-        .eq('user_id', userId);
+        .eq('user_id', user_id);
 
       if (updateError) throw new Error(updateError.message);
 
@@ -840,7 +849,7 @@ const explorerRouter = router({
         .update({ text: agentText })
         .eq('response_id', `${responseId}_agent`)
         .eq('prompt_id', promptId)
-        .eq('user_id', userId);
+        .eq('user_id', user_id);
 
       if (agentUpdateError) throw new Error(agentUpdateError.message);
 
@@ -852,25 +861,27 @@ const explorerRouter = router({
       z.object({
         messageId: z.string(),
         promptId: z.string(),
-        userId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id ?? '';
       const { error } = await ctx.supabase
         .from('swarms_cloud_prompts_chat_test')
         .delete()
         .eq('id', input.messageId)
         .eq('prompt_id', input.promptId)
-        .eq('user_id', input.userId);
+        .eq('user_id', user_id);
       if (error) throw new Error(error.message);
       return { success: true };
     }),
 
   deductCredit: userProcedure
-    .input(z.object({ userId: z.string(), amount: z.number() }))
+    .input(z.object({ amount: z.number() }))
     .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.session?.user?.id ?? '';
+
       const { error } = await ctx.supabase.rpc('deduct_credit', {
-        user_id: input.userId,
+        user_id,
         amount: input.amount,
       });
 
