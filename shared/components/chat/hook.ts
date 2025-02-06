@@ -34,7 +34,7 @@ export default function usePromptChat({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const fetchMessages = trpc.explorer.getPromptChats.useQuery(
-    { promptId, userId },
+    { promptId },
     { enabled: false },
   );
   const fetchMutation = trpc.explorer.savePromptChat.useMutation();
@@ -80,13 +80,13 @@ export default function usePromptChat({
   }, [fetchMessages, messages]);
 
   useEffect(() => {
-    if (latestMessageRef.current && isExpanded) {
+    if (latestMessageRef.current) {
       latestMessageRef.current.scrollIntoView({
         behavior: 'smooth',
-        block: 'end',
+        block: 'nearest',
       });
     }
-  }, [isExpanded]);
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -149,7 +149,7 @@ export default function usePromptChat({
       setUsedTokens(headerToken);
 
       if (headerToken) {
-        deductCredit.mutateAsync({ userId, amount: headerToken });
+        deductCredit.mutateAsync({ amount: headerToken });
       }
       fetchMutation.mutateAsync([
         { ...newUserMessage },
@@ -184,7 +184,7 @@ export default function usePromptChat({
       setAbortReader(null);
 
       if (usedTokens) {
-        deductCredit.mutateAsync({ userId, amount: usedTokens });
+        deductCredit.mutateAsync({ amount: usedTokens });
       }
     }
   };
@@ -246,13 +246,12 @@ export default function usePromptChat({
       setUsedTokens(headerToken);
 
       if (headerToken) {
-        deductCredit.mutateAsync({ userId, amount: headerToken });
+        deductCredit.mutateAsync({ amount: headerToken });
       }
 
       editMutation.mutateAsync({
         promptId,
         responseId,
-        userId,
         userText: editInput,
         agentText: completeText,
       });
@@ -279,7 +278,7 @@ export default function usePromptChat({
     setMessages((prev: any) => prev.filter((m: any) => m.id !== messageId));
 
     if (!messageId) return;
-    await deleteMutation.mutateAsync({ messageId, promptId, userId });
+    await deleteMutation.mutateAsync({ messageId, promptId });
   };
 
   return {

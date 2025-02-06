@@ -1,8 +1,11 @@
 import EntityComponent from '@/shared/components/entity';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
 
 const Prompt = async ({ id }: { id: string }) => {
+  await checkUserSession();
+
   const prompt = await trpcApi.explorer.getPromptById.query(id);
   if (!prompt) {
     redirect('/404');

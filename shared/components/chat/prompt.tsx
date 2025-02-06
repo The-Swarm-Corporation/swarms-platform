@@ -20,6 +20,9 @@ import remarkGfm from 'remark-gfm';
 import Separator from '../ui/AuthForms/Separator';
 import { cn } from '@/shared/utils/cn';
 import usePromptChat from './hook';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import styles from './styles.module.css';
 
 export interface ChatComponentProps {
   promptId: string;
@@ -94,8 +97,8 @@ const ChatComponent = ({
                     <div
                       className={`flex p-3 rounded-lg w-full ${
                         message?.sender === 'user'
-                          ? 'bg-zinc-700 text-white max-w-[50%]'
-                          : 'bg-gray-700 text-white max-w-full my-4'
+                          ? 'bg-[#444444] text-white max-w-[50%]'
+                          : 'bg-[#131313] border-2 border-[#f9f9f914] shadow-ai text-white max-w-full my-4'
                       }`}
                     >
                       {editingMessageId === message?.response_id ? (
@@ -112,7 +115,34 @@ const ChatComponent = ({
                           className="bg-inherit text-inherit resize-none border-none outline-none w-full h-fit"
                         />
                       ) : (
-                        <Markdown className="prose w-full" remarkPlugins={[remarkGfm]}>
+                        <Markdown
+                          className={cn(
+                            'prose w-full space-y-4 px-2',
+                            styles['rich-text'],
+                          )}
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            code({ children, className, node, ...rest }) {
+                              const match = /language-(\w+)/.exec(
+                                className || '',
+                              );
+
+                              return match ? (
+                                <SyntaxHighlighter
+                                  PreTag="div"
+                                  language={match[1]}
+                                  style={dracula}
+                                >
+                                  {String(children).replace(/\n$/, '')}
+                                </SyntaxHighlighter>
+                              ) : (
+                                <code {...rest} className={className}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                          }}
+                        >
                           {message?.text || ''}
                         </Markdown>
                       )}
