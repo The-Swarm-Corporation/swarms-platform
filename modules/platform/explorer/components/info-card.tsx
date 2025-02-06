@@ -1,11 +1,12 @@
 import { cn } from '@/shared/utils/cn';
 import { formatPrice, getTruncatedString } from '@/shared/utils/helpers';
 import { ReactNode, useState } from 'react';
-import Link from 'next/link';
 import { Share2 } from 'lucide-react';
 import Avatar from '@/shared/components/avatar';
 import ShareModal from './share-modal';
 import ReactStars from 'react-rating-star-with-type';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   title: string;
@@ -43,7 +44,7 @@ const InfoCard = ({
 
   const [isButtonHover, setIsButtonHover] = useState(false);
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
-  const [isPressed, setIsPressed] = useState(false);
+  const router = useRouter();
 
   const handleShowShareModal = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -52,16 +53,10 @@ const InfoCard = ({
 
   const handleCloseModal = () => setIsShowModalOpen(false);
 
-  const handleCardClick = () => {
-    window.location.href = link;
-  };
+  const handleCardClick = async () => {
+    await checkUserSession();
 
-  const handleMouseDown = () => {
-    setIsPressed(true);
-  };
-
-  const handleMouseUp = () => {
-    setIsPressed(false);
+    router.push(link);
   };
 
   const renderPrice = (label: string, price: number) => (
@@ -74,17 +69,21 @@ const InfoCard = ({
   return (
     <div
       onClick={handleCardClick}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={() => setIsPressed(false)}
+      role="button"
+      tabIndex={0}
+      aria-label={title}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          handleCardClick();
+        }
+      }}
       className={cn(
         'relative flex gap-4 p-4 px-3 rounded-lg overflow-hidden group cursor-pointer',
         'transition-all duration-200 ease-in-out',
         'bg-black border border-red-600',
         'hover:shadow-lg hover:shadow-red-600/20',
         'hover:scale-[1.02] active:scale-[0.98]',
-        isPressed ? 'bg-neutral-900' : '',
-        className
+        className,
       )}
     >
       <div>
@@ -97,11 +96,13 @@ const InfoCard = ({
             <div className="mb-0.5">
               <ReactStars value={review?.rating} isEdit={false} count={1} />
             </div>
-            <span className="text-xs font-semibold">{review?.rating || 0}/5</span>
+            <span className="text-xs font-semibold">
+              {review?.rating || 0}/5
+            </span>
           </div>
         )}
       </div>
-      
+
       <div className="h-4/5 flex flex-col overflow-y-auto no-scrollbar">
         <div className="flex flex-col gap-2 flex-grow">
           <h1 className="text-xl sm:text-2xl font-bold text-white group-hover:text-red-500 transition-colors">
