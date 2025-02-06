@@ -785,7 +785,7 @@ const explorerRouter = router({
 
       const { promptId } = input;
       const { data, error } = await ctx.supabase
-        .from('swarms_cloud_prompts_chat_test')
+        .from('swarms_cloud_prompts_chat')
         .select('*')
         .eq('prompt_id', promptId)
         .eq('user_id', user_id)
@@ -815,7 +815,7 @@ const explorerRouter = router({
       }));
 
       const { error } = await ctx.supabase
-        .from('swarms_cloud_prompts_chat_test')
+        .from('swarms_cloud_prompts_chat')
         .insert(formattedInput);
 
       if (error) throw new Error(error.message);
@@ -836,7 +836,7 @@ const explorerRouter = router({
       const { responseId, userText, agentText, promptId } = input;
 
       const { error: updateError } = await ctx.supabase
-        .from('swarms_cloud_prompts_chat_test')
+        .from('swarms_cloud_prompts_chat')
         .update({ text: userText })
         .eq('response_id', responseId)
         .eq('prompt_id', promptId)
@@ -845,7 +845,7 @@ const explorerRouter = router({
       if (updateError) throw new Error(updateError.message);
 
       const { error: agentUpdateError } = await ctx.supabase
-        .from('swarms_cloud_prompts_chat_test')
+        .from('swarms_cloud_prompts_chat')
         .update({ text: agentText })
         .eq('response_id', `${responseId}_agent`)
         .eq('prompt_id', promptId)
@@ -866,7 +866,7 @@ const explorerRouter = router({
     .mutation(async ({ ctx, input }) => {
       const user_id = ctx.session.data.session?.user?.id ?? '';
       const { error } = await ctx.supabase
-        .from('swarms_cloud_prompts_chat_test')
+        .from('swarms_cloud_prompts_chat')
         .delete()
         .eq('id', input.messageId)
         .eq('prompt_id', input.promptId)
@@ -879,6 +879,8 @@ const explorerRouter = router({
     .input(z.object({ amount: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const user_id = ctx.session.data.session?.user?.id ?? '';
+
+      console.log({ user_id });
 
       const { error } = await ctx.supabase.rpc('deduct_credit', {
         user_id,

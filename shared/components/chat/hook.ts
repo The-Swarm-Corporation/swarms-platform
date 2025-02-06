@@ -17,7 +17,7 @@ export default function usePromptChat({
   const [input, setInput] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<
-    Tables<'swarms_cloud_prompts_chat_test'>[]
+    Tables<'swarms_cloud_prompts_chat'>[]
   >([]);
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -99,7 +99,7 @@ export default function usePromptChat({
       prompt_id: promptId,
       user_id: userId,
       response_id: `${messageId}`,
-    } as Tables<'swarms_cloud_prompts_chat_test'>;
+    } as Tables<'swarms_cloud_prompts_chat'>;
 
     setMessages((prev) => [...prev, newUserMessage]);
 
@@ -109,7 +109,7 @@ export default function usePromptChat({
       prompt_id: promptId,
       user_id: userId,
       response_id: `${messageId}_agent`,
-    } as Tables<'swarms_cloud_prompts_chat_test'>;
+    } as Tables<'swarms_cloud_prompts_chat'>;
 
     setMessages((prev) => [...prev, aiResponse]);
 
