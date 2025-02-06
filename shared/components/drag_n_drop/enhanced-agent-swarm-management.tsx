@@ -109,6 +109,8 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import AutoGenerateSwarm from './auto_generate_swarm';
 import { cn } from '@/shared/utils/cn';
 
+
+
 // Create provider registry
 const registry = createProviderRegistry({
   anthropic,
@@ -243,72 +245,6 @@ const AgentLoadingOverlay = () => {
 };
 
 export default AgentLoadingOverlay;
-
-
-
-const ExpandableResultCell = ({ content }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Function to format content as markdown-style text
-  const formatContent = (text) => {
-    return text.split('\n').map((line, index) => {
-      // Handle headers
-      if (line.startsWith('# ')) {
-        return <h1 key={index} className="text-2xl font-bold my-2">{line.slice(2)}</h1>;
-      }
-      if (line.startsWith('## ')) {
-        return <h2 key={index} className="text-xl font-bold my-2">{line.slice(3)}</h2>;
-      }
-      // Handle bullet points
-      if (line.startsWith('* ') || line.startsWith('- ')) {
-        return <li key={index} className="ml-4">{line.slice(2)}</li>;
-      }
-      // Handle code blocks
-      if (line.startsWith('```')) {
-        return null; // Opening/closing tags are skipped
-      }
-      if (line.startsWith('`')) {
-        return <code key={index} className="bg-muted px-1 py-0.5 rounded">{line.slice(1, -1)}</code>;
-      }
-      // Regular text
-      return <p key={index} className="my-1">{line}</p>;
-    });
-  };
-
-  return (
-    <div className="relative group">
-      <div className={`prose dark:prose-invert max-w-none ${!isExpanded ? 'max-h-24 overflow-hidden' : ''}`}>
-        {formatContent(content)}
-      </div>
-      
-      {!isExpanded && content.length > 100 && (
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent" />
-      )}
-      
-      <Button
-        variant="ghost"
-        size="sm"
-        className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        {isExpanded ? (
-          <Minimize2 className="h-4 w-4" />
-        ) : (
-          <Maximize2 className="h-4 w-4" />
-        )}
-      </Button>
-
-      <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <div className="prose dark:prose-invert max-w-none">
-            {formatContent(content)}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
 
 const generateSystemPrompt = async (
   agentName: string,
@@ -3010,30 +2946,41 @@ const FlowContent = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {Object.entries(taskResults).map(([agentId, result]) => {
-                          const agentNode = nodes.find((node) => 
-                            node.id === agentId || 
-                            (node.type === 'group' && node.data.agents?.some((a) => a.id === agentId))
-                          );
+                        {Object.entries(taskResults).map(
+                          ([agentId, result]) => {
+                            // Find the agent either as a standalone node or within a group
+                            const agentNode = nodes.find(
+                              (node) =>
+                                node.id === agentId ||
+                                (node.type === 'group' &&
+                                  node.data.agents?.some(
+                                    (a: any) => a.id === agentId,
+                                  )),
+                            );
 
-                          const agent = agentNode?.type === 'group'
-                            ? agentNode.data.agents?.find((a) => a.id === agentId)
-                            : agentNode?.data;
+                            const agent =
+                              agentNode?.type === 'group'
+                                ? agentNode.data.agents?.find(
+                                    (a: any) => a.id === agentId,
+                                  )
+                                : agentNode?.data;
 
-                          const groupName = agentNode?.type === 'group' ? agentNode.data.teamName : '-';
+                            const groupName =
+                              agentNode?.type === 'group'
+                                ? agentNode.data.teamName
+                                : '-';
 
-                          return (
-                            <TableRow key={agentId}>
-                              <TableCell className="font-medium">
-                                {agent?.name || 'Unknown Agent'}
-                              </TableCell>
-                              <TableCell>{groupName}</TableCell>
-                              <TableCell className="min-w-[300px]">
-                                <ExpandableResultCell content={result} />
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
+                            return (
+                              <TableRow key={agentId}>
+                                <TableCell className="font-medium">
+                                  {agent?.name || 'Unknown Agent'}
+                                </TableCell>
+                                <TableCell>{groupName}</TableCell>
+                                <TableCell>{result}</TableCell>
+                              </TableRow>
+                            );
+                          },
+                        )}
                       </TableBody>
                     </Table>
                   </div>
