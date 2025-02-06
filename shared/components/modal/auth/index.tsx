@@ -13,13 +13,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
 
-const pathnames = [
-  '/signin',
-  '/signup',
-  '/pricing',
-  '/tool/',
-  '/'
-];
+const pathnames = ['/signin', '/signup', '/pricing', '/tool/'];
+
 function AuthModal() {
   const { isAuthModalOpen } = useAuthContext();
   const router = useRouter();
@@ -28,7 +23,7 @@ function AuthModal() {
   const handleLogin = () => router.push('/signin');
   const handleSignup = () => router.push('/signin/signup');
 
-  if (pathnames.some((name) => pathname?.includes(name))) {
+  if (pathnames.some((name) => pathname?.includes(name) || pathname === '/')) {
     return null;
   }
 

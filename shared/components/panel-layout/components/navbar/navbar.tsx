@@ -16,15 +16,20 @@ import NavbarSearch from './components/search';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import Avatar from '@/shared/components/avatar';
 import { NAVIGATION, SWARMS_GITHUB } from '@/shared/utils/constants';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 
 export default function PlatformNavBar({ user }: { user: User | null }) {
   const dropdownRef = useRef(null);
   const path = usePathname();
   const router = useRouter();
   const { isOn, setOn, setOff } = useToggle();
-  const username = trpc.main.getUser.useQuery().data?.username;
-  const profileName = username ? username : user?.user_metadata?.email;
+  const getUser = user ? trpc.main.getUser.useQuery() : null;
+
+  const profileName =
+    getUser?.data?.username || user?.user_metadata?.email || null;
+
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const isSwarmsPath = path === '/swarms';
 
@@ -49,9 +54,18 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
   );
 
   async function handleSignOut(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setIsLoading(true);
+
     try {
-      await handleRequest(e, SignOut, router);
+      const success = await handleRequest(e, SignOut, router);
+
+      if (success) {
+        toast({
+          title: "You're logged out successfully",
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       console.error(error);
     } finally {

@@ -9,6 +9,7 @@ import {
   useEffect,
   Dispatch,
   SetStateAction,
+  useCallback,
 } from 'react';
 
 interface AuthProviderProps extends PropsWithChildren {
@@ -24,17 +25,13 @@ interface AuthContextType extends AuthProviderProps {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children, user }: AuthProviderProps) => {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(!user);
 
-  const openModal = () => setIsAuthModalOpen(true);
-  const closeModal = () => setIsAuthModalOpen(false);
+  const openModal = useCallback(() => setIsAuthModalOpen(true), []);
+  const closeModal = useCallback(() => setIsAuthModalOpen(false), []);
 
   useEffect(() => {
-    if (!user) {
-      openModal();
-    } else {
-      closeModal();
-    }
+    setIsAuthModalOpen(!user);
   }, [user]);
 
   return (
@@ -42,8 +39,8 @@ export const AuthProvider = ({ children, user }: AuthProviderProps) => {
       value={{
         isAuthModalOpen,
         openModal,
-        closeModal,
         setIsAuthModalOpen,
+        closeModal,
         user,
       }}
     >
@@ -51,7 +48,6 @@ export const AuthProvider = ({ children, user }: AuthProviderProps) => {
     </AuthContext.Provider>
   );
 };
-
 export const useAuthContext = () => {
   const context = useContext(AuthContext);
   if (!context) {
