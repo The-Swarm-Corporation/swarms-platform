@@ -82,7 +82,6 @@ export async function SignOut(formData: FormData) {
       'You could not be signed out.',
     );
   }
-  toast.success('Logged out successfully');
   return '/';
 }
 

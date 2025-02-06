@@ -12,17 +12,28 @@ import NavItem from '../item';
 import { User } from '@supabase/supabase-js';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import Link from 'next/link';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 
 const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
   const path = usePathname();
   const router = useRouter();
   const [showTitle, setShowTitle] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   async function handleSignOut(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setIsLoading(true);
+
     try {
-      await handleRequest(e, SignOut, router);
+      const success = await handleRequest(e, SignOut, router);
+
+      if (success) {
+        toast({
+          title: "You're logged out successfully",
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       console.error(error);
     } finally {
