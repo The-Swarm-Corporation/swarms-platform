@@ -23,10 +23,14 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
   const path = usePathname();
   const router = useRouter();
   const { isOn, setOn, setOff } = useToggle();
-  const getUser = user ? trpc.main.getUser.useQuery() : null;
 
-  const profileName =
-    getUser?.data?.username || user?.user_metadata?.email || null;
+  const getUser = trpc.main.getUser.useQuery(undefined, {
+    enabled: !!user,
+  });
+
+  const profileName = user
+    ? getUser.data?.username || user?.user_metadata?.email
+    : null;
 
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
