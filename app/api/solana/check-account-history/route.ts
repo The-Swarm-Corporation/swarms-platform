@@ -2,7 +2,6 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 import { Database } from '@/types_db';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 const RPC_URL = process.env.RPC_URL as string;
 const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
