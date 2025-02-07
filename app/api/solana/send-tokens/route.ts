@@ -12,7 +12,7 @@ import { createClient } from '@supabase/supabase-js';
 import { decrypt } from '@/shared/utils/encryption';
 
 const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
-const RPC_URL = process.env.RPC_URL as string;
+const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL as string;
 
 const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
 const DAO_TREASURY_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_DAO_TREASURY_ADDRESS as string);
