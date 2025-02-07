@@ -10,7 +10,12 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
-import { createQueryString, isEmpty } from '@/shared/utils/helpers';
+import {
+  createQueryString,
+  isEmpty,
+  estimateTokensAndCost,
+  CostEstimate,
+} from '@/shared/utils/helpers';
 import { PLATFORM } from '@/shared/utils/constants';
 import { useAuthContext } from '../ui/auth.provider';
 import { Tables } from '@/types_db';
@@ -82,6 +87,7 @@ export default function useSpreadsheet() {
 
   const getSubscription = trpc.payment.getSubscriptionStatus.useQuery();
   const cardManager = trpc.payment.getUserPaymentMethods.useQuery();
+  const userCredit = trpc.panel.getUserCredit.useQuery();
   const [selectedAgent, setSelectedAgent] =
     useState<Tables<'swarms_spreadsheet_session_agents'> | null>(null);
 
@@ -108,6 +114,7 @@ export default function useSpreadsheet() {
     updateSessionMetricsMutation.isPending;
   const isDuplicateLoader =
     getDuplicateCountQuery.isLoading || addAgentMutation.isPending;
+  const deductCredit = trpc.explorer.deductCredit.useMutation();
 
   const allSessions = trpc.panel.getAllSessions.useQuery();
   const allSessionsAgents = trpc.panel.getAllSessionsWithAgents.useQuery();
@@ -439,7 +446,6 @@ export default function useSpreadsheet() {
     }
   };
 
-  // TODO: CHARGE FOR OPTIMIZING PROMPT
   // Function to optimize prompt
   const optimizePrompt = async (isEditing = false) => {
     setIsOptimizing(true);
@@ -447,10 +453,8 @@ export default function useSpreadsheet() {
       const currentPrompt = isEditing
         ? editingAgent.systemPrompt
         : newAgent.systemPrompt;
-      const { text } = await generateText({
-        model: registry.languageModel('openai:gpt-4o'),
-        prompt: `
-          Your task is to optimize the following system prompt for an AI agent. The optimized prompt should be highly reliable, production-grade, and tailored to the specific needs of the agent. Consider the following guidelines:
+
+      const optimizationPrompt = `Your task is to optimize the following system prompt for an AI agent. The optimized prompt should be highly reliable, production-grade, and tailored to the specific needs of the agent. Consider the following guidelines:
   
           1. Thoroughly understand the agent's requirements and capabilities.
           2. Employ diverse prompting strategies (e.g., chain of thought, few-shot learning).
@@ -464,8 +468,29 @@ export default function useSpreadsheet() {
           ${currentPrompt}
   
           Please provide an optimized version of this prompt, incorporating the guidelines mentioned above. Only return the optimized prompt, no other text or comments.
-          `,
+          `;
+      const costEstimate = estimateTokensAndCost(optimizationPrompt);
+
+      const totalCredit = Number(userCredit) || 0;
+
+      if (totalCredit < costEstimate.inputCost) {
+        toast.toast({
+          description: 'Insufficient credit for prompt optimization',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const { text } = await generateText({
+        model: registry.languageModel('openai:gpt-4o'),
+        prompt: optimizationPrompt,
       });
+
+      const finalCosts = estimateTokensAndCost(optimizationPrompt, text);
+
+      if (finalCosts?.totalCost) {
+        deductCredit.mutateAsync({ amount: finalCosts.totalCost });
+      }
 
       if (isEditing) {
         setEditingAgent((prev) => ({ ...prev, systemPrompt: text }));
@@ -517,71 +542,99 @@ export default function useSpreadsheet() {
       return;
     }
 
-    const isTaskHandled = await handleTaskChange(task);
+    try {
+      const isTaskHandled = await handleTaskChange(task);
 
-    if (!isTaskHandled) {
+      if (!isTaskHandled) {
+        toast.toast({
+          description: 'An error has occurred',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const startTime = Date.now();
+      const agents = sessionData.data?.agents || [];
+      const outputs: Record<string, any> = {};
+      const costTracking: Record<string, CostEstimate> = {};
+
+      let totalEstimatedCost = 0;
+
+      const estimates = agents.map((agent) => {
+        const uniquePrompt =
+          agent.status === 'completed'
+            ? `Task: ${task}\n\nAgent Name: ${agent.id}\n\nResponse:`
+            : `${agent.system_prompt}\n\nTask: ${task}\n\nAgent Name: ${agent.name}\nAgent Description: ${agent.description}\n\nResponse:`;
+
+        const estimate = estimateTokensAndCost(uniquePrompt);
+        totalEstimatedCost += estimate.inputCost;
+        return { agent, estimate, prompt: uniquePrompt };
+      });
+
+      const totalCredit = Number(userCredit) || 0;
+
+      if (totalCredit < totalEstimatedCost) {
+        throw new Error('Insufficient credit to run all agents');
+      }
+
+      await Promise.all(
+        estimates.map(async ({ agent, estimate, prompt }) => {
+          setIsRunning(true);
+          try {
+            await updateAgentStatusMutation.mutateAsync({
+              agent_id: agent.id,
+              status: 'running',
+            });
+
+            const { text } = await generateText({
+              model: registry.languageModel(agent.llm || ''),
+              prompt: prompt,
+            });
+
+            const finalCosts = estimateTokensAndCost(prompt, text);
+            costTracking[agent.id] = finalCosts;
+
+            if (finalCosts?.totalCost) {
+              deductCredit.mutateAsync({ amount: finalCosts.totalCost });
+            }
+
+            outputs[agent.id] = text;
+
+            await updateAgentStatusMutation.mutateAsync({
+              agent_id: agent.id,
+              status: 'completed',
+              output: text,
+            });
+          } catch (error: any) {
+            outputs[agent.id] = `Error: ${error.message || 'Unknown error'}`;
+            await updateAgentStatusMutation.mutateAsync({
+              agent_id: agent.id,
+              status: 'error',
+              output: outputs[agent.id],
+            });
+          } finally {
+            setIsRunning(false);
+          }
+        }),
+      );
+
+      const endTime = Date.now();
+      const timeSaved = Math.round((endTime - startTime) / 1000);
+
+      await updateSessionMetricsMutation.mutateAsync({
+        session_id: currentSessionId,
+        tasksExecuted: (sessionData.data?.tasks_executed || 0) + 1,
+        timeSaved: (sessionData.data?.time_saved || 0) + timeSaved,
+      });
+
+      sessionData.refetch();
+    } catch (error) {
+      console.error('Failed to run agents:', error);
       toast.toast({
-        description: 'An error has occurred',
+        description: 'Failed to run agents',
         variant: 'destructive',
       });
-      return;
     }
-
-    const startTime = Date.now();
-    const agents = sessionData.data?.agents || [];
-    const outputs: Record<string, any> = {};
-
-    await Promise.all(
-      agents.map(async (agent) => {
-        setIsRunning(true);
-        try {
-          await updateAgentStatusMutation.mutateAsync({
-            agent_id: agent?.id,
-            status: 'running',
-          });
-
-          //TODO: CHARGE FOR RUNNING PROMPTS
-
-          const uniquePrompt =
-            agent.status === 'completed'
-              ? `Task: ${task}\n\nAgent Name: ${agent.id}\n\nResponse:`
-              : `${agent.system_prompt}\n\nTask: ${task}\n\nAgent Name: ${agent.name}\nAgent Description: ${agent.description}\n\nResponse:`;
-
-          const { text } = await generateText({
-            model: registry.languageModel(agent?.llm || ''),
-            prompt: uniquePrompt,
-          });
-
-          outputs[agent.id] = text;
-
-          await updateAgentStatusMutation.mutateAsync({
-            agent_id: agent?.id,
-            status: 'completed',
-            output: text,
-          });
-        } catch (error: any) {
-          outputs[agent?.id] = `Error: ${error.message || 'Unknown error'}`;
-          await updateAgentStatusMutation.mutateAsync({
-            agent_id: agent?.id,
-            status: 'error',
-            output: outputs[agent?.id],
-          });
-        } finally {
-          setIsRunning(false);
-        }
-      }),
-    );
-
-    const endTime = Date.now();
-    const timeSaved = Math.round((endTime - startTime) / 1000);
-
-    await updateSessionMetricsMutation.mutateAsync({
-      session_id: currentSessionId,
-      tasksExecuted: (sessionData.data?.tasks_executed || 0) + 1,
-      timeSaved: (sessionData.data?.time_saved || 0) + timeSaved,
-    });
-
-    sessionData.refetch();
   };
 
   const downloadJSON = async () => {

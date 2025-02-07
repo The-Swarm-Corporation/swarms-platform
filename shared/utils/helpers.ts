@@ -13,6 +13,35 @@ export type ShareDetails = {
   subject?: string;
 };
 
+export interface CostEstimate {
+  inputTokens: number;
+  outputTokens: number;
+  inputCost: number;
+  outputCost: number;
+  totalCost: number;
+}
+
+export const estimateTokensAndCost = (input: string, output: string = ''): CostEstimate => {
+  const inputCostPerThousand = 0.005; // $5 per million tokens
+  const outputCostPerThousand = 0.01; // $10 per million tokens
+  
+  const estimateTokens = (text: string) => Math.ceil(text.length / 4);
+  
+  const inputTokens = estimateTokens(input);
+  const outputTokens = estimateTokens(output);
+  
+  const inputCost = (inputTokens / 1000) * inputCostPerThousand;
+  const outputCost = (outputTokens / 1000) * outputCostPerThousand;
+  
+  return {
+    inputTokens,
+    outputTokens,
+    inputCost,
+    outputCost,
+    totalCost: inputCost + outputCost
+  };
+};
+
 export const getURL = (path: string = '') => {
   // Check if NEXT_PUBLIC_SITE_URL is set and non-empty. Set this to your site URL in production env.
   let url =
