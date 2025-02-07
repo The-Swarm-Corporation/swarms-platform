@@ -5,7 +5,7 @@ import { Database } from '@/types_db';
 import { createClient } from '@supabase/supabase-js';
 
 const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL as string;
+const RPC_URL = process.env.RPC_URL as string;
 const LAMPORTS_PER_SOL = 1_000_000_000;
 
 export async function GET(req: Request) {

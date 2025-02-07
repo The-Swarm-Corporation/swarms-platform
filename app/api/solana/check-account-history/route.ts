@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 import { Database } from '@/types_db';
 
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL as string;
+const RPC_URL = process.env.RPC_URL as string;
 const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
 
 export async function POST(req: Request) {

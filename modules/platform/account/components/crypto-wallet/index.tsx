@@ -11,7 +11,7 @@ import TransactionHistory from './transaction-history';
 
 const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
 const DAO_TREASURY_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_DAO_TREASURY_ADDRESS as string);
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL as string;
+const RPC_URL = process.env.RPC_URL as string;
 
 const CryptoWallet = ({ user }: { user: User | null }) => {
   const { toast } = useToast();
@@ -99,22 +99,21 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
 
   const fetchSwarmsBalance = async (address: string) => {
     try {
-      const connection = new Connection(RPC_URL, 'confirmed');
-      const tokenAccount = await getAssociatedTokenAddress(
-        SWARMS_TOKEN_ADDRESS,
-        new PublicKey(address)
-      );
-      const balance = await connection.getTokenAccountBalance(tokenAccount);
-      console.log('Fetched balance:', {
-        raw: balance.value.amount,
-        formatted: balance.value.uiAmount
-      });
-      setSwarmsBalance(balance.value.uiAmount || 0);
+      const res = await fetch(`/api/solana/balance?wallet=${address}`);
+      const data = await res.json();
+      if (res.ok) {
+        console.log('Fetched balance:', data);
+        setSwarmsBalance(data.uiAmount || 0);
+      } else {
+        console.error('Error fetching balance:', data.error);
+        setSwarmsBalance(0);
+      }
     } catch (error) {
       console.error('Balance fetch error:', error);
       setSwarmsBalance(0);
     }
   };
+  
 
   const fetchSwarmsPrice = async () => {
     try {
