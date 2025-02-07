@@ -249,32 +249,6 @@ export function SwarmManagement() {
     handleInitialSession();
   }, [allSessions?.data, searchParams]);
 
-
-  // Add a share function that copies the current URL
-  const shareSession = async () => {
-    if (!currentSessionId) {
-      toast.toast({
-        description: 'No session selected',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      const url = `${window.location.origin}${window.location.pathname}?session=${currentSessionId}`;
-      await navigator.clipboard.writeText(url);
-      toast.toast({
-        description: 'Session URL copied to clipboard',
-      });
-    } catch (error) {
-      console.error('Failed to copy URL:', error);
-      toast.toast({
-        description: 'Failed to copy session URL',
-        variant: 'destructive',
-      });
-    }
-  };
-
   // Update the shareSwarm function to use the new shareSession
   const shareSwarm = () => {
     if (!currentSessionId) {
@@ -529,6 +503,7 @@ export function SwarmManagement() {
     }
   };
 
+  // TODO: CHARGE FOR OPTIMIZING PROMPT
   // Function to optimize prompt
     const optimizePrompt = async (isEditing = false) => {
     setIsOptimizing(true);
@@ -626,6 +601,8 @@ export function SwarmManagement() {
             agent_id: agent?.id,
             status: 'running',
           });
+
+          //TODO: CHARGE FOR RUNNING PROMPTS
 
           const uniquePrompt =
             agent.status === 'completed'
