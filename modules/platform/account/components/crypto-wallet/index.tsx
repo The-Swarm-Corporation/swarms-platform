@@ -24,15 +24,12 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
 
   const addUsdBalanceMutation = trpc.dashboard.addCryptoTransactionCredit.useMutation({
     onSuccess: async (data) => {
-      // Silently refresh credit balance
       await refetchCredit();
       
-      // Refresh SWARMS balance
       if (publicKey) {
         await fetchSwarmsBalance(publicKey);
       }
       
-      // Show single success message with combined information
       toast({
         description: `Successfully added ${data.creditsAdded} credits and processed ${amountToSend} SWARMS`,
         style: { backgroundColor: '#10B981', color: 'white' }
@@ -82,6 +79,24 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
     }
   };
 
+  const disconnectWallet = async () => {
+    try {
+      const { solana } = window as any;
+      if (solana) {
+        await solana.disconnect();
+        setPublicKey(null);
+        setSwarmsBalance(0);
+        toast({
+          description: 'Wallet disconnected successfully',
+          style: { backgroundColor: '#10B981', color: 'white' }
+        });
+      }
+    } catch (error) {
+      console.error('Disconnect error:', error);
+      toast({ description: 'Failed to disconnect wallet', variant: 'destructive' });
+    }
+  };
+
   const fetchSwarmsBalance = async (address: string) => {
     try {
       const connection = new Connection(RPC_URL, 'confirmed');
@@ -124,26 +139,20 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
       });
       
       const senderPublicKey = new PublicKey(publicKey);
-
-      // Get the sender's token account
       const sourceAccount = await getAssociatedTokenAddress(
         SWARMS_TOKEN_ADDRESS,
         senderPublicKey,
         false,
       );
-
-      // Get the destination token account
       const destinationAccount = await getAssociatedTokenAddress(
         SWARMS_TOKEN_ADDRESS,
         DAO_TREASURY_ADDRESS,
         false,
       );
 
-      // Convert amount with proper decimals
       const DECIMALS = 6;
       const rawAmount = Math.floor(parseFloat(amountToSend) * Math.pow(10, DECIMALS));
 
-      // Create transaction
       const transaction = new Transaction().add(
         createTransferCheckedInstruction(
           sourceAccount,
@@ -152,30 +161,24 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
           senderPublicKey,
           rawAmount,
           DECIMALS,
-          [],  // No additional signers
+          [],
         )
       );
 
-      // Get recent blockhash
       const { blockhash } = await connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = senderPublicKey;
 
-      // Sign and send
       const signedTx = await solana.signTransaction(transaction);
       const signature = await connection.sendRawTransaction(signedTx.serialize());
-
-      // Wait for confirmation with more detailed status
       const confirmation = await connection.confirmTransaction(signature, 'confirmed');
 
       if (confirmation.value.err) {
         throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
       }
 
-      // Calculate USD value
       const usdValue = parseFloat(amountToSend) * swarmsPrice;
 
-      // Log the transaction with blockchain verification
       await addUsdBalanceMutation.mutateAsync({
         amountUsd: usdValue,
         transactionHash: signature,
@@ -187,7 +190,6 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
         style: { backgroundColor: '#10B981', color: 'white' }
       });
 
-      // Refresh balance
       fetchSwarmsBalance(publicKey);
       setAmountToSend('');
     } catch (error: any) {
@@ -220,17 +222,15 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Only update if the value is empty or a positive number
     if (value === '' || parseFloat(value) >= 0) {
       setAmountToSend(value);
     }
   };
 
   return (
-    <div className=" bg-black text-red-500">
+    <div className="bg-black text-red-500">
       <div className="max-w-3xl mx-auto p-6">
         <div className="bg-black/50 backdrop-blur-xl border-2 border-red-500/50 rounded-xl p-8 shadow-2xl">
-          {/* Header */}
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-red-500 mb-2 font-cyber">
               CREDIT SYSTEM
@@ -238,7 +238,6 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
             <div className="h-1 w-32 bg-gradient-to-r from-red-500 to-transparent"></div>
           </div>
 
-          {/* Wallet Connection */}
           {!publicKey ? (
             <button
               onClick={connectWallet}
@@ -250,21 +249,29 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
             </button>
           ) : (
             <div className="space-y-6">
-              {/* Wallet Info */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-black/60 border border-red-500/30 rounded-lg p-4">
-                  <div className="text-sm text-gray-400">CONNECTED WALLET</div>
-                  <div className="font-mono text-red-400">
-                    {publicKey.slice(0, 4)}...{publicKey.slice(-4)}
+              <div className="flex justify-between items-center mb-6">
+                <div className="grid grid-cols-2 gap-4 flex-grow">
+                  <div className="bg-black/60 border border-red-500/30 rounded-lg p-4">
+                    <div className="text-sm text-gray-400">CONNECTED WALLET</div>
+                    <div className="font-mono text-red-400">
+                      {publicKey.slice(0, 4)}...{publicKey.slice(-4)}
+                    </div>
+                  </div>
+                  <div className="bg-black/60 border border-red-500/30 rounded-lg p-4">
+                    <div className="text-sm text-gray-400">$SWARMS BALANCE</div>
+                    <div className="font-mono text-red-400">{swarmsBalance.toFixed(2)}</div>
                   </div>
                 </div>
-                <div className="bg-black/60 border border-red-500/30 rounded-lg p-4">
-                  <div className="text-sm text-gray-400">$SWARMS BALANCE</div>
-                  <div className="font-mono text-red-400">{swarmsBalance.toFixed(2)}</div>
-                </div>
+                <button
+                  onClick={disconnectWallet}
+                  className="ml-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500 
+                           text-red-500 rounded-lg transition duration-300 ease-in-out
+                           hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                >
+                  DISCONNECT
+                </button>
               </div>
 
-              {/* Payment Section */}
               <div className="bg-black/60 border border-red-500/30 rounded-lg p-6">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-gray-400">$SWARMS PRICE</span>
@@ -302,7 +309,6 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
                 </div>
               </div>
 
-              {/* Add Transaction History */}
               {user && <TransactionHistory userId={user.id} />}
             </div>
           )}
