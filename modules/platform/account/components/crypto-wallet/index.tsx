@@ -11,7 +11,7 @@ import TransactionHistory from './transaction-history';
 
 const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
 const DAO_TREASURY_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_DAO_TREASURY_ADDRESS as string);
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL as string;
+const RPC_URL = process.env.RPC_URL as string;
 
 const CryptoWallet = ({ user }: { user: User | null }) => {
   const { toast } = useToast();
