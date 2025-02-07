@@ -131,9 +131,8 @@ export function SwarmManagement() {
 
   return (
     <>
-      {allSessions?.isPending && <ComponentLoader />}
+      {/* {allSessions?.isPending && <ComponentLoader />} */}
       <div className="flex flex-1 h-screen ">
-        {/* Sidebar */}
         <div className="min-w-[250px] w-[250px] border-r bg-background p-4">
           <h3 className="font-semibold mb-4">All Sessions</h3>
           <div className="space-y-2">
