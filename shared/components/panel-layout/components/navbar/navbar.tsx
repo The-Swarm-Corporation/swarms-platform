@@ -110,70 +110,72 @@ export default function PlatformNavBar({ user }: { user: User | null }) {
             onClick={setOn}
           >
             <Avatar user={user as User} profileName={profileName} />
-            <ul
-              ref={dropdownRef}
-              className={cn(
-                "absolute right-0 mt-4 w-72 group-hover:block z-10 p-0 transition duration-150 invisible bg-black/85 text-white border border-secondary bg-opacity-75 rounded-md shadow-lg before:content-[''] before:absolute before:translate-x-1/4 before:block before:border-[10px] before:border-solid before:border-white before:border-t-[transparent] before:border-r-[transparent] before:border-b-secondary before:border-l-[transparent] before:right-3 before:-top-5",
-                isOn && 'translate-x-0 visible',
-              )}
-            >
-              <li
+            {user && (
+              <ul
+                ref={dropdownRef}
                 className={cn(
-                  'p-4 text-sm rounded-t-md border-b-slate-800 border-b flex justify-between items-center',
+                  "absolute right-0 mt-4 w-72 group-hover:block z-10 p-0 transition duration-150 invisible bg-black/85 text-white border border-secondary bg-opacity-75 rounded-md shadow-lg before:content-[''] before:absolute before:translate-x-1/4 before:block before:border-[10px] before:border-solid before:border-white before:border-t-[transparent] before:border-r-[transparent] before:border-b-secondary before:border-l-[transparent] before:right-3 before:-top-5",
+                  isOn && 'translate-x-0 visible',
                 )}
               >
-                <NavItem title={profileName} />
-                <span
-                  title="Active user"
-                  className="inline-flex shrink-0 items-center justify-center whitespace-nowrap text-sm border border-input bg-secondary text-foreground font-medium shadow-sm hover:bg-accent hover:text-accent-foreground h-8 py-2 gap-[6px] rounded-full px-2"
+                <li
+                  className={cn(
+                    'p-4 text-sm rounded-t-md border-b-slate-800 border-b flex justify-between items-center',
+                  )}
                 >
-                  {profileName?.charAt(0)?.toUpperCase()}_swarms+
-                </span>
-              </li>
-              {NAV_LINKS.account?.map((item, index, array) => {
-                const isLast = index === array.length - 1;
-                return (
-                  <li
-                    key={item.title}
-                    className={cn(
-                      'text-sm hover:bg-destructive hover:text-white ',
-                      item.link === path && 'bg-primary text-white',
-                      isLast && 'rounded-b-md border-t-slate-800 border-t',
-                    )}
+                  <NavItem title={profileName} />
+                  <span
+                    title="Active user"
+                    className="inline-flex shrink-0 items-center justify-center whitespace-nowrap text-sm border border-input bg-secondary text-foreground font-medium shadow-sm hover:bg-accent hover:text-accent-foreground h-8 py-2 gap-[6px] rounded-full px-2"
                   >
-                    {!item.link ? (
-                      user?.role === 'authenticated' ? (
-                        <NavItem
-                          {...item}
-                          as="form"
-                          isIcon
-                          className="w-full p-4"
-                          onSubmit={handleSignOut}
-                        >
-                          <button
-                            type="submit"
-                            className="flex items-center w-full"
+                    {profileName?.charAt(0)?.toUpperCase()}_swarms+
+                  </span>
+                </li>
+                {NAV_LINKS.account?.map((item, index, array) => {
+                  const isLast = index === array.length - 1;
+                  return (
+                    <li
+                      key={item.title}
+                      className={cn(
+                        'text-sm hover:bg-destructive hover:text-white ',
+                        item.link === path && 'bg-primary text-white',
+                        isLast && 'rounded-b-md border-t-slate-800 border-t',
+                      )}
+                    >
+                      {!item.link ? (
+                        user?.role === 'authenticated' ? (
+                          <NavItem
+                            {...item}
+                            as="form"
+                            isIcon
+                            className="w-full p-4"
+                            onSubmit={handleSignOut}
                           >
-                            {isLoading ? 'Signin out...' : 'Sign out'}
-                          </button>
-                        </NavItem>
+                            <button
+                              type="submit"
+                              className="flex items-center w-full"
+                            >
+                              {isLoading ? 'Signin out...' : 'Sign out'}
+                            </button>
+                          </NavItem>
+                        ) : (
+                          <NavItem
+                            link="/signin"
+                            title="Sign in"
+                            className="w-full p-4"
+                            isIcon
+                            icon={<LogIn size={20} />}
+                            showTitle
+                          />
+                        )
                       ) : (
-                        <NavItem
-                          link="/signin"
-                          title="Sign in"
-                          className="w-full p-4"
-                          isIcon
-                          icon={<LogIn size={20} />}
-                          showTitle
-                        />
-                      )
-                    ) : (
-                      <NavItem {...item} isIcon showTitle />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+                        <NavItem {...item} isIcon showTitle />
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </div>
       </nav>
