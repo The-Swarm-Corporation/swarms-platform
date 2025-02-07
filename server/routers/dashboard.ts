@@ -98,8 +98,8 @@ const dashboardRouter = router({
 
       try {
         // Debug RPC connection
-        console.log('Connecting to Solana RPC:', process.env.NEXT_PUBLIC_RPC_URL);
-        const connection = new Connection(process.env.NEXT_PUBLIC_RPC_URL!);
+        console.log('Connecting to Solana RPC:', process.env.RPC_URL);
+        const connection = new Connection(process.env.RPC_URL!);
         
         // Debug transaction verification
         console.log('Verifying transaction:', input.transactionHash);
@@ -199,7 +199,7 @@ const dashboardRouter = router({
         console.error('Detailed error in addCryptoTransactionCredit:', {
           error,
           input,
-          rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
+          rpcUrl: process.env.RPC_URL,
           userId: user.id
         });
         throw new TRPCError({
