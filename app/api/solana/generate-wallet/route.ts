@@ -8,7 +8,7 @@ import {
 } from '@solana/spl-token';
 import { encrypt } from '@/shared/utils/encryption';
 
-const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
+const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.SWARMS_TOKEN_ADDRESS as string);
 const RPC_URL = process.env.RPC_URL as string;
 
 export async function POST(req: Request) {

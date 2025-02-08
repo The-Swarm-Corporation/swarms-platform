@@ -123,7 +123,7 @@ const dashboardRouter = router({
 
         // Verify the destination address matches our DAO treasury
         const isValidDestination = transaction?.meta?.postTokenBalances?.some(
-          balance => balance.owner === process.env.NEXT_PUBLIC_DAO_TREASURY_ADDRESS
+          balance => balance.owner === process.env.DAO_TREASURY_ADDRESS
         );
 
         if (!isValidDestination) {

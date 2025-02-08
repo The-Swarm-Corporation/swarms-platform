@@ -19,12 +19,12 @@ const VLM_SAMPLE_PY_FUNC = (model: string) => `from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
-NEXT_PUBLIC_OPENAI_API_KEY = ""
+OPENAI_API_KEY = ""
 
 openai_api_base = "https://api.swarms.world/v1"
 model = "${model}"
 
-client = OpenAI(api_key=NEXT_PUBLIC_OPENAI_API_KEY, base_url=openai_api_base)
+client = OpenAI(api_key=OPENAI_API_KEY, base_url=openai_api_base)
 # Note that this model expects the image to come before the main text
 chat_response = client.chat.completions.create(
     model=model,
@@ -70,7 +70,7 @@ func main() {
 	}
 
 	// Retrieve the OpenAI API key from environment variables
-	openaiAPIKey := os.Getenv("NEXT_PUBLIC_OPENAI_API_KEY")
+	openaiAPIKey := os.Getenv("OPENAI_API_KEY")
 	if openaiAPIKey == "" {
 		log.Fatal("NEXT_PUBLIC_OPENAI_API_KEY not set in environment")
 	}
