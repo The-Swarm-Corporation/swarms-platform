@@ -3,7 +3,7 @@ import { getUserCredit } from '@/shared/utils/supabase/admin';
 
 export const runtime = 'edge';
 
-const openai = new OpenAI({ apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: Request) {
   const { message, systemPrompt, model = 'gpt-4o', userId } = await req.json();

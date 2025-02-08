@@ -11,11 +11,11 @@ import { ComputeBudgetProgram, TransactionInstruction } from '@solana/web3.js';
 import { createClient } from '@supabase/supabase-js';
 import { decrypt } from '@/shared/utils/encryption';
 
-const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_SWARMS_TOKEN_ADDRESS as string);
+const SWARMS_TOKEN_ADDRESS = new PublicKey(process.env.SWARMS_TOKEN_ADDRESS as string);
 const RPC_URL = process.env.RPC_URL as string;
 
 const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
-const DAO_TREASURY_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_DAO_TREASURY_ADDRESS as string);
+const DAO_TREASURY_ADDRESS = new PublicKey(process.env.DAO_TREASURY_ADDRESS as string);
 
 export async function POST(req: Request) {
   try {
