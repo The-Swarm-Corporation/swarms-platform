@@ -1,5 +1,3 @@
-"use server";
-
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
 /**
