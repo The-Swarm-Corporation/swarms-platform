@@ -1,10 +1,9 @@
 import { Metadata, Viewport } from 'next';
 import Footer from '@/shared/components/ui/Footer';
 import Navbar from '@/shared/components/ui/Navbar';
-import { PropsWithChildren, use } from 'react';
+import { PropsWithChildren } from 'react';
 import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
-import { createClient } from '@/shared/utils/supabase/server';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -47,17 +46,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 export default async function RootLayout({ children }: PropsWithChildren) {
-  "use server";
-  
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   return (
     <>
-      <Navbar user={user} />
+      <Navbar />
       <main className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]">
         {children}
       </main>

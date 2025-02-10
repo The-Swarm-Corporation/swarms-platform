@@ -17,8 +17,10 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import Avatar from '@/shared/components/avatar';
 import { NAVIGATION, SWARMS_GITHUB } from '@/shared/utils/constants';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
-export default function PlatformNavBar({ user }: { user: User | null }) {
+export default function PlatformNavBar() {
+  const { user } = useAuthContext();
   const dropdownRef = useRef(null);
   const path = usePathname();
   const router = useRouter();

@@ -9,12 +9,13 @@ import { handleRequest } from '@/shared/utils/auth-helpers/client';
 import { SIDE_BAR_MENU } from '../const';
 import SidebarMobile from './components/sidebar-mobile';
 import NavItem from '../item';
-import { User } from '@supabase/supabase-js';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import Link from 'next/link';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
-const PanelLayoutSidebar = ({ user }: { user: User | null }) => {
+const PanelLayoutSidebar = () => {
+  const { user } = useAuthContext();
   const path = usePathname();
   const router = useRouter();
   const [showTitle, setShowTitle] = useState(false);

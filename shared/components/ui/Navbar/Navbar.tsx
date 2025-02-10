@@ -1,8 +1,7 @@
 import s from './Navbar.module.css';
 import Navlinks from './Navlinks';
-import { User } from '@supabase/supabase-js';
 
-export default async function Navbar({ user }: { user: User | null }) {
+export default async function Navbar() {
   return (
     <nav className={s.root}>
       <a href="#skip" className="sr-only focus:not-sr-only">
@@ -10,7 +9,7 @@ export default async function Navbar({ user }: { user: User | null }) {
       </a>
       <div className="flex relative items-center w-full">
         <div className="w-[72rem] m-auto">
-          <Navlinks user={user} />
+          <Navlinks />
         </div>
       </div>
     </nav>

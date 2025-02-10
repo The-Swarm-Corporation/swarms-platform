@@ -55,7 +55,7 @@ export const dndRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const user_id = ctx.session.data.session?.user?.id;
+        const user_id = ctx.session.data.user?.id;
         
         if (!user_id) {
           throw new TRPCError({
@@ -136,7 +136,7 @@ export const dndRouter = router({
   getCurrentFlow: userProcedure
     .input(z.object({ flowId: z.string().optional() }))
     .query(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id;
+      const user_id = ctx.session.data.user?.id;
 
       if (!user_id) {
         throw new TRPCError({
@@ -174,7 +174,7 @@ export const dndRouter = router({
     }),
 
   getAllFlows: userProcedure.query(async ({ ctx }) => {
-    const user_id = ctx.session.data.session?.user?.id || '';
+    const user_id = ctx.session.data.user?.id || '';
 
     const { data, error } = await ctx.supabase
       .from('drag_and_drop_flows')
@@ -195,7 +195,7 @@ export const dndRouter = router({
   setCurrentFlow: userProcedure
     .input(z.object({ flow_id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       await ctx.supabase
         .from('drag_and_drop_flows')

@@ -27,7 +27,7 @@ export enum TransactionStatus {
 
 const dashboardRouter = router({
   getUserRequestCount: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user;
+    const user = ctx.session.data.user;
     if (!user) {
       throw new TRPCError({
         code: 'UNAUTHORIZED',
@@ -87,7 +87,7 @@ const dashboardRouter = router({
     .mutation(async ({ ctx, input }: { ctx: any, input: any }) => {
       console.log('Starting addCryptoTransactionCredit with input:', input);
       
-      const user = ctx.session.data.session?.user;
+      const user = ctx.session.data.user;
       if (!user) {
         console.error('No user found in session');
         throw new TRPCError({

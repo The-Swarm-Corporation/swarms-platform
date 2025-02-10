@@ -19,7 +19,7 @@ import { z } from 'zod';
 const paymentRouter = router({
   // payment
   createStripePaymentSession: userProcedure.mutation(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     const customer = await getUserStripeCustomerId(user);
     if (!customer) {
       throw new TRPCError({
@@ -32,7 +32,7 @@ const paymentRouter = router({
     return stripeSession.url;
   }),
   createSubscriptionCheckoutSession: userProcedure.mutation(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     const stripe_product_id = process.env
       .NEXT_PUBLIC_STRIPE_SUBSCRIPTION_PRODUCT_ID as string;
 
@@ -78,7 +78,7 @@ const paymentRouter = router({
     }
   }),
   createStripePortalLink: userProcedure.mutation(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     const url = await createStripePortal(
       user,
       `${getURL()}${PLATFORM.ACCOUNT}`,
@@ -86,12 +86,12 @@ const paymentRouter = router({
     return url;
   }),
   getSubscriptionStatus: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     return await getSubscriptionStatus(user);
   }),
   //
   getUserPaymentMethods: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     const stripeCustomerId = await getUserStripeCustomerId(user);
     if (!stripeCustomerId) {
       throw new TRPCError({
@@ -113,7 +113,7 @@ const paymentRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
       const stripeCustomerId = await createOrRetrieveStripeCustomer({
         email: user.email ?? '',
         uuid: user.id,
@@ -150,7 +150,7 @@ const paymentRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
       const stripeCustomerId = await getUserStripeCustomerId(user);
       if (!stripeCustomerId) {
         throw new TRPCError({
@@ -176,7 +176,7 @@ const paymentRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
       const stripeCustomerId = await getUserStripeCustomerId(user);
       if (!stripeCustomerId) {
         throw new TRPCError({
@@ -198,7 +198,7 @@ const paymentRouter = router({
       return customer;
     }),
   getDefaultPaymentMethod: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     const stripeCustomerId = await getUserStripeCustomerId(user);
     if (!stripeCustomerId) {
       throw new TRPCError({

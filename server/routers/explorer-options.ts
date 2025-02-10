@@ -19,7 +19,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { modelId, modelType, content } = input;
 
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       const lastSubmits = await ctx.supabase
         .from('swarms_cloud_comments')
         .select('*')
@@ -76,7 +76,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { commentId, content } = input;
 
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       try {
         const comment = await ctx.supabase
           .from('swarms_cloud_comments')
@@ -179,7 +179,7 @@ const explorerOptionsRouter = router({
     .input(z.string())
     .mutation(async ({ input, ctx }) => {
       const commentId = input;
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
 
       try {
         const { error } = await ctx.supabase
@@ -215,7 +215,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { itemId, itemType } = input;
 
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       try {
         const { data, error } = await ctx.supabase
           .from('swarms_cloud_likes')
@@ -256,7 +256,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { itemId, itemType } = input;
 
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       try {
         const { error } = await ctx.supabase
           .from('swarms_cloud_likes')
@@ -367,7 +367,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { commentId, content } = input;
 
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       try {
         const { data, error } = await ctx.supabase
           .from('swarms_cloud_comments_replies')
@@ -400,7 +400,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { replyId, content } = input;
 
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       try {
         const reply = await ctx.supabase
           .from('swarms_cloud_comments_replies')
@@ -435,7 +435,7 @@ const explorerOptionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const replyId = input;
 
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
 
       try {
         const { error } = await ctx.supabase
