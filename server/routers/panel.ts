@@ -14,12 +14,12 @@ import { isEmpty } from '@/shared/utils/helpers';
 
 const panelRouter = router({
   getUserCredit: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     const { credit, free_credit } = await getUserCredit(user.id);
     return credit + free_credit;
   }),
   getUserCreditPlan: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     const { data, error } = await ctx.supabase
       .from('users')
       .select('credit_plan')
@@ -46,7 +46,7 @@ const panelRouter = router({
     }),
   )
   .mutation(async ({ ctx, input }) => {
-    const user_id = ctx.session.data.session?.user?.id || '';
+    const user_id = ctx.session.data.user?.id || '';
 
     const { data, error } = await ctx.supabase
       .from('swarms_spreadsheet_session_agents')
@@ -71,7 +71,7 @@ const panelRouter = router({
     return data;
   }),
   getUserFreeCredits: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     const { data, error } = await ctx.supabase
       .from('users')
       .select('had_free_credits')
@@ -108,7 +108,7 @@ const panelRouter = router({
   updateUserCreditPlan: userProcedure
     .input(z.object({ credit_plan: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       const userCredit = await getUserCredit(user.id);
 
@@ -172,7 +172,7 @@ const panelRouter = router({
     }),
   // onboarding
   getOnboarding: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     const userOnboarding = await ctx.supabase
       .from('users')
       .select('*')
@@ -204,7 +204,7 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
       const updatedOnboarding = await ctx.supabase
         .from('users')
         .update(input)
@@ -224,7 +224,7 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input: { month } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       const cluster = await userAPICluster(user.id, month);
 
@@ -245,7 +245,7 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input: { month } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       const usage = await getOrganizationUsage(user.id, month);
 
@@ -272,7 +272,7 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       // Set all other sessions to non-current
       await ctx.supabase
@@ -304,7 +304,7 @@ const panelRouter = router({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       const { data: session, error: sessionError } = await ctx.supabase
         .from('swarms_spreadsheet_sessions')
@@ -328,7 +328,7 @@ const panelRouter = router({
     }),
 
   getAllSessionsWithAgents: userProcedure.query(async ({ ctx }) => {
-    const user_id = ctx.session.data.session?.user?.id || '';
+    const user_id = ctx.session.data.user?.id || '';
 
     const { data: sessions, error: sessionsError } = await ctx.supabase
       .from('swarms_spreadsheet_sessions')
@@ -368,7 +368,7 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       const { data, error } = await ctx.supabase
         .from('swarms_spreadsheet_session_agents')
@@ -393,7 +393,7 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       const { error } = await ctx.supabase
         .from('swarms_spreadsheet_session_agents')
@@ -415,7 +415,7 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       const { data: agent } = await ctx.supabase
         .from('swarms_spreadsheet_session_agents')
@@ -453,7 +453,7 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       const { error } = await ctx.supabase
         .from('swarms_spreadsheet_sessions')
@@ -474,7 +474,7 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       const { error } = await ctx.supabase
         .from('swarms_spreadsheet_sessions')
@@ -497,7 +497,7 @@ const panelRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       const { error } = await ctx.supabase
         .from('swarms_spreadsheet_sessions')
@@ -510,7 +510,7 @@ const panelRouter = router({
     }),
 
   getAllSessions: userProcedure.query(async ({ ctx }) => {
-    const user_id = ctx.session.data.session?.user?.id || '';
+    const user_id = ctx.session.data.user?.id || '';
     const { data, error } = await ctx.supabase
       .from('swarms_spreadsheet_sessions')
       .select('*')
@@ -524,7 +524,7 @@ const panelRouter = router({
   setCurrentSession: userProcedure
     .input(z.object({ session_id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       await ctx.supabase
         .from('swarms_spreadsheet_sessions')
@@ -544,7 +544,7 @@ const panelRouter = router({
   getDuplicateCount: userProcedure
     .input(z.object({ original_agent_id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
 
       const { data, error } = await ctx.supabase
         .from('swarms_spreadsheet_session_agents')

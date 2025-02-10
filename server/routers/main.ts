@@ -11,7 +11,7 @@ import { z } from 'zod';
 
 const mainRouter = router({
   getUser: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user;
+    const user = ctx.session.data.user;
     if (!user) return null;
     const user_data = await ctx.supabase
       .from('users')
@@ -127,7 +127,7 @@ const mainRouter = router({
         }
       }
 
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
       const updatedUsername = await ctx.supabase
         .from('users')
         .update(input)

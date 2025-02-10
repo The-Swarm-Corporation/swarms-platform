@@ -28,11 +28,8 @@ const getFingerprint = (req: any) => {
     : req.ip;
   return ip || '127.0.0.1';
 };
-export const userProcedure = publicProcedure
-
-
-  .use(async (opts) => {
-    const user = opts.ctx?.session?.data?.session?.user;
+export const userProcedure = publicProcedure.use(async (opts) => {
+    const user = opts.ctx?.session.data.user;
     if (!user) {
       throw new TRPCError({
         code: 'FORBIDDEN',

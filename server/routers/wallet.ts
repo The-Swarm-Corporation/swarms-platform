@@ -17,7 +17,7 @@ interface Transaction {
 const walletRouter = router({
   // Get user's active API keys
   getApiKeys: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
 
     const { data: apiKeys, error } = await ctx.supabase
       .from('swarms_cloud_api_keys')
@@ -34,7 +34,7 @@ const walletRouter = router({
 
   // Get active AI agents for user's API keys
   getActiveAgents: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
 
     // First get the user's API keys
     const { data: apiKeys, error: apiKeysError } = await ctx.supabase
@@ -63,7 +63,7 @@ const walletRouter = router({
 
   // Get wallets for active AI agents
   getAgentWallets: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
 
     // First get the user's API keys
     const { data: apiKeys, error: apiKeysError } = await ctx.supabase
@@ -141,7 +141,7 @@ const walletRouter = router({
 
   // Get transactions for active AI agents
   getAgentTransactions: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     
     // Get all user's API keys
     const { data: apiKeys, error: apiKeysError } = await ctx.supabase
@@ -224,7 +224,7 @@ const walletRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       // Get user's API key
       const { data: apiKeys, error: apiKeyError } = await ctx.supabase

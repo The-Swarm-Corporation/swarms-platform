@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
@@ -8,17 +10,12 @@ import SubscriptionStatus from './components/subscription-status';
 import Link from 'next/link';
 import { AUTH } from '@/shared/utils/constants';
 import ThemeToggle from '@/shared/components/theme-toggle';
-import { createClient } from '@/shared/utils/supabase/server';
 import CryptoWallet from './components/crypto-wallet';
 import { UserCircle, CreditCard, Wallet } from 'lucide-react';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
-export default async function Account() {
-  "use server";
-  
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default function Account() {
+  const { user } = useAuthContext();
 
   return (
     <div className="container mx-auto py-10">

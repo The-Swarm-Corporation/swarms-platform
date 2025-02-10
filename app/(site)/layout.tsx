@@ -1,15 +1,10 @@
 import React from 'react';
 
 import { Metadata, Viewport } from 'next';
-import Footer from '@/shared/components/ui/Footer';
-import Navbar from '@/shared/components/ui/Navbar';
-import { PropsWithChildren, use } from 'react';
+import { PropsWithChildren } from 'react';
 import { getURL } from '@/shared/utils/helpers';
 import '@/shared/styles/main.css';
-import PanelLayoutSidebar from '@/shared/components/panel-layout/components/sidebar/sidebar';
-import { createClient } from '@/shared/utils/supabase/server';
-import PlatformNavBar from '@/shared/components/panel-layout/components/navbar/navbar';
-import { cn } from '@/shared/utils/cn';
+import SiteLayout from '@/shared/components/site-layout';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -51,42 +46,6 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
-export default async function RootLayout({ children }: PropsWithChildren) {
-  "use server";
-  
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  return (
-    <>
-      {user ? <PlatformNavBar user={user} /> : <Navbar user={user} />}
-      <div
-        className={cn(
-          user
-            ? 'mt-16 md:mt-20 flex flex-row w-screen h-screen min-h-screen max-md:flex-col'
-            : '',
-        )}
-      >
-        {user && <PanelLayoutSidebar user={user} />}
-        <main
-          className={cn(
-            user
-              ? 'relative container lg:max-w-7xl lg:px-12 h-full mx-auto max-lg:z-10'
-              : 'min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]',
-          )}
-        >
-          {children}
-          {user && (
-            <div className="absolute lg:w-[93%] xl:w-[95%]">
-              <Footer />
-            </div>
-          )}
-        </main>
-      </div>
-      {!user && <Footer />}
-    </>
-  );
+export default function RootLayout({ children }: PropsWithChildren) {
+  return <SiteLayout>{children}</SiteLayout>;
 }

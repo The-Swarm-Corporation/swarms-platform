@@ -20,8 +20,6 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  'use server';
-
   const supabase = await createClient();
 
   const {

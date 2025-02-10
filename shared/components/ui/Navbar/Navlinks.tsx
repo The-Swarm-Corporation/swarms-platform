@@ -13,14 +13,12 @@ import { cn } from '@/shared/utils/cn';
 import { Drawer, DrawerContent, DrawerTrigger, DrawerClose } from '../drawer';
 import { Button } from '../button';
 import { Menu, X } from 'lucide-react';
+import { useAuthContext } from '../auth.provider';
 
-interface NavlinksProps {
-  user?: any;
-}
-
-export default function Navlinks({ user }: NavlinksProps) {
+export default function Navlinks() {
   const router = getRedirectMethod() === 'client' ? useRouter() : null;
   const pathname = usePathname();
+  const { user } = useAuthContext();
 
   const isSwarmsPath = pathname === '/swarms';
 

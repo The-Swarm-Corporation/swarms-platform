@@ -95,7 +95,7 @@ const explorerRouter = router({
         };
       }
 
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
       const promptData = await ctx.supabase
         .from('swarms_cloud_prompts')
         .select('*')
@@ -130,7 +130,7 @@ const explorerRouter = router({
       }
 
       // rate limiter - 1 prompt per minute
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       const lastSubmits = await ctx.supabase
         .from('swarms_cloud_prompts')
         .select('*')
@@ -190,7 +190,7 @@ const explorerRouter = router({
         throw 'Name should be at least 2 characters';
       }
 
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
 
       try {
         const prompt = await ctx.supabase
@@ -269,7 +269,7 @@ const explorerRouter = router({
         };
       }
 
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
       const agentData = await ctx.supabase
         .from('swarms_cloud_agents')
         .select('*')
@@ -305,7 +305,7 @@ const explorerRouter = router({
       }
 
       // rate limiter - 1 agent per minute
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       const lastSubmits = await ctx.supabase
         .from('swarms_cloud_agents')
         .select('*')
@@ -371,7 +371,7 @@ const explorerRouter = router({
         throw 'Name should be at least 2 characters';
       }
 
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
 
       try {
         const agent = await ctx.supabase
@@ -443,7 +443,7 @@ const explorerRouter = router({
         };
       }
 
-      const user_id = ctx.session.data.session?.user?.id || '';
+      const user_id = ctx.session.data.user?.id || '';
       const toolData = await ctx.supabase
         .from('swarms_cloud_tools')
         .select('*')
@@ -478,7 +478,7 @@ const explorerRouter = router({
       }
 
       // rate limiter - 1 tool per 30 secs
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       const lastSubmits = await ctx.supabase
         .from('swarms_cloud_tools')
         .select('*')
@@ -544,7 +544,7 @@ const explorerRouter = router({
         throw 'Name should be at least 2 characters';
       }
 
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
 
       try {
         const tool = await ctx.supabase
@@ -602,7 +602,7 @@ const explorerRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const { modelId } = input;
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
 
       try {
         const { data, error } = await ctx.supabase
@@ -643,7 +643,7 @@ const explorerRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const { model_id, model_type, rating, comment } = input;
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
 
       try {
         const { data: existingReview, error: existingReviewError } =
@@ -781,7 +781,7 @@ const explorerRouter = router({
   getPromptChats: userProcedure
     .input(z.object({ promptId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
 
       const { promptId } = input;
       const { data, error } = await ctx.supabase
@@ -807,7 +807,7 @@ const explorerRouter = router({
       ),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
 
       const formattedInput = input.map((entry) => ({
         ...entry,
@@ -832,7 +832,7 @@ const explorerRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       const { responseId, userText, agentText, promptId } = input;
 
       const { error: updateError } = await ctx.supabase
@@ -864,7 +864,7 @@ const explorerRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
       const { error } = await ctx.supabase
         .from('swarms_cloud_prompts_chat')
         .delete()
@@ -878,7 +878,7 @@ const explorerRouter = router({
   deductCredit: userProcedure
     .input(z.object({ amount: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.session?.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id ?? '';
 
       console.log({ user_id });
 

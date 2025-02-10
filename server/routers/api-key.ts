@@ -10,7 +10,7 @@ import { createOrRetrieveStripeCustomer } from '@/shared/utils/supabase/admin';
 const apiKeyRouter = router({
   // api key page
   getApiKeys: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
     const apiKeys = await ctx.supabase
       .from('swarms_cloud_api_keys')
       .select('id, name, is_deleted, created_at, key')
@@ -26,7 +26,7 @@ const apiKeyRouter = router({
   addApiKey: userProcedure
     .input(z.object({ name: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
       const name = input.name.trim();
       if (name === '') {
         throw new TRPCError({
@@ -89,7 +89,7 @@ const apiKeyRouter = router({
   deleteApiKey: userProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
       const apiKey = await ctx.supabase
         .from('swarms_cloud_api_keys')
         .select('*')

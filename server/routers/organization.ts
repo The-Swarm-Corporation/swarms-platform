@@ -12,7 +12,7 @@ const organizationRouter = router({
   // get user organization info
 
   getUserPersonalOrganization: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
 
     const org = await ctx.supabase
       .from('swarms_cloud_organizations')
@@ -23,7 +23,7 @@ const organizationRouter = router({
   }),
 
   getUserOrganizations: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.session?.user as User;
+    const user = ctx.session.data.user as User;
 
     const allOrgs: {
       role: Enums<'organization_member_role'> | 'owner';
@@ -79,7 +79,7 @@ const organizationRouter = router({
       }),
     )
     .query(async ({ ctx, input: { id } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       const role = await getUserOrganizationRole(id, user.id);
       if (!role) {
@@ -101,7 +101,7 @@ const organizationRouter = router({
       }),
     )
     .mutation(async ({ ctx, input: { name } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       // check user already have organization
       const userOrg = await ctx.supabase
@@ -132,7 +132,7 @@ const organizationRouter = router({
       }),
     )
     .mutation(async ({ ctx, input: { id, name } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       const userRole = await getUserOrganizationRole(id, user.id);
 
@@ -160,7 +160,7 @@ const organizationRouter = router({
       }),
     )
     .query(async ({ ctx, input: { id } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       // check access: user should be owner or member
       const userRole = await getUserOrganizationRole(id, user.id);
@@ -243,7 +243,7 @@ const organizationRouter = router({
     .mutation(async ({ ctx, input: { id, email, role } }) => {
       // check access: user should be owner or member with manager role
 
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
       const userRole = await getUserOrganizationRole(id, user.id);
 
       if (!userRole || userRole == 'reader') {
@@ -373,7 +373,7 @@ const organizationRouter = router({
   pendingInvites: userProcedure
     .input(z.object({ organization_id: z.string() }))
     .query(async ({ ctx, input: { organization_id } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
       const userRole = await getUserOrganizationRole(organization_id, user.id);
 
       if (!userRole || userRole == 'reader') {
@@ -397,7 +397,7 @@ const organizationRouter = router({
       }),
     )
     .mutation(async ({ ctx, input: { organization_id, email } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       // check access: user should be owner or member with manager role
 
@@ -434,7 +434,7 @@ const organizationRouter = router({
       }),
     )
     .mutation(async ({ ctx, input: { organization_id } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       const userRole = await getUserOrganizationRole(organization_id, user.id);
 
@@ -472,7 +472,7 @@ const organizationRouter = router({
       }),
     )
     .mutation(async ({ ctx, input: { organization_id, user_id } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       const userRole = await getUserOrganizationRole(organization_id, user.id);
 
@@ -517,7 +517,7 @@ const organizationRouter = router({
       }),
     )
     .mutation(async ({ ctx, input: { organization_id, user_id, role } }) => {
-      const user = ctx.session.data.session?.user as User;
+      const user = ctx.session.data.user as User;
 
       const userRole = await getUserOrganizationRole(organization_id, user.id);
 

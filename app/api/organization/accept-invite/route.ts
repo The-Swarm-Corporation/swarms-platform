@@ -18,9 +18,9 @@ async function GET(req: Request) {
   const supabase = createRouteHandlerClient<Database>({
     cookies: () => cookieStore,
   });
-  const session = await supabase.auth.getSession();
+  const session = await supabase.auth.getUser();
 
-  const user = session.data.session?.user.id;
+  const user = session.data?.user?.id;
   if (!user) {
     return new Response('Invalid user', { status: 400 });
   }
