@@ -1,6 +1,6 @@
 import PromptModule from '@/modules/prompt';
 import { getPrompt } from '@/shared/utils/api/prompt';
-import { getURL } from '@/shared/utils/helpers';
+import { getURL, optimizePromptKeywords } from '@/shared/utils/helpers';
 import { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
@@ -13,13 +13,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const url = getURL();
   const resolvedParams = await params;
   const prompt = await getPrompt(resolvedParams?.id);
+  const seoData = optimizePromptKeywords(prompt);
 
   return {
-    title: prompt?.name,
-    description: prompt?.description,
+    title: seoData.title,
+    description: seoData.description,
+    keywords: seoData.keywords,
     openGraph: {
-      title: prompt?.name,
-      description: prompt?.description,
+      title: seoData.title,
+      description: seoData.description,
       url: `${url}${prompt?.id}`,
       images: [
         {

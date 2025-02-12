@@ -17,7 +17,7 @@ const getAllPrompts = async (req: NextApiRequest, res: NextApiResponse) => {
 
     let query = supabaseAdmin
       .from('swarms_cloud_prompts')
-      .select('id, name, description, prompt, use_cases, tags')
+      .select('id, name, description, prompt, use_cases, tags, created_at')
       .order('created_at', { ascending: false });
 
     if (name) {

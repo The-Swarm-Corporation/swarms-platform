@@ -56,7 +56,7 @@ export const getUserById = async (id: string) => {
   try {
     const user = await supabaseAdmin
       .from('users')
-      .select('id, email, twenty_crm_id')
+      .select('id, email, twenty_crm_id, username, full_name')
       .eq('id', id)
       .single();
 
