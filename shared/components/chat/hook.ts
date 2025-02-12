@@ -74,12 +74,12 @@ export default function usePromptChat({
   }, [streamedResponse, editingMessageId]);
 
   useEffect(() => {
-    if (!messages.length) {
+    if (user && !messages.length) {
       fetchMessages.refetch().then(({ data }) => {
         if (data) setMessages(data);
       });
     }
-  }, [fetchMessages, messages]);
+  }, [fetchMessages, messages, user]);
 
   useEffect(() => {
     if (latestMessageRef.current) {
