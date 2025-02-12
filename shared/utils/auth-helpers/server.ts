@@ -19,7 +19,6 @@ import {
   syncUserEmail,
   updateFreeCreditsOnSignin,
 } from '../api/user';
-import toast from 'react-hot-toast';
 
 function isValidEmail(email: string) {
   var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
