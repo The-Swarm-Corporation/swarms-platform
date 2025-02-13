@@ -1,9 +1,13 @@
+# AdsBot-Google
+User-agent: AdsBot-Google
+Disallow: /
+
 # *
 User-agent: *
 Allow: /
 
 # Host
-Host: https://example.com
+Host: https://swarms.world
 
 # Sitemaps
-Sitemap: https://example.com/sitemap.xml
+Sitemap: https://swarms.world/sitemap.xml
