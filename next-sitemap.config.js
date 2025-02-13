@@ -10,7 +10,6 @@ const developmentRobotsPolicy = [
 const config = {
   siteUrl: process.env.SITE_URL || 'https://swarms.world',
   generateRobotsTxt: true,
-  generateIndexSitemap: false,
   sitemapSize: 7000,
   changefreq: 'daily',
   priority: 0.7,
