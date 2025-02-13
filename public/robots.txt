@@ -1,0 +1,10 @@
+# AdsBot-Google
+User-agent: AdsBot-Google
+Disallow: /
+
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://swarms.world

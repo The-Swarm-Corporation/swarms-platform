@@ -6,7 +6,9 @@ import { Metadata } from 'next';
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{
+    id: string;
+  }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
