@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { ChatComponentProps } from './prompt';
+import { useAuthContext } from '../ui/auth.provider';
 
 export default function usePromptChat({
   promptId,
@@ -14,6 +15,7 @@ export default function usePromptChat({
   userId,
   model = 'gpt-4',
 }: ChatComponentProps) {
+  const { user } = useAuthContext();
   const [input, setInput] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<
@@ -72,12 +74,12 @@ export default function usePromptChat({
   }, [streamedResponse, editingMessageId]);
 
   useEffect(() => {
-    if (!messages.length) {
+    if (user && !messages.length) {
       fetchMessages.refetch().then(({ data }) => {
         if (data) setMessages(data);
       });
     }
-  }, [fetchMessages, messages]);
+  }, [fetchMessages, messages, user]);
 
   useEffect(() => {
     if (latestMessageRef.current) {
@@ -89,6 +91,14 @@ export default function usePromptChat({
   }, [messages]);
 
   const handleSend = async () => {
+    if (!user) {
+      toast.toast({
+        description: 'Log in to perform this action',
+        style: { color: 'red' },
+      });
+      return;
+    }
+
     if (!input.trim() || isLoading) return;
     setIsLoading(true);
     setIsStreaming(true);
@@ -200,6 +210,14 @@ export default function usePromptChat({
   };
 
   const handleSendEdit = async (responseId: string) => {
+    if (!user) {
+      toast.toast({
+        description: 'Log in to perform this action',
+        style: { color: 'red' },
+      });
+      return;
+    }
+
     if (!editInput.trim() || !responseId || isLoading) return;
     setIsLoading(true);
     setIsStreaming(true);
@@ -275,6 +293,14 @@ export default function usePromptChat({
   };
 
   const handleDeleteMessage = async (messageId: string) => {
+    if (!user) {
+      toast.toast({
+        description: 'Log in to perform this action',
+        style: { color: 'red' },
+      });
+      return;
+    }
+
     setMessages((prev: any) => prev.filter((m: any) => m.id !== messageId));
 
     if (!messageId) return;

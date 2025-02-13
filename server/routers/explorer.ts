@@ -880,8 +880,6 @@ const explorerRouter = router({
     .mutation(async ({ ctx, input }) => {
       const user_id = ctx.session.data.user?.id ?? '';
 
-      console.log({ user_id });
-
       const { error } = await ctx.supabase.rpc('deduct_credit', {
         user_id,
         amount: input.amount,

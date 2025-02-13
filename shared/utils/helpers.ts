@@ -1,5 +1,6 @@
 import type { Tables } from '@/types_db';
 import confetti from 'canvas-confetti';
+import { TPrompt } from '../types/prompt';
 
 type Price = Tables<'prices'>;
 
@@ -387,3 +388,24 @@ const makeId = (length: number = 5) => {
 };
 
 export { makeId };
+
+export const optimizePromptKeywords = (prompt: TPrompt) => {
+  const tagsArray = prompt?.tags ? (prompt.tags as string).split(',') : [];
+
+  return {
+    title: `${prompt?.name} - AI Prompt`,
+    description: `${prompt?.description} | AI prompt for swarms. Tags: ${tagsArray.join(', ')}`,
+    keywords: [
+      prompt?.name,
+      ...tagsArray,
+      'AI prompt',
+      'swarm intelligence',
+      'AI-driven prompt',
+      'AI',
+      'drag and drop',
+      'dnd',
+      'swarms prompt',
+      'models',
+    ].join(', '),
+  };
+};
