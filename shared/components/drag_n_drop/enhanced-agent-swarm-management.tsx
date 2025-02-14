@@ -103,6 +103,7 @@ import {
   getSwarmGroupResults,
   optimizePrompt,
 } from '@/app/actions/registry';
+import { useTheme } from 'next-themes';
 
 type AgentType = 'Worker' | 'Boss';
 type AgentModel = 'gpt-3.5-turbo' | 'gpt-4o' | 'claude-2' | 'gpt-4o-mini';
@@ -212,6 +213,7 @@ const AgentNode: React.FC<
     isInGroupDisplay?: boolean; // New prop to indicate if the agent is being displayed inside a group
   }
 > = ({ data, id, hideDeleteButton, isInGroupDisplay }) => {
+  const theme = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -386,22 +388,21 @@ const AgentNode: React.FC<
                         : 'hsl(var(--secondary))'
                     }
                     stroke={
-                      document.documentElement.classList.contains('dark')
-                        ? '#333'
-                        : 'hsl(var(--border))'
+                      theme.theme === 'dark' ? '#333' : 'hsl(var(--border))'
                     }
                     strokeWidth="2"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.5 }}
                     style={{
-                      fill: document.documentElement.classList.contains('dark')
-                        ? data.type === 'Boss'
-                          ? '#000000'
-                          : '#1A1A1B'
-                        : data.type === 'Boss'
-                          ? 'hsl(var(--card))'
-                          : 'hsl(var(--secondary))',
+                      fill:
+                        theme.theme === 'dark'
+                          ? data.type === 'Boss'
+                            ? '#000000'
+                            : '#1A1A1B'
+                          : data.type === 'Boss'
+                            ? 'hsl(var(--card))'
+                            : 'hsl(var(--secondary))',
                     }}
                   />
                 </svg>
@@ -1002,6 +1003,7 @@ interface GroupData {
 const FlowContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const theme = useTheme();
 
   // Make sure your useNodesState is properly typed
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -2708,11 +2710,7 @@ const FlowContent = () => {
               fitView
             >
               <Background
-                color={
-                  document?.documentElement.classList.contains('dark')
-                    ? '#333'
-                    : '#ccc'
-                }
+                color={theme.theme === 'dark' ? '#333' : '#ccc'}
                 gap={16}
               />
               <Controls />
