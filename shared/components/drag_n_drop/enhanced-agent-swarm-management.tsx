@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 'use client';
 
 import {
@@ -10,8 +8,6 @@ import {
   useRef,
   useContext,
   createContext,
-  Dispatch,
-  SetStateAction,
 } from 'react';
 import ReactFlow, {
   Node,
@@ -35,7 +31,7 @@ import ReactFlow, {
   EdgeChange,
   applyNodeChanges,
   applyEdgeChanges,
-  useNodes, // Add this import
+  useNodes,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Button } from '../ui/button';
@@ -94,12 +90,6 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { anthropic } from '@ai-sdk/anthropic';
-import { createOpenAI } from '@ai-sdk/openai';
-import {
-  experimental_createProviderRegistry as createProviderRegistry,
-  generateText,
-} from 'ai';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { trpc as api } from '@/shared/utils/trpc/trpc';
@@ -108,16 +98,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import AutoGenerateSwarm from './auto_generate_swarm';
 import { cn } from '@/shared/utils/cn';
-
-
-
-// Create provider registry
-const registry = createProviderRegistry({
-  anthropic,
-  openai: createOpenAI({
-    apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-  }),
-});
+import {
+  getProcessedText,
+  getSwarmGroupResults,
+  optimizePrompt,
+} from '@/app/actions/registry';
 
 type AgentType = 'Worker' | 'Boss';
 type AgentModel = 'gpt-3.5-turbo' | 'gpt-4o' | 'claude-2' | 'gpt-4o-mini';
@@ -150,12 +135,6 @@ type SaveFlowNode = {
   [key: string]: unknown; // Add index signature to match passthrough behavior
 };
 
-type AgentMessage = {
-  from: string;
-  content: string;
-  timestamp: number;
-};
-
 interface AgentData {
   description: string;
   id: string;
@@ -168,15 +147,6 @@ interface AgentData {
   lastResult?: string;
   hideDeleteButton?: boolean;
   groupId?: string; // Added groupId property
-}
-
-interface SwarmVersion {
-  id: string;
-  timestamp: number;
-  nodes: Node<AgentData>[];
-  edges: Edge[];
-  architecture: SwarmArchitecture;
-  results: { [key: string]: string };
 }
 
 declare global {
@@ -214,100 +184,6 @@ const DeleteButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   </Button>
 );
 
-const AgentLoadingOverlay = () => {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center"
-    >
-      <div className="flex flex-col items-center space-y-4">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          className="relative"
-        >
-          <div className="w-16 h-16">
-            <Loader2 className="w-16 h-16 text-primary animate-spin" />
-          </div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-lg font-medium text-foreground"
-        >
-          Processing Agent Tasks...
-        </motion.div>
-      </div>
-    </motion.div>
-  );
-};
-
-export default AgentLoadingOverlay;
-
-const generateSystemPrompt = async (
-  agentName: string,
-  agentDescription: string,
-) => {
-  try {
-    const { text } = await generateText({
-      model: registry.languageModel('openai:gpt-4o'),
-      prompt: `You are an expert AI prompt engineer specializing in creating advanced system prompts for AI agents in a swarm architecture. Your task is to create a highly effective system prompt for an AI agent with the following details:
-
-      Agent Name: ${agentName}
-      Agent Description: ${agentDescription || 'No description provided'}
-
-      To create a reliable and effective system prompt, follow these instructions:
-
-      1. Begin by defining the agent's role and responsibilities, ensuring they are clear and concise.
-      2. Establish explicit boundaries and constraints for the agent's operation, including any limitations or restrictions.
-      3. Provide context awareness and collaboration guidelines, outlining how the agent should interact with other agents and systems.
-      4. Specify the required output format, including any necessary data structures or formatting requirements.
-      5. Incorporate error handling and edge cases, ensuring the agent can recover from unexpected events or inputs.
-      6. Enable dynamic adaptation to different tasks, allowing the agent to adjust its behavior in response to changing requirements.
-      7. Include memory and context management, ensuring the agent can retain and utilize relevant information.
-      8. Define interaction patterns with other agents, outlining how they should communicate and coordinate.
-      9. Establish quality control measures, ensuring the agent's output meets the required standards.
-      10. Implement task prioritization logic, allowing the agent to manage multiple tasks and prioritize them effectively.
-
-      To showcase the agent's capabilities, provide the following multi-shot examples:
-
-      Example 1: 
-      Input: [Provide a sample input for the agent]
-      Expected Output: [Describe the expected output from the agent]
-      Explanation: [Explain the reasoning behind the expected output]
-
-      Example 2: 
-      Input: [Provide a sample input for the agent]
-      Expected Output: [Describe the expected output from the agent]
-      Explanation: [Explain the reasoning behind the expected output]
-
-      Example 3: 
-      Input: [Provide a sample input for the agent]
-      Expected Output: [Describe the expected output from the agent]
-      Explanation: [Explain the reasoning behind the expected output]
-
-      Use these advanced prompt engineering techniques:
-      - Chain-of-thought reasoning
-      - Few-shot examples
-      - Role-based conditioning
-      - Task decomposition
-      - Output structuring
-      - Context window management
-      - Error recovery protocols
-      - Multi-shot examples for reliability and showcasing the agent
-
-      Return only the optimized system prompt without any additional text or explanations.`,
-    });
-
-    return text;
-  } catch (error) {
-    console.error('Failed to generate system prompt:', error);
-    throw new Error('Failed to generate system prompt');
-  }
-};
-
 const cleanupBodyStyles = () => {
   document.body.style.removeProperty('pointer-events');
   // Also remove any other unwanted styles that might be added
@@ -327,40 +203,6 @@ const useBodyStyleCleanup = (isOpen: boolean) => {
       cleanupBodyStyles();
     };
   }, [isOpen]);
-};
-
-// Add this utility function near the top with other utility functions
-const optimizePrompt = async (currentPrompt: string): Promise<string> => {
-  if (!currentPrompt?.trim()) {
-    throw new Error('System prompt is required for optimization');
-  }
-
-  try {
-    const { text } = await generateText({
-      model: registry.languageModel('openai:gpt-4o'),
-      prompt: `
-      Your task is to optimize the following system prompt for an AI agent. The optimized prompt should be highly reliable, production-grade, and tailored to the specific needs of the agent. Consider the following guidelines:
-
-      1. Thoroughly understand the agent's requirements and capabilities.
-      2. Employ diverse prompting strategies (e.g., chain of thought, few-shot learning).
-      3. Blend strategies effectively for the specific task or scenario.
-      4. Ensure production-grade quality and educational value.
-      5. Provide necessary constraints for the agent's operation.
-      6. Design for extensibility and wide scenario coverage.
-      7. Aim for a prompt that fosters the agent's growth and specialization.
-
-      Original prompt to optimize:
-      ${currentPrompt}
-
-      Please provide an optimized version of this prompt, incorporating the guidelines mentioned above. Only return the optimized prompt, no other text or comments.
-      `,
-    });
-
-    return text;
-  } catch (error) {
-    console.error('Failed to optimize prompt:', error);
-    throw new Error('Failed to optimize system prompt');
-  }
 };
 
 // Update the AgentNode component to include connection handles
@@ -1156,15 +998,6 @@ interface GroupData {
   description?: string;
 }
 
-// Add this type definition near the top with other interfaces
-interface AddAgentToGroupDialogProps {
-  open: boolean;
-  groupId: string | null;
-  onClose: () => void;
-  nodes: Node[]; // Add this
-  setNodes: Dispatch<SetStateAction<Node[]>>; // Add this
-}
-
 // Create a wrapped component for the main content
 const FlowContent = () => {
   const router = useRouter();
@@ -1202,49 +1035,6 @@ const FlowContent = () => {
 
   // Add this near other state declarations in FlowContent
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-
-  // When adding an agent to a group, store its connections
-  const addAgentToGroup = useCallback(
-    (groupId: string, agentId: string) => {
-      // First, get the agent's data before removing it
-      const agentNode = nodes.find((n) => n.id === agentId);
-      if (!agentNode) return;
-
-      // Update nodes: add agent to group and remove standalone node
-      setNodes((prevNodes) => {
-        // First, remove the standalone agent node
-        const filteredNodes = prevNodes.filter((node) => node.id !== agentId);
-
-        // Then, update the group with the new agent
-        return filteredNodes.map((node) => {
-          if (node.id === groupId && node.type === 'group') {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                agents: [
-                  ...(node.data.agents || []),
-                  {
-                    ...agentNode.data,
-                    groupId: groupId,
-                  },
-                ],
-              },
-            };
-          }
-          return node;
-        });
-      });
-
-      // Remove all connections to/from the agent
-      setEdges((edges) =>
-        edges.filter(
-          (edge) => edge.source !== agentId && edge.target !== agentId,
-        ),
-      );
-    },
-    [nodes, setNodes, setEdges],
-  );
 
   // Add this new component before the main component
   const AddAgentToGroupDialog: React.FC<{
@@ -1332,19 +1122,6 @@ const FlowContent = () => {
     );
   };
 
-  const updateGroupState = (
-    groupId: string,
-    update: Partial<GroupProcessingState>,
-  ) => {
-    setGroupProcessingStates((prev) => ({
-      ...prev,
-      [groupId]: {
-        ...prev[groupId],
-        ...update,
-      },
-    }));
-  };
-
   // Add TRPC mutations and queries
   const getCurrentFlowQuery = api.dnd.getCurrentFlow.useQuery(
     {
@@ -1358,13 +1135,13 @@ const FlowContent = () => {
   useEffect(() => {
     if (getCurrentFlowQuery.data) {
       const swarmData = {
-        nodes: getCurrentFlowQuery.data.nodes,
+        nodes: (getCurrentFlowQuery.data as any).nodes,
 
-        edges: getCurrentFlowQuery.data.edges,
+        edges: (getCurrentFlowQuery.data as any).edges,
 
-        architecture: getCurrentFlowQuery.data.architecture,
+        architecture: (getCurrentFlowQuery.data as any).architecture,
 
-        results: getCurrentFlowQuery.data.results,
+        results: (getCurrentFlowQuery.data as any).results,
       };
       setSwarmJson(JSON.stringify(swarmData, null, 2));
     }
@@ -1555,7 +1332,7 @@ const FlowContent = () => {
       initialLoadRef.current = true;
 
       try {
-        const flowData = getCurrentFlowQuery.data;
+        const flowData = getCurrentFlowQuery.data as any;
 
         // Update all relevant state with the loaded flow data
         setNodes(flowData.nodes || []);
@@ -1854,18 +1631,12 @@ const FlowContent = () => {
         }),
       );
 
-      // Generate response using all previous results
-      const { text } = await generateText({
-        model: registry.languageModel(`openai:${agent.model}`),
-        prompt: `${agent.systemPrompt}
-        
-        ${context ? `Previous Context: ${context}\n` : ''}
-        ${incomingResults.length > 0 ? `Previous Agents' Results:\n${incomingResults.join('\n')}\n` : ''}
-        
-        Task: ${task}
-        
-        Based on ${incomingResults.length > 0 ? "the previous agents' results" : 'the task'}, provide your response:`,
-      });
+      const text = await getProcessedText(
+        agent,
+        context,
+        task,
+        incomingResults,
+      );
 
       // Store result
       setTaskResults((prev) => ({
@@ -1979,100 +1750,13 @@ const FlowContent = () => {
       if (!group || group.type !== 'group' || !group.data.agents) return;
 
       const groupAgents = group.data.agents;
-      let groupResults: { agentId: string; result: string }[] = [];
-
-      switch (swarmArchitecture) {
-        case 'Concurrent':
-          groupResults = await Promise.all(
-            groupAgents.map(async (agent: any) => {
-              const { text } = await generateText({
-                model: registry.languageModel(`openai:${agent.model}`),
-                prompt: `${agent.systemPrompt}
-                
-                You are part of team: ${group.data.teamName}
-                Team Type: ${group.data.swarmType}
-                Previous Results: ${previousResults}
-                
-                Task: ${currentTask}
-                
-                Response:`,
-              });
-              return { agentId: agent.id, result: text };
-            }),
-          );
-          break;
-
-        case 'Sequential':
-          let context = previousResults;
-          for (const agent of groupAgents) {
-            const { text } = await generateText({
-              model: registry.languageModel(`openai:${agent.model}`),
-              prompt: `${agent.systemPrompt}
-              
-              You are part of team: ${group.data.teamName}
-              Team Type: ${group.data.swarmType}
-              Previous Context: ${context}
-              
-              Task: ${currentTask}
-              
-              Response:`,
-            });
-            groupResults.push({ agentId: agent.id, result: text });
-            context += `\n${agent.name}: ${text}`;
-          }
-          break;
-
-        case 'Hierarchical':
-          const bosses = groupAgents.filter((a: any) => a.type === 'Boss');
-          const workers = groupAgents.filter((a: any) => a.type === 'Worker');
-
-          // Process bosses first
-          const bossResults = await Promise.all(
-            bosses.map(async (boss: any) => {
-              const { text } = await generateText({
-                model: registry.languageModel(`openai:${boss.model}`),
-                prompt: `${boss.systemPrompt}
-                
-                You are a Boss in team: ${group.data.teamName}
-                Previous Results: ${previousResults}
-                
-                Create subtasks for your team based on:
-                Task: ${currentTask}
-                
-                Response:`,
-              });
-              groupResults.push({ agentId: boss.id, result: text });
-              return { bossId: boss.id, subtask: text };
-            }),
-          );
-
-          // Then process workers
-          await Promise.all(
-            workers.map(async (worker: any) => {
-              const boss = bosses.find(
-                (b: any) => b.clusterId === worker.clusterId,
-              );
-              if (!boss) return null;
-
-              const bossPrompt = bossResults.find(
-                (bp) => bp.bossId === boss.id,
-              );
-              if (!bossPrompt) return null;
-
-              const { text } = await generateText({
-                model: registry.languageModel(`openai:${worker.model}`),
-                prompt: `${worker.systemPrompt}
-                
-                You are a Worker in team: ${group.data.teamName}
-                Task from your boss: ${bossPrompt.subtask}
-                
-                Response:`,
-              });
-              groupResults.push({ agentId: worker.id, result: text });
-            }),
-          );
-          break;
-      }
+      const groupResults = await getSwarmGroupResults(
+        groupAgents,
+        swarmArchitecture,
+        group,
+        currentTask,
+        previousResults,
+      );
 
       // Update individual agent results
       groupResults.forEach(({ agentId, result }) => {
@@ -2129,46 +1813,6 @@ const FlowContent = () => {
     }
   };
 
-  // Update GroupNode component to show processing state
-  const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
-    const { groupProcessingStates } = useContext(GroupNodeContext);
-    const processingState = groupProcessingStates[id];
-
-    return (
-      <div className="min-w-[300px] min-h-[200px] relative">
-        {/* Existing group node code ... */}
-
-        {/* Add processing indicator */}
-        {processingState?.isProcessing && (
-          <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex items-center justify-center">
-            <div className="text-primary-foreground">Processing...</div>
-          </div>
-        )}
-
-        {/* Add completion indicator */}
-        {processingState?.result && (
-          <div className="absolute top-2 right-2">
-            <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center">
-              ✓
-            </div>
-          </div>
-        )}
-
-        {/* Show group result if available */}
-        {processingState?.result && (
-          <div className="mt-2 p-2 bg-muted/50 rounded text-sm">
-            <strong>Group Result:</strong>
-            <div className="max-h-20 overflow-y-auto">
-              {processingState.result}
-            </div>
-          </div>
-        )}
-
-        {/* Existing group node content ... */}
-      </div>
-    );
-  };
-
   // Expose the updateNodeData function to the window object
   useEffect(() => {
     (window as any).updateNodeData = updateNodeData;
@@ -2201,26 +1845,26 @@ const FlowContent = () => {
 
       if (flowData) {
         // Update all state
-        setNodes(flowData.nodes || []);
-        setEdges((flowData.edges as any) || []);
+        setNodes((flowData as any).nodes || []);
+        setEdges(((flowData as any).edges as any) || []);
         setSwarmArchitecture(
-          (flowData.architecture as SwarmArchitecture) || 'Concurrent',
+          ((flowData as any).architecture as SwarmArchitecture) || 'Concurrent',
         );
-        setTaskResults(flowData.results || {});
+        setTaskResults((flowData as any).results || {});
         setCurrentFlowId(flowId);
 
         // Update previous state to prevent immediate save
         previousStateRef.current = {
-          nodes: (flowData.nodes as any) || [],
-          edges: (flowData.edges as any) || [],
+          nodes: ((flowData as any).nodes as any) || [],
+          edges: ((flowData as any).edges as any) || [],
         };
 
         // Update JSON representation
         const swarmData = {
-          nodes: flowData.nodes,
-          edges: flowData.edges,
-          architecture: flowData.architecture,
-          results: flowData.results,
+          nodes: (flowData as any).nodes,
+          edges: (flowData as any).edges,
+          architecture: (flowData as any).architecture,
+          results: (flowData as any).results,
         };
         setSwarmJson(JSON.stringify(swarmData, null, 2));
 
