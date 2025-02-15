@@ -887,7 +887,7 @@ const explorerRouter = router({
 
       if (error) {
         console.error(`Error deducting credit: ${error.message}`);
-        throw new Error('Failed to deduct user credit');
+        throw new Error(`Failed to deduct user credit: ${error.message}`);
       }
 
       return { success: true };

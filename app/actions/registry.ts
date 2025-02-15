@@ -1,5 +1,6 @@
 'use server';
 
+import { getUserCredit, supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { anthropic } from '@ai-sdk/anthropic';
 import { createOpenAI } from '@ai-sdk/openai';
 import {
@@ -16,6 +17,65 @@ const registry = createProviderRegistry({
   }),
 });
 
+async function bulkDeductUserCredits(
+  systemPrompts: string[],
+  generatedTexts: string[],
+  userId: string,
+) {
+  const estimateTokens = (text: string) => Math.ceil(text.length / 4);
+
+  const inputCostPerThousand = 0.005;
+  const outputCostPerThousand = 0.005;
+
+  let totalSystemTokens = 0;
+  let totalOutputTokens = 0;
+
+  for (const prompt of systemPrompts) {
+    totalSystemTokens += estimateTokens(prompt);
+  }
+
+  for (const text of generatedTexts) {
+    totalOutputTokens += estimateTokens(text);
+  }
+
+  const estimatedCost =
+    (totalSystemTokens / 1000) * inputCostPerThousand +
+    (totalOutputTokens / 1000) * outputCostPerThousand;
+
+  const { error } = await supabaseAdmin.rpc('deduct_credit', {
+    user_id: userId,
+    amount: estimatedCost,
+  });
+
+  if (error) {
+    console.error(`Error deducting credit: ${error.message}`);
+    throw new Error(`Failed to deduct user credit: ${error.message}`);
+  }
+}
+
+export async function validateUserCredits(
+  systemPrompts: string[],
+  userId: string,
+) {
+  const estimateTokens = (text: string) => Math.ceil(text.length / 4);
+
+  const inputCostPerThousand = 0.005;
+
+  let totalSystemTokens = 0;
+  for (const prompt of systemPrompts) {
+    totalSystemTokens += estimateTokens(prompt);
+  }
+
+  const estimatedInputCost = (totalSystemTokens / 1000) * inputCostPerThousand;
+
+  const { credit, free_credit } = await getUserCredit(userId);
+  const totalCredit = credit + free_credit;
+
+  if (totalCredit < estimatedInputCost) {
+    throw new Error('Insufficient credit');
+  }
+}
+
 export async function optimizePrompt(currentPrompt: string): Promise<string> {
   if (!currentPrompt?.trim()) {
     throw new Error('System prompt is required for optimization');
@@ -24,22 +84,7 @@ export async function optimizePrompt(currentPrompt: string): Promise<string> {
   try {
     const { text } = await generateText({
       model: registry.languageModel('openai:gpt-4o'),
-      prompt: `
-      Your task is to optimize the following system prompt for an AI agent. The optimized prompt should be highly reliable, production-grade, and tailored to the specific needs of the agent. Consider the following guidelines:
-
-      1. Thoroughly understand the agent's requirements and capabilities.
-      2. Employ diverse prompting strategies (e.g., chain of thought, few-shot learning).
-      3. Blend strategies effectively for the specific task or scenario.
-      4. Ensure production-grade quality and educational value.
-      5. Provide necessary constraints for the agent's operation.
-      6. Design for extensibility and wide scenario coverage.
-      7. Aim for a prompt that fosters the agent's growth and specialization.
-
-      Original prompt to optimize:
-      ${currentPrompt}
-
-      Please provide an optimized version of this prompt, incorporating the guidelines mentioned above. Only return the optimized prompt, no other text or comments.
-      `,
+      prompt: currentPrompt,
     });
 
     return text;
@@ -50,26 +95,17 @@ export async function optimizePrompt(currentPrompt: string): Promise<string> {
 }
 
 export async function getProcessedText(
+  currentPrompt: string,
   agent: Record<string, string>,
-  context: string = '',
-  task: string,
-  incomingResults: string[],
 ) {
-  if (!task?.trim()) {
+  if (!currentPrompt?.trim()) {
     throw new Error('System prompt is required for optimization');
   }
 
   try {
     const { text } = await generateText({
       model: registry.languageModel(`openai:${agent.model}`),
-      prompt: `${agent.systemPrompt}
-            
-            ${context ? `Previous Context: ${context}\n` : ''}
-            ${incomingResults.length > 0 ? `Previous Agents' Results:\n${incomingResults.join('\n')}\n` : ''}
-            
-            Task: ${task}
-            
-            Based on ${incomingResults.length > 0 ? "the previous agents' results" : 'the task'}, provide your response:`,
+      prompt: currentPrompt,
     });
 
     return text;
@@ -84,107 +120,143 @@ export async function getSwarmGroupResults(
   swarmArchitecture: SwarmArchitecture,
   group: any,
   currentTask: string,
-  previousResults: string = ""
+  previousResults: string = '',
+  userId: string,
 ) {
   try {
     let groupResults: { agentId: string; result: string }[] = [];
+    const systemPrompts: string[] = [];
+    const generatedTexts: string[] = [];
 
-      switch (swarmArchitecture) {
-        case 'Concurrent':
-          groupResults = await Promise.all(
-            groupAgents.map(async (agent: any) => {
-              const { text } = await generateText({
-                model: registry.languageModel(`openai:${agent.model}`),
-                prompt: `${agent.systemPrompt}
-                
-                You are part of team: ${group.data.teamName}
-                Team Type: ${group.data.swarmType}
-                Previous Results: ${previousResults}
-                
-                Task: ${currentTask}
-                
-                Response:`,
-              });
-              return { agentId: agent.id, result: text };
-            }),
-          );
-          break;
+    switch (swarmArchitecture) {
+      case 'Concurrent':
+        groupAgents.forEach((agent) => {
+          const systemPrompt = `${agent.systemPrompt}
+          
+          You are part of team: ${group.data.teamName}
+          Team Type: ${group.data.swarmType}
+          Previous Results: ${previousResults}
+          
+          Task: ${currentTask}
+          
+          Response:`;
+          systemPrompts.push(systemPrompt);
+        });
 
-        case 'Sequential':
-          let context = previousResults;
-          for (const agent of groupAgents) {
+        await validateUserCredits(systemPrompts, userId);
+
+        groupResults = await Promise.all(
+          groupAgents.map(async (agent, index) => {
             const { text } = await generateText({
               model: registry.languageModel(`openai:${agent.model}`),
-              prompt: `${agent.systemPrompt}
-              
-              You are part of team: ${group.data.teamName}
-              Team Type: ${group.data.swarmType}
-              Previous Context: ${context}
-              
-              Task: ${currentTask}
-              
-              Response:`,
+              prompt: systemPrompts[index],
             });
-            groupResults.push({ agentId: agent.id, result: text });
-            context += `\n${agent.name}: ${text}`;
-          }
-          break;
+            generatedTexts.push(text);
+            return { agentId: agent.id, result: text };
+          }),
+        );
 
-        case 'Hierarchical':
-          const bosses = groupAgents.filter((a: any) => a.type === 'Boss');
-          const workers = groupAgents.filter((a: any) => a.type === 'Worker');
+        await bulkDeductUserCredits(systemPrompts, generatedTexts, userId);
+        break;
 
-          // Process bosses first
-          const bossResults = await Promise.all(
-            bosses.map(async (boss: any) => {
-              const { text } = await generateText({
-                model: registry.languageModel(`openai:${boss.model}`),
-                prompt: `${boss.systemPrompt}
-                
-                You are a Boss in team: ${group.data.teamName}
-                Previous Results: ${previousResults}
-                
-                Create subtasks for your team based on:
-                Task: ${currentTask}
-                
-                Response:`,
-              });
-              groupResults.push({ agentId: boss.id, result: text });
-              return { bossId: boss.id, subtask: text };
-            }),
-          );
+      case 'Sequential':
+        let context = previousResults;
+        for (const agent of groupAgents) {
+          const systemPrompt = `${agent.systemPrompt}
+          
+          You are part of team: ${group.data.teamName}
+          Team Type: ${group.data.swarmType}
+          Previous Context: ${context}
+          
+          Task: ${currentTask}
+          
+          Response:`;
 
-          // Then process workers
-          await Promise.all(
-            workers.map(async (worker: any) => {
-              const boss = bosses.find(
-                (b: any) => b.clusterId === worker.clusterId,
-              );
-              if (!boss) return null;
+          systemPrompts.push(systemPrompt);
+        }
 
-              const bossPrompt = bossResults.find(
-                (bp) => bp.bossId === boss.id,
-              );
-              if (!bossPrompt) return null;
+        await validateUserCredits(systemPrompts, userId);
 
-              const { text } = await generateText({
-                model: registry.languageModel(`openai:${worker.model}`),
-                prompt: `${worker.systemPrompt}
-                
-                You are a Worker in team: ${group.data.teamName}
-                Task from your boss: ${bossPrompt.subtask}
-                
-                Response:`,
-              });
-              groupResults.push({ agentId: worker.id, result: text });
-            }),
-          );
-          break;
-      }
+        for (const agent of groupAgents) {
+          const systemPrompt = systemPrompts.shift()!;
+          const { text } = await generateText({
+            model: registry.languageModel(`openai:${agent.model}`),
+            prompt: systemPrompt,
+          });
+
+          generatedTexts.push(text);
+          groupResults.push({ agentId: agent.id, result: text });
+          context += `\n${agent.name}: ${text}`;
+        }
+
+        await bulkDeductUserCredits(systemPrompts, generatedTexts, userId);
+        break;
+
+      case 'Hierarchical':
+        const bosses = groupAgents.filter((a) => a.type === 'Boss');
+        const workers = groupAgents.filter((a) => a.type === 'Worker');
+
+        bosses.forEach((boss) => {
+          const systemPrompt = `${boss.systemPrompt}
+          
+          You are a Boss in team: ${group.data.teamName}
+          Previous Results: ${previousResults}
+          
+          Create subtasks for your team based on:
+          Task: ${currentTask}
+          
+          Response:`;
+          systemPrompts.push(systemPrompt);
+        });
+
+        await validateUserCredits(systemPrompts, userId);
+
+        const bossResults = await Promise.all(
+          bosses.map(async (boss, index) => {
+            const { text } = await generateText({
+              model: registry.languageModel(`openai:${boss.model}`),
+              prompt: systemPrompts[index],
+            });
+            generatedTexts.push(text);
+            return { bossId: boss.id, subtask: text };
+          }),
+        );
+
+        workers.forEach((worker) => {
+          const boss = bosses.find((b) => b.clusterId === worker.clusterId);
+          if (!boss) return;
+          const bossPrompt = bossResults.find((bp) => bp.bossId === boss.id);
+          if (!bossPrompt) return;
+
+          const systemPrompt = `${worker.systemPrompt}
+          
+          You are a Worker in team: ${group.data.teamName}
+          Task from your boss: ${bossPrompt.subtask}
+          
+          Response:`;
+          systemPrompts.push(systemPrompt);
+        });
+
+        await validateUserCredits(systemPrompts, userId);
+
+        await Promise.all(
+          workers.map(async (worker, index) => {
+            const { text } = await generateText({
+              model: registry.languageModel(`openai:${worker.model}`),
+              prompt: systemPrompts[index],
+            });
+            generatedTexts.push(text);
+          }),
+        );
+
+        await bulkDeductUserCredits(systemPrompts, generatedTexts, userId);
+        break;
+    }
 
     return groupResults;
   } catch (error) {
-    console.error("Error processing group task:", error);
-    throw new Error("Failed to process group task");
+    console.error('Error processing group task:', error);
+    throw new Error('Failed to process group task');
   }
 }
+

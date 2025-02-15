@@ -92,7 +92,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
-import { trpc as api } from '@/shared/utils/trpc/trpc';
+import { trpc as api, trpc } from '@/shared/utils/trpc/trpc';
 import debounce from 'lodash/debounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
@@ -102,8 +102,12 @@ import {
   getProcessedText,
   getSwarmGroupResults,
   optimizePrompt,
+  validateUserCredits,
 } from '@/app/actions/registry';
 import { useTheme } from 'next-themes';
+import { estimateTokensAndCost } from '@/shared/utils/helpers';
+import { getOptimizeSystemPrompt } from './helper';
+import { useAuthContext } from '../ui/auth.provider';
 
 type AgentType = 'Worker' | 'Boss';
 type AgentModel = 'gpt-3.5-turbo' | 'gpt-4o' | 'claude-2' | 'gpt-4o-mini';
@@ -213,6 +217,8 @@ const AgentNode: React.FC<
     isInGroupDisplay?: boolean; // New prop to indicate if the agent is being displayed inside a group
   }
 > = ({ data, id, hideDeleteButton, isInGroupDisplay }) => {
+  const { user } = useAuthContext();
+  const deductCredit = trpc.explorer.deductCredit.useMutation();
   const theme = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -307,6 +313,14 @@ const AgentNode: React.FC<
 
   // Add the optimize prompt handler
   const handleOptimizePrompt = async () => {
+    if (!user) {
+      toast({
+        description: 'AUTHENTICATION REQUIRED: LOGIN TO PROCEED',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!localSystemPrompt) {
       toast({
         title: 'Error',
@@ -317,13 +331,24 @@ const AgentNode: React.FC<
     }
 
     setIsOptimizing(true);
-    try {
-      const optimizedPrompt = await optimizePrompt(localSystemPrompt);
 
-      // Update both local state and node data
+    const systemOptimizationPrompt = getOptimizeSystemPrompt(localSystemPrompt);
+    try {
+      await validateUserCredits([systemOptimizationPrompt], user.id);
+
+      const optimizedPrompt = await optimizePrompt(systemOptimizationPrompt);
+
+      const finalCosts = estimateTokensAndCost(
+        systemOptimizationPrompt,
+        optimizedPrompt,
+      );
+
+      if (finalCosts?.totalCost) {
+        await deductCredit.mutateAsync({ amount: finalCosts.totalCost });
+      }
+
       setLocalSystemPrompt(optimizedPrompt);
 
-      // Update the node data in the flow
       setNodes((nodes) =>
         nodes.map((node) => {
           if (node.id === id) {
@@ -342,14 +367,15 @@ const AgentNode: React.FC<
       toast({
         description: 'System prompt optimized successfully',
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
-        title: 'Error',
-        description: 'Failed to optimize system prompt',
+        title: 'Failed to optimize system prompt',
+        description: error || error?.message || 'An unexpected error occurred',
         variant: 'destructive',
       });
+    } finally {
+      setIsOptimizing(false);
     }
-    setIsOptimizing(false);
   };
 
   return (
@@ -1001,9 +1027,11 @@ interface GroupData {
 
 // Create a wrapped component for the main content
 const FlowContent = () => {
+  const { user } = useAuthContext();
   const router = useRouter();
   const searchParams = useSearchParams();
   const theme = useTheme();
+  const deductCredit = trpc.explorer.deductCredit.useMutation();
 
   // Make sure your useNodesState is properly typed
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -1180,6 +1208,14 @@ const FlowContent = () => {
   });
 
   const handleOptimizePrompt = async () => {
+    if (!user) {
+      toast({
+        description: 'AUTHENTICATION REQUIRED: LOGIN TO PROCEED',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!systemPrompt) {
       toast({
         title: 'Error',
@@ -1190,20 +1226,36 @@ const FlowContent = () => {
     }
 
     setIsOptimizing(true);
+
+    const systemOptimizationPrompt = getOptimizeSystemPrompt(systemPrompt);
+
     try {
-      const optimizedPrompt = await optimizePrompt(systemPrompt);
+      await validateUserCredits([systemOptimizationPrompt], user.id);
+
+      const optimizedPrompt = await optimizePrompt(systemOptimizationPrompt);
+
+      const finalCosts = estimateTokensAndCost(
+        systemOptimizationPrompt,
+        optimizedPrompt,
+      );
+
+      if (finalCosts?.totalCost) {
+        await deductCredit.mutateAsync({ amount: finalCosts.totalCost });
+      }
+
       setSystemPrompt(optimizedPrompt);
       toast({
         description: 'System prompt optimized successfully',
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
-        title: 'Error',
-        description: 'Failed to optimize system prompt',
+        title: 'Failed to optimize system prompt',
+        description: error || error?.message || 'An unexpected error occurred',
         variant: 'destructive',
       });
+    } finally {
+      setIsOptimizing(false);
     }
-    setIsOptimizing(false);
   };
 
   const saveInProgressRef = useRef(false);
@@ -1595,11 +1647,17 @@ const FlowContent = () => {
     (window as any).updateNodeData = updateNodeData;
   }, []);
 
-  // Update the processAgent function
   const processAgent = async (agentId: string, context: string = '') => {
+    if (!user) {
+      toast({
+        description: 'AUTHENTICATION REQUIRED: LOGIN TO PROCEED',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (processedAgents.has(agentId)) return;
 
-    // Set processing state to true
     setNodes((nodes) =>
       nodes.map((node) =>
         node.id === agentId
@@ -1611,17 +1669,14 @@ const FlowContent = () => {
     const agent = nodes.find((n) => n.id === agentId)?.data;
     if (!agent) return;
 
-    // Mark this agent as being processed to prevent cycles
     processedAgents.add(agentId);
 
     try {
-      // Get all incoming edges
       const incomingEdges = edges.filter(
         (e) => e.target === agentId && e.data?.type === 'agent',
       );
 
-      // Process all incoming agents first and collect their results
-      const incomingResults = await Promise.all(
+      const incomingResults = await Promise.allSettled(
         incomingEdges.map(async (edge) => {
           if (!processedAgents.has(edge.source)) {
             await processAgent(edge.source, '');
@@ -1633,20 +1688,34 @@ const FlowContent = () => {
         }),
       );
 
-      const text = await getProcessedText(
-        agent,
-        context,
-        task,
-        incomingResults,
-      );
+      const validResults = incomingResults
+        .filter((res) => res.status === 'fulfilled')
+        .map((res) => res.value);
 
-      // Store result
+      const systemOptimizationPrompt = `${agent.systemPrompt}
+        
+        ${context ? `Previous Context: ${context}\n` : ''}
+        ${validResults.length > 0 ? `Previous Agents' Results:\n${validResults.join('\n')}\n` : ''}
+        
+        Task: ${task}
+        
+        Based on ${validResults.length > 0 ? "the previous agents' results" : 'the task'}, provide your response:`;
+
+      await validateUserCredits([systemOptimizationPrompt], user.id);
+
+      const text = await getProcessedText(systemOptimizationPrompt, agent);
+
+      const finalCosts = estimateTokensAndCost(systemOptimizationPrompt, text);
+
+      if (finalCosts?.totalCost) {
+        await deductCredit.mutateAsync({ amount: finalCosts.totalCost });
+      }
+
       setTaskResults((prev) => ({
         ...prev,
         [agentId]: text,
       }));
 
-      // Set processing state to false and update result
       setNodes((nodes) =>
         nodes.map((node) =>
           node.id === agentId
@@ -1658,19 +1727,16 @@ const FlowContent = () => {
         ),
       );
 
-      // Process next agents in chain with current result
       const outgoingEdges = edges.filter(
         (e) => e.source === agentId && e.data?.type === 'agent',
       );
 
-      // Process each outgoing connection sequentially, passing the current result
-      for (const edge of outgoingEdges) {
-        await processAgent(edge.target, text);
-      }
+      await Promise.all(
+        outgoingEdges.map((edge) => processAgent(edge.target, text)),
+      );
 
       return text;
-    } catch (error) {
-      // Set processing state to false on error
+    } catch (error: any) {
       setNodes((nodes) =>
         nodes.map((node) =>
           node.id === agentId
@@ -1680,7 +1746,10 @@ const FlowContent = () => {
       );
 
       console.error(`Error processing agent ${agentId}:`, error);
-      throw error;
+      toast({
+        description: error || error?.message || 'Error processing response',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -1736,6 +1805,14 @@ const FlowContent = () => {
     previousResults: string = '',
     processedGroups = new Set<string>(),
   ) => {
+    if (!user) {
+      toast({
+        description: 'AUTHENTICATION REQUIRED: LOGIN TO PROCEED',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (processedGroups.has(groupId)) return;
     processedGroups.add(groupId);
 
@@ -1758,6 +1835,7 @@ const FlowContent = () => {
         group,
         currentTask,
         previousResults,
+        user.id,
       );
 
       // Update individual agent results
