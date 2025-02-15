@@ -2,10 +2,6 @@
 
 import { useState, useEffect } from 'react';
 
-import { generateText } from 'ai';
-
-import { registry } from '@/shared/utils/registry';
-
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -19,6 +15,7 @@ import {
 import { PLATFORM } from '@/shared/utils/constants';
 import { useAuthContext } from '../ui/auth.provider';
 import { Tables } from '@/types_db';
+import { optimizePrompt as getSystemOptimizedPrompt } from '@/app/actions/registry';
 
 export interface DraggedFile {
   name: string;
@@ -63,6 +60,7 @@ export default function useSpreadsheet() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     if (!isShareModalOpen) {
@@ -108,6 +106,7 @@ export default function useSpreadsheet() {
 
   const isAddAgentLoader =
     addAgentMutation.isPending || createSessionMutation.isPending;
+  const isEditAgentLoader = updateAgentMutation.isPending;
   const isRunAgentLoader =
     updateSessionTaskMutation.isPending ||
     updateAgentStatusMutation.isPending ||
@@ -144,6 +143,12 @@ export default function useSpreadsheet() {
       } catch (error) {
         console.log({ error });
       }
+    }
+  };
+
+  const handleCheckExpand = () => {
+    if (!isExpanded) {
+      setIsExpanded(true);
     }
   };
 
@@ -242,8 +247,10 @@ export default function useSpreadsheet() {
         llm: editingAgent.llm,
       });
 
-      setIsEditAgentOpen(false);
-      setEditingAgent({});
+      if (!isEditAgentLoader) {
+        setIsEditAgentOpen(false);
+        setEditingAgent({});
+      }
       sessionData.refetch();
 
       toast.toast({
@@ -339,6 +346,10 @@ export default function useSpreadsheet() {
       sessionData.refetch();
     } catch (error) {
       console.error('Failed to add agent:', error);
+      toast.toast({
+        title: 'Failed to add agent:',
+        variant: 'destructive',
+      });
     }
   };
   useEffect(() => {
@@ -471,7 +482,7 @@ export default function useSpreadsheet() {
           `;
       const costEstimate = estimateTokensAndCost(optimizationPrompt);
 
-      const totalCredit = Number(userCredit) || 0;
+      const totalCredit = Number(userCredit.data) || 0;
 
       if (totalCredit < costEstimate.inputCost) {
         toast.toast({
@@ -481,10 +492,7 @@ export default function useSpreadsheet() {
         return;
       }
 
-      const { text } = await generateText({
-        model: registry.languageModel('openai:gpt-4o'),
-        prompt: optimizationPrompt,
-      });
+      const text = await getSystemOptimizedPrompt(optimizationPrompt);
 
       const finalCosts = estimateTokensAndCost(optimizationPrompt, text);
 
@@ -497,8 +505,13 @@ export default function useSpreadsheet() {
       } else {
         setNewAgent((prev) => ({ ...prev, systemPrompt: text }));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to optimize prompt:', error);
+      toast.toast({
+        title: 'Failed to optimize prompt',
+        description: error || error?.message || '',
+        variant: 'destructive',
+      });
     }
     setIsOptimizing(false);
   };
@@ -571,10 +584,14 @@ export default function useSpreadsheet() {
         return { agent, estimate, prompt: uniquePrompt };
       });
 
-      const totalCredit = Number(userCredit) || 0;
+      const totalCredit = Number(userCredit.data) || 0;
 
       if (totalCredit < totalEstimatedCost) {
-        throw new Error('Insufficient credit to run all agents');
+        toast.toast({
+          description: 'Insufficient credit to run all agents',
+          variant: 'destructive',
+        });
+        return;
       }
 
       await Promise.all(
@@ -586,10 +603,11 @@ export default function useSpreadsheet() {
               status: 'running',
             });
 
-            const { text } = await generateText({
-              model: registry.languageModel(agent.llm || ''),
-              prompt: prompt,
-            });
+            const text = await getSystemOptimizedPrompt(
+              prompt,
+              agent?.llm ?? '',
+              'Failed to run agents completely',
+            );
 
             const finalCosts = estimateTokensAndCost(prompt, text);
             costTracking[agent.id] = finalCosts;
@@ -628,10 +646,11 @@ export default function useSpreadsheet() {
       });
 
       sessionData.refetch();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to run agents:', error);
       toast.toast({
-        description: 'Failed to run agents',
+        title: 'Failed to run agents',
+        description: error || error?.message || '',
         variant: 'destructive',
       });
     }
@@ -775,6 +794,8 @@ export default function useSpreadsheet() {
     isAddAgentLoader,
     isRunAgentLoader,
     isDuplicateLoader,
+    isEditAgentLoader,
+    isExpanded,
     allSessions,
     allSessionsAgents,
     currentSession,
@@ -785,7 +806,9 @@ export default function useSpreadsheet() {
     selectedAgent,
     copyToClipboard,
     setIsShareModalOpen,
+    setIsExpanded,
     setEditingAgent,
+    handleCheckExpand,
     setIsAddAgentOpen,
     setIsEditAgentOpen,
     setNewAgent,

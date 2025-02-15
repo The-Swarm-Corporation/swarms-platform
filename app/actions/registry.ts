@@ -76,21 +76,25 @@ export async function validateUserCredits(
   }
 }
 
-export async function optimizePrompt(currentPrompt: string): Promise<string> {
+export async function optimizePrompt(
+  currentPrompt: string,
+  model = 'openai:gpt-4o',
+  message = 'Failed to optimize prompt',
+): Promise<string> {
   if (!currentPrompt?.trim()) {
-    throw new Error('System prompt is required for optimization');
+    throw new Error('System prompt is required');
   }
 
   try {
     const { text } = await generateText({
-      model: registry.languageModel('openai:gpt-4o'),
+      model: registry.languageModel(model),
       prompt: currentPrompt,
     });
 
     return text;
   } catch (error) {
-    console.error('Failed to optimize prompt:', error);
-    throw new Error('Failed to optimize system prompt');
+    console.error(`${message}:`, error);
+    throw new Error(message);
   }
 }
 
@@ -259,4 +263,3 @@ export async function getSwarmGroupResults(
     throw new Error('Failed to process group task');
   }
 }
-
