@@ -46,7 +46,11 @@ const getIpAddress = (request: NextRequest): string => {
  */
 const withRateLimit: MiddlewareFactory = (next) => {
   return async (request: NextRequest, event: NextFetchEvent) => {
-    // Only apply rate limiting to API routes
+    // skip limit for Stripe webhook
+    if (request.nextUrl.pathname.includes('/api/webhooks')) {
+      return next(request, event);
+    }
+
     if (request.nextUrl.pathname.includes('/api')) {
       const ip = getIpAddress(request);
       const { success } = await ratelimit.limit(ip);
@@ -62,6 +66,7 @@ const withRateLimit: MiddlewareFactory = (next) => {
     return next(request, event);
   };
 };
+
 
 const SECURITY_CONFIG = {
   MAX_PAYLOAD_SIZE: 500000, 
