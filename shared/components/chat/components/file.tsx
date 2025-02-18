@@ -1,7 +1,8 @@
 import type { FileWithPreview } from '../hooks/useFileUpload';
-import { X, FileText, Image, Video, Music, File } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getFileIcon } from '../helper';
+import Image from 'next/image';
 
 interface FilePreviewProps {
   file: FileWithPreview;
@@ -36,7 +37,7 @@ export function FilePreview({ file, onRemove }: FilePreviewProps) {
 
       {file.type === 'image' && file.preview && (
         <div className="mt-2 relative aspect-video rounded-lg overflow-hidden border border-red-600/20">
-          <img
+          <Image
             src={file.preview || '/placeholder.svg'}
             alt={file.file.name}
             className="absolute inset-0 w-full h-full object-cover"
