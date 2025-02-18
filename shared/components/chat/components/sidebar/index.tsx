@@ -62,15 +62,15 @@ export function AgentSidebar({
   onUpdateSwarmArchitecture,
   onToggleAgent,
 }: AgentSidebarProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
 
   return (
     <>
       <motion.div
         initial={false}
-        animate={{ width: isExpanded ? 320 : 64 }}
-        className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-sm border-r border-red-600/20 flex flex-col"
+        animate={{ width: isExpanded ? 280 : 64 }}
+        className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-sm border-l border-red-600/20 flex flex-col"
       >
         <div className="p-4 border-b border-red-600/20 flex items-center justify-between">
           {isExpanded && <h2 className="text-red-500 font-bold">Agents</h2>}
@@ -81,9 +81,9 @@ export function AgentSidebar({
             className="text-red-500"
           >
             {isExpanded ? (
-              <ChevronLeft className="h-4 w-4" />
-            ) : (
               <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
             )}
           </Button>
         </div>
@@ -160,7 +160,7 @@ export function AgentSidebar({
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-red-600/20">
+        <div className="p-4 border-t border-red-600/20 pb-8">
           <Sheet>
             <SheetTrigger asChild>
               <Button

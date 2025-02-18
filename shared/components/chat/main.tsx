@@ -233,7 +233,7 @@ export default function SwarmsChat({
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 transition-colors duration-300',
+        'fixed inset-0 z-50 lg:ml-[80px] max-lg:mt-16 transition-colors duration-300',
         'bg-zinc-50 dark:bg-[#000000]',
       )}
       onDragEnter={handleDrag}
@@ -254,7 +254,7 @@ export default function SwarmsChat({
         />
         <div className="flex-1 flex">
           <div className="flex-1 flex flex-col">
-            <div className="bg-white/40 dark:bg-black/40 backdrop-blur-sm border-b border-red-600/20 p-6 transition-colors duration-300">
+            <div className="max-lg:hidden bg-white/40 dark:bg-black/40 backdrop-blur-sm border-b border-red-600/20 p-6 transition-colors duration-300">
               <div className="max-w-screen-xl mx-auto">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center space-x-4">
@@ -418,7 +418,7 @@ export default function SwarmsChat({
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       placeholder="Enter your message..."
-                      className="w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm text-zinc-900 dark:text-red-500 placeholder-zinc-500 dark:placeholder-red-500/20 border border-red-600/20 rounded-lg px-6 py-4 focus:outline-none focus:border-red-500/50 transition-colors"
+                      className="w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm text-zinc-900 dark:text-red-500 placeholder-zinc-500 dark:placeholder-[#928E8B] border border-red-600/20 rounded-lg px-6 py-4 focus:outline-none focus:border-red-500/50 transition-colors"
                     />
                     <div className="absolute inset-0 pointer-events-none border border-red-600/10 rounded-lg">
                       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />

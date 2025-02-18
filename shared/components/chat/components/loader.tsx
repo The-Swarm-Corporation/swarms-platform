@@ -11,14 +11,12 @@ export default function LoadSequence({
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      animate={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.5, delay: 4 }}
       onAnimationComplete={onComplete}
-      className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+      className="container h-[70%] bg-black flex items-center justify-center"
     >
-      <div className="w-full space-y-4">
-        <LoadingSpinner />
-      </div>
+      <LoadingSpinner />
     </motion.div>
   );
 }

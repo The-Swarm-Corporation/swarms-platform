@@ -52,7 +52,7 @@ export function ConversationSidebar({
   return (
     <motion.div
       initial={false}
-      animate={{ width: isExpanded ? 320 : 64 }}
+      animate={{ width: isExpanded ? 280 : 64 }}
       className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-sm border-r border-red-600/20 flex flex-col"
     >
       <div className="p-4 border-b border-red-600/20 flex items-center justify-between">
@@ -146,7 +146,7 @@ export function ConversationSidebar({
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t border-red-600/20">
+      <div className="p-4 border-t border-red-600/20 pb-8">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className={`${isExpanded ? "w-full" : "w-auto"} bg-red-500 hover:bg-red-600 text-white`}>
@@ -154,7 +154,7 @@ export function ConversationSidebar({
               {isExpanded && <span className="ml-2">New Chat</span>}
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="border-[#40403F] border">
             <DialogHeader>
               <DialogTitle>New Conversation</DialogTitle>
               <DialogDescription>Give your conversation a name to get started.</DialogDescription>
