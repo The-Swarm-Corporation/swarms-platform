@@ -19,7 +19,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Separator from '../ui/AuthForms/Separator';
 import { cn } from '@/shared/utils/cn';
-import usePromptChat from './hook';
+import usePromptChat from './hooks/usePromptChat';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import styles from './styles.module.css';
