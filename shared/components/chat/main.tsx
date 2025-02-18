@@ -1,464 +1,459 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { ScrollArea } from '../ui/scroll-area';
-import { Switch } from '../ui/switch';
-import { Textarea } from '../ui/textarea';
-import {
-  Settings,
-  Share2,
-  Download,
-  Send,
-  Plus,
-  MessageSquare,
-} from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle, DialogFooter } from '../ui/dialog';
+import type React from 'react';
 
-interface Agent {
-  id: number;
-  name: string;
-  model: string;
-  systemPrompt: string;
-  active: boolean;
-}
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Mic,
+  Send,
+  Shield,
+  Hexagon,
+  Lock,
+  Radio,
+  Cpu,
+  Power,
+  ChevronUp,
+  ChevronDown,
+  Upload,
+} from 'lucide-react';
+import { useFileUpload } from './hooks/useFileUpload';
+import { useAgents } from './hooks/useChatAgents';
+import { useConversations } from './hooks/useConversations';
+import LoadSequence from './components/loader';
+import { ConversationSidebar } from './components/sidebar/conversations';
+import { cn } from '@/shared/utils/cn';
+import { FilePreview } from './components/file';
+import { ProgressBar } from './components/progress';
+import { AgentSidebar } from './components/sidebar';
 
 interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'agent';
-  agentId?: number;
-  timestamp: Date;
-}
-
-interface Chat {
-  id: number;
-  title: string;
+  role: 'user' | 'assistant';
+  content: string;
   timestamp: string;
-  messages: Message[];
+  agentId?: string;
 }
 
-const generateChatTitle = async (message: string): Promise<string> => {
-  try {
-    const res = await fetch('/api/generateTitle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
-    });
-    const data = await res.json();
-    return data.title || 'New Chat';
-  } catch (error) {
-    console.error('Error generating chat title:', error);
-    return 'New Chat';
-  }
+interface SwarmsChatProps {
+  modelFunction?: (message: string) => Promise<string>;
+}
+
+const getCurrentTime = () => {
+  return new Date().toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 };
 
-const ChatInterface = () => {
-  const [darkMode, setDarkMode] = useState(false);
+export default function SwarmsChat({
+  modelFunction = async (message: string) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return `Response to: ${message}`;
+  },
+}: SwarmsChatProps) {
+  const [isFetching, setIsFetching] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showNewChatDialog, setShowNewChatDialog] = useState(false);
-  const [newChatTitle, setNewChatTitle] = useState('');
-  const [agents, setAgents] = useState<Agent[]>([
-    {
-      id: 1,
-      name: 'Assistant',
-      model: 'gpt-4',
-      systemPrompt: 'You are a helpful assistant.',
-      active: true,
-    },
-  ]);
-  const [selectedChat, setSelectedChat] = useState<number | null>(null);
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [mode, setMode] = useState<
-    'concurrent' | 'hierarchical' | 'sequential'
-  >('concurrent');
+  const [showStats, setShowStats] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognition = useRef<any>(null);
+  const {
+    files,
+    dragActive,
+    uploadProgress,
+    handleDrag,
+    handleDrop,
+    removeFile,
+    clearFiles,
+    handleFileSelect,
+  } = useFileUpload();
+  const {
+    agents,
+    swarmConfig,
+    addAgent,
+    updateAgent,
+    removeAgent,
+    updateSwarmArchitecture,
+    toggleAgent,
+  } = useAgents();
+  const {
+    conversations,
+    activeConversation,
+    isLoading: isLoadingConversations,
+    error: conversationsError,
+    createConversation,
+    switchConversation,
+    deleteConversation,
+    addMessage,
+    exportConversation,
+  } = useConversations();
 
   useEffect(() => {
-    const savedChats = localStorage.getItem('chats');
-    if (savedChats) {
-      setChats(JSON.parse(savedChats));
-    }
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
 
-    const savedDarkMode = localStorage.getItem('darkMode');
-    if (savedDarkMode) {
-      setDarkMode(JSON.parse(savedDarkMode));
+      if (SpeechRecognition) {
+        recognition.current = new SpeechRecognition();
+        recognition.current.continuous = true;
+        recognition.current.interimResults = true;
+
+        recognition.current.onresult = (event: any) => {
+          const transcript = Array.from(event.results)
+            .map((result: any) => result[0])
+            .map((result) => result.transcript)
+            .join('');
+
+          setInput(transcript);
+        };
+      }
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('chats', JSON.stringify(chats));
-  }, [chats]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-  }, [darkMode]);
+    if (!isLoadingConversations && conversations.length === 0) {
+      createConversation('New Chat');
+    }
+  }, [isLoadingConversations, conversations.length, createConversation]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  useEffect(() => {
+    if (activeConversation) {
+      setMessages(activeConversation.messages);
+    }
+  }, [activeConversation]);
 
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      text: input,
-      sender: 'user',
-      timestamp: new Date(),
+  const toggleListening = () => {
+    if (isListening) {
+      recognition.current?.stop();
+    } else {
+      recognition.current?.start();
+    }
+    setIsListening(!isListening);
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!input.trim() || isLoading || !activeConversation) return;
+
+    const userMessage = input.trim();
+    const timestamp = getCurrentTime();
+
+    // Add user message
+    const userMessageObj = {
+      role: 'user' as const,
+      content: userMessage,
+      timestamp,
     };
-
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    await addMessage(userMessageObj);
+    setInput('');
     setIsLoading(true);
 
-    if (!selectedChat) {
-      // Create a new chat and generate a title
-      try {
-        const title = await generateChatTitle(input);
-        const newChat = {
-          id: Date.now(),
-          title,
-          timestamp: new Date().toLocaleTimeString(),
-          messages: updatedMessages,
-        };
-
-        setChats([newChat, ...chats]);
-        setSelectedChat(newChat.id);
-      } catch (error) {
-        console.error('Error generating chat title:', error);
-      }
-    } else {
-      // Update existing chat
-      const updatedChats = chats.map((chat) =>
-        chat.id === selectedChat
-          ? { ...chat, messages: updatedMessages }
-          : chat,
-      );
-      setChats(updatedChats);
-    }
-
     try {
-      const activeAgents = agents.filter((agent) => agent.active);
-      const responses = await Promise.all(
-        activeAgents.map((agent) =>
-          fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: input,
-              agentId: agent.id,
-              model: agent.model,
-              systemPrompt: agent.systemPrompt,
-              mode, // Pass the selected mode to the API
-            }),
-          }).then((res) => res.json()),
-        ),
-      );
+      const activeAgents = swarmConfig.agents.filter((agent) => agent.isActive);
 
-      const newMessages = [...updatedMessages];
-      responses.forEach((response, index) => {
-        const agentMessage: Message = {
-          id: crypto.randomUUID(),
-          text: response.text,
-          sender: 'agent',
-          agentId: activeAgents[index].id,
-          timestamp: new Date(),
-        };
-        newMessages.push(agentMessage);
-      });
-
-      setMessages(newMessages);
-
-      if (selectedChat) {
-        const updatedChats = chats.map((chat) =>
-          chat.id === selectedChat ? { ...chat, messages: newMessages } : chat,
+      if (swarmConfig.architecture === 'concurrent') {
+        const responses = await Promise.all(
+          activeAgents.map(async (agent) => {
+            const response = await modelFunction(userMessage);
+            return { agent, response };
+          }),
         );
-        setChats(updatedChats);
+
+        for (const { agent, response } of responses) {
+          await addMessage({
+            role: 'assistant',
+            content: response,
+            timestamp: getCurrentTime(),
+            agentId: agent.id,
+          });
+        }
+      } else if (swarmConfig.architecture === 'sequential') {
+        for (const agent of activeAgents) {
+          const response = await modelFunction(userMessage);
+          await addMessage({
+            role: 'assistant',
+            content: response,
+            timestamp: getCurrentTime(),
+            agentId: agent.id,
+          });
+        }
+      } else {
+        const [primaryAgent, ...secondaryAgents] = activeAgents;
+        if (primaryAgent) {
+          const primaryResponse = await modelFunction(userMessage);
+          await addMessage({
+            role: 'assistant',
+            content: primaryResponse,
+            timestamp: getCurrentTime(),
+            agentId: primaryAgent.id,
+          });
+
+          for (const agent of secondaryAgents) {
+            const response = await modelFunction(primaryResponse);
+            await addMessage({
+              role: 'assistant',
+              content: response,
+              timestamp: getCurrentTime(),
+              agentId: agent.id,
+            });
+          }
+        }
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error:', error);
+      await addMessage({
+        role: 'assistant',
+        content: 'An error occurred. Please try again.',
+        timestamp: getCurrentTime(),
+      });
     }
 
-    setInput('');
-  };
-  const createNewChat = () => {
-    if (!newChatTitle.trim()) return;
-
-    const newChat = {
-      id: Date.now(),
-      title: newChatTitle,
-      timestamp: new Date().toLocaleTimeString(),
-      messages: [],
-    };
-    setChats([newChat, ...chats]);
-    setSelectedChat(newChat.id);
-    setMessages([]);
-    setNewChatTitle('');
-    setShowNewChatDialog(false);
+    setIsLoading(false);
   };
 
-  const updateAgent = (id: number, updates: Partial<Agent>) => {
-    setAgents((prev) =>
-      prev.map((agent) => (agent.id === id ? { ...agent, ...updates } : agent)),
-    );
+  const getAgentName = (agentId?: string) => {
+    if (!agentId) return 'System';
+    const agent = agents.find((a) => a.id === agentId);
+    return agent ? agent.name : 'Unknown Agent';
   };
+
+  if (isFetching) {
+    return <LoadSequence onComplete={() => setIsFetching(false)} />;
+  }
 
   return (
-    <div className={`w-screen h-screen flex ${darkMode ? 'dark' : ''}`}>
-      <div className="w-full h-full flex bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        {/* Left Sidebar - Chat List */}
-        <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all">
-          <div className="p-4">
-            <Button
-              className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white shadow-sm transition-all"
-              onClick={() => setShowNewChatDialog(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" /> New Chat
-            </Button>
-          </div>
-          <ScrollArea className="h-[calc(100vh-80px)]">
-            {chats.map((chat) => (
-              <div
-                key={chat.id}
-                className={`mx-2 mb-2 p-3 rounded-lg cursor-pointer transition-all
-                  ${
-                    selectedChat === chat.id
-                      ? 'bg-blue-50 dark:bg-blue-900/20'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                onClick={() => {
-                  setSelectedChat(chat.id);
-                  setMessages(chat.messages || []);
-                }}
-              >
-                <div className="flex items-center">
-                  <MessageSquare className="h-4 w-4 mr-2 text-blue-500" />
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {chat.title}
+    <div
+      className={cn(
+        'fixed inset-0 z-50 transition-colors duration-300',
+        'bg-zinc-50 dark:bg-[#000000]',
+      )}
+      onDragEnter={handleDrag}
+      onDragLeave={handleDrag}
+      onDragOver={handleDrag}
+      onDrop={handleDrop}
+    >
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-100/50 to-zinc-50/80 dark:from-zinc-950/50 dark:to-black" />
+      <div className="relative w-full h-full flex">
+        <ConversationSidebar
+          conversations={conversations}
+          activeId={activeConversation?.id}
+          isLoading={isLoadingConversations}
+          onCreateConversation={createConversation}
+          onSwitchConversation={switchConversation}
+          onDeleteConversation={deleteConversation}
+          onExportConversation={exportConversation}
+        />
+        <div className="flex-1 flex">
+          <div className="flex-1 flex flex-col">
+            <div className="bg-white/40 dark:bg-black/40 backdrop-blur-sm border-b border-red-600/20 p-6 transition-colors duration-300">
+              <div className="max-w-screen-xl mx-auto">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      <Shield className="w-10 h-10 text-red-500" />
+                      <motion.div
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{
+                          duration: 2,
+                          repeat: Number.POSITIVE_INFINITY,
+                        }}
+                        className="absolute inset-0 text-red-500"
+                      >
+                        <Shield className="w-10 h-10" />
+                      </motion.div>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {chat.timestamp}
+                    <div>
+                      <h2 className="text-red-500 font-bold text-3xl tracking-wider flex items-center gap-2">
+                        Swarms
+                        <span className="text-xs font-normal opacity-50">
+                          v1.0.1
+                        </span>
+                      </h2>
+                      <p className="text-red-500/50 text-sm tracking-wide">
+                        Swarms Agent System
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </ScrollArea>
-        </div>
-
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-gray-800">
-          <div className="border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between bg-white dark:bg-gray-800 shadow-sm">
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Multi-Agent Chat
-            </h1>
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="w-96 bg-white dark:bg-gray-800">
-                  <h3 className="text-lg font-semibold mb-4">Settings</h3>
-                  <ScrollArea className="h-[calc(100vh-120px)] pr-4">
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <span>Dark Mode</span>
-                        <Switch
-                          checked={darkMode}
-                          onCheckedChange={setDarkMode}
-                        />
-                      </div>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium">Agents</h4>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setAgents([
-                                ...agents,
-                                {
-                                  id: Date.now(),
-                                  name: '',
-                                  model: '',
-                                  systemPrompt: '',
-                                  active: true,
-                                },
-                              ])
-                            }
-                          >
-                            Add Agent
-                          </Button>
-                        </div>
-                        {agents.map((agent) => (
-                          <AgentConfig
-                            key={agent.id}
-                            agent={agent}
-                            updateAgent={updateAgent}
-                          />
-                        ))}
-                      </div>
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Mode</h4>
-                        <select
-                          value={mode}
-                          onChange={(e) =>
-                            setMode(
-                              e.target.value as
-                                | 'concurrent'
-                                | 'hierarchical'
-                                | 'sequential',
-                            )
-                          }
-                          className="w-full p-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700"
-                        >
-                          <option value="concurrent">Concurrent</option>
-                          <option value="hierarchical">Hierarchical</option>
-                          <option value="sequential">Sequential</option>
-                        </select>
-                      </div>
-                    </div>
-                  </ScrollArea>
-                </SheetContent>
-              </Sheet>
             </div>
-          </div>
 
-          {/* Messages Area */}
-          <ScrollArea className="flex-1 p-4 bg-gray-50 dark:bg-gray-900">
-            <div className="space-y-4 max-w-4xl mx-auto">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[70%] p-4 rounded-2xl shadow-sm ${
-                      message.sender === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                    }`}
-                  >
-                    {message.agentId && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        {agents.find((a) => a.id === message.agentId)?.name}
-                      </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="max-w-screen-xl mx-auto">
+                {messages.map((message, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={cn(
+                      'flex flex-col mb-6',
+                      message.role === 'user' ? 'items-end' : 'items-start',
                     )}
-                    {message.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+                  >
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="text-red-500/50 text-xs font-mono">
+                        {message.timestamp}
+                      </span>
+                      {message.role === 'assistant' && (
+                        <>
+                          <Hexagon className="w-4 h-4 text-red-500/50" />
+                          <span className="text-red-500/70 text-xs font-mono">
+                            {getAgentName(message.agentId)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <div
+                      className={cn(
+                        'max-w-[80%] rounded-lg px-6 py-4 relative overflow-hidden transition-colors duration-300',
+                        message.role === 'user'
+                          ? 'bg-white/80 dark:bg-zinc-950/80 text-zinc-900 dark:text-white border border-red-600/50'
+                          : 'bg-red-50/80 dark:bg-black/80 text-red-500 border border-red-600/30',
+                      )}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
+                      <div className="relative">{message.content}</div>
+                    </div>
+                  </motion.div>
+                ))}
 
-          {/* Input Area */}
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
-            <div className="max-w-4xl mx-auto flex gap-4">
-              <Input
-                placeholder="Type your message..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                className="flex-1 bg-gray-50 dark:bg-gray-900"
-                disabled={isLoading}
-              />
-              <Button
-                onClick={handleSend}
-                disabled={isLoading}
-                className="bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+                {files.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    <AnimatePresence>
+                      {files.map((file, index) => (
+                        <FilePreview
+                          key={`${file.file.name}-${index}`}
+                          file={file}
+                          onRemove={() => removeFile(index)}
+                        />
+                      ))}
+                    </AnimatePresence>
+                    {uploadProgress > 0 && uploadProgress < 100 && (
+                      <ProgressBar progress={uploadProgress} />
+                    )}
+                  </div>
+                )}
+
+                {isLoading && (
+                  <div className="flex items-center space-x-2">
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{
+                        duration: 1,
+                        repeat: Number.POSITIVE_INFINITY,
+                      }}
+                      className="w-3 h-3 bg-red-500/50 rounded-full"
+                    />
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{
+                        duration: 1,
+                        repeat: Number.POSITIVE_INFINITY,
+                        delay: 0.2,
+                      }}
+                      className="w-3 h-3 bg-red-500/50 rounded-full"
+                    />
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{
+                        duration: 1,
+                        repeat: Number.POSITIVE_INFINITY,
+                        delay: 0.4,
+                      }}
+                      className="w-3 h-3 bg-red-500/50 rounded-full"
+                    />
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
+
+            <div className="bg-white/60 dark:bg-black/60 backdrop-blur-sm border-t border-red-600/20 p-6 transition-colors duration-300">
+              <form onSubmit={handleSubmit} className="max-w-screen-xl mx-auto">
+                <div className="flex items-center space-x-4">
+                  <button
+                    type="button"
+                    onClick={toggleListening}
+                    className={cn(
+                      'p-4 rounded-full transition-all duration-300 relative group',
+                      isListening
+                        ? 'bg-red-600/20 text-red-500 border border-red-600/50'
+                        : 'bg-white/80 dark:bg-zinc-950/80 text-red-500 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 border border-red-600/20',
+                    )}
+                  >
+                    <Mic className="w-6 h-6" />
+                    <div
+                      className={cn(
+                        'absolute inset-0 rounded-full',
+                        isListening && 'animate-ping bg-red-600/20',
+                      )}
+                    />
+                  </button>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="p-4 rounded-full transition-all duration-300 relative group bg-white/80 dark:bg-zinc-950/80 text-red-500 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 border border-red-600/20 cursor-pointer"
+                  >
+                    <Upload className="w-6 h-6" />
+                    <div className="absolute inset-0 rounded-full group-hover:animate-ping bg-red-600/20 hidden group-hover:block" />
+                  </label>
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Enter your message..."
+                      className="w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm text-zinc-900 dark:text-red-500 placeholder-zinc-500 dark:placeholder-red-500/20 border border-red-600/20 rounded-lg px-6 py-4 focus:outline-none focus:border-red-500/50 transition-colors"
+                    />
+                    <div className="absolute inset-0 pointer-events-none border border-red-600/10 rounded-lg">
+                      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!input.trim() || isLoading}
+                    className="p-4 bg-white/80 dark:bg-zinc-950/80 text-red-500 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative group border border-red-600/20"
+                  >
+                    <Send className="w-6 h-6" />
+                    <div className="absolute inset-0 rounded-full group-hover:animate-ping bg-red-600/20 hidden group-hover:block" />
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
+          <AgentSidebar
+            agents={agents}
+            swarmArchitecture={swarmConfig.architecture}
+            onAddAgent={addAgent}
+            onUpdateAgent={updateAgent}
+            onRemoveAgent={removeAgent}
+            onUpdateSwarmArchitecture={updateSwarmArchitecture}
+            onToggleAgent={toggleAgent}
+          />
         </div>
       </div>
-
-      {/* New Chat Dialog */}
-      <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogTitle>New Chat</DialogTitle>
-
-          <div className="grid gap-4 py-4">
-            <Input
-              placeholder="Enter chat title..."
-              value={newChatTitle}
-              onChange={(e) => setNewChatTitle(e.target.value)}
-              className="col-span-3"
-            />
+      {dragActive && (
+        <div className="absolute inset-0 z-50 bg-zinc-50/90 dark:bg-black/90 flex items-center justify-center border-2 border-dashed border-red-600/50">
+          <div className="text-red-500 text-xl font-bold">
+            Drop files to upload
           </div>
-          <DialogFooter>
-            <Button
-              onClick={createNewChat}
-              disabled={!newChatTitle.trim()}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              Create Chat
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
-};
-
-const AgentConfig = ({
-  agent,
-  updateAgent,
-}: {
-  agent: Agent;
-  updateAgent: (id: number, updates: Partial<Agent>) => void;
-}) => (
-  <div className="space-y-4 p-4 border rounded-lg dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
-    <div className="flex items-center justify-between">
-      <Input
-        placeholder="Agent Name"
-        value={agent.name}
-        onChange={(e) => updateAgent(agent.id, { name: e.target.value })}
-        className="w-48"
-      />
-      <Switch
-        checked={agent.active}
-        onCheckedChange={(checked) =>
-          updateAgent(agent.id, { active: checked })
-        }
-      />
-    </div>
-    <Input
-      placeholder="Model"
-      value={agent.model}
-      onChange={(e) => updateAgent(agent.id, { model: e.target.value })}
-    />
-    <Textarea
-      placeholder="System Prompt"
-      value={agent.systemPrompt}
-      onChange={(e) => updateAgent(agent.id, { systemPrompt: e.target.value })}
-      className="h-24"
-    />
-  </div>
-);
-
-export default ChatInterface;
+}

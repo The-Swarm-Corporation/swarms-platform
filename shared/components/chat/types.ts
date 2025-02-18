@@ -21,7 +21,6 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
-  securityLevel: string;
   agentId?: string;
 }
 
