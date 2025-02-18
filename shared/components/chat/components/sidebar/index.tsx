@@ -22,6 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { cn } from '@/shared/utils/cn';
 
 interface SwarmSelectorProps {
   value: SwarmArchitecture;
@@ -65,14 +67,28 @@ export function AgentSidebar({
   const [isExpanded, setIsExpanded] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
 
+  const isMobile = useIsMobile();
+
+  const handleMobileExpand = () => {
+    if(!isExpanded && isMobile) {
+        setIsExpanded(true);
+    }
+  }
+
   return (
     <>
       <motion.div
         initial={false}
-        animate={{ width: isExpanded ? 280 : 64 }}
-        className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-sm border-l border-red-600/20 flex flex-col"
+        animate={{ width: isExpanded ? 280 : isMobile ? 20 : 64 }}
+        onClick={handleMobileExpand}
+        className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-sm border-l max-lg:absolute right-0 max-lg:z-10 border-red-600/20 flex flex-col"
       >
-        <div className="p-4 border-b border-red-600/20 flex items-center justify-between">
+        <div
+          className={cn(
+            'border-b border-red-600/20 flex items-center justify-between lg:p-4',
+            isMobile && isExpanded ? 'p-4' : '',
+          )}
+        >
           {isExpanded && <h2 className="text-red-500 font-bold">Agents</h2>}
           <Button
             variant="ghost"
@@ -160,7 +176,12 @@ export function AgentSidebar({
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-red-600/20 pb-8">
+        <div
+          className={cn(
+            'p-4 border-t border-red-600/20 pb-8 lg:block',
+            isMobile && isExpanded ? 'block' : 'hidden',
+          )}
+        >
           <Sheet>
             <SheetTrigger asChild>
               <Button
