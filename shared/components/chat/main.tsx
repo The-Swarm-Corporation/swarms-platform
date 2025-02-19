@@ -58,7 +58,6 @@ export default function SwarmsChat({
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showStats, setShowStats] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognition = useRef<any>(null);
   const {

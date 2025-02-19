@@ -9,6 +9,7 @@ import dashboardRouter from './dashboard';
 import explorerOptionsRouter from './explorer-options';
 import { dndRouter } from './dnd';
 import { walletRouter } from './wallet';
+import { agentRouter, chatRouter, fileUploadRouter } from './chat';
 
 export const appRouter = router({
   main: mainRouter,
@@ -21,5 +22,8 @@ export const appRouter = router({
   dashboard: dashboardRouter,
   dnd: dndRouter,
   wallet: walletRouter,
+  chatAgent: agentRouter,
+  chat: chatRouter,
+  fileUpload: fileUploadRouter,
 });
 export type AppRouter = typeof appRouter;

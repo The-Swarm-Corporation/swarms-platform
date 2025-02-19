@@ -4,108 +4,47 @@ import { useState, useEffect } from 'react';
 import {
   Message,
   Conversation,
-  ConversationMetadata,
 } from '@/shared/components/chat/types';
 import { db } from '../mock/db';
+import { trpc } from '@/shared/utils/trpc/trpc';
 
 export function useConversations() {
-  const [conversations, setConversations] = useState<ConversationMetadata[]>(
-    [],
-  );
-  const [activeConversation, setActiveConversation] =
-    useState<Conversation | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: conversations, refetch, isLoading, error: chatError } = trpc.chat.getConversations.useQuery();
+  const createConversationMutation = trpc.chat.createConversation.useMutation();
+  const deleteConversationMutation = trpc.chat.deleteConversation.useMutation();
+  const addMessageMutation = trpc.chat.addMessage.useMutation();
+
+  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    loadConversations();
-  }, []);
-
-  const loadConversations = async () => {
-    try {
-      setIsLoading(true);
-      const list = await db.listConversations();
-      setConversations(list);
-
-      if (!activeConversation && list.length > 0) {
-        const conversation = await db.getConversation(list[0].id);
-        setActiveConversation(conversation || null);
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err : new Error('Failed to load conversations'),
-      );
-    } finally {
-      setIsLoading(false);
+    if (conversations && conversations?.length > 0 && !activeConversation) {
+      setActiveConversation(conversations[0]);
     }
-  };
+  }, [conversations, activeConversation]);
 
   const createConversation = async (name: string) => {
-    try {
-      const conversation = await db.createConversation(name);
-      setConversations((prev) => [conversation, ...prev]);
-      setActiveConversation(conversation);
-      return conversation;
-    } catch (err) {
-      setError(
-        err instanceof Error ? err : new Error('Failed to create conversation'),
-      );
-      throw err;
-    }
+    const newConversation = await createConversationMutation.mutateAsync({ name });
+    refetch();
+    setActiveConversation(newConversation);
   };
 
-  const switchConversation = async (id: string) => {
-    try {
-      const conversation = await db.getConversation(id);
-      if (conversation) {
-        setActiveConversation(conversation);
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err : new Error('Failed to switch conversation'),
-      );
-      throw err;
-    }
+  const switchConversation = (id: string) => {
+    setActiveConversation(conversations?.find((c) => c.id === id) || null);
   };
 
   const deleteConversation = async (id: string) => {
-    try {
-      await db.deleteConversation(id);
-      setConversations((prev) => prev.filter((c) => c.id !== id));
-      if (activeConversation?.id === id) {
-        const remaining = conversations.filter((c) => c.id !== id);
-        if (remaining.length > 0) {
-          const conversation = await db.getConversation(remaining[0].id);
-          setActiveConversation(conversation || null);
-        } else {
-          setActiveConversation(null);
-        }
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err : new Error('Failed to delete conversation'),
-      );
-      throw err;
+    await deleteConversationMutation.mutateAsync({ id });
+    refetch();
+    if (activeConversation?.id === id) {
+      setActiveConversation(conversations?.[0] || null);
     }
   };
 
   const addMessage = async (message: Omit<Message, 'id'>) => {
-    if (!activeConversation) throw new Error('No active conversation');
-    try {
-      const newMessage = await db.addMessage(activeConversation.id, message);
-      setActiveConversation((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          messages: [...prev.messages, newMessage],
-          updatedAt: new Date().toISOString(),
-        };
-      });
-      await loadConversations(); // Refresh list to update order
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to add message'));
-      throw err;
-    }
+    if (!activeConversation) return;
+    await addMessageMutation.mutateAsync({ conversationId: activeConversation.id, ...message });
+    refetch();
   };
 
   const exportConversation = async (id: string) => {
@@ -133,6 +72,7 @@ export function useConversations() {
     activeConversation,
     isLoading,
     error,
+    chatError,
     createConversation,
     switchConversation,
     deleteConversation,
