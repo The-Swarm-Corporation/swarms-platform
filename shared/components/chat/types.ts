@@ -13,7 +13,7 @@ export interface Agent {
 
 export interface SwarmConfig {
   architecture: SwarmArchitecture;
-  agents: Agent[];
+  agents: string[];
 }
 
 export interface Message {

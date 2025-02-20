@@ -13,9 +13,11 @@ export function useConversations() {
   const createConversationMutation = trpc.chat.createConversation.useMutation();
   const deleteConversationMutation = trpc.chat.deleteConversation.useMutation();
   const addMessageMutation = trpc.chat.addMessage.useMutation();
-
+  
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [error, setError] = useState<Error | null>(null);
+
+  const conversation = trpc.chat.getConversation.useQuery(activeConversation?.id || "");
 
   useEffect(() => {
     if (conversations && conversations?.length > 0 && !activeConversation) {
@@ -34,8 +36,9 @@ export function useConversations() {
   };
 
   const deleteConversation = async (id: string) => {
-    await deleteConversationMutation.mutateAsync({ id });
+    await deleteConversationMutation.mutateAsync(id);
     refetch();
+
     if (activeConversation?.id === id) {
       setActiveConversation(conversations?.[0] || null);
     }
@@ -43,7 +46,7 @@ export function useConversations() {
 
   const addMessage = async (message: Omit<Message, 'id'>) => {
     if (!activeConversation) return;
-    await addMessageMutation.mutateAsync({ conversationId: activeConversation.id, ...message });
+    await addMessageMutation.mutateAsync({ conversationId: activeConversation.id, message });
     refetch();
   };
 

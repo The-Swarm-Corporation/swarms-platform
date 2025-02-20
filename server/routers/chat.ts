@@ -1,123 +1,166 @@
 import { router, userProcedure } from '@/app/api/trpc/trpc-router';
+import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+
+const messageSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string(),
+  timestamp: z.string(),
+  agentId: z.string().optional(),
+});
+
+const conversationSchema = z.object({
+  name: z.string().min(1),
+});
+
+const agentSchema = z.object({
+  name: z.string().min(1),
+  description: z.string(),
+  model: z.string(),
+  temperature: z.number().min(0).max(1).optional(),
+  maxTokens: z.number().positive().optional(),
+  systemPrompt: z.string().optional(),
+  isActive: z.boolean().optional(),
+});
+
+const swarmConfigSchema = z.object({
+  architecture: z.enum(['sequential', 'concurrent', 'hierarchical']),
+  agents: z.array(z.string()), // array of agent IDs
+});
+
+const BUCKET_NAME = 'swarms_cloud_chat_files';
 
 const chatRouter = router({
   getConversations: userProcedure.query(async ({ ctx }) => {
     const user_id = ctx.session.data.user?.id ?? '';
 
     const { data, error } = await ctx.supabase
-      .from('swarms_cloud_chat_conversations')
+      .from('swarms_cloud_chat')
       .select('*')
-      .eq('user_id', user_id);
+      .eq('user_id', user_id)
+      .order('updated_at', { ascending: false });
 
     if (error) throw new Error('Failed to fetch conversations');
 
     return data;
   }),
 
-  // Create a new conversation
+  getConversation: userProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat')
+        .select(
+          `
+          *,
+          messages:swarms_cloud_chat_messages(*)
+        `,
+        )
+        .eq('id', input)
+        .eq('user_id', user_id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }),
+
   createConversation: userProcedure
-    .input(z.object({ name: z.string().min(3) }))
+    .input(conversationSchema)
     .mutation(async ({ ctx, input }) => {
       const user_id = ctx.session.data.user?.id ?? '';
 
       const { data, error } = await ctx.supabase
-        .from('swarms_cloud_chat_conversations')
+        .from('swarms_cloud_chat')
         .insert({
-          user_id,
           name: input.name,
-          created_at: new Date().toISOString(),
+          user_id,
         })
         .select()
         .single();
 
-      if (error) throw new Error('Failed to create conversation');
-
+      if (error) throw error;
       return data;
     }),
 
-  // Add a message to a conversation
+  deleteConversation: userProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { error } = await ctx.supabase
+        .from('swarms_cloud_chat')
+        .delete()
+        .eq('id', input)
+        .eq('user_id', user_id);
+
+      if (error) throw error;
+    }),
+
   addMessage: userProcedure
     .input(
       z.object({
         conversationId: z.string(),
-        content: z.string(),
-        role: z.enum(['user', 'assistant']),
+        message: messageSchema,
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const user_id = ctx.session.data.user?.id ?? '';
+
       const { data, error } = await ctx.supabase
         .from('swarms_cloud_chat_messages')
         .insert({
-          conversation_id: input.conversationId,
-          role: input.role,
-          content: input.content,
-          timestamp: new Date().toISOString(),
           user_id,
+          chat_id: input.conversationId,
+          ...input.message,
         })
         .select()
         .single();
 
-      if (error) throw new Error('Failed to add message');
-
+      if (error) throw error;
       return data;
-    }),
-
-  // Export conversation as JSON
-  exportConversation: userProcedure
-    .input(z.object({ conversationId: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.user?.id ?? '';
-      const { data, error } = await ctx.supabase
-        .from('swarms_cloud_chat_messages')
-        .select('*')
-        .eq('conversation_id', input.conversationId)
-        .eq('user_id', user_id);
-
-      if (error) throw new Error('Failed to export conversation');
-
-      return JSON.stringify(data, null, 2);
-    }),
-
-  deleteConversation: userProcedure
-    .input(z.object({ conversationId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.user?.id ?? '';
-      const { error } = await ctx.supabase
-        .from('swarms_cloud_chat_conversations')
-        .delete()
-        .eq('id', input.conversationId)
-        .eq('user_id', user_id);
-
-      if (error) throw new Error('Failed to delete conversation');
-
-      return { success: true };
     }),
 });
 
 // Agent Router
 const agentRouter = router({
-  // Get all agents for a user
   getAgents: userProcedure.query(async ({ ctx }) => {
     const user_id = ctx.session.data.user?.id ?? '';
 
     const { data, error } = await ctx.supabase
       .from('swarms_cloud_chat_agents')
       .select('*')
-      .eq('user_id', user_id);
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: true });
 
-    if (error) throw new Error('Failed to fetch agents');
-
+    if (error) throw error;
     return data;
   }),
 
-  // Add an agent
   addAgent: userProcedure
+    .input(agentSchema)
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat_agents')
+        .insert({
+          ...input,
+          user_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }),
+
+  updateAgent: userProcedure
     .input(
       z.object({
-        name: z.string().min(3),
-        type: z.string(),
+        id: z.string(),
+        updates: agentSchema.partial(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -125,59 +168,139 @@ const agentRouter = router({
 
       const { data, error } = await ctx.supabase
         .from('swarms_cloud_chat_agents')
-        .insert({
-          user_id,
-          name: input.name,
-          type: input.type,
-          created_at: new Date().toISOString(),
-        })
+        .update(input.updates)
+        .eq('id', input.id)
+        .eq('user_id', user_id)
         .select()
         .single();
 
-      if (error) throw new Error('Failed to add agent');
-
+      if (error) throw error;
       return data;
     }),
 
-  // Update agent details
-  updateAgent: userProcedure
-    .input(
-      z.object({
-        agentId: z.string(),
-        updates: z.object({
-          name: z.string().optional(),
-          type: z.string().optional(),
-        }),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.user?.id ?? '';
-      const { error } = await ctx.supabase
-        .from('swarms_cloud_chat_agents')
-        .update(input.updates)
-        .eq('id', input.agentId)
-        .eq('user_id', user_id);
-
-      if (error) throw new Error('Failed to update agent');
-
-      return { success: true };
-    }),
-
-  // Remove an agent
   removeAgent: userProcedure
-    .input(z.object({ agentId: z.string() }))
+    .input(z.string())
     .mutation(async ({ ctx, input }) => {
       const user_id = ctx.session.data.user?.id ?? '';
 
       const { error } = await ctx.supabase
         .from('swarms_cloud_chat_agents')
         .delete()
-        .eq('id', input.agentId)
+        .eq('id', input)
         .eq('user_id', user_id);
 
-      if (error) throw new Error('Failed to remove agent');
+      if (error) throw error;
+    }),
 
-      return { success: true };
+  toggleAgent: userProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data: agent, error } = await ctx.supabase
+        .from('swarms_cloud_chat_agents')
+        .select('isActive')
+        .eq('id', input.id)
+        .eq('user_id', user_id)
+        .single();
+
+      if (error || !agent) {
+        throw new Error('Agent not found.');
+      }
+
+      const newStatus = !agent.isActive;
+
+      const { error: updateError } = await ctx.supabase
+        .from('swarms_cloud_chat_agents')
+        .update({ isActive: newStatus })
+        .eq('id', input.id)
+        .eq('user_id', user_id);
+
+      if (updateError) {
+        throw new Error('Failed to update agent status.');
+      }
+
+      return { success: true, isActive: newStatus };
+    }),
+});
+
+// Swarms Config Router
+const swarmConfigRouter = router({
+  getSwarmConfig: userProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat_swarm_configs')
+        .select(
+          `
+        *,
+        agents:swarms_cloud_chat_swarm_agents(
+          agent:swarms_cloud_agents(*)
+        )
+      `,
+        )
+        .eq('chat_id', input)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }),
+
+  updateSwarmConfig: userProcedure
+    .input(
+      z.object({
+        chatId: z.string(),
+        config: swarmConfigSchema,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data: existingConfig, error: fetchError } = await ctx.supabase
+        .from('swarms_cloud_chat_swarm_configs')
+        .select()
+        .eq('chat_id', input.chatId)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+
+      const configPromise = existingConfig
+        ? ctx.supabase
+            .from('swarms_cloud_chat_swarm_configs')
+            .update({ architecture: input.config.architecture })
+            .eq('id', existingConfig.id)
+        : ctx.supabase.from('swarms_cloud_chat_swarm_configs').insert({
+            chat_id: input.chatId,
+            architecture: input.config.architecture,
+          });
+
+      const { data: configData, error: configError } = await configPromise;
+      if (configError) throw configError;
+
+      const configId = existingConfig?.id || configData[0].id;
+
+      const { error: deleteError } = await ctx.supabase
+        .from('swarms_cloud_chat_swarm_agents')
+        .delete()
+        .eq('swarm_config_id', configId)
+        .eq('user_id', user_id);
+
+      if (deleteError) throw deleteError;
+
+      const { error: insertError } = await ctx.supabase
+        .from('swarms_cloud_chat_swarm_agents')
+        .insert(
+          input.config.agents.map((agentId, index) => ({
+            swarm_config_id: configId,
+            agent_id: agentId,
+            position: index,
+            user_id,
+          })),
+        );
+
+      if (insertError) throw insertError;
     }),
 });
 
@@ -186,31 +309,127 @@ const fileUploadRouter = router({
   uploadFile: userProcedure
     .input(
       z.object({
+        file: z.any(),
+        messageId: z.string(),
         fileName: z.string(),
-        fileData: z.string(),
+        fileType: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { data, error } = await ctx.supabase.storage
-        .from('uploads')
-        .upload(input.fileName, Buffer.from(input.fileData, 'base64'));
+      const user_id = ctx.session.data.user?.id ?? '';
 
-      if (error) throw new Error('File upload failed');
+      const filePath = `${user_id}/${input.messageId}/${input.fileName}`;
 
-      return { url: data?.path };
+      // Upload to Supabase Storage
+      const { data: storageData, error: storageError } =
+        await ctx.supabase.storage
+          .from(BUCKET_NAME)
+          .upload(filePath, input.file, {
+            contentType: input.fileType,
+            upsert: true,
+          });
+
+      if (storageError) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to upload file',
+          cause: storageError,
+        });
+      }
+
+      // Get public URL
+      const { data: urlData } = ctx.supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(filePath);
+
+      // Add file record to database
+      const { data: fileData, error: dbError } = await ctx.supabase
+        .from('swarms_cloud_chat_files')
+        .insert({
+          message_id: input.messageId,
+          file_path: filePath,
+          file_name: input.fileName,
+          file_type: input.fileType,
+          file_size: input.file.size,
+          public_url: urlData.publicUrl,
+          user_id,
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        // Cleanup storage if database insert fails
+        await ctx.supabase.storage.from(BUCKET_NAME).remove([filePath]);
+
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to record file data',
+          cause: dbError,
+        });
+      }
+
+      return fileData;
     }),
 
-  getFileUrl: userProcedure
-    .input(z.object({ filePath: z.string() }))
-    .query(async ({ctx, input }) => {
-      const { publicURL, error } = ctx.supabase.storage
-        .from('uploads')
-        .getPublicUrl(input.filePath);
+  deleteFile: userProcedure
+    .input(
+      z.object({
+        filePath: z.string(),
+        fileId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
 
-      if (error) throw new Error('Failed to get file URL');
+      const { error: storageError } = await ctx.supabase.storage
+        .from(BUCKET_NAME)
+        .remove([input.filePath]);
 
-      return { url: publicURL };
+      if (storageError) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete file from storage',
+          cause: storageError,
+        });
+      }
+
+      // Delete from database
+      const { error: dbError } = await ctx.supabase
+        .from('swarms_cloud_chat_files')
+        .delete()
+        .eq('id', input.fileId)
+        .eq('user_id', user_id);
+
+      if (dbError) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete file record',
+          cause: dbError,
+        });
+      }
+    }),
+
+  getMessageFiles: userProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat_files')
+        .select('*')
+        .eq('message_id', input)
+        .eq('user_id', user_id);
+
+      if (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch message files',
+          cause: error,
+        });
+      }
+
+      return data;
     }),
 });
 
-export { chatRouter, agentRouter, fileUploadRouter };
+export { chatRouter, agentRouter, fileUploadRouter, swarmConfigRouter };
