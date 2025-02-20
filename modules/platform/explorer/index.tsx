@@ -19,6 +19,9 @@ import dynamic from 'next/dynamic';
 import Sticky from 'react-stickynode';
 import AddToolModal from './components/add-tool-modal';
 
+const Trending = dynamic(() => import('./components/content/trending'), {
+  ssr: false,
+});
 const Prompts = dynamic(() => import('./components/content/prompts'), {
   ssr: false,
 });
@@ -46,8 +49,12 @@ const Explorer = () => {
     filteredPrompts,
     filteredAgents,
     filteredTools,
+    trendingModels,
     promptsQuery,
+    isFetchingTrending,
     isFetchingPrompts,
+    isTrendingLoading,
+    hasMoreTrending,
     hasMorePrompts,
     search,
     options,
@@ -57,6 +64,7 @@ const Explorer = () => {
     isLoading,
     refetch,
     loadMorePrompts,
+    loadMoreTrending,
     handleSearchChange,
     handleOptionChange,
   } = useModels();
@@ -206,8 +214,21 @@ const Explorer = () => {
               : 'translate-y-0',
           )}
         >
-          {reorderedElements.map(({ key, content }) => (
-            <div key={key}>{content}</div>
+          {filterOption === 'all' && !search && (
+            <Trending
+              {...{
+                trendingModels,
+                isFetchingTrending,
+                loadMoreTrending,
+                hasMoreTrending,
+                usersMap,
+                reviewsMap,
+              }}
+              isLoading={isTrendingLoading}
+            />
+          )}
+          {reorderedElements.map(({ key, content }, index) => (
+            <div key={`${key}-${index}`}>{content}</div>
           ))}
         </div>
       </div>

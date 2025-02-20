@@ -248,6 +248,99 @@ const mainRouter = router({
 
     return { data: items };
   }),
+
+  trending: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().default(10),
+        offset: z.number().default(0),
+        search: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { limit, offset, search } = input;
+
+      const calculateAverageRating = (ratings: any[]) => {
+        if (!ratings.length) return 0;
+        const sum = ratings.reduce(
+          (acc, rating) => acc + (rating.rating || 0),
+          0,
+        );
+        return sum / ratings.length;
+      };
+
+      const { data: reviews } = await ctx.supabase
+        .from('swarms_cloud_reviews')
+        .select('model_id, model_type, rating');
+
+      const modelRatings = (reviews || []).reduce(
+        (acc, review) => {
+          const key = `${review.model_id}-${review.model_type}`;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(review);
+          return acc;
+        },
+        {} as Record<string, any[]>,
+      );
+
+      const [agents, prompts, tools] = await Promise.all([
+        ctx.supabase
+          .from('swarms_cloud_agents')
+          .select('*')
+          .ilike('name', `%${search || ''}%`),
+
+        ctx.supabase
+          .from('swarms_cloud_prompts')
+          .select('*')
+          .ilike('name', `%${search || ''}%`),
+
+        ctx.supabase
+          .from('swarms_cloud_tools')
+          .select('*')
+          .ilike('name', `%${search || ''}%`),
+      ]);
+
+      const allModels = [
+        ...(agents.data || []).map((agent) => ({
+          ...agent,
+          type: 'agent',
+          link: makeUrl(PUBLIC.AGENT, { id: agent.id }),
+        })),
+        ...(prompts.data || []).map((prompt) => ({
+          ...prompt,
+          type: 'prompt',
+          link: makeUrl(PUBLIC.PROMPT, { id: prompt.id }),
+        })),
+        ...(tools.data || []).map((tool) => ({
+          ...tool,
+          type: 'tool',
+          link: makeUrl(PUBLIC.TOOL, { id: tool.id }),
+        })),
+      ].map((model) => ({
+        ...model,
+        averageRating: calculateAverageRating(
+          modelRatings[`${model.id}-${model.type}`] || [],
+        ),
+        reviewCount: (modelRatings[`${model.id}-${model.type}`] || []).length,
+      }));
+
+      const sortedModels = allModels.sort((a, b) => {
+        if (b.averageRating === a.averageRating) {
+          return b.reviewCount - a.reviewCount;
+        }
+        return b.averageRating - a.averageRating;
+      });
+
+      const paginatedModels = sortedModels.slice(offset, offset + limit);
+
+      return {
+        data: paginatedModels,
+        total: sortedModels.length,
+        hasMore: offset + limit < sortedModels.length,
+      };
+    }),
 });
 
 export default mainRouter;
