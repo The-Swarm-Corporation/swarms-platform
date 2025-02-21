@@ -1,4 +1,5 @@
 import { router, userProcedure } from '@/app/api/trpc/trpc-router';
+import { SwarmConfig } from '@/shared/components/chat/types';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
@@ -23,12 +24,7 @@ const agentSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-const swarmConfigSchema = z.object({
-  architecture: z.enum(['sequential', 'concurrent', 'hierarchical']),
-  agents: z.array(z.string()), // array of agent IDs
-});
-
-const BUCKET_NAME = 'swarms_cloud_chat_files';
+const BUCKET_NAME = 'swarms_cloud_chat_file';
 
 const chatRouter = router({
   getConversations: userProcedure.query(async ({ ctx }) => {
@@ -147,6 +143,9 @@ const agentRouter = router({
         .from('swarms_cloud_chat_agents')
         .insert({
           ...input,
+          max_tokens: input.maxTokens,
+          system_prompt: input.systemPrompt,
+          is_active: input.isActive,
           user_id,
         })
         .select()
@@ -199,7 +198,7 @@ const agentRouter = router({
 
       const { data: agent, error } = await ctx.supabase
         .from('swarms_cloud_chat_agents')
-        .select('isActive')
+        .select('is_active')
         .eq('id', input.id)
         .eq('user_id', user_id)
         .single();
@@ -208,11 +207,11 @@ const agentRouter = router({
         throw new Error('Agent not found.');
       }
 
-      const newStatus = !agent.isActive;
+      const newStatus = !agent.is_active;
 
       const { error: updateError } = await ctx.supabase
         .from('swarms_cloud_chat_agents')
-        .update({ isActive: newStatus })
+        .update({ is_active: newStatus })
         .eq('id', input.id)
         .eq('user_id', user_id);
 
@@ -220,7 +219,7 @@ const agentRouter = router({
         throw new Error('Failed to update agent status.');
       }
 
-      return { success: true, isActive: newStatus };
+      return { success: true, is_active: newStatus };
     }),
 });
 
@@ -229,58 +228,70 @@ const swarmConfigRouter = router({
   getSwarmConfig: userProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id;
+      if (!user_id) throw new Error('User not authenticated');
 
       const { data, error } = await ctx.supabase
         .from('swarms_cloud_chat_swarm_configs')
-        .select(
-          `
-        *,
-        agents:swarms_cloud_chat_swarm_agents(
-          agent:swarms_cloud_agents(*)
-        )
-      `,
-        )
+        .select(`
+          *,
+          agents:swarms_cloud_chat_swarm_agents(
+            swarm_config_id,
+            agent_id,
+            position,
+            agent:swarms_cloud_chat_agents(*)
+          )
+        `)
         .eq('chat_id', input)
+        .eq('user_id', user_id)
         .single();
 
       if (error) throw error;
-      return data;
+      return data as SwarmConfig;
     }),
 
   updateSwarmConfig: userProcedure
-    .input(
-      z.object({
-        chatId: z.string(),
-        config: swarmConfigSchema,
-      }),
-    )
+    .input(z.object({
+      chatId: z.string(),
+      architecture: z.enum(['sequential', 'concurrent', 'hierarchical']),
+      agentIds: z.array(z.string()),
+    }))
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.user?.id ?? '';
+      const user_id = ctx.session.data.user?.id;
+      if (!user_id) throw new Error('User not authenticated');
 
+      // Start transaction
       const { data: existingConfig, error: fetchError } = await ctx.supabase
         .from('swarms_cloud_chat_swarm_configs')
-        .select()
+        .select('id')
         .eq('chat_id', input.chatId)
+        .eq('user_id', user_id)
         .single();
 
       if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
 
+      // Create or update config
       const configPromise = existingConfig
         ? ctx.supabase
             .from('swarms_cloud_chat_swarm_configs')
-            .update({ architecture: input.config.architecture })
+            .update({ architecture: input.architecture })
             .eq('id', existingConfig.id)
-        : ctx.supabase.from('swarms_cloud_chat_swarm_configs').insert({
-            chat_id: input.chatId,
-            architecture: input.config.architecture,
-          });
+            .select()
+        : ctx.supabase
+            .from('swarms_cloud_chat_swarm_configs')
+            .insert({
+              chat_id: input.chatId,
+              architecture: input.architecture,
+              user_id,
+            })
+            .select();
 
       const { data: configData, error: configError } = await configPromise;
       if (configError) throw configError;
 
       const configId = existingConfig?.id || configData[0].id;
 
+      // Delete existing agent associations
       const { error: deleteError } = await ctx.supabase
         .from('swarms_cloud_chat_swarm_agents')
         .delete()
@@ -289,18 +300,36 @@ const swarmConfigRouter = router({
 
       if (deleteError) throw deleteError;
 
-      const { error: insertError } = await ctx.supabase
-        .from('swarms_cloud_chat_swarm_agents')
-        .insert(
-          input.config.agents.map((agentId, index) => ({
-            swarm_config_id: configId,
-            agent_id: agentId,
-            position: index,
-            user_id,
-          })),
-        );
+      // Create new agent associations
+      if (input.agentIds.length > 0) {
+        const { error: insertError } = await ctx.supabase
+          .from('swarms_cloud_chat_swarm_agents')
+          .insert(
+            input.agentIds.map((agentId, index) => ({
+              swarm_config_id: configId,
+              agent_id: agentId,
+              position: index,
+              user_id,
+            }))
+          );
 
-      if (insertError) throw insertError;
+        if (insertError) throw insertError;
+      }
+
+      // Return updated config with agents
+      return ctx.supabase
+        .from('swarms_cloud_chat_swarm_configs')
+        .select(`
+          *,
+          agents:swarms_cloud_chat_swarm_agents(
+            swarm_config_id,
+            agent_id,
+            position,
+            agent:swarms_cloud_chat_agents(*)
+          )
+        `)
+        .eq('id', configId)
+        .single();
     }),
 });
 

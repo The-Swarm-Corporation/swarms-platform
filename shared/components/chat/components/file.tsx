@@ -3,14 +3,16 @@ import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getFileIcon } from '../helper';
 import Image from 'next/image';
+import { Tables } from '@/types_db';
 
 interface FilePreviewProps {
-  file: FileWithPreview;
+  file: FileWithPreview | Tables<'swarms_cloud_chat_files'>;
   onRemove: () => void;
 }
 
 export function FilePreview({ file, onRemove }: FilePreviewProps) {
-  const fileIcon = getFileIcon(file);
+  const previewFile = file as FileWithPreview;
+  const fileIcon = getFileIcon(previewFile);
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -25,24 +27,40 @@ export function FilePreview({ file, onRemove }: FilePreviewProps) {
         <X className="w-4 h-4" />
       </button>
 
-      <div className="flex items-center gap-3">
+      {/* <div className="flex items-center gap-3">
         <div className="text-red-500">{fileIcon}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-red-500 text-sm truncate">{file.file.name}</p>
+          <p className="text-red-500 text-sm truncate">
+            {file?.file_name || previewFile.file.name}
+          </p>
           <p className="text-red-500/50 text-xs">
-            {(file.file.size / 1024 / 1024).toFixed(2)} MB
+            {((file.file_size || previewFile.file.size) / 1024 / 1024).toFixed(
+              2,
+            )}{' '}
+            MB
           </p>
         </div>
-      </div>
+      </div> */}
 
-      {file.type === 'image' && file.preview && (
-        <div className="mt-2 relative aspect-video rounded-lg overflow-hidden border border-red-600/20">
+      {file?.file_type?.startsWith('image/') && file?.public_url ? (
+        <div className="mt-2 relative h-5 w-5 md:h-10 md:w-10 rounded-lg overflow-hidden border border-red-600/20">
           <Image
-            src={file.preview || '/placeholder.svg'}
-            alt={file.file.name}
+            src={file.public_url || '/placeholder.svg'}
+            alt={file?.file_name ?? ''}
             className="absolute inset-0 w-full h-full object-cover"
           />
         </div>
+      ) : (
+        previewFile?.type === 'image' &&
+        previewFile?.preview && (
+          <div className="mt-2 relative h-5 w-5 md:h-10 md:w-10 rounded-lg overflow-hidden border border-red-600/20">
+            <Image
+              src={previewFile.preview || '/placeholder.svg'}
+              alt={previewFile.file.name}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </div>
+        )
       )}
     </motion.div>
   );

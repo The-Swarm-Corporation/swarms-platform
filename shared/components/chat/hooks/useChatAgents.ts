@@ -1,28 +1,30 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type {
   Agent,
   SwarmArchitecture,
   SwarmConfig,
-  Conversation,
 } from '@/shared/components/chat/types';
 import { trpc } from '@/shared/utils/trpc/trpc';
+import { Tables } from '@/types_db';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 
 export function useAgents({
-  activeConversation,
+  activeConversationId,
 }: {
-  activeConversation: Conversation;
+  activeConversationId: string;
 }) {
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const { toast } = useToast();
+  const [agents, setAgents] = useState<Tables<'swarms_cloud_chat_agents'>[]>(
+    [],
+  );
   const [swarmConfig, setSwarmConfig] = useState<SwarmConfig | null>(null);
 
   const getAgentsQuery = trpc.chatAgent.getAgents.useQuery();
   const getSwarmConfigQuery = trpc.swarmConfig.getSwarmConfig.useQuery(
-    activeConversation?.id,
-    {
-      enabled: !!activeConversation?.id,
-    },
+    activeConversationId,
+    { enabled: !!activeConversationId },
   );
 
   const createAgentMutation = trpc.chatAgent.addAgent.useMutation();
@@ -44,81 +46,106 @@ export function useAgents({
     }
   }, [getSwarmConfigQuery.data]);
 
-  const addAgent = useCallback(async (agent: Omit<Agent, 'id' | 'isActive'>) => {
-    const newAgent = await createAgentMutation.mutateAsync(agent);
-    setAgents((prev) => [...prev, newAgent]);
+  const addAgent = useCallback(
+    async (agent: Omit<Agent, 'id'>) => {
+      try {
+        // Create new agent
+        const newAgent = await createAgentMutation.mutateAsync(agent);
+        setAgents((prev) => [...prev, newAgent]);
 
-    if (swarmConfig) {
-      const updatedConfig = { 
-        ...swarmConfig, 
-        agents: [...swarmConfig.agents, newAgent.id] // Store only ID
-      };
-      setSwarmConfig(updatedConfig);
-      await updateSwarmConfigMutation.mutateAsync({ chatId: activeConversation.id, config: updatedConfig });
-    }
-  }, [swarmConfig, activeConversation.id]);
+        if (!swarmConfig || !activeConversationId) return;
 
-  const updateAgent = useCallback(
-    async (id: string, updates: Partial<Agent>) => {
-      await updateAgentMutation.mutateAsync({ id, updates });
-      setAgents((prev) =>
-        prev.map((agent) =>
-          agent.id === id ? { ...agent, ...updates } : agent,
-        ),
-      );
-    },
-    [],
-  );
+        const updatedAgentIds = [
+          ...swarmConfig.agents.map((a) => a.agent_id),
+          newAgent.id,
+        ];
 
-  const removeAgent = useCallback(async (id: string) => {
-    await deleteAgentMutation.mutateAsync(id);
-    setAgents((prev) => prev.filter((agent) => agent.id !== id));
-  }, []);
-
-  const updateSwarmArchitecture = useCallback(async (architecture: SwarmArchitecture) => {
-    if (swarmConfig) {
-      const updatedConfig = { ...swarmConfig, architecture };
-      setSwarmConfig(updatedConfig);
-      await updateSwarmConfigMutation.mutateAsync({ chatId: activeConversation.id, config: updatedConfig });
-    }
-  }, [swarmConfig, activeConversation.id]);
-
-  const toggleAgent = useCallback(
-    async (id: string) => {
-      const updatedAgent = await toggleAgentMutation.mutateAsync({ id });
-
-      setAgents((prev) =>
-        prev.map((agent) =>
-          agent.id === id
-            ? { ...agent, isActive: updatedAgent.isActive }
-            : agent,
-        ),
-      );
-
-      if (swarmConfig) {
-        const updatedConfig = {
-          ...swarmConfig,
-          agents: swarmConfig.agents.map(
-            (agentId) => (agentId === id ? id : agentId), // Ensure IDs are stored correctly
-          ),
-        };
-        setSwarmConfig(updatedConfig);
         await updateSwarmConfigMutation.mutateAsync({
-          chatId: activeConversation.id,
-          config: updatedConfig,
+          chatId: activeConversationId,
+          architecture: swarmConfig.architecture,
+          agentIds: updatedAgentIds,
+        });
+      } catch (error) {
+        console.error('Error adding agent:', error);
+        toast({
+          description: 'Failed to create agent. Please try again.',
+          variant: 'destructive',
         });
       }
     },
-    [swarmConfig, activeConversation.id],
+    [swarmConfig, activeConversationId],
+  );
+
+  const updateSwarmArchitecture = useCallback(
+    async (architecture: SwarmArchitecture) => {
+      try {
+        if (!swarmConfig || !activeConversationId) return;
+
+        const agentIds = swarmConfig.agents.map((a) => a.agent_id);
+
+        await updateSwarmConfigMutation.mutateAsync({
+          chatId: activeConversationId,
+          architecture,
+          agentIds,
+        });
+      } catch (error) {
+        console.error('Error updating architecture:', error);
+        toast({
+          description: 'Failed to update chat architecture. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    },
+    [swarmConfig, activeConversationId],
+  );
+
+  const toggleAgent = useCallback(
+    async (agentId: string) => {
+      try {
+        const updatedAgent = await toggleAgentMutation.mutateAsync({
+          id: agentId,
+        });
+
+        setAgents((prev) =>
+          prev.map((agent) =>
+            agent.id === agentId
+              ? { ...agent, is_active: updatedAgent.is_active }
+              : agent,
+          ),
+        );
+
+        if (!swarmConfig || !activeConversationId) return;
+
+        const currentAgentIds = swarmConfig.agents.map((a) => a.agent_id);
+        const updatedAgentIds = currentAgentIds.includes(agentId)
+          ? currentAgentIds.filter((id) => id !== agentId)
+          : [...currentAgentIds, agentId];
+
+        await updateSwarmConfigMutation.mutateAsync({
+          chatId: activeConversationId,
+          architecture: swarmConfig.architecture,
+          agentIds: updatedAgentIds,
+        });
+      } catch (error) {
+        console.error('Error toggling agent:', error);
+        toast({
+          description: 'Failed to toggle agent. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    },
+    [swarmConfig, activeConversationId],
   );
 
   return {
     agents,
     swarmConfig,
     addAgent,
-    updateAgent,
-    removeAgent,
+    updateAgent: updateAgentMutation.mutateAsync,
+    removeAgent: deleteAgentMutation.mutateAsync,
     updateSwarmArchitecture,
     toggleAgent,
+    isLoading: getAgentsQuery.isLoading || getSwarmConfigQuery.isLoading,
+    error: getAgentsQuery.error || getSwarmConfigQuery.error,
   };
 }

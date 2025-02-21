@@ -1,7 +1,9 @@
+import { Tables } from "@/types_db";
+
 export type SwarmArchitecture = 'sequential' | 'concurrent' | 'hierarchical';
 
 export interface Agent {
-  id: string;
+  id?: string;
   name: string;
   description: string;
   model: string;
@@ -11,9 +13,21 @@ export interface Agent {
   isActive: boolean;
 }
 
+export interface SwarmAgent {
+  swarm_config_id: string;
+  agent_id: string;
+  position: number;
+  agent: Tables<'swarms_cloud_chat_agents'>;
+}
+
 export interface SwarmConfig {
+  id: string;
+  chat_id: string;
   architecture: SwarmArchitecture;
-  agents: string[];
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  agents: SwarmAgent[];
 }
 
 export interface Message {
@@ -33,3 +47,5 @@ export interface Conversation {
 }
 
 export type ConversationMetadata = Omit<Conversation, 'messages'>;
+
+export type FormAgent = Omit<Tables<"swarms_cloud_chat_agents">, "created_at" | "updated_at" | "user_id">;

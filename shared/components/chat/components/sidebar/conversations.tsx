@@ -29,12 +29,12 @@ import {
   DialogTrigger,
 } from '@/shared/components/ui/dialog';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
-import type { ConversationMetadata } from '@/shared/components/chat/types';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { cn } from '@/shared/utils/cn';
+import { Tables } from '@/types_db';
 
 interface ConversationSidebarProps {
-  conversations: ConversationMetadata[];
+  conversations: Tables<"swarms_cloud_chat">[];
   activeId?: string;
   isLoading?: boolean;
   onCreateConversation: (name: string) => void;
@@ -132,7 +132,7 @@ export function ConversationSidebar({
                         ? 'bg-white/80 dark:bg-zinc-950/80 border-red-600/50'
                         : 'bg-transparent border-transparent hover:bg-white/40 dark:hover:bg-zinc-900/40'
                     }`}
-                    onClick={() => onSwitchConversation(conversation.id)}
+                    onClick={() => onSwitchConversation(conversation?.id)}
                   >
                     {isExpanded ? (
                       <div className="flex items-center justify-between">
@@ -144,7 +144,7 @@ export function ConversationSidebar({
                             </p>
                             <p className="text-xs text-red-500/50">
                               {format(
-                                new Date(conversation.updatedAt),
+                                new Date(conversation?.updated_at ?? new Date()),
                                 'MMM d, yyyy',
                               )}
                             </p>

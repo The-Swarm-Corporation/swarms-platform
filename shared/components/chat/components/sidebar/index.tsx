@@ -24,11 +24,25 @@ import {
 } from '@/shared/components/ui/select';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { cn } from '@/shared/utils/cn';
+import { Tables } from '@/types_db';
 
 interface SwarmSelectorProps {
   value: SwarmArchitecture;
   onValueChange: (value: SwarmArchitecture) => void;
 }
+
+const convertEditingAgent = (
+  agent: Tables<'swarms_cloud_chat_agents'>,
+): Agent => ({
+  id: agent.id,
+  name: agent.name,
+  description: agent.description ?? '',
+  model: agent.model,
+  temperature: agent.temperature ?? 0.7,
+  maxTokens: agent.max_tokens ?? 2048,
+  systemPrompt: agent.system_prompt ?? '',
+  isActive: agent.is_active ?? false,
+});
 
 function SwarmSelector({ value, onValueChange }: SwarmSelectorProps) {
   return (
@@ -46,10 +60,16 @@ function SwarmSelector({ value, onValueChange }: SwarmSelectorProps) {
 }
 
 interface AgentSidebarProps {
-  agents: Agent[];
+  agents: Tables<'swarms_cloud_chat_agents'>[];
   swarmArchitecture: SwarmArchitecture;
-  onAddAgent: (agent: Omit<Agent, 'id' | 'isActive'>) => void;
-  onUpdateAgent: (id: string, updates: Partial<Agent>) => void;
+  onAddAgent: (agent: Omit<Agent, 'id'>) => void;
+  onUpdateAgent: ({
+    id,
+    updates,
+  }: {
+    id: string;
+    updates: Partial<Agent>;
+  }) => void;
   onRemoveAgent: (id: string) => void;
   onUpdateSwarmArchitecture: (architecture: SwarmArchitecture) => void;
   onToggleAgent: (id: string) => void;
@@ -70,10 +90,10 @@ export function AgentSidebar({
   const isMobile = useIsMobile();
 
   const handleMobileExpand = () => {
-    if(!isExpanded && isMobile) {
-        setIsExpanded(true);
+    if (!isExpanded && isMobile) {
+      setIsExpanded(true);
     }
-  }
+  };
 
   return (
     <>
@@ -122,57 +142,64 @@ export function AgentSidebar({
 
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-2">
-            {agents.map((agent) => (
-              <motion.div
-                key={agent.id}
-                layout
-                className={`p-3 rounded-lg border transition-colors ${
-                  agent.isActive
-                    ? 'bg-white/80 dark:bg-zinc-950/80 border-red-600/50'
-                    : 'bg-zinc-100/80 dark:bg-zinc-900/80 border-red-600/20'
-                }`}
-              >
-                {isExpanded ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-red-500">{agent.name}</h3>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingAgent(agent)}
-                          className="text-red-500/70 hover:text-red-500"
-                        >
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onToggleAgent(agent.id)}
-                          className={
-                            agent.isActive ? 'text-red-500' : 'text-red-500/50'
-                          }
-                        >
-                          {agent.isActive ? 'Active' : 'Inactive'}
-                        </Button>
+            {agents.map((agent) => {
+              const editAgent = convertEditingAgent(agent);
+              return (
+                <motion.div
+                  key={agent.id}
+                  layout
+                  className={`p-3 rounded-lg border transition-colors ${
+                    agent.is_active
+                      ? 'bg-white/80 dark:bg-zinc-950/80 border-red-600/50'
+                      : 'bg-zinc-100/80 dark:bg-zinc-900/80 border-red-600/20'
+                  }`}
+                >
+                  {isExpanded ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-red-500">
+                          {agent.name}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditingAgent(editAgent)}
+                            className="text-red-500/70 hover:text-red-500"
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onToggleAgent(agent.id)}
+                            className={
+                              agent.is_active
+                                ? 'text-red-500'
+                                : 'text-red-500/50'
+                            }
+                          >
+                            {agent.is_active ? 'Active' : 'Inactive'}
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-red-500/70">
+                        {agent.description}
+                      </p>
+                      <div className="text-xs text-red-500/50">
+                        Model: {agent.model}
                       </div>
                     </div>
-                    <p className="text-sm text-red-500/70">
-                      {agent.description}
-                    </p>
-                    <div className="text-xs text-red-500/50">
-                      Model: {agent.model}
+                  ) : (
+                    <div className="flex justify-center">
+                      <div
+                        className={`w-2 h-2 rounded-full ${agent.is_active ? 'bg-red-500' : 'bg-red-500/30'}`}
+                      />
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-center">
-                    <div
-                      className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-red-500' : 'bg-red-500/30'}`}
-                    />
-                  </div>
-                )}
-              </motion.div>
-            ))}
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         </ScrollArea>
 
@@ -217,7 +244,7 @@ export function AgentSidebar({
               <AgentForm
                 initialData={editingAgent}
                 onSubmit={(updates) => {
-                  onUpdateAgent(editingAgent.id, updates);
+                  onUpdateAgent({ id: editingAgent?.id ?? '', updates });
                   setEditingAgent(null);
                 }}
               />

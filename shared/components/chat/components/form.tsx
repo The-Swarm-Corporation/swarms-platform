@@ -17,7 +17,7 @@ import {
 import { Agent } from '@/shared/components/chat/types';
 
 interface AgentFormProps {
-  onSubmit: (agent: Omit<Agent, 'id' | 'isActive'>) => void;
+  onSubmit: (agent: Omit<Agent, 'id'>) => void;
   initialData?: Partial<Agent>;
 }
 
@@ -29,6 +29,7 @@ export function AgentForm({ onSubmit, initialData }: AgentFormProps) {
     temperature: initialData?.temperature || 0.7,
     maxTokens: initialData?.maxTokens || 2048,
     systemPrompt: initialData?.systemPrompt || '',
+    isActive: initialData?.id !== undefined ? initialData.isActive ?? false : true,
   });
 
   const handleSubmit = (e: React.FormEvent) => {

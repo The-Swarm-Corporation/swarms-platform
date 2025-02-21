@@ -3,30 +3,16 @@
 import type React from 'react';
 
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Mic,
-  Send,
-  Shield,
-  Hexagon,
-  Lock,
-  Radio,
-  Cpu,
-  Power,
-  ChevronUp,
-  ChevronDown,
-  Upload,
-} from 'lucide-react';
-import { useFileUpload } from './hooks/useFileUpload';
+import { motion } from 'framer-motion';
+import { Mic, Send, Shield } from 'lucide-react';
 import { useAgents } from './hooks/useChatAgents';
 import { useConversations } from './hooks/useConversations';
 import LoadSequence from './components/loader';
 import { ConversationSidebar } from './components/sidebar/conversations';
 import { cn } from '@/shared/utils/cn';
-import { FilePreview } from './components/file';
-import { ProgressBar } from './components/progress';
 import { AgentSidebar } from './components/sidebar';
-import type { Message } from '@/shared/components/chat/types';
+import ChatMessage from './components/message';
+import { Tables } from '@/types_db';
 
 interface SwarmsChatProps {
   modelFunction?: (message: string) => Promise<string>;
@@ -41,6 +27,8 @@ const getCurrentTime = () => {
   });
 };
 
+const DEFAULT_RESPONSE = "DEFAULT RESPONSE --- Building multiagents with swarms ---";
+
 export default function SwarmsChat({
   modelFunction = async (message: string) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -48,27 +36,19 @@ export default function SwarmsChat({
   },
 }: SwarmsChatProps) {
   const [isFetching, setIsFetching] = useState(true);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<
+    Tables<'swarms_cloud_chat_messages'>[]
+  >([]);
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognition = useRef<any>(null);
   const {
-    files,
-    dragActive,
-    uploadProgress,
-    handleDrag,
-    handleDrop,
-    removeFile,
-    clearFiles,
-    handleFileSelect,
-  } = useFileUpload();
-  const {
     conversations,
     activeConversation,
+    activeConversationId,
     isLoading: isLoadingConversations,
-    error: conversationsError,
     createConversation,
     switchConversation,
     deleteConversation,
@@ -84,7 +64,7 @@ export default function SwarmsChat({
     updateSwarmArchitecture,
     toggleAgent,
   } = useAgents({
-    activeConversation,
+    activeConversationId,
   });
 
   useEffect(() => {
@@ -115,14 +95,14 @@ export default function SwarmsChat({
   }, []);
 
   useEffect(() => {
-    if (!isLoadingConversations && conversations.length === 0) {
+    if (!isLoadingConversations && conversations?.length === 0) {
       createConversation('New Chat');
     }
-  }, [isLoadingConversations, conversations.length, createConversation]);
+  }, [isLoadingConversations, conversations?.length, createConversation]);
 
   useEffect(() => {
     if (activeConversation) {
-      setMessages(activeConversation.messages);
+      setMessages(activeConversation.data?.messages || []);
     }
   }, [activeConversation]);
 
@@ -154,13 +134,26 @@ export default function SwarmsChat({
 
     try {
       const activeAgents = agents
-        .filter((agent) => swarmConfig?.agents.includes(agent?.id))
-        .filter((agent) => agent.isActive);
+        .filter((agent) =>
+          swarmConfig?.agents.some(
+            (configAgent) => configAgent.agent_id === agent.id,
+          ),
+        )
+        .filter((agent) => agent.is_active);
 
-      if (swarmConfig.architecture === 'concurrent') {
+      if (!swarmConfig?.architecture || activeAgents.length < 1) {
+        await addMessage({
+          role: 'assistant',
+          content: 'No active agents in the swarm. Create an agent!',
+          timestamp: getCurrentTime(),
+        });
+        return;
+      }
+
+      if (swarmConfig?.architecture === 'concurrent') {
         const responses = await Promise.all(
           activeAgents.map(async (agent) => {
-            const response = await modelFunction(userMessage);
+            const response = await modelFunction(DEFAULT_RESPONSE);
             return { agent, response };
           }),
         );
@@ -173,9 +166,9 @@ export default function SwarmsChat({
             agentId: agent.id,
           });
         }
-      } else if (swarmConfig.architecture === 'sequential') {
+      } else if (swarmConfig?.architecture === 'sequential') {
         for (const agent of activeAgents) {
-          const response = await modelFunction(userMessage);
+          const response = await modelFunction(DEFAULT_RESPONSE);
           await addMessage({
             role: 'assistant',
             content: response,
@@ -186,7 +179,7 @@ export default function SwarmsChat({
       } else {
         const [primaryAgent, ...secondaryAgents] = activeAgents;
         if (primaryAgent) {
-          const primaryResponse = await modelFunction(userMessage);
+          const primaryResponse = await modelFunction(`PRIMARY ${DEFAULT_RESPONSE}`);
           await addMessage({
             role: 'assistant',
             content: primaryResponse,
@@ -195,7 +188,7 @@ export default function SwarmsChat({
           });
 
           for (const agent of secondaryAgents) {
-            const response = await modelFunction(primaryResponse);
+            const response = await modelFunction(DEFAULT_RESPONSE);
             await addMessage({
               role: 'assistant',
               content: response,
@@ -237,8 +230,8 @@ export default function SwarmsChat({
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-100/50 to-zinc-50/80 dark:from-zinc-950/50 dark:to-black" />
       <div className="relative w-full h-full flex">
         <ConversationSidebar
-          conversations={conversations}
-          activeId={activeConversation?.id}
+          conversations={conversations || []}
+          activeId={activeConversationId}
           isLoading={isLoadingConversations}
           onCreateConversation={createConversation}
           onSwitchConversation={switchConversation}
@@ -283,86 +276,12 @@ export default function SwarmsChat({
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               <div className="max-w-screen-xl mx-auto">
                 {messages.map((message, index) => (
-                  <>
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={cn(
-                        'flex flex-col mb-6',
-                        message.role === 'user' ? 'items-end' : 'items-start',
-                      )}
-                      onDragEnter={handleDrag}
-                      onDragLeave={handleDrag}
-                      onDragOver={handleDrag}
-                      onDrop={(e: React.DragEvent) => handleDrop(e, message)}
-                    >
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-red-500/50 text-[10px] lg:text-xs font-mono">
-                          {message.timestamp}
-                        </span>
-                        {message.role === 'assistant' && (
-                          <>
-                            <Hexagon className="h-3 w-3 lg:w-4 lg:h-4 text-red-500/50" />
-                            <span className="text-red-500/70 text-xs font-mono">
-                              {getAgentName(message.agentId)}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                      <div
-                        className={cn(
-                          'max-w-[80%] rounded-md lg:rounded-lg px-2 lg:px-6 py-3 lg:py-4 relative overflow-hidden transition-colors duration-300',
-                          message.role === 'user'
-                            ? 'bg-white/80 dark:bg-zinc-950/80 text-zinc-900 dark:text-white border border-red-600/50'
-                            : 'bg-red-50/80 dark:bg-black/80 text-red-500 border border-red-600/30',
-                        )}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
-                        <div className="relative text-xs lg:text-base">
-                          {message.content}
-                        </div>
-                      </div>
-                    </motion.div>
-                    {message.role === 'user' && (
-                      <>
-                        <input
-                          type="file"
-                          multiple
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            handleFileSelect(e, message)
-                          }
-                          className="hidden"
-                          id="file-upload"
-                        />
-                        <label
-                          htmlFor="file-upload"
-                          className="p-3 rounded-full transition-all duration-300 relative group bg-white/80 dark:bg-zinc-950/80 text-red-500 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 border border-red-600/20 cursor-pointer"
-                        >
-                          <Upload className="w-4 h-4" />
-                          <div className="absolute inset-0 rounded-full group-hover:animate-ping bg-red-600/20 hidden group-hover:block" />
-                        </label>
-                      </>
-                    )}
-                  </>
+                  <ChatMessage
+                    key={`${message?.id}-${index}`}
+                    message={message}
+                    getAgentName={getAgentName}
+                  />
                 ))}
-
-                {files.length > 0 && (
-                  <div className="space-y-2 mb-4">
-                    <AnimatePresence>
-                      {files.map((file, index) => (
-                        <FilePreview
-                          key={`${file.file.name}-${index}`}
-                          file={file}
-                          onRemove={() => removeFile(index)}
-                        />
-                      ))}
-                    </AnimatePresence>
-                    {uploadProgress > 0 && uploadProgress < 100 && (
-                      <ProgressBar progress={uploadProgress} />
-                    )}
-                  </div>
-                )}
 
                 {isLoading && (
                   <div className="flex items-center space-x-2">
@@ -444,8 +363,8 @@ export default function SwarmsChat({
             </div>
           </div>
           <AgentSidebar
-            agents={agents}
-            swarmArchitecture={swarmConfig.architecture}
+            agents={agents || []}
+            swarmArchitecture={swarmConfig?.architecture || 'sequential'}
             onAddAgent={addAgent}
             onUpdateAgent={updateAgent}
             onRemoveAgent={removeAgent}
@@ -454,13 +373,6 @@ export default function SwarmsChat({
           />
         </div>
       </div>
-      {dragActive && (
-        <div className="absolute inset-0 z-50 bg-zinc-50/90 dark:bg-black/90 flex items-center justify-center border-2 border-dashed border-red-600/50">
-          <div className="text-red-500 text-xl font-bold">
-            Drop files to upload
-          </div>
-        </div>
-      )}
     </div>
   );
 }
