@@ -136,6 +136,10 @@ export const SIDE_BAR_MENU: NavMenuProps = {
           title: 'Organization',
           link: PLATFORM.ORGANIZATION,
         },
+        {
+          title: 'History',
+          link: PLATFORM.HISTORY,
+        },
       ],
     },
   ],
