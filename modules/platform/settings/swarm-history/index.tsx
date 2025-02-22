@@ -14,6 +14,7 @@ import { Button } from '@/shared/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import ClearAllFilters from './component/clear-filters';
+import { cn } from '@/shared/utils/cn';
 
 export default function SwarmHistory() {
   const {
@@ -56,6 +57,11 @@ export default function SwarmHistory() {
   };
 
   const placeholder = getFilterPlaceholder();
+  const isApplyDisabled =
+    isDataLoading ||
+    !filterProperty ||
+    !filterValue ||
+    filterProperty === 'undefined';
 
   return (
     <article className="w-full">
@@ -97,7 +103,7 @@ export default function SwarmHistory() {
           </Select>
         </div>
 
-        <div className="flex space-x-4 mt-6">
+        <div className="flex items-center gap-4 mt-6">
           <Select
             onValueChange={(value) => {
               setFilterProperty(
@@ -136,22 +142,29 @@ export default function SwarmHistory() {
             className="disabled:cursor-not-allowed disabled:opacity-50"
           />
 
-          <Button
+          <div
             onClick={applyFilter}
-            disabled={
-              isDataLoading ||
-              !filterProperty ||
-              !filterValue ||
-              filterProperty === 'undefined'
-            }
-            className="cursor-pointer disabled:cursor-not-allowed"
+            role="button"
+            aria-label="Apply filter"
+            className={cn(
+              'flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 px-4 lg:px-8 py-2 cursor-pointer',
+              isApplyDisabled
+                ? 'cursor-not-allowed opacity-50'
+                : 'cursor-pointer ',
+            )}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                applyFilter();
+              }
+            }}
           >
-            Filter
-          </Button>
+            <span className="lg:hidden cursor-pointer">Filter</span>
+            <span className="hidden lg:block cursor-pointer">Apply Filter</span>
+          </div>
         </div>
         <ClearAllFilters
           isSelectedFilter={isSelectedFilters}
-          className="pl-3"
+          className="pl-3 w-fit"
           clearAllFilters={clearFilters}
         />
 
