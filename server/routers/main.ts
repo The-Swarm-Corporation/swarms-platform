@@ -7,7 +7,32 @@ import { PUBLIC } from '@/shared/utils/constants';
 import { makeUrl } from '@/shared/utils/helpers';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
+import dayjs from 'dayjs';
 import { z } from 'zod';
+
+const applyFilters = (query: any, input: any) => {
+  if (input.filterProperty && input.filterValue) {
+    if (['created_at', 'updated_at'].includes(input.filterProperty)) {
+      const date = parseValidDate(input.filterValue);
+      if (date) {
+        query = query.gte(input.filterProperty, date);
+      }
+    } else if (input.filterProperty === 'id') {
+      query = query.eq('id', input.filterValue);
+    }
+  }
+
+  return query;
+};
+
+const parseValidDate = (dateString: string) => {
+  const parsedDate = dayjs(
+    dateString,
+    ['MM/DD/YYYY HH:mm', 'MM/DD/YYYY HH:mm:ss'],
+    true,
+  );
+  return parsedDate.isValid() ? parsedDate.toISOString() : null;
+};
 
 const mainRouter = router({
   getUser: userProcedure.query(async ({ ctx }) => {
@@ -339,6 +364,128 @@ const mainRouter = router({
         data: paginatedModels,
         total: sortedModels.length,
         hasMore: offset + limit < sortedModels.length,
+      };
+    }),
+
+  getAllHistory: userProcedure
+    .input(
+      z.object({
+        limit: z.number().optional().default(20),
+        offset: z.number().optional().default(0),
+        sortBy: z
+          .enum(['created_at', 'updated_at'])
+          .optional()
+          .default('created_at'),
+        filterBy: z
+          .enum(['all', 'spreadsheet', 'drag_and_drop'])
+          .optional()
+          .default('all'),
+        search: z.string().optional().default(''),
+        filterProperty: z
+          .enum(['id', 'content', 'created_at', 'updated_at', 'undefined'])
+          .optional(),
+        filterValue: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id || '';
+      let results: any[] = [];
+      let totalRecords = 0;
+
+      if (input.filterBy === 'all' || input.filterBy === 'spreadsheet') {
+        let query = ctx.supabase
+          .from('swarms_spreadsheet_sessions')
+          .select('id, task, created_at, updated_at', { count: 'exact' })
+          .eq('user_id', user_id)
+          .order(input.sortBy, { ascending: false })
+          .range(input.offset, input.offset + input.limit - 1);
+
+        query = applyFilters(query, input);
+
+        const { data: spreadsheets, count, error } = await query;
+        if (error) throw error;
+        totalRecords += count || 0;
+
+        const formattedSpreadsheets = spreadsheets.map((session) => ({
+          id: session.id,
+          content: session.task || 'N/A',
+          created_at: session.created_at,
+          updated_at: session.updated_at,
+          type: 'spreadsheet',
+        }));
+
+        results = results.concat(formattedSpreadsheets);
+      }
+
+      if (input.filterBy === 'all' || input.filterBy === 'drag_and_drop') {
+        let query = ctx.supabase
+          .from('drag_and_drop_flows')
+          .select('id, flow_data, created_at, updated_at', { count: 'exact' })
+          .eq('user_id', user_id)
+          .order(input.sortBy, { ascending: false })
+          .range(input.offset, input.offset + input.limit - 1);
+
+        query = applyFilters(query, input);
+
+        const { data: flows, count, error } = await query;
+        if (error) throw error;
+        totalRecords += count || 0;
+
+        const formattedFlows = flows.map((flow) => {
+          let content = 'N/A';
+          let flowData;
+
+          try {
+            flowData =
+              typeof flow.flow_data === 'string'
+                ? JSON.parse(flow.flow_data)
+                : flow.flow_data;
+          } catch (error) {
+            console.error('Error parsing flow_data:', error);
+            flowData = {};
+          }
+
+          const nodes = flowData?.nodes || [];
+          for (const node of nodes) {
+            const { description, systemPrompt, name } = node.data || {};
+            if (description) {
+              content = description;
+              break;
+            } else if (systemPrompt) {
+              content = systemPrompt;
+              break;
+            } else if (name) {
+              content = name;
+              break;
+            }
+          }
+
+          return {
+            id: flow.id,
+            content,
+            created_at: flow.created_at,
+            updated_at: flow.updated_at,
+            type: 'drag_and_drop',
+          };
+        });
+
+        results = results.concat(formattedFlows);
+      }
+
+      if (input?.filterProperty === 'content' && input?.filterValue) {
+        results = results.filter((item) =>
+          item.content
+            .toLowerCase()
+            .includes(input?.filterValue?.toLowerCase()),
+        );
+      }
+
+      const hasMore = input.offset + input.limit < totalRecords;
+
+      return {
+        results,
+        hasMore,
+        totalPages: Math.ceil(totalRecords / input.limit),
       };
     }),
 });
