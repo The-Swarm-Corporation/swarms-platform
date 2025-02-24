@@ -108,6 +108,8 @@ import { useTheme } from 'next-themes';
 import { estimateTokensAndCost } from '@/shared/utils/helpers';
 import { getOptimizeSystemPrompt } from './helper';
 import { useAuthContext } from '../ui/auth.provider';
+import LoadingSpinner from '../loading-spinner';
+import MarkdownComponent from '../markdown.tsx';
 
 type AgentType = 'Worker' | 'Boss';
 type AgentModel = 'gpt-3.5-turbo' | 'gpt-4o' | 'claude-2' | 'gpt-4o-mini';
@@ -462,7 +464,7 @@ const AgentNode: React.FC<
             </div>
           </TooltipTrigger>
           <TooltipContent className="max-w-[500px] bg-popover text-popover-foreground border-border">
-            <div className="text-sm">
+            <div className="text-xs">
               <p>
                 <strong>Name:</strong> {data.name}
               </p>
@@ -476,9 +478,14 @@ const AgentNode: React.FC<
                 <strong>System Prompt:</strong> {data.systemPrompt}
               </p>
               {data.lastResult && (
-                <p>
-                  <strong>Last Result:</strong> {data.lastResult}
-                </p>
+                <div>
+                  <strong>Last Result:</strong>
+
+                  <MarkdownComponent
+                    className="space-y-1 *:text-xs"
+                    text={data.lastResult}
+                  />
+                </div>
               )}
             </div>
           </TooltipContent>
@@ -1051,9 +1058,14 @@ const FlowContent = () => {
   const [taskResults, setTaskResults] = useState<{ [key: string]: string }>({});
   const [isOptimizing, setIsOptimizing] = useState(false);
   const { toast } = useToast();
+  const [activeFlowId, setActiveFlowId] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
-  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null); // Move this line above the useEnhancedAutosave call
-  const saveFlowMutation = api.dnd.saveFlow.useMutation(); // Move this line above the useEnhancedAutosave call
+  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
+  const saveFlowMutation = api.dnd.saveFlow.useMutation();
+  const [tabValue, setTabValue] = useState<'versions' | 'results'>('versions');
+  const [runTaskLoader, setRunTaskLoader] = useState(false);
+  const [isAddAgentOpen, setIsAddAgentOpen] = useState(false);
+  const [addAgentLoader, setAddAgentLoader] = useState(false);
 
   const [swarmArchitecture, setSwarmArchitecture] =
     useState<SwarmArchitecture>('Concurrent');
@@ -1178,8 +1190,12 @@ const FlowContent = () => {
   }, [getCurrentFlowQuery.data]);
 
   const getAllFlowsQuery = api.dnd.getAllFlows.useQuery();
+  const getCurrentFlowMutation = api.dnd.getCurrentMutationFlow.useMutation();
   const setCurrentFlowMutation = api.dnd.setCurrentFlow.useMutation();
   const reactFlowInstance = useReactFlow();
+  const [pageKey, setPageKey] = useState(0);
+  const reloadPage = () => setPageKey((prev) => prev + 1);
+
   // Add a ref to track initial load
   const initialLoadRef = useRef(false);
 
@@ -1206,6 +1222,21 @@ const FlowContent = () => {
     nodes: [] as ReactFlowNode[],
     edges: [] as Edge[],
   });
+
+  const handleTabChange = (event: React.FormEvent<HTMLDivElement>) => {
+    const newValue = (event.target as HTMLElement).getAttribute(
+      'data-value',
+    ) as 'versions' | 'results';
+    if (newValue) setTabValue(newValue);
+  };
+
+  const handleActiveFlowId = (id: string) => setActiveFlowId(id);
+
+  const handleCheckExpand = () => {
+    if (!isSidebarExpanded) {
+      setIsSidebarExpanded(true);
+    }
+  };
 
   const handleOptimizePrompt = async () => {
     if (!user) {
@@ -1334,6 +1365,7 @@ const FlowContent = () => {
       setSwarmArchitecture('Concurrent');
       setSwarmJson('');
       setTask('');
+      setTabValue('versions');
       setCurrentFlowId(null);
 
       // Reset refs
@@ -1360,13 +1392,15 @@ const FlowContent = () => {
         // Refresh flows list
         await getAllFlowsQuery.refetch();
 
-        setPopup({ message: 'New flow created', type: 'success' });
+        setIsSidebarExpanded(true);
+
+        toast({ description: 'New flow created' });
       }
     } catch (error) {
       console.error('Error creating new flow:', error);
       setPopup({ message: 'Error creating new flow', type: 'error' });
     }
-  }, [router, setNodes, setEdges, saveFlowMutation, getAllFlowsQuery]);
+  }, [router]);
 
   // Update state ref whenever state changes
   useEffect(() => {
@@ -1539,6 +1573,7 @@ const FlowContent = () => {
 
   const addAgent = useCallback(
     (agent: AgentData) => {
+      setAddAgentLoader(true);
       const newNode: ReactFlowNode = {
         id: `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Generate unique ID
         type: 'agent',
@@ -1601,8 +1636,14 @@ const FlowContent = () => {
 
       // Use functional update to preserve existing nodes
       setNodes((prevNodes) => [...prevNodes, newNode]);
+      setAddAgentLoader(false);
+      setIsAddAgentOpen(false);
+
+      toast({
+        description: 'Agent added successfully',
+      });
     },
-    [nodes, setNodes, setEdges],
+    [nodes],
   );
 
   // Update the updateNodeData function
@@ -1703,7 +1744,26 @@ const FlowContent = () => {
 
       await validateUserCredits([systemOptimizationPrompt], user.id);
 
-      const text = await getProcessedText(systemOptimizationPrompt, agent);
+      const response = await getProcessedText(systemOptimizationPrompt, agent);
+
+      if (response?.error) {
+        toast({
+          description: response.error,
+          variant: 'destructive',
+        });
+
+        setNodes((nodes) =>
+          nodes.map((node) =>
+            node.id === agentId
+              ? { ...node, data: { ...node.data, isProcessing: false } }
+              : node,
+          ),
+        );
+
+        return;
+      }
+
+      const text = response.text;
 
       const finalCosts = estimateTokensAndCost(systemOptimizationPrompt, text);
 
@@ -1713,7 +1773,7 @@ const FlowContent = () => {
 
       setTaskResults((prev) => ({
         ...prev,
-        [agentId]: text,
+        [agentId]: text ?? '',
       }));
 
       setNodes((nodes) =>
@@ -1727,6 +1787,9 @@ const FlowContent = () => {
         ),
       );
 
+      setIsSidebarExpanded(true);
+      setTabValue('results');
+
       const outgoingEdges = edges.filter(
         (e) => e.source === agentId && e.data?.type === 'agent',
       );
@@ -1737,6 +1800,8 @@ const FlowContent = () => {
 
       return text;
     } catch (error: any) {
+      console.error(`Error processing agent ${agentId}:`, error);
+
       setNodes((nodes) =>
         nodes.map((node) =>
           node.id === agentId
@@ -1745,9 +1810,8 @@ const FlowContent = () => {
         ),
       );
 
-      console.error(`Error processing agent ${agentId}:`, error);
       toast({
-        description: error || error?.message || 'Error processing response',
+        description: error?.message || 'Error processing response',
         variant: 'destructive',
       });
     }
@@ -1755,7 +1819,24 @@ const FlowContent = () => {
 
   // Update the runTask function's agent processing section
   const runTask = async () => {
+    if (!task) {
+      toast({
+        description: 'Please enter a task',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!nodes || nodes.length === 0) {
+      toast({
+        description: 'No agents or groups available to process the task',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
+      setRunTaskLoader(true);
       setTaskResults({});
       processedAgents.clear(); // Clear the processed agents set
 
@@ -1764,7 +1845,7 @@ const FlowContent = () => {
         (node) =>
           node.type === 'agent' &&
           !node.data.groupId && // Only process standalone agents
-          !edges.some((e) => e.target === node.id && e.data?.type === 'agent'),
+          !edges?.some((e) => e.target === node.id && e.data?.type === 'agent'),
       );
 
       // Process each starting agent and their chains sequentially
@@ -1776,7 +1857,7 @@ const FlowContent = () => {
       const startingGroups = nodes.filter(
         (node) =>
           node.type === 'group' &&
-          !edges.some((edge) => edge.target === node.id),
+          !edges?.some((edge) => edge.target === node.id),
       );
 
       if (startingGroups.length > 0) {
@@ -1785,16 +1866,18 @@ const FlowContent = () => {
         }
       }
 
-      setPopup({
-        message: 'Task completed successfully',
-        type: 'success',
+      toast({
+        description: 'Task completed successfully',
       });
     } catch (error) {
       console.error('Error running task:', error);
-      setPopup({
-        message: 'Error processing task',
-        type: 'error',
+      toast({
+        description: 'Error processing task',
+        variant: 'destructive',
       });
+    } finally {
+      setRunTaskLoader(false);
+      setTask('');
     }
   };
 
@@ -1903,14 +1986,12 @@ const FlowContent = () => {
     try {
       // Prevent loading if a save is in progress
       if (saveInProgressRef.current) {
-        setPopup({
-          message: 'Please wait for current save to complete',
-          type: 'error',
+        toast({
+          description: 'Please wait for current save to complete',
         });
         return;
       }
 
-      // Set current flow as active
       await setCurrentFlowMutation.mutateAsync({ flow_id: flowId });
 
       // Update URL with new flow ID
@@ -1919,9 +2000,7 @@ const FlowContent = () => {
       router.replace(newUrl.pathname + newUrl.search);
 
       // Fetch the specific flow data directly with the flowId
-      const { data: flowData } = await getCurrentFlowQuery.refetch({
-        //    queryKey: ['dnd.getCurrentFlow', { flowId }]
-      });
+      const flowData = await getCurrentFlowMutation.mutateAsync({ flowId });
 
       if (flowData) {
         // Update all state
@@ -1951,16 +2030,25 @@ const FlowContent = () => {
         // Reset save in progress flag
         saveInProgressRef.current = false;
 
-        setPopup({
-          message: 'Flow version loaded successfully',
-          type: 'success',
+        toast({
+          description: 'Flow version loaded successfully',
+          variant: 'default',
         });
       } else {
-        throw new Error('No flow data found');
+        toast({
+          description: 'No flow data found',
+          variant: 'destructive',
+        });
+        return;
       }
+
+      reloadPage();
     } catch (error) {
       console.error('Error loading flow version:', error);
-      setPopup({ message: 'Error loading flow version', type: 'error' });
+      toast({
+        description: 'Error loading flow version',
+        variant: 'destructive',
+      });
       // Reset save in progress flag on error
       saveInProgressRef.current = false;
     }
@@ -2049,7 +2137,7 @@ const FlowContent = () => {
     try {
       // Show saving popup
       setSavingStatus({
-        show: true,
+        show: false,
         message: 'Saving swarm configuration...',
         type: 'saving',
       });
@@ -2130,7 +2218,7 @@ const FlowContent = () => {
 
       // Show success popup
       setSavingStatus({
-        show: true,
+        show: false,
         message: 'Swarm configuration saved successfully',
         type: 'success',
       });
@@ -2145,16 +2233,7 @@ const FlowContent = () => {
         type: 'error',
       });
     }
-  }, [
-    nodes,
-    edges,
-    swarmArchitecture,
-    taskResults,
-    saveFlowMutation,
-    router,
-    currentFlowId,
-    getAllFlowsQuery,
-  ]);
+  }, [nodes, edges, swarmArchitecture, taskResults, currentFlowId]);
 
   // Add this effect to handle popup timing
   useEffect(() => {
@@ -2181,7 +2260,7 @@ const FlowContent = () => {
 
       window.addEventListener('keydown', handleKeyPress);
       return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [saveVersionStable]);
+    }, []);
   };
 
   useSaveShortcuts();
@@ -2384,11 +2463,13 @@ const FlowContent = () => {
 
   // Replace the existing Versions TabsContent with the new component
   return (
-    <div className="w-full h-[calc(100%-10px)] flex flex-col bg-background text-foreground">
+    <div className="w-full h-[calc(100%-10px)] lg:h-[calc(100%-80px)] flex flex-col bg-background text-foreground">
       {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b border-border">
-        <h1 className="text-2xl font-semibold">Swarms No-Code Builder</h1>
-        <div className="flex space-x-2">
+      <div className="flex justify-between items-center p-4 border-b border-border sticky top-16 lg:top-20">
+        <h1 className="text-2xl font-semibold hidden lg:block">
+          Swarms No-Code Builder
+        </h1>
+        <div className="flex flex-wrap space-x-2">
           <AutoGenerateSwarm
             addAgent={addAgent}
             setPopup={setPopup}
@@ -2413,7 +2494,7 @@ const FlowContent = () => {
             New Team
           </Button>
 
-          <Dialog>
+          <Dialog open={isAddAgentOpen} onOpenChange={setIsAddAgentOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="bg-card hover:bg-muted">
                 <Plus className="w-4 h-4 mr-2" />
@@ -2503,19 +2584,24 @@ const FlowContent = () => {
                             ? 'System prompt required'
                             : 'Optimize prompt'
                         }
-                        className="absolute right-2 top-2 h-8 w-8 p-0"
+                        className="absolute right-2 top-2 h-8 w-8 p-0 group"
                       >
                         {isOptimizing ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <Sparkles className="h-4 w-4" />
+                          <Sparkles className="h-4 w-4 group-hover:text-primary" />
                         )}
                       </Button>
                     </div>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">Add Agent</Button>
+                  <Button type="submit">
+                    Add Agent{' '}
+                    {addAgentLoader && (
+                      <LoadingSpinner size={20} className="ml-2" />
+                    )}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -2644,19 +2730,29 @@ const FlowContent = () => {
       <div className="flex-grow flex overflow-hidden">
         {/* Sidebar with transition */}
         <div
+          onClick={handleCheckExpand}
           className={cn(
-            'border-r border-border bg-background transition-all duration-300 ease-in-out flex',
-            isSidebarExpanded ? 'w-[600px]' : 'w-96', // Expanded to 600px, default 384px
+            'border-r fixed left-auto lg:left-20 dark:bg-[#141414] bg-[#c1c1c1] border-foreground border-[#40403F] w-full transition-all ease-out duration-150 translate-x-0 min-h-screen shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] z-[50] flex',
+            !isSidebarExpanded
+              ? 'max-w-[20px] lg:max-w-[10px] xl:max-w-[50px] cursor-pointer'
+              : 'max-w-[350px] sm:max-w-[600px]',
           )}
         >
           <div
-            className={cn('overflow-hidden transition-all duration-300 w-full')}
+            className={cn(
+              'overflow-hidden w-full',
+              isSidebarExpanded ? 'block' : 'hidden',
+            )}
           >
             <div className="p-4">
-              <Tabs defaultValue="results" className="h-full">
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                className="h-full"
+              >
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="results">Results</TabsTrigger>
                   <TabsTrigger value="versions">Swarm History</TabsTrigger>
+                  <TabsTrigger value="results">Results</TabsTrigger>
                 </TabsList>
                 <TabsContent value="results">
                   <h2 className="text-lg font-semibold mb-4">Task Results</h2>
@@ -2700,7 +2796,9 @@ const FlowContent = () => {
                                   {agent?.name || 'Unknown Agent'}
                                 </TableCell>
                                 <TableCell>{groupName}</TableCell>
-                                <TableCell>{result}</TableCell>
+                                <TableCell>
+                                  <MarkdownComponent text={result ?? ''} />
+                                </TableCell>
                               </TableRow>
                             );
                           },
@@ -2722,7 +2820,16 @@ const FlowContent = () => {
                       </TableHeader>
                       <TableBody>
                         {getAllFlowsQuery.data?.map((flow: any) => (
-                          <TableRow key={flow.id}>
+                          <TableRow
+                            key={flow.id}
+                            className={cn(
+                              'hover:bg-primary/50',
+                              currentFlowId === flow.id
+                                ? 'bg-primary/50 shadow-lg border border-primary/90'
+                                : '',
+                            )}
+                            onClick={() => handleActiveFlowId(flow.id)}
+                          >
                             <TableCell>{flow.id}</TableCell>
                             <TableCell>
                               {new Date(flow.created_at).toLocaleString()}
@@ -2736,7 +2843,12 @@ const FlowContent = () => {
                                   setCurrentFlowMutation.status === 'pending'
                                 }
                               >
-                                Load
+                                {activeFlowId === flow.id &&
+                                setCurrentFlowMutation.status === 'pending' ? (
+                                  <LoadingSpinner />
+                                ) : (
+                                  'Load'
+                                )}
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -2754,26 +2866,23 @@ const FlowContent = () => {
             variant="ghost"
             size="icon"
             onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-            className={cn(
-              'h-12 w-6 absolute top-1/2 -translate-y-1/2 z-50',
-              'border-y border-r border-border bg-background hover:bg-muted',
-              isSidebarExpanded ? 'left-[695px]' : 'left-[480px]',
-            )}
+            className="h-12 w-6 absolute top-1/2 -translate-y-1/2 -right-6 z-50 border-y rounded-none rounded-tr-md rounded-br-md border-r dark:bg-[#141414] bg-[#c1c1c1] border-foreground border-[#40403F] hover:bg-muted"
           >
             <ChevronLeft
               className={cn(
                 'h-4 w-4 transition-transform duration-300',
-                'rotate-180', // Start pointing right
-                isSidebarExpanded && '-rotate-0', // Point left when expanded
+                'rotate-180',
+                isSidebarExpanded && '-rotate-0',
               )}
             />
           </Button>
         </div>
 
         {/* Flow area - will shrink when sidebar expands */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative h-[calc(100vh-290px)] sm:h-[calc(100vh-270px)] xl:h-[calc(100vh-235px)] pl-2 lg:pl-20 xl:pl-5">
           <GroupNodeContext.Provider value={{ groupProcessingStates }}>
             <ReactFlow
+              key={pageKey}
               nodes={nodes}
               edges={edges}
               onNodesChange={onNodesChangeDebounced}
@@ -2786,6 +2895,7 @@ const FlowContent = () => {
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               fitView
+              proOptions={{ hideAttribution: true }}
             >
               <Background
                 color={theme.theme === 'dark' ? '#333' : '#ccc'}
@@ -2796,8 +2906,6 @@ const FlowContent = () => {
           </GroupNodeContext.Provider>
         </div>
       </div>
-
-      {/* Footer */}
       <div className="p-4 border-t border-border flex justify-center items-center">
         <Input
           type="text"
@@ -2810,10 +2918,12 @@ const FlowContent = () => {
           onClick={runTask}
           className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
-          <Send className="w-4 h-4 mr-2" />
-          Run Task
+          <span className="mr-2">Run Task</span>
+          {runTaskLoader ? <LoadingSpinner /> : <Send className="w-4 h-4" />}
         </Button>
       </div>
+
+      {/* Footer */}
       <AnimatePresence>
         {popup && (
           <motion.div
@@ -2838,7 +2948,7 @@ const FlowContent = () => {
         }
       />
       <AnimatePresence>
-        {savingStatus && (
+        {savingStatus && savingStatus?.show && (
           <motion.div
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}

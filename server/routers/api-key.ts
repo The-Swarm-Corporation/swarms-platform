@@ -5,7 +5,10 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { stripe } from '@/shared/utils/stripe/config';
 import Stripe from 'stripe';
-import { createOrRetrieveStripeCustomer } from '@/shared/utils/supabase/admin';
+import {
+  createOrRetrieveStripeCustomer,
+  getUserCredit,
+} from '@/shared/utils/supabase/admin';
 
 const apiKeyRouter = router({
   // api key page
@@ -28,6 +31,14 @@ const apiKeyRouter = router({
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.data.user as User;
       const name = input.name.trim();
+
+      if (!user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
+
       if (name === '') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -36,13 +47,13 @@ const apiKeyRouter = router({
       }
 
       if (name === 'playground') {
-        // error
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'cannot create api key with name "playground"',
+          message: 'Cannot create API key with name "playground"',
         });
       }
 
+      // Retrieve or create Stripe customer
       const stripeCustomerId = await createOrRetrieveStripeCustomer({
         email: user.email ?? '',
         uuid: user.id,
@@ -51,21 +62,26 @@ const apiKeyRouter = router({
       if (!stripeCustomerId) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while creating stripe customer',
+          message: 'Error while creating Stripe customer',
         });
       }
 
-      const paymentMethods = await stripe.paymentMethods.list({
-        customer: stripeCustomerId,
-        type: 'card',
-      });
+      const { credit, free_credit } = await getUserCredit(user.id);
+      const totalCredit = credit + free_credit;
 
-      if (!paymentMethods.data.length) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message:
-            'Payment method missing. Add valid card to continue and click on added card to set as default',
+      if (totalCredit <= 0) {
+        const paymentMethods = await stripe.paymentMethods.list({
+          customer: stripeCustomerId,
+          type: 'card',
         });
+
+        if (!paymentMethods.data.length) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message:
+              'No credit available and payment method missing. Add a valid card to continue and click on added card to set as default',
+          });
+        }
       }
 
       try {
@@ -73,19 +89,18 @@ const apiKeyRouter = router({
         const newApiKey = await ctx.supabase
           .from('swarms_cloud_api_keys')
           .insert({ name: name, key, user_id: user.id });
+
         if (!newApiKey.error) {
-          return {
-            key,
-            name,
-          };
+          return { key, name };
         }
       } catch (e) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error while adding new api key',
+          message: 'Error while adding new API key',
         });
       }
     }),
+
   deleteApiKey: userProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {

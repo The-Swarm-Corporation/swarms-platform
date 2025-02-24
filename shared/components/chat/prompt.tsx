@@ -15,14 +15,10 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
-import Markdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import Separator from '../ui/AuthForms/Separator';
 import { cn } from '@/shared/utils/cn';
 import usePromptChat from './hook';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import styles from './styles.module.css';
+import MarkdownComponent from '../markdown.tsx';
 
 export interface ChatComponentProps {
   promptId: string;
@@ -115,36 +111,7 @@ const ChatComponent = ({
                           className="bg-inherit text-inherit resize-none border-none outline-none w-full h-fit"
                         />
                       ) : (
-                        <Markdown
-                          className={cn(
-                            'prose w-full space-y-4 px-2',
-                            styles['rich-text'],
-                          )}
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            code({ children, className, node, ...rest }) {
-                              const match = /language-(\w+)/.exec(
-                                className || '',
-                              );
-
-                              return match ? (
-                                <SyntaxHighlighter
-                                  PreTag="div"
-                                  language={match[1]}
-                                  style={dracula}
-                                >
-                                  {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                              ) : (
-                                <code {...rest} className={className}>
-                                  {children}
-                                </code>
-                              );
-                            },
-                          }}
-                        >
-                          {message?.text || ''}
-                        </Markdown>
+                        <MarkdownComponent text={message?.text || ''} />
                       )}
                     </div>
 

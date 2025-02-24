@@ -103,7 +103,7 @@ export async function getProcessedText(
   agent: Record<string, string>,
 ) {
   if (!currentPrompt?.trim()) {
-    throw new Error('System prompt is required for optimization');
+    return { error: 'System prompt is required for optimization' };
   }
 
   try {
@@ -112,10 +112,21 @@ export async function getProcessedText(
       prompt: currentPrompt,
     });
 
-    return text;
-  } catch (error) {
+    return { text };
+  } catch (error: any) {
     console.error('Failed to get processed task:', error);
-    throw new Error('Failed to get processed task');
+
+    if (error?.statusCode === 429) {
+      return { error: '⚠️ Rate limit exceeded. Please try again later.' };
+    }
+
+    if (error?.responseBody?.includes('insufficient_quota')) {
+      return {
+        error: '🚨 OpenAI quota exceeded. Upgrade your plan or wait for reset.',
+      };
+    }
+
+    return { error: 'Failed to process the task. Please try again.' };
   }
 }
 
