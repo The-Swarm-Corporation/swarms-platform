@@ -13,6 +13,7 @@ import { cn } from '@/shared/utils/cn';
 import { AgentSidebar } from './components/sidebar';
 import ChatMessage from './components/message';
 import { Tables } from '@/types_db';
+import { SwarmResponse, SwarmsApiClient } from '@/shared/utils/api/swarms';
 
 interface SwarmsChatProps {
   modelFunction?: (message: string) => Promise<string>;
@@ -27,14 +28,11 @@ const getCurrentTime = () => {
   });
 };
 
-const DEFAULT_RESPONSE = "DEFAULT RESPONSE --- Building multiagents with swarms ---";
+const swarmsApi = new SwarmsApiClient(
+  process.env.NEXT_PUBLIC_SWARMS_API_KEY || '',
+);
 
-export default function SwarmsChat({
-  modelFunction = async (message: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return `Response to: ${message}`;
-  },
-}: SwarmsChatProps) {
+export default function SwarmsChat({}: SwarmsChatProps) {
   const [isFetching, setIsFetching] = useState(true);
   const [messages, setMessages] = useState<
     Tables<'swarms_cloud_chat_messages'>[]
@@ -44,12 +42,17 @@ export default function SwarmsChat({
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognition = useRef<any>(null);
+  const isCreatingConversation = useRef(false);
   const {
     conversations,
     activeConversation,
     activeConversationId,
     isLoading: isLoadingConversations,
+    isCreatePending,
+    isDeletePending,
+    refetch,
     createConversation,
+    updateConversation,
     switchConversation,
     deleteConversation,
     addMessage,
@@ -58,9 +61,16 @@ export default function SwarmsChat({
   const {
     agents,
     swarmConfig,
+    openAgentModal,
+    setOpenAgentModal,
+    agentsRefetch,
     addAgent,
     updateAgent,
     removeAgent,
+    isCreateAgent,
+    isUpdateAgent,
+    isToggleAgent,
+    isDeleteAgent,
     updateSwarmArchitecture,
     toggleAgent,
   } = useAgents({
@@ -95,15 +105,27 @@ export default function SwarmsChat({
   }, []);
 
   useEffect(() => {
-    if (!isLoadingConversations && conversations?.length === 0) {
-      createConversation('New Chat');
+    if (
+      !isLoadingConversations &&
+      conversations?.length === 0 &&
+      !isCreatingConversation.current
+    ) {
+      isCreatingConversation.current = true;
+      createConversation('New Chat').finally(() => {
+        isCreatingConversation.current = false;
+      });
     }
   }, [isLoadingConversations, conversations?.length, createConversation]);
 
   useEffect(() => {
-    if (activeConversation) {
-      setMessages(activeConversation.data?.messages || []);
-    }
+    if (!activeConversation.data) return;
+
+    setMessages((prevMessages) => {
+      const newMessages = activeConversation.data.messages || [];
+      return JSON.stringify(prevMessages) === JSON.stringify(newMessages)
+        ? prevMessages
+        : newMessages;
+    });
   }, [activeConversation]);
 
   const toggleListening = () => {
@@ -122,7 +144,6 @@ export default function SwarmsChat({
     const userMessage = input.trim();
     const timestamp = getCurrentTime();
 
-    // Add user message
     const userMessageObj = {
       role: 'user' as const,
       content: userMessage,
@@ -147,64 +168,42 @@ export default function SwarmsChat({
           content: 'No active agents in the swarm. Create an agent!',
           timestamp: getCurrentTime(),
         });
+        setIsLoading(false);
         return;
       }
 
-      if (swarmConfig?.architecture === 'concurrent') {
-        const responses = await Promise.all(
-          activeAgents.map(async (agent) => {
-            const response = await modelFunction(DEFAULT_RESPONSE);
-            return { agent, response };
-          }),
-        );
+      const apiAgents = SwarmsApiClient.convertAgentsToApiFormat(
+        activeAgents,
+        swarmConfig.architecture,
+      );
+      const swarmType = SwarmsApiClient.getSwarmType(swarmConfig.architecture);
 
-        for (const { agent, response } of responses) {
-          await addMessage({
-            role: 'assistant',
-            content: response,
-            timestamp: getCurrentTime(),
-            agentId: agent.id,
-          });
-        }
-      } else if (swarmConfig?.architecture === 'sequential') {
-        for (const agent of activeAgents) {
-          const response = await modelFunction(DEFAULT_RESPONSE);
-          await addMessage({
-            role: 'assistant',
-            content: response,
-            timestamp: getCurrentTime(),
-            agentId: agent.id,
-          });
-        }
-      } else {
-        const [primaryAgent, ...secondaryAgents] = activeAgents;
-        if (primaryAgent) {
-          const primaryResponse = await modelFunction(`PRIMARY ${DEFAULT_RESPONSE}`);
-          await addMessage({
-            role: 'assistant',
-            content: primaryResponse,
-            timestamp: getCurrentTime(),
-            agentId: primaryAgent.id,
-          });
+      const swarmRequest = {
+        name: activeConversation.data?.name || 'Chat Session',
+        description: 'Chat interaction',
+        agents: apiAgents,
+        swarm_type: swarmType,
+        task: userMessage,
+        return_history: true,
+      };
 
-          for (const agent of secondaryAgents) {
-            const response = await modelFunction(DEFAULT_RESPONSE);
-            await addMessage({
-              role: 'assistant',
-              content: response,
-              timestamp: getCurrentTime(),
-              agentId: agent.id,
-            });
-          }
-        }
-      }
+      const response = await swarmsApi.executeSwarm(swarmRequest);
+
+      console.log({ response });
+
+      // await addMessage({
+      //   role: 'assistant',
+      //   content: response?.output as any,
+      //   timestamp: getCurrentTime(),
+      // });
     } catch (error) {
       console.error('Error:', error);
-      await addMessage({
-        role: 'assistant',
-        content: 'An error occurred. Please try again.',
-        timestamp: getCurrentTime(),
-      });
+      // await addMessage({
+      //   role: 'assistant',
+      //   content:
+      //     'An error occurred while processing your request. Please try again.',
+      //   timestamp: getCurrentTime(),
+      // });
     }
 
     setIsLoading(false);
@@ -233,6 +232,10 @@ export default function SwarmsChat({
           conversations={conversations || []}
           activeId={activeConversationId}
           isLoading={isLoadingConversations}
+          isDeletePending={isDeletePending}
+          isCreatePending={isCreatePending}
+          conversationRefetch={refetch}
+          onUpdateConversation={updateConversation}
           onCreateConversation={createConversation}
           onSwitchConversation={switchConversation}
           onDeleteConversation={deleteConversation}
@@ -364,7 +367,16 @@ export default function SwarmsChat({
           </div>
           <AgentSidebar
             agents={agents || []}
-            swarmArchitecture={swarmConfig?.architecture || 'sequential'}
+            isCreateAgent={isCreateAgent}
+            agentsRefetch={agentsRefetch}
+            isUpdateAgent={isUpdateAgent}
+            isToggleAgent={isToggleAgent}
+            isDeleteAgent={isDeleteAgent}
+            swarmArchitecture={
+              swarmConfig?.architecture || 'SequentialWorkflow'
+            }
+            openAgentModal={openAgentModal}
+            setOpenAgentModal={setOpenAgentModal}
             onAddAgent={addAgent}
             onUpdateAgent={updateAgent}
             onRemoveAgent={removeAgent}

@@ -10,7 +10,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { Tables } from '@/types_db';
 
 interface ChatMessageProps {
-  message: Tables<"swarms_cloud_chat_messages">;
+  message: Tables<'swarms_cloud_chat_messages'>;
   getAgentName: (agentId?: string) => string;
 }
 
@@ -32,6 +32,35 @@ export default function ChatMessage({
     deleteFile,
     removeDBFile,
   } = useFileUpload();
+
+  const structured_content = message?.structured_content ?? "";
+  const content = message?.content ?? "";
+
+  let parsedStructuredContent;
+  try {
+    parsedStructuredContent =
+      typeof structured_content === 'string'
+        ? JSON.parse(structured_content)
+        : structured_content;
+  } catch {
+    parsedStructuredContent = structured_content;
+  }
+
+  let parsedContent = content;
+  try {
+    parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
+  } catch {
+    parsedContent = content;
+  }
+
+  const hasStructuredContent = !!parsedStructuredContent;
+  let displayContent = hasStructuredContent
+    ? parsedStructuredContent
+    : parsedContent;
+
+  if (!Array.isArray(displayContent)) {
+    displayContent = [displayContent];
+  }
 
   return (
     <>
@@ -55,7 +84,7 @@ export default function ChatMessage({
             <>
               <Hexagon className="h-3 w-3 lg:w-4 lg:h-4 text-red-500/50" />
               <span className="text-red-500/70 text-xs font-mono">
-                {getAgentName(message?.agent_id ?? "")}
+                {getAgentName(message?.agent_id ?? '')}
               </span>
             </>
           )}
@@ -69,7 +98,7 @@ export default function ChatMessage({
           )}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
-          <div className="relative text-xs lg:text-base">{message.content}</div>
+          {/* <div className="relative text-xs lg:text-base">{message.content}</div> */}
         </div>
       </motion.div>
       {dragActive ? (

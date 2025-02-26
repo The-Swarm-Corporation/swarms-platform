@@ -15,13 +15,21 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { Agent } from '@/shared/components/chat/types';
+import LoadingSpinner from '../../loading-spinner';
+import { useToast } from '../../ui/Toasts/use-toast';
 
 interface AgentFormProps {
+  isLoading: boolean;
   onSubmit: (agent: Omit<Agent, 'id'>) => void;
   initialData?: Partial<Agent>;
 }
 
-export function AgentForm({ onSubmit, initialData }: AgentFormProps) {
+export function AgentForm({
+  onSubmit,
+  initialData,
+  isLoading,
+}: AgentFormProps) {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     description: initialData?.description || '',
@@ -29,11 +37,19 @@ export function AgentForm({ onSubmit, initialData }: AgentFormProps) {
     temperature: initialData?.temperature || 0.7,
     maxTokens: initialData?.maxTokens || 2048,
     systemPrompt: initialData?.systemPrompt || '',
-    isActive: initialData?.id !== undefined ? initialData.isActive ?? false : true,
+    isActive:
+      initialData?.id !== undefined ? (initialData.isActive ?? false) : true,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name || !formData.systemPrompt) {
+      toast({
+        description: 'Please fill in all fields',
+        variant: 'destructive',
+      });
+      return;
+    }
     onSubmit(formData);
   };
 
@@ -130,6 +146,7 @@ export function AgentForm({ onSubmit, initialData }: AgentFormProps) {
         <Textarea
           id="systemPrompt"
           value={formData.systemPrompt}
+          required
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, systemPrompt: e.target.value }))
           }
@@ -140,9 +157,10 @@ export function AgentForm({ onSubmit, initialData }: AgentFormProps) {
 
       <Button
         type="submit"
+        disabled={isLoading}
         className="w-full bg-red-500 hover:bg-red-600 text-white"
       >
-        Save Agent
+        Save Agent {isLoading && <LoadingSpinner className="ml-2" size={18} />}
       </Button>
     </form>
   );

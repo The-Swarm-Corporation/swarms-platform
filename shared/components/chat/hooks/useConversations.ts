@@ -13,6 +13,7 @@ export function useConversations() {
     error: chatError,
   } = trpc.chat.getConversations.useQuery();
   const createConversationMutation = trpc.chat.createConversation.useMutation();
+  const updateConversationMutation = trpc.chat.updateConversation.useMutation();
   const deleteConversationMutation = trpc.chat.deleteConversation.useMutation();
   const addMessageMutation = trpc.chat.addMessage.useMutation();
 
@@ -58,6 +59,7 @@ export function useConversations() {
         const remainingConversation = conversations?.find((c) => c.id !== id);
         setActiveConversationId(remainingConversation?.id ?? '');
       }
+      refetch();
     } catch (err) {
       console.error(err);
       toast({
@@ -123,7 +125,11 @@ export function useConversations() {
     conversations,
     activeConversation,
     activeConversationId,
+    refetch,
+    isCreatePending: createConversationMutation.isPending,
+    isDeletePending: deleteConversationMutation.isPending,
     createConversation,
+    updateConversation: updateConversationMutation.mutateAsync,
     switchConversation,
     deleteConversation,
     addMessage,

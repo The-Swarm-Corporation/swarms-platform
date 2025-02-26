@@ -1,6 +1,17 @@
-import { Tables } from "@/types_db";
+import { Tables } from '@/types_db';
 
-export type SwarmArchitecture = 'sequential' | 'concurrent' | 'hierarchical';
+export type SwarmArchitecture =
+  | 'auto'
+  | 'AgentRearrange'
+  | 'MixtureOfAgents'
+  | 'SpreadSheetSwarm'
+  | 'SequentialWorkflow'
+  | 'ConcurrentWorkflow'
+  | 'GroupChat'
+  | 'MultiAgentRouter'
+  | 'AutoSwarmBuilder'
+  | 'HiearchicalSwarm'
+  | 'MajorityVoting';
 
 export interface Agent {
   id?: string;
@@ -48,4 +59,7 @@ export interface Conversation {
 
 export type ConversationMetadata = Omit<Conversation, 'messages'>;
 
-export type FormAgent = Omit<Tables<"swarms_cloud_chat_agents">, "created_at" | "updated_at" | "user_id">;
+export type FormAgent = Omit<
+  Tables<'swarms_cloud_chat_agents'>,
+  'created_at' | 'updated_at' | 'user_id'
+>;

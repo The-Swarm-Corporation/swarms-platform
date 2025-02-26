@@ -1172,6 +1172,35 @@ export type Database = {
           },
         ]
       }
+      swarms_api_logs: {
+        Row: {
+          api_key: string | null
+          created_at: string
+          data: Json | null
+          id: number
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: number
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_api_logs_api_key_fkey"
+            columns: ["api_key"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_api_keys"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       swarms_cloud_agents: {
         Row: {
           agent: string | null
@@ -1517,33 +1546,36 @@ export type Database = {
         Row: {
           agent_id: string | null
           chat_id: string | null
-          content: string
+          content: Json
           created_at: string | null
           id: string
           metadata: Json | null
           role: string
+          structured_content: Json | null
           timestamp: string | null
           user_id: string | null
         }
         Insert: {
           agent_id?: string | null
           chat_id?: string | null
-          content: string
+          content: Json
           created_at?: string | null
           id?: string
           metadata?: Json | null
           role: string
+          structured_content?: Json | null
           timestamp?: string | null
           user_id?: string | null
         }
         Update: {
           agent_id?: string | null
           chat_id?: string | null
-          content?: string
+          content?: Json
           created_at?: string | null
           id?: string
           metadata?: Json | null
           role?: string
+          structured_content?: Json | null
           timestamp?: string | null
           user_id?: string | null
         }

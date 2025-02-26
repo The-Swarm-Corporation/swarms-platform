@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft,
@@ -10,6 +10,7 @@ import {
   Plus,
   Download,
   Trash,
+  Pencil,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/shared/components/ui/button';
@@ -20,50 +21,68 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/shared/components/ui/dialog';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { cn } from '@/shared/utils/cn';
 import { Tables } from '@/types_db';
+import LoadingSpinner from '@/shared/components/loading-spinner';
+import ConversationModal from './conversation-modal';
 
 interface ConversationSidebarProps {
-  conversations: Tables<"swarms_cloud_chat">[];
+  conversations: Tables<'swarms_cloud_chat'>[];
   activeId?: string;
   isLoading?: boolean;
+  isCreatePending: boolean;
+  isDeletePending: boolean;
+  onUpdateConversation: ({ id, name }: { id: string; name: string }) => void;
   onCreateConversation: (name: string) => void;
   onSwitchConversation: (id: string) => void;
   onDeleteConversation: (id: string) => void;
   onExportConversation: (id: string) => void;
+  conversationRefetch?: () => void;
 }
 
 export function ConversationSidebar({
   conversations,
   activeId,
   isLoading,
+  isCreatePending,
+  isDeletePending,
+  conversationRefetch,
+  onUpdateConversation,
   onCreateConversation,
   onSwitchConversation,
   onDeleteConversation,
   onExportConversation,
 }: ConversationSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [activeChatId, setActiveChatId] = useState('');
   const [newChatName, setNewChatName] = useState('');
+  const [editChatName, setEditChatName] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const isMobile = useIsMobile();
 
-  const handleCreateConversation = () => {
-    if (newChatName.trim()) {
-      onCreateConversation(newChatName.trim());
-      setNewChatName('');
-      setIsDialogOpen(false);
-    }
+  const handleCreateConversation = async () => {
+    if (!newChatName.trim()) return;
+
+    await onCreateConversation(newChatName.trim());
+    setNewChatName('');
+    setIsDialogOpen(false);
+    conversationRefetch?.();
+  };
+
+  const handleEditConversation = async () => {
+    if (editChatName.trim()) return;
+
+    await onUpdateConversation({
+      id: activeChatId!,
+      name: editChatName.trim(),
+    });
+    setEditChatName('');
+    setIsEditModalOpen(false);
+    conversationRefetch?.();
   };
 
   const handleMobileExpand = () => {
@@ -71,6 +90,17 @@ export function ConversationSidebar({
       setIsExpanded(true);
     }
   };
+
+  useEffect(() => {
+    if (isEditModalOpen) {
+      const activeConversation = conversations?.find(
+        (conversation) => conversation?.id === activeChatId,
+      );
+      if (activeConversation) {
+        setEditChatName(activeConversation?.name || '');
+      }
+    }
+  }, [isEditModalOpen, activeChatId, conversations]);
 
   return (
     <motion.div
@@ -144,7 +174,9 @@ export function ConversationSidebar({
                             </p>
                             <p className="text-xs text-red-500/50">
                               {format(
-                                new Date(conversation?.updated_at ?? new Date()),
+                                new Date(
+                                  conversation?.updated_at ?? new Date(),
+                                ),
                                 'MMM d, yyyy',
                               )}
                             </p>
@@ -155,13 +187,30 @@ export function ConversationSidebar({
                             <Button
                               variant="ghost"
                               size="icon"
+                              disabled={isDeletePending}
                               className="text-red-500/70 hover:text-red-500"
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveChatId(conversation?.id);
+                              }}
                             >
-                              <MoreVertical className="h-4 w-4" />
+                              {isDeletePending ? (
+                                <LoadingSpinner size={18} />
+                              ) : (
+                                <MoreVertical className="h-4 w-4" />
+                              )}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsEditModalOpen(true);
+                              }}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -173,9 +222,10 @@ export function ConversationSidebar({
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-red-600"
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                onDeleteConversation(conversation.id);
+                                await onDeleteConversation(conversation.id);
+                                conversationRefetch?.();
                               }}
                             >
                               <Trash className="mr-2 h-4 w-4" />
@@ -203,46 +253,39 @@ export function ConversationSidebar({
         </ScrollArea>
       </div>
 
-      <div
-        className={cn(
-          'p-4 border-t border-red-600/20 pb-8 lg:block',
-          isMobile && isExpanded ? 'block' : 'hidden',
-        )}
-      >
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              className={`${isExpanded ? 'w-full' : 'w-auto'} bg-red-500 hover:bg-red-600 text-white`}
-            >
-              <Plus className="h-4 w-4" />
-              {isExpanded && <span className="ml-2">New Chat</span>}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="border-[#40403F] border">
-            <DialogHeader>
-              <DialogTitle>New Conversation</DialogTitle>
-              <DialogDescription>
-                Give your conversation a name to get started.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="mt-4 space-y-4">
-              <Input
-                value={newChatName}
-                onChange={(e) => setNewChatName(e.target.value)}
-                placeholder="Enter conversation name..."
-                className="bg-white/80 dark:bg-zinc-950/80"
-              />
-              <Button
-                onClick={handleCreateConversation}
-                className="w-full bg-red-500 hover:bg-red-600 text-white"
-                disabled={!newChatName.trim()}
-              >
-                Create
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <ConversationModal
+        {...{
+          isMobile,
+          isExpanded,
+          isDialogOpen,
+          isDeletePending,
+          isCreatePending,
+          newChatName,
+          setIsDialogOpen,
+          setNewChatName,
+          handleClick: handleCreateConversation,
+        }}
+      />
+
+      {isEditModalOpen && (
+        <ConversationModal
+          {...{
+            title: 'Edit Conversation',
+            description: 'Enter a new name for this conversation.',
+            ctaText: 'Save',
+            isTrigger: false,
+            isMobile,
+            isExpanded,
+            isDialogOpen: isEditModalOpen,
+            isDeletePending,
+            isCreatePending,
+            newChatName: editChatName,
+            setIsDialogOpen: setIsEditModalOpen,
+            setNewChatName: setEditChatName,
+            handleClick: handleEditConversation,
+          }}
+        />
+      )}
     </motion.div>
   );
 }

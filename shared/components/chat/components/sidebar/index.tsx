@@ -1,8 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus, Settings } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Pencil,
+  Plus,
+  Settings,
+  Trash,
+} from 'lucide-react';
 import type { Agent, SwarmArchitecture } from '@/shared/components/chat/types';
 import { Button } from '@/shared/components/ui/button';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
@@ -22,9 +29,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { cn } from '@/shared/utils/cn';
 import { Tables } from '@/types_db';
+import LoadingSpinner from '@/shared/components/loading-spinner';
+import { getTruncatedString } from '@/shared/utils/helpers';
 
 interface SwarmSelectorProps {
   value: SwarmArchitecture;
@@ -51,9 +66,17 @@ function SwarmSelector({ value, onValueChange }: SwarmSelectorProps) {
         <SelectValue placeholder="Select architecture" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="sequential">Sequential</SelectItem>
-        <SelectItem value="concurrent">Concurrent</SelectItem>
-        <SelectItem value="hierarchical">Hierarchical</SelectItem>
+        <SelectItem value="SequentialWorkflow">Sequential</SelectItem>
+        <SelectItem value="ConcurrentWorkflow">Concurrent</SelectItem>
+        <SelectItem value="auto">Auto</SelectItem>
+        <SelectItem value="AgentRearrange">Agent Rearrange</SelectItem>
+        <SelectItem value="MixtureOfAgents">Mixture of Agents</SelectItem>
+        <SelectItem value="SpreadSheetSwarm">Spreadsheet Swarm</SelectItem>
+        <SelectItem value="GroupChat">Group Chat</SelectItem>
+        <SelectItem value="MultiAgentRouter">Multi-agent Router</SelectItem>
+        <SelectItem value="AutoSwarmBuilder">Auto Swarm Builder</SelectItem>
+        <SelectItem value="HiearchicalSwarm">Hiearchical Swarm</SelectItem>
+        <SelectItem value="MajorityVoting">Majority Voting</SelectItem>
       </SelectContent>
     </Select>
   );
@@ -62,6 +85,13 @@ function SwarmSelector({ value, onValueChange }: SwarmSelectorProps) {
 interface AgentSidebarProps {
   agents: Tables<'swarms_cloud_chat_agents'>[];
   swarmArchitecture: SwarmArchitecture;
+  isCreateAgent: boolean;
+  isUpdateAgent: boolean;
+  isToggleAgent: boolean;
+  isDeleteAgent: boolean;
+  openAgentModal: boolean;
+  agentsRefetch: () => void;
+  setOpenAgentModal: Dispatch<SetStateAction<boolean>>;
   onAddAgent: (agent: Omit<Agent, 'id'>) => void;
   onUpdateAgent: ({
     id,
@@ -78,8 +108,15 @@ interface AgentSidebarProps {
 export function AgentSidebar({
   agents,
   swarmArchitecture,
+  isCreateAgent,
+  isUpdateAgent,
+  openAgentModal,
+  setOpenAgentModal,
   onAddAgent,
   onUpdateAgent,
+  agentsRefetch,
+  isToggleAgent,
+  isDeleteAgent,
   onRemoveAgent,
   onUpdateSwarmArchitecture,
   onToggleAgent,
@@ -158,33 +195,64 @@ export function AgentSidebar({
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium text-red-500">
-                          {agent.name}
+                          {agent?.name}
                         </h3>
                         <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setEditingAgent(editAgent)}
-                            className="text-red-500/70 hover:text-red-500"
-                          >
-                            <Settings className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={isToggleAgent || isDeleteAgent}
+                                className="text-red-500/70 hover:text-red-500"
+                              >
+                                <Settings className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingAgent(editAgent);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600 cursor-pointer"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  await onRemoveAgent(agent?.id);
+                                  agentsRefetch();
+                                }}
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => onToggleAgent(agent.id)}
+                            disabled={isToggleAgent}
+                            onClick={() => onToggleAgent(agent?.id)}
                             className={
                               agent.is_active
                                 ? 'text-red-500'
                                 : 'text-red-500/50'
                             }
                           >
-                            {agent.is_active ? 'Active' : 'Inactive'}
+                            {agent?.is_active ? 'Active' : 'Inactive'}{' '}
+                            {isToggleAgent && (
+                              <LoadingSpinner size={10} className="ml-1" />
+                            )}
                           </Button>
                         </div>
                       </div>
                       <p className="text-sm text-red-500/70">
-                        {agent.description}
+                        {getTruncatedString(agent?.description ?? '', 50)}
                       </p>
                       <div className="text-xs text-red-500/50">
                         Model: {agent.model}
@@ -209,9 +277,10 @@ export function AgentSidebar({
             isMobile && isExpanded ? 'block' : 'hidden',
           )}
         >
-          <Sheet>
+          <Sheet open={openAgentModal} onOpenChange={setOpenAgentModal}>
             <SheetTrigger asChild>
               <Button
+                disabled={isCreateAgent || isUpdateAgent}
                 className={`${isExpanded ? 'w-full' : 'w-auto'} bg-red-500 hover:bg-red-600 text-white`}
               >
                 <Plus className="h-4 w-4" />
@@ -226,7 +295,7 @@ export function AgentSidebar({
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-4">
-                <AgentForm onSubmit={onAddAgent} />
+                <AgentForm isLoading={isCreateAgent} onSubmit={onAddAgent} />
               </div>
             </SheetContent>
           </Sheet>
@@ -243,9 +312,18 @@ export function AgentSidebar({
             {editingAgent && (
               <AgentForm
                 initialData={editingAgent}
-                onSubmit={(updates) => {
-                  onUpdateAgent({ id: editingAgent?.id ?? '', updates });
-                  setEditingAgent(null);
+                isLoading={isUpdateAgent}
+                onSubmit={async (updates) => {
+                  try {
+                    await onUpdateAgent({
+                      id: editingAgent?.id ?? '',
+                      updates,
+                    });
+                    setEditingAgent(null);
+                    agentsRefetch();
+                  } catch (error) {
+                    console.error('Failed to update agent:', error);
+                  }
                 }}
               />
             )}

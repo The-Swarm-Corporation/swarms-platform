@@ -20,11 +20,12 @@ export function useAgents({
     [],
   );
   const [swarmConfig, setSwarmConfig] = useState<SwarmConfig | null>(null);
+  const [openAgentModal, setOpenAgentModal] = useState(false);
 
   const getAgentsQuery = trpc.chatAgent.getAgents.useQuery();
   const getSwarmConfigQuery = trpc.swarmConfig.getSwarmConfig.useQuery(
     activeConversationId,
-    { enabled: !!activeConversationId },
+    { enabled: !!activeConversationId, refetchOnWindowFocus: false },
   );
 
   const createAgentMutation = trpc.chatAgent.addAgent.useMutation();
@@ -53,18 +54,20 @@ export function useAgents({
         const newAgent = await createAgentMutation.mutateAsync(agent);
         setAgents((prev) => [...prev, newAgent]);
 
-        if (!swarmConfig || !activeConversationId) return;
+        if (!activeConversationId) return;
 
         const updatedAgentIds = [
-          ...swarmConfig.agents.map((a) => a.agent_id),
+          ...(swarmConfig?.agents?.map((a) => a.agent_id) || []),
           newAgent.id,
         ];
 
         await updateSwarmConfigMutation.mutateAsync({
           chatId: activeConversationId,
-          architecture: swarmConfig.architecture,
+          architecture: swarmConfig?.architecture || "SequentialWorkflow",
           agentIds: updatedAgentIds,
         });
+        getAgentsQuery.refetch();
+        setOpenAgentModal(false);
       } catch (error) {
         console.error('Error adding agent:', error);
         toast({
@@ -79,9 +82,9 @@ export function useAgents({
   const updateSwarmArchitecture = useCallback(
     async (architecture: SwarmArchitecture) => {
       try {
-        if (!swarmConfig || !activeConversationId) return;
+        if (!activeConversationId) return;
 
-        const agentIds = swarmConfig.agents.map((a) => a.agent_id);
+        const agentIds = swarmConfig?.agents?.map((a) => a.agent_id) || [];
 
         await updateSwarmConfigMutation.mutateAsync({
           chatId: activeConversationId,
@@ -140,12 +143,19 @@ export function useAgents({
   return {
     agents,
     swarmConfig,
+    openAgentModal,
     addAgent,
+    setOpenAgentModal,
     updateAgent: updateAgentMutation.mutateAsync,
     removeAgent: deleteAgentMutation.mutateAsync,
     updateSwarmArchitecture,
     toggleAgent,
+    agentsRefetch: getAgentsQuery.refetch,
     isLoading: getAgentsQuery.isLoading || getSwarmConfigQuery.isLoading,
+    isCreateAgent: createAgentMutation.isPending,
+    isUpdateAgent: updateAgentMutation.isPending,
+    isToggleAgent: toggleAgentMutation.isPending,
+    isDeleteAgent: deleteAgentMutation.isPending,
     error: getAgentsQuery.error || getSwarmConfigQuery.error,
   };
 }
