@@ -13,9 +13,6 @@ import { PLATFORM } from '@/shared/utils/constants';
 import { User } from '@supabase/supabase-js';
 import { createOrRetrieveStripeCustomer } from '../supabase/admin';
 import {
-  createTwentyCRMUser,
-  getUserById,
-  syncTwentyCRMId,
   syncUserEmail,
   updateFreeCreditsOnSignin,
 } from '../api/user';
@@ -26,20 +23,6 @@ function isValidEmail(email: string) {
 }
 
 export async function afterSignin(user: User) {
-  const existingUser = await getUserById(user.id);
-
-  if (!existingUser?.twenty_crm_id) {
-    const crmUser = {
-      name: user.user_metadata?.full_name || '',
-      email: user.email || '',
-      signUpIncomplete: !user.email_confirmed_at,
-    };
-
-    const crmUserId = await createTwentyCRMUser(crmUser);
-
-    await syncTwentyCRMId(user.id, crmUserId);
-  }
-
   const stripeCustomerId = await createOrRetrieveStripeCustomer({
     email: user?.email || '',
     uuid: user.id,
@@ -190,12 +173,15 @@ export async function signInWithPassword(formData: FormData) {
   let redirectPath: string | undefined;
 
   const supabase = await createClient();
+  console.log("Before sign-in:", await supabase.auth.getUser());
   const { error, data } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
+  console.log("After sign-in:", await supabase.auth.getUser());
 
   if (error) {
+    console.log("Supabase Auth Error:", error.message);
     redirectPath = getErrorRedirect(
       '/signin/password_signin',
       'Sign in failed.',

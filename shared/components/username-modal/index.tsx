@@ -1,13 +1,14 @@
 'use client';
 
-import * as React from "react"
+import * as React from 'react';
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { useToast } from '../ui/Toasts/use-toast';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import Modal from '../modal';
 import { Button } from '../ui/button';
 import LoadingSpinner from '../loading-spinner';
-import { cn } from "@/shared/utils/cn"
+import { cn } from '@/shared/utils/cn';
+import { useAuthContext } from '../ui/auth.provider';
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
@@ -18,19 +19,19 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-          className
+          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+          className,
         )}
         ref={ref}
         {...props}
       />
-    )
-  }
-)
-Input.displayName = "Input"
-
+    );
+  },
+);
+Input.displayName = 'Input';
 
 export default function UsernameModal() {
+  const { user } = useAuthContext();
   const [username, setUsername] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
@@ -52,14 +53,13 @@ export default function UsernameModal() {
     const value = event.target.value; // Extract value from event
     const trimmedValue = value.replace(/\s+/g, ''); // Remove spaces
     setUsername(trimmedValue);
-  
+
     if (trimmedValue.length < 3 || trimmedValue.length > 16) {
       setError('Username must be between 3 and 16 characters.');
     } else {
       setError('');
     }
   };
-  
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -77,6 +77,8 @@ export default function UsernameModal() {
       });
     }
   };
+
+  if (!user || !user.id) return null;
 
   return (
     <Modal
