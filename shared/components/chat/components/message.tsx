@@ -69,14 +69,14 @@ export default function ChatMessage({
       >
         <div className="flex items-center space-x-2 mb-2">
           <span className="text-red-500/50 text-[10px] lg:text-xs font-mono">
-            {message?.timestamp}
+            {new Date(message?.timestamp ?? "").toLocaleString('en-US')}
           </span>
         </div>
 
         <div
           className={cn(
             'w-full',
-            message?.role !== 'user' ? 'grid lg:grid-cols-2 gap-3' : '',
+            message?.role !== 'user' ? 'grid lg:grid-cols-1 gap-10' : '',
           )}
         >
           {displayContent
@@ -95,7 +95,7 @@ export default function ChatMessage({
                   {msg?.role !== 'user' && (
                     <div className="flex items-center gap-1 mb-2">
                       <Hexagon className="h-3 w-3 lg:w-4 lg:h-4 text-red-500/50" />
-                      <span className="text-red-500/70 text-xs font-mono capitalize">
+                      <span className="text-red-500/70 text-xs font-bold font-mono capitalize">
                         {msg?.role}
                       </span>
                     </div>
