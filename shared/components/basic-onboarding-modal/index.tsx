@@ -20,34 +20,6 @@ import { Textarea } from '../ui/textarea';
 import axios from 'axios';
 import { useAuthContext } from '../ui/auth.provider';
 
-async function handleUpdateTwenty(
-  userId: string,
-  jobTitle: string,
-  companyName: string,
-  howDidYouFindUs: string,
-  name: string,
-) {
-  if (!userId) return;
-
-  const response = await axios.post(
-    '/api/update-twenty-user',
-    {
-      job: jobTitle || '',
-      company: companyName || '',
-      user_id: userId,
-      referral: howDidYouFindUs || '',
-      customName: name || '',
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-
-  return response.data;
-}
-
 const BasicOnboardingModal = () => {
   const { user } = useAuthContext();
   const helper = useOnboardingHelper();
@@ -101,14 +73,7 @@ const BasicOnboardingModal = () => {
         return;
       }
 
-      const updateTwentyPromise = handleUpdateTwenty(
-        user?.id || '',
-        jobTitle,
-        companyName,
-        howDidYouFindUs,
-        fullName,
-      );
-      const updateOnboardingPromise = helper.updateOnboarding.mutateAsync({
+      await helper.updateOnboarding.mutateAsync({
         full_name: fullName,
         company_name: companyName,
         about_company: aboutCompany,
@@ -117,8 +82,6 @@ const BasicOnboardingModal = () => {
         signup_reason: whyDidYouSignUp,
         basic_onboarding_completed: true,
       });
-
-      await Promise.all([updateTwentyPromise, updateOnboardingPromise]);
 
       setStep('done');
     }
