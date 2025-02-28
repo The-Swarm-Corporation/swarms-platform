@@ -47,6 +47,7 @@ export interface Message {
   content: string;
   timestamp: string;
   agentId?: string;
+  imageUrl?: string;
 }
 
 export interface Conversation {

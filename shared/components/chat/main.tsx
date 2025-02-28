@@ -4,7 +4,7 @@ import type React from 'react';
 
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mic, Send, Shield } from 'lucide-react';
+import { Ellipsis, Mic, Send, Shield } from 'lucide-react';
 import { useAgents } from './hooks/useChatAgents';
 import { useConversations } from './hooks/useConversations';
 import LoadSequence from './components/loader';
@@ -13,7 +13,10 @@ import { cn } from '@/shared/utils/cn';
 import { AgentSidebar } from './components/sidebar';
 import ChatMessage from './components/message';
 import { Tables } from '@/types_db';
-import { SwarmResponse, SwarmsApiClient } from '@/shared/utils/api/swarms';
+import { SwarmsApiClient } from '@/shared/utils/api/swarms';
+import { useToast } from '../ui/Toasts/use-toast';
+import { useAuthContext } from '../ui/auth.provider';
+import { useFileUpload } from './hooks/useFileUpload';
 
 interface SwarmsChatProps {
   modelFunction?: (message: string) => Promise<string>;
@@ -33,6 +36,8 @@ const swarmsApi = new SwarmsApiClient(
 );
 
 export default function SwarmsChat({}: SwarmsChatProps) {
+  const { user } = useAuthContext();
+  const { toast } = useToast();
   const [isFetching, setIsFetching] = useState(true);
   const [messages, setMessages] = useState<
     Tables<'swarms_cloud_chat_messages'>[]
@@ -50,6 +55,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     isLoading: isLoadingConversations,
     isCreatePending,
     isDeletePending,
+    isUpdatePending,
     refetch,
     createConversation,
     updateConversation,
@@ -60,6 +66,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   } = useConversations();
   const {
     agents,
+    isLoading: isLoadingAgents,
     swarmConfig,
     openAgentModal,
     setOpenAgentModal,
@@ -76,6 +83,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   } = useAgents({
     activeConversationId,
   });
+  const { imageUrl } = useFileUpload();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -121,12 +129,12 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     if (!activeConversation.data) return;
 
     setMessages((prevMessages) => {
-      const newMessages = activeConversation.data.messages || [];
-      return JSON.stringify(prevMessages) === JSON.stringify(newMessages)
-        ? prevMessages
-        : newMessages;
+      if (prevMessages.length === 0) {
+        return activeConversation.data.messages || [];
+      }
+      return prevMessages;
     });
-  }, [activeConversation]);
+  }, [activeConversation?.data]);
 
   const toggleListening = () => {
     if (isListening) {
@@ -139,75 +147,110 @@ export default function SwarmsChat({}: SwarmsChatProps) {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
+  
     if (!input.trim() || isLoading || !activeConversation) return;
-
+    if (activeConversation.data?.id !== activeConversationId) return;
+  
     const userMessage = input.trim();
-    const timestamp = getCurrentTime();
-
+    const timestamp = new Date().toISOString();
+  
     const userMessageObj = {
-      role: 'user' as const,
-      content: userMessage,
+      id: crypto.randomUUID(),
+      chat_id: activeConversation?.data?.id ?? '',
+      role: 'user',
+      content: JSON.stringify([{ role: 'user', content: userMessage }]),
+      structured_content: null,
       timestamp,
+      user_id: user?.id || null,
+      agent_id: "",
+      metadata: null,
+      img: imageUrl || "",
+      created_at: timestamp,
     };
-    await addMessage(userMessageObj);
+  
+    setMessages((prev) => [...prev, userMessageObj]);
     setInput('');
     setIsLoading(true);
-
+  
     try {
+      await addMessage({
+        content: userMessageObj.content,
+        role: 'user',
+        timestamp: userMessageObj.timestamp,
+        imageUrl: userMessageObj.img,
+        agentId: agents?.[0]?.id,
+      });
+  
       const activeAgents = agents
         .filter((agent) =>
-          swarmConfig?.agents.some(
+          swarmConfig?.agents?.some(
             (configAgent) => configAgent.agent_id === agent.id,
           ),
         )
         .filter((agent) => agent.is_active);
-
-      if (!swarmConfig?.architecture || activeAgents.length < 1) {
-        await addMessage({
-          role: 'assistant',
-          content: 'No active agents in the swarm. Create an agent!',
-          timestamp: getCurrentTime(),
+  
+      if (!swarmConfig?.architecture || activeAgents.length < 2) {
+        toast({
+          description: 'A swarm must have at least two active agents.',
+          variant: 'destructive',
         });
         setIsLoading(false);
         return;
       }
-
+  
       const apiAgents = SwarmsApiClient.convertAgentsToApiFormat(
         activeAgents,
         swarmConfig.architecture,
       );
       const swarmType = SwarmsApiClient.getSwarmType(swarmConfig.architecture);
-
+  
       const swarmRequest = {
         name: activeConversation.data?.name || 'Chat Session',
         description: 'Chat interaction',
         agents: apiAgents,
         swarm_type: swarmType,
         task: userMessage,
-        return_history: true,
+        max_loops: 1,
       };
-
+  
       const response = await swarmsApi.executeSwarm(swarmRequest);
+  
+      const aiResponseObj = {
+        id: crypto.randomUUID(),
+        chat_id: activeConversation?.data?.id ?? '',
+        role: 'assistant',
+        content: JSON.stringify(response?.output),
+        structured_content: response?.output ? JSON.stringify(response?.output) : null,
+        timestamp: new Date().toISOString(),
+        user_id: null,
+        img: null,
+        agent_id: activeAgents[0]?.id || "",
+        metadata: response?.metadata ? JSON.stringify(response.metadata) : null,
+        created_at: new Date().toISOString(),
+      };
+  
+      setMessages((prev) => [...prev, aiResponseObj]);
+  
+      await addMessage({
+        content: aiResponseObj.content,
+        role: 'assistant',
+        timestamp: aiResponseObj.timestamp,
+        agentId: aiResponseObj.agent_id,
+      });
 
-      console.log({ response });
-
-      // await addMessage({
-      //   role: 'assistant',
-      //   content: response?.output as any,
-      //   timestamp: getCurrentTime(),
-      // });
+      console.log({ responseTwo: response });
+  
     } catch (error) {
       console.error('Error:', error);
-      // await addMessage({
-      //   role: 'assistant',
-      //   content:
-      //     'An error occurred while processing your request. Please try again.',
-      //   timestamp: getCurrentTime(),
-      // });
+      toast({
+        description: 'An error occurred while processing your request.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
+  
 
   const getAgentName = (agentId?: string) => {
     if (!agentId) return 'System';
@@ -234,6 +277,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           isLoading={isLoadingConversations}
           isDeletePending={isDeletePending}
           isCreatePending={isCreatePending}
+          isUpdatePending={isUpdatePending}
           conversationRefetch={refetch}
           onUpdateConversation={updateConversation}
           onCreateConversation={createConversation}
@@ -294,7 +338,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                         duration: 1,
                         repeat: Number.POSITIVE_INFINITY,
                       }}
-                      className="w-3 h-3 bg-red-500/50 rounded-full"
+                      className="w-2 h-2 bg-primary/50 rounded-full"
                     />
                     <motion.div
                       animate={{ scale: [1, 1.2, 1] }}
@@ -303,7 +347,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                         repeat: Number.POSITIVE_INFINITY,
                         delay: 0.2,
                       }}
-                      className="w-3 h-3 bg-red-500/50 rounded-full"
+                      className="w-2 h-2 bg-primary/50 rounded-full"
                     />
                     <motion.div
                       animate={{ scale: [1, 1.2, 1] }}
@@ -312,7 +356,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                         repeat: Number.POSITIVE_INFINITY,
                         delay: 0.4,
                       }}
-                      className="w-3 h-3 bg-red-500/50 rounded-full"
+                      className="w-2 h-2 bg-primary/50 rounded-full"
                     />
                   </div>
                 )}
@@ -347,7 +391,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       placeholder="Enter your message..."
-                      className="w-full bg-white/80 text-xs lg:text-base dark:bg-zinc-950/80 backdrop-blur-sm text-zinc-900 dark:text-red-500 placeholder-zinc-500 dark:placeholder-[#928E8B] border border-red-600/20 rounded-md lg:rounded-lg px-3 lg:px-6 py-2 lg:py-4 focus:outline-none focus:border-red-500/50 transition-colors"
+                      className="w-full bg-white/80 text-xs lg:text-base dark:bg-zinc-950/80 backdrop-blur-sm text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-[#928E8B] border border-red-600/20 rounded-md lg:rounded-lg px-3 lg:px-6 py-2 lg:py-4 focus:outline-none focus:border-red-500/50 transition-colors"
                     />
                     <div className="absolute inset-0 pointer-events-none border border-red-600/10 rounded-lg">
                       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
@@ -358,7 +402,11 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                     disabled={!input.trim() || isLoading}
                     className="p-3 lg:p-4 bg-white/80 dark:bg-zinc-950/80 text-red-500 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative group border border-red-600/20"
                   >
-                    <Send className="w-4 h-4 lg:w-6 lg:h-6" />
+                    {isLoading ? (
+                      <Ellipsis className="w-4 h-4 lg:w-6 lg:h-6 animate-pulse" />
+                    ) : (
+                      <Send className="w-4 h-4 lg:w-6 lg:h-6" />
+                    )}
                     <div className="absolute inset-0 rounded-full group-hover:animate-ping bg-red-600/20 hidden group-hover:block" />
                   </button>
                 </div>
@@ -367,6 +415,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           </div>
           <AgentSidebar
             agents={agents || []}
+            isLoadingAgents={isLoadingAgents}
             isCreateAgent={isCreateAgent}
             agentsRefetch={agentsRefetch}
             isUpdateAgent={isUpdateAgent}

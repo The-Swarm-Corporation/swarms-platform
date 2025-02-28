@@ -121,13 +121,13 @@ export class SwarmsApiClient {
       .filter((agent) => agent.is_active)
       .map((agent) => ({
         agent_name: agent.name,
-        description: agent.description || undefined,
-        system_prompt: agent.system_prompt || undefined,
+        description: agent.description || '',
+        system_prompt: agent.system_prompt || '',
         model_name: agent.model || 'gpt-4o',
         temperature:
-          agent.temperature !== null ? Number(agent.temperature) : 0.7,
+          agent.temperature !== null ? Number(agent.temperature) : 0.5,
         max_tokens: agent.max_tokens || 2048,
-        role: architecture === 'HiearchicalSwarm' ? 'worker' : undefined,
+        role: 'worker',
         max_loops: 1,
       }));
   }

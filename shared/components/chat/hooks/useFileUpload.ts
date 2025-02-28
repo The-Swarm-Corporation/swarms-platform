@@ -2,6 +2,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { Tables } from '@/types_db';
 import { useState, useCallback } from 'react';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { MAX_FILE_SIZE } from '@/shared/utils/constants';
 
 export type FileWithPreview = {
   file: File;
@@ -17,147 +18,76 @@ export type FileWithPreview = {
 
 export function useFileUpload() {
   const { toast } = useToast();
-  const [files, setFiles] = useState<FileWithPreview[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<{
-    [key: string]: number;
-  }>({});
-  const [dragActive, setDragActive] = useState(false);
+  const [image, setImage] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadStatus, setUploadStatus] = useState<
+    'idle' | 'uploading' | 'success' | 'error'
+  >('idle');
 
   const uploadFileMutation = trpc.fileUpload.uploadFile.useMutation();
   const deleteFileMutation = trpc.fileUpload.deleteFile.useMutation();
 
-  const getFileType = useCallback((file: File): FileWithPreview['type'] => {
-    if (file.type.startsWith('image/')) return 'image';
-    if (file.type.startsWith('video/')) return 'video';
-    if (file.type.startsWith('audio/')) return 'audio';
-    if (file.type.includes('document') || file.type.includes('pdf'))
-      return 'document';
-    return 'other';
-  }, []);
+  const uploadImage = useCallback(
+    async (file: File, chatId: string) => {
+      if(file.size > MAX_FILE_SIZE){
+        toast({
+          description: 'File size exceeds the maximum limit of 10MB.',
+          variant: 'destructive',
+        });
+        return null;
+      }
+      setImage(file);
+      setUploadProgress(0);
+      setUploadStatus('uploading');
 
-  const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(e.type === 'dragenter' || e.type === 'dragover');
-  }, []);
-
-  const clearFiles = useCallback(() => {
-    setFiles([]);
-    setUploadProgress({});
-  }, []);
-
-  const uploadFile = useCallback(
-    async (file: File, messageId: string, refetch?: () => void) => {
       try {
-        setUploadProgress((prev) => ({ ...prev, [file.name]: 0 }));
-
-        const fileType = getFileType(file);
-        const preview = fileType === 'image' ? URL.createObjectURL(file) : '';
-
         const fileData = await uploadFileMutation.mutateAsync({
           file,
-          messageId,
+          chatId,
           fileName: file.name,
           fileType: file.type,
         });
 
-        setFiles((prev) => [
-          ...prev,
-          { file, preview, type: fileType, url: fileData?.public_url },
-        ]);
+        setImageUrl(fileData?.publicUrl);
+        setUploadStatus('success');
 
+        // Simulate progress bar
         let progress = 0;
         const interval = setInterval(() => {
-          progress += 10;
-          setUploadProgress((prev) => ({ ...prev, [file.name]: progress }));
-          if (progress >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-              setUploadProgress((prev) => {
-                const newProgress = { ...prev };
-                delete newProgress[file.name];
-                return newProgress;
-              });
-            }, 500);
-          }
+          progress += 20;
+          setUploadProgress(progress);
+          if (progress >= 100) clearInterval(interval);
         }, 100);
 
-        refetch?.();
-        return fileData;
+        return fileData?.publicUrl;
       } catch (error) {
-        console.error('File upload failed:', error);
-        setUploadProgress((prev) => {
-          const newProgress = { ...prev };
-          delete newProgress[file.name];
-          return newProgress;
-        });
-      }
-    },
-    [uploadFileMutation, getFileType],
-  );
-
-  const handleFileSelect = useCallback(
-    async (
-      e: React.ChangeEvent<HTMLInputElement>,
-      message: Tables<'swarms_cloud_chat_messages'>,
-    ) => {
-      const selectedFiles = Array.from(e.target.files || []);
-      if (!selectedFiles.length) return;
-
-      try {
-        await Promise.all(
-          selectedFiles.map((file) => uploadFile(file, message.id)),
-        );
-      } catch (error) {
-        console.error('File upload failed:', error);
+        setUploadStatus('error');
         toast({
-          description: 'Failed to upload file. Please try again.',
+          description: 'Failed to upload image. Please try again.',
           variant: 'destructive',
         });
+        setImage(null);
+        setImageUrl(null);
+        return null;
       }
     },
-    [uploadFile],
+    [uploadFileMutation],
   );
 
-  const handleDrop = useCallback(
-    async (
-      e: React.DragEvent,
-      message: Tables<'swarms_cloud_chat_messages'>,
-    ) => {
-      e.preventDefault();
-
-      if (message.role !== 'user') return;
-
-      setDragActive(false);
-
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      if (!droppedFiles.length) return;
-
+  const deleteImage = useCallback(
+    async (filePath: string) => {
       try {
-        await Promise.all(
-          droppedFiles.map((file) => uploadFile(file, message.id)),
-        );
-      } catch (error) {
-        console.error('File upload failed:', error);
+        await deleteFileMutation.mutateAsync({ filePath });
+        setImage(null);
+        setImageUrl(null);
         toast({
-          description: 'Failed to upload file. Please try again.',
-          variant: 'destructive',
+          description: 'Image removed successfully',
         });
-      }
-    },
-    [uploadFile],
-  );
-
-  const removeDBFile = useCallback(
-    async (filePath: string, fileId: string, refetch?: () => void) => {
-      try {
-        await deleteFileMutation.mutateAsync({ filePath, fileId });
-        setFiles((prev) => prev.filter((f) => f.public_url !== filePath));
-        refetch?.();
+        setUploadStatus('idle');
       } catch (error) {
-        console.error('File deletion failed:', error);
         toast({
-          description: 'Failed to delete media. Please try again.',
+          description: 'Failed to delete image. Please try again.',
           variant: 'destructive',
         });
       }
@@ -165,20 +95,14 @@ export function useFileUpload() {
     [deleteFileMutation],
   );
 
-  const deleteFile = useCallback((index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  }, []);
-
   return {
-    files,
+    image,
+    imageUrl,
     uploadProgress,
-    dragActive,
-    handleDrag,
-    handleDrop,
-    handleFileSelect,
-    clearFiles,
-    uploadFile,
-    deleteFile,
-    removeDBFile,
+    uploadStatus,
+    uploadImage,
+    deleteImage,
+    setImage,
+    setImageUrl,
   };
 }

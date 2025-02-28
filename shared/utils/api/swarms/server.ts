@@ -7,6 +7,7 @@ type AddMessageProps = {
   userId: string;
   timestamp: string;
   supabase: any;
+  imageUrl: string | null;
   agentId?: string;
 };
 
@@ -15,6 +16,7 @@ export async function addMessage({
   role,
   content,
   userId,
+  imageUrl,
   timestamp,
   supabase,
   agentId,
@@ -31,7 +33,8 @@ export async function addMessage({
         structured_content: isStructured ? (content as Json) : null,
         user_id: userId,
         timestamp,
-        agent_id: agentId ?? null,
+        img: imageUrl,
+        agent_id: agentId ?? '',
       },
     ])
     .select()
@@ -39,6 +42,7 @@ export async function addMessage({
 
   if (error) {
     console.error('Error inserting message:', error);
+    console.log({ error });
     throw new Error('Failed to insert message');
   }
 

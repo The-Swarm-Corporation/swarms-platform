@@ -55,18 +55,18 @@ const apiKeyRouter = router({
         });
       }
 
-      const paymentMethods = await stripe.paymentMethods.list({
-        customer: stripeCustomerId,
-        type: 'card',
-      });
+      // const paymentMethods = await stripe.paymentMethods.list({
+      //   customer: stripeCustomerId,
+      //   type: 'card',
+      // });
 
-      if (!paymentMethods.data.length) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message:
-            'Payment method missing. Add valid card to continue and click on added card to set as default',
-        });
-      }
+      // if (!paymentMethods.data.length) {
+      //   throw new TRPCError({
+      //     code: 'NOT_FOUND',
+      //     message:
+      //       'Payment method missing. Add valid card to continue and click on added card to set as default',
+      //   });
+      // }
 
       try {
         const key = generateApiKey();

@@ -22,7 +22,9 @@ export function useAgents({
   const [swarmConfig, setSwarmConfig] = useState<SwarmConfig | null>(null);
   const [openAgentModal, setOpenAgentModal] = useState(false);
 
-  const getAgentsQuery = trpc.chatAgent.getAgents.useQuery();
+  const getAgentsQuery = trpc.chatAgent.getAgents.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
   const getSwarmConfigQuery = trpc.swarmConfig.getSwarmConfig.useQuery(
     activeConversationId,
     { enabled: !!activeConversationId, refetchOnWindowFocus: false },
@@ -47,6 +49,11 @@ export function useAgents({
     }
   }, [getSwarmConfigQuery.data]);
 
+  const refetchQuery = () => {
+    getAgentsQuery.refetch();
+    getSwarmConfigQuery.refetch();
+  };
+
   const addAgent = useCallback(
     async (agent: Omit<Agent, 'id'>) => {
       try {
@@ -63,10 +70,10 @@ export function useAgents({
 
         await updateSwarmConfigMutation.mutateAsync({
           chatId: activeConversationId,
-          architecture: swarmConfig?.architecture || "SequentialWorkflow",
+          architecture: swarmConfig?.architecture || 'SequentialWorkflow',
           agentIds: updatedAgentIds,
         });
-        getAgentsQuery.refetch();
+        refetchQuery();
         setOpenAgentModal(false);
       } catch (error) {
         console.error('Error adding agent:', error);
@@ -90,6 +97,10 @@ export function useAgents({
           chatId: activeConversationId,
           architecture,
           agentIds,
+        });
+        refetchQuery();
+        toast({
+          description: `Architecture updated to ${architecture}.`,
         });
       } catch (error) {
         console.error('Error updating architecture:', error);
@@ -129,6 +140,7 @@ export function useAgents({
           architecture: swarmConfig.architecture,
           agentIds: updatedAgentIds,
         });
+        refetchQuery();
       } catch (error) {
         console.error('Error toggling agent:', error);
         toast({
@@ -151,7 +163,10 @@ export function useAgents({
     updateSwarmArchitecture,
     toggleAgent,
     agentsRefetch: getAgentsQuery.refetch,
-    isLoading: getAgentsQuery.isLoading || getSwarmConfigQuery.isLoading,
+    isLoading:
+      getAgentsQuery.isLoading ||
+      getSwarmConfigQuery.isLoading ||
+      updateSwarmConfigMutation.isPending,
     isCreateAgent: createAgentMutation.isPending,
     isUpdateAgent: updateAgentMutation.isPending,
     isToggleAgent: toggleAgentMutation.isPending,

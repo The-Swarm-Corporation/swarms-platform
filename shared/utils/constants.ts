@@ -10,6 +10,8 @@ export const themes: THEMES[] = [THEMES.LIGHT, THEMES.DARK];
 
 export const SINGLE = 'single';
 
+export const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 export const themeOptions = [
   { label: 'Single theme', value: SINGLE },
   { label: 'Sync with your system', value: THEMES.SYSTEM },

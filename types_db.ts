@@ -1546,9 +1546,10 @@ export type Database = {
         Row: {
           agent_id: string | null
           chat_id: string | null
-          content: Json
+          content: Json | null
           created_at: string | null
           id: string
+          img: string | null
           metadata: Json | null
           role: string
           structured_content: Json | null
@@ -1558,9 +1559,10 @@ export type Database = {
         Insert: {
           agent_id?: string | null
           chat_id?: string | null
-          content: Json
+          content?: Json | null
           created_at?: string | null
           id?: string
+          img?: string | null
           metadata?: Json | null
           role: string
           structured_content?: Json | null
@@ -1570,9 +1572,10 @@ export type Database = {
         Update: {
           agent_id?: string | null
           chat_id?: string | null
-          content?: Json
+          content?: Json | null
           created_at?: string | null
           id?: string
+          img?: string | null
           metadata?: Json | null
           role?: string
           structured_content?: Json | null

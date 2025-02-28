@@ -11,7 +11,9 @@ export function useConversations() {
     refetch,
     isLoading,
     error: chatError,
-  } = trpc.chat.getConversations.useQuery();
+  } = trpc.chat.getConversations.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
   const createConversationMutation = trpc.chat.createConversation.useMutation();
   const updateConversationMutation = trpc.chat.updateConversation.useMutation();
   const deleteConversationMutation = trpc.chat.deleteConversation.useMutation();
@@ -20,8 +22,12 @@ export function useConversations() {
   const { toast } = useToast();
   const [activeConversationId, setActiveConversationId] = useState('');
 
-  const activeConversation =
-    trpc.chat.getConversation.useQuery(activeConversationId);
+  const activeConversation = trpc.chat.getConversation.useQuery(
+    activeConversationId,
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
 
   useEffect(() => {
     if (conversations?.length && !activeConversationId) {
@@ -128,6 +134,7 @@ export function useConversations() {
     refetch,
     isCreatePending: createConversationMutation.isPending,
     isDeletePending: deleteConversationMutation.isPending,
+    isUpdatePending: updateConversationMutation.isPending,
     createConversation,
     updateConversation: updateConversationMutation.mutateAsync,
     switchConversation,

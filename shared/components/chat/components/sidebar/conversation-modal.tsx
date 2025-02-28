@@ -83,7 +83,7 @@ export default function ConversationModal({
               className="w-full bg-red-500 hover:bg-red-600 text-white"
               disabled={!newChatName.trim()}
             >
-              {ctaText}
+              {ctaText} {isCreatePending && <LoadingSpinner size={18} className='ml-2' />}
             </Button>
           </div>
         </DialogContent>

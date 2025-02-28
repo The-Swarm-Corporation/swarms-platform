@@ -42,6 +42,7 @@ import LoadingSpinner from '@/shared/components/loading-spinner';
 import { getTruncatedString } from '@/shared/utils/helpers';
 
 interface SwarmSelectorProps {
+  isLoading?: boolean;
   value: SwarmArchitecture;
   onValueChange: (value: SwarmArchitecture) => void;
 }
@@ -59,11 +60,17 @@ const convertEditingAgent = (
   isActive: agent.is_active ?? false,
 });
 
-function SwarmSelector({ value, onValueChange }: SwarmSelectorProps) {
+function SwarmSelector({
+  value,
+  isLoading,
+  onValueChange,
+}: SwarmSelectorProps) {
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select disabled={isLoading} value={value} onValueChange={onValueChange}>
       <SelectTrigger className="w-full bg-white/80 dark:bg-zinc-950/80">
-        <SelectValue placeholder="Select architecture" />
+        <SelectValue
+          placeholder={isLoading ? 'Loading...' : 'Select architecture'}
+        />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="SequentialWorkflow">Sequential</SelectItem>
@@ -85,6 +92,7 @@ function SwarmSelector({ value, onValueChange }: SwarmSelectorProps) {
 interface AgentSidebarProps {
   agents: Tables<'swarms_cloud_chat_agents'>[];
   swarmArchitecture: SwarmArchitecture;
+  isLoadingAgents: boolean;
   isCreateAgent: boolean;
   isUpdateAgent: boolean;
   isToggleAgent: boolean;
@@ -111,6 +119,7 @@ export function AgentSidebar({
   isCreateAgent,
   isUpdateAgent,
   openAgentModal,
+  isLoadingAgents,
   setOpenAgentModal,
   onAddAgent,
   onUpdateAgent,
@@ -167,12 +176,19 @@ export function AgentSidebar({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="p-4 border-b border-red-600/20"
+              className="p-4 border-b border-red-600/20 relative"
             >
               <SwarmSelector
                 value={swarmArchitecture}
+                isLoading={isLoadingAgents}
                 onValueChange={onUpdateSwarmArchitecture}
               />
+              {isLoadingAgents && (
+                <LoadingSpinner
+                  size={15}
+                  className="absolute right-7 top-7 bg-secondary"
+                />
+              )}
             </motion.div>
           )}
         </AnimatePresence>

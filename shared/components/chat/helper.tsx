@@ -1,5 +1,11 @@
-import { X, FileText, Image, Video, Music, File } from 'lucide-react';
+import { FileText, Image, Video, Music, File } from 'lucide-react';
 import { FileWithPreview } from './hooks/useFileUpload';
+
+export interface MessageObj {
+  role: string;
+  content: string;
+  timestamp?: string;
+}
 
 export const getFileIcon = (file: FileWithPreview) => {
   switch (file.type) {
@@ -14,5 +20,13 @@ export const getFileIcon = (file: FileWithPreview) => {
       return <Music className="w-6 h-6" />;
     default:
       return <File className="w-6 h-6" />;
+  }
+};
+
+export const parseJSON = (data: any) => {
+  try {
+    return typeof data === 'string' ? JSON.parse(data) : data;
+  } catch {
+    return data;
   }
 };

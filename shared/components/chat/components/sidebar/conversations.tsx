@@ -7,14 +7,12 @@ import {
   ChevronRight,
   MessageSquare,
   MoreVertical,
-  Plus,
   Download,
   Trash,
   Pencil,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +31,7 @@ interface ConversationSidebarProps {
   activeId?: string;
   isLoading?: boolean;
   isCreatePending: boolean;
+  isUpdatePending: boolean;
   isDeletePending: boolean;
   onUpdateConversation: ({ id, name }: { id: string; name: string }) => void;
   onCreateConversation: (name: string) => void;
@@ -48,6 +47,7 @@ export function ConversationSidebar({
   isLoading,
   isCreatePending,
   isDeletePending,
+  isUpdatePending,
   conversationRefetch,
   onUpdateConversation,
   onCreateConversation,
@@ -73,8 +73,13 @@ export function ConversationSidebar({
     conversationRefetch?.();
   };
 
+  const handleEditModalOpen = (id: string) => {
+    setActiveChatId(id);
+    setIsEditModalOpen(true);
+  };
+
   const handleEditConversation = async () => {
-    if (editChatName.trim()) return;
+    if (!editChatName.trim()) return;
 
     await onUpdateConversation({
       id: activeChatId!,
@@ -191,7 +196,6 @@ export function ConversationSidebar({
                               className="text-red-500/70 hover:text-red-500"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setActiveChatId(conversation?.id);
                               }}
                             >
                               {isDeletePending ? (
@@ -205,7 +209,7 @@ export function ConversationSidebar({
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setIsEditModalOpen(true);
+                                handleEditModalOpen(conversation?.id);
                               }}
                             >
                               <Pencil className="mr-2 h-4 w-4" />
@@ -278,7 +282,7 @@ export function ConversationSidebar({
             isExpanded,
             isDialogOpen: isEditModalOpen,
             isDeletePending,
-            isCreatePending,
+            isCreatePending: isUpdatePending,
             newChatName: editChatName,
             setIsDialogOpen: setIsEditModalOpen,
             setNewChatName: setEditChatName,

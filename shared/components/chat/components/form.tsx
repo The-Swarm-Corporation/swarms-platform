@@ -95,9 +95,9 @@ export function AgentForm({
             <SelectValue placeholder="Select model" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="gpt-4">GPT-4</SelectItem>
-            <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-            <SelectItem value="claude-2">Claude 2</SelectItem>
+            <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+            {/* <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+            <SelectItem value="claude-2">Claude 2</SelectItem> */}
           </SelectContent>
         </Select>
       </div>

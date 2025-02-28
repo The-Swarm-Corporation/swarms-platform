@@ -8,6 +8,7 @@ const messageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.any(),
   timestamp: z.string(),
+  imageUrl: z.string().optional(),
   agentId: z.string().optional(),
 });
 
@@ -82,11 +83,14 @@ const chatRouter = router({
     }),
 
   updateConversation: userProcedure
-    .input(z.object({
-      name: z.string().min(1),
-      id: z.string(),
-    }))
+    .input(
+      z.object({
+        name: z.string().min(1),
+        id: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
+      console.log({ input });
       const user_id = ctx.session.data.user?.id ?? '';
 
       const { data, error } = await ctx.supabase
@@ -138,6 +142,7 @@ const chatRouter = router({
         timestamp: input.message.timestamp,
         supabase: ctx.supabase,
         userId: user_id,
+        imageUrl: input.message.imageUrl ?? '',
         agentId: input.message.agentId ?? '',
       });
     }),
@@ -392,126 +397,91 @@ const fileUploadRouter = router({
   uploadFile: userProcedure
     .input(
       z.object({
-        file: z.any(),
-        messageId: z.string(),
+        file: z.instanceof(File),
+        chatId: z.string(),
         fileName: z.string(),
         fileType: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.user?.id ?? '';
+      const userId = ctx.session.data.user?.id;
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
 
-      const filePath = `${user_id}/${input.messageId}/${input.fileName}`;
+      const filePath = `${userId}/${input.chatId}/${input.fileName}`;
 
-      // Upload to Supabase Storage
-      const { data: storageData, error: storageError } =
-        await ctx.supabase.storage
+      try {
+        const { error: storageError } = await ctx.supabase.storage
           .from(BUCKET_NAME)
           .upload(filePath, input.file, {
             contentType: input.fileType,
             upsert: true,
           });
 
-      if (storageError) {
+        if (storageError) {
+          throw storageError;
+        }
+
+        const { data: urlData } = ctx.supabase.storage
+          .from(BUCKET_NAME)
+          .getPublicUrl(filePath);
+
+        return {
+          publicUrl: urlData.publicUrl,
+          filePath,
+        };
+      } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to upload file',
-          cause: storageError,
+          cause: error,
         });
       }
-
-      // Get public URL
-      const { data: urlData } = ctx.supabase.storage
-        .from(BUCKET_NAME)
-        .getPublicUrl(filePath);
-
-      // Add file record to database
-      const { data: fileData, error: dbError } = await ctx.supabase
-        .from('swarms_cloud_chat_files')
-        .insert({
-          message_id: input.messageId,
-          file_path: filePath,
-          file_name: input.fileName,
-          file_type: input.fileType,
-          file_size: input.file.size,
-          public_url: urlData.publicUrl,
-          user_id,
-        })
-        .select()
-        .single();
-
-      if (dbError) {
-        // Cleanup storage if database insert fails
-        await ctx.supabase.storage.from(BUCKET_NAME).remove([filePath]);
-
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to record file data',
-          cause: dbError,
-        });
-      }
-
-      return fileData;
     }),
 
   deleteFile: userProcedure
     .input(
       z.object({
         filePath: z.string(),
-        fileId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.user?.id ?? '';
-
-      const { error: storageError } = await ctx.supabase.storage
-        .from(BUCKET_NAME)
-        .remove([input.filePath]);
-
-      if (storageError) {
+      const userId = ctx.session.data.user?.id;
+      if (!userId) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete file from storage',
-          cause: storageError,
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
         });
       }
 
-      // Delete from database
-      const { error: dbError } = await ctx.supabase
-        .from('swarms_cloud_chat_files')
-        .delete()
-        .eq('id', input.fileId)
-        .eq('user_id', user_id);
-
-      if (dbError) {
+      if (!input.filePath.startsWith(`${userId}/`)) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete file record',
-          cause: dbError,
+          code: 'FORBIDDEN',
+          message: 'Not authorized to delete this file',
         });
       }
-    }),
 
-  getMessageFiles: userProcedure
-    .input(z.string())
-    .query(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.user?.id ?? '';
+      try {
+        const { error } = await ctx.supabase.storage
+          .from(BUCKET_NAME)
+          .remove([input.filePath]);
 
-      const { data, error } = await ctx.supabase
-        .from('swarms_cloud_chat_files')
-        .select('*')
-        .eq('message_id', input)
-        .eq('user_id', user_id);
+        if (error) {
+          throw error;
+        }
 
-      if (error) {
+        return { success: true };
+      } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch message files',
+          message: 'Failed to delete file',
           cause: error,
         });
       }
-
-      return data;
     }),
 });
 
