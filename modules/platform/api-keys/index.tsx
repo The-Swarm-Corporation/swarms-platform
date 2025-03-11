@@ -36,6 +36,7 @@ import { PLATFORM } from '@/shared/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
+import LoadingSpinner from '@/shared/components/loading-spinner';
 
 const ApiKeys = () => {
   const { user } = useAuthContext();
@@ -290,7 +291,10 @@ const ApiKeys = () => {
                       type="button"
                       onClick={generate}
                     >
-                      Generate key
+                      Generate key{' '}
+                      {addApiKey?.isPending && (
+                        <LoadingSpinner size={19} className="ml-2" />
+                      )}
                     </Button>
                   </DialogFooter>
                 )}

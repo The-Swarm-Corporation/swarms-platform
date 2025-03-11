@@ -9,54 +9,66 @@ export const dndRouter = router({
       z.object({
         flow_id: z.string().optional(),
         nodes: z.array(
-          z.object({
-            id: z.string(),
-            type: z.string(),
-            position: z.object({
-              x: z.number(),
-              y: z.number(),
-            }),
-            data: z.object({
+          z
+            .object({
               id: z.string(),
-              name: z.string(),
               type: z.string(),
-              model: z.string(),
-              systemPrompt: z.string(),
-              clusterId: z.string().nullable().optional(),
-              isProcessing: z.boolean().nullable().optional(),
-              lastResult: z.string().nullable().optional(),
-              dataSource: z.string().nullable().optional(),
-              dataSourceInput: z.string().nullable().optional(),
-            }).passthrough(),
-          }).passthrough()
+              position: z.object({
+                x: z.number(),
+                y: z.number(),
+              }),
+              data: z
+                .object({
+                  id: z.string(),
+                  name: z.string(),
+                  type: z.string(),
+                  model: z.string(),
+                  systemPrompt: z.string(),
+                  clusterId: z.string().nullable().optional(),
+                  isProcessing: z.boolean().nullable().optional(),
+                  lastResult: z.string().nullable().optional(),
+                  dataSource: z.string().nullable().optional(),
+                  dataSourceInput: z.string().nullable().optional(),
+                })
+                .passthrough(),
+            })
+            .passthrough(),
         ),
         edges: z.array(
-          z.object({
-            id: z.string(),
-            source: z.string(),
-            target: z.string(),
-            type: z.string().optional(),
-            animated: z.boolean().optional(),
-            style: z.object({
-              stroke: z.string(),
-            }).optional(),
-            markerEnd: z.object({
-              type: z.string(),
-              color: z.string(),
-            }).optional(),
-            data: z.object({
-              label: z.string(),
-            }).optional(),
-          }).passthrough()
+          z
+            .object({
+              id: z.string(),
+              source: z.string(),
+              target: z.string(),
+              type: z.string().optional(),
+              animated: z.boolean().optional(),
+              style: z
+                .object({
+                  stroke: z.string(),
+                })
+                .optional(),
+              markerEnd: z
+                .object({
+                  type: z.string(),
+                  color: z.string(),
+                })
+                .optional(),
+              data: z
+                .object({
+                  label: z.string(),
+                })
+                .optional(),
+            })
+            .passthrough(),
         ),
         architecture: z.string(),
         results: z.record(z.any()),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const user_id = ctx.session.data.user?.id;
-        
+
         if (!user_id) {
           throw new TRPCError({
             code: 'UNAUTHORIZED',
@@ -126,10 +138,12 @@ export const dndRouter = router({
         return result;
       } catch (error) {
         console.error('Error in saveFlow:', error);
-        throw error instanceof TRPCError ? error : new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error saving flow',
-        });
+        throw error instanceof TRPCError
+          ? error
+          : new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Error saving flow',
+            });
       }
     }),
 
@@ -145,9 +159,7 @@ export const dndRouter = router({
         });
       }
 
-      let query = ctx.supabase
-        .from('drag_and_drop_flows')
-        .select('*');
+      let query = ctx.supabase.from('drag_and_drop_flows').select('*');
 
       // If flowId is provided, use it to fetch specific flow
       if (input.flowId) {
@@ -158,9 +170,43 @@ export const dndRouter = router({
       }
 
       // Add user_id filter and get single result
-      const { data, error } = await query
-        .eq('user_id', user_id)
-        .single();
+      const { data, error } = await query.eq('user_id', user_id).single();
+
+      if (error) {
+        console.error('Error fetching flow:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error fetching flow',
+        });
+      }
+
+      return data?.flow_data;
+    }),
+
+  getCurrentMutationFlow: userProcedure
+    .input(z.object({ flowId: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id;
+
+      if (!user_id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
+
+      let query = ctx.supabase.from('drag_and_drop_flows').select('*');
+
+      // If flowId is provided, use it to fetch specific flow
+      if (input.flowId) {
+        query = query.eq('id', input.flowId);
+      } else {
+        // Otherwise, get the current flow
+        query = query.eq('current', true);
+      }
+
+      // Add user_id filter and get single result
+      const { data, error } = await query.eq('user_id', user_id).single();
 
       if (error) {
         console.error('Error fetching flow:', error);

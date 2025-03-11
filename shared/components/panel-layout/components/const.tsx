@@ -15,7 +15,7 @@ import {
   FileText,
   FileSpreadsheet,
   GripVertical,
-  MessageSquare,
+  MessageSquareMore,
   Wallet,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
@@ -98,6 +98,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       link: PLATFORM.EXPLORER,
     },
     {
+      icon: <MessageSquareMore size={24} />,
+      title: 'Conversations',
+      link: PLATFORM.CHAT,
+    },
+    {
       icon: <FileSpreadsheet size={24} />,
       title: 'Spreadsheet Swarm',
       link: PLATFORM.SPREADSHEET,
@@ -135,6 +140,10 @@ export const SIDE_BAR_MENU: NavMenuProps = {
         {
           title: 'Organization',
           link: PLATFORM.ORGANIZATION,
+        },
+        {
+          title: 'History',
+          link: PLATFORM.HISTORY,
         },
       ],
     },

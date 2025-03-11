@@ -39,10 +39,10 @@ export default function Prompts({
         ) : (
           <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
             {filteredPrompts.length > 0 ? (
-              filteredPrompts?.map((prompt: any) => (
+              filteredPrompts?.map((prompt: any, index: number) => (
                 <div
                   className="flex flex-col w-full h-[220px] sm:w-full mb-11"
-                  key={prompt.id}
+                  key={`${prompt?.id}-${index}`}
                 >
                   <InfoCard
                     id={prompt.id ?? ''}

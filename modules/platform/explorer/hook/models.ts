@@ -3,8 +3,8 @@ import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { defaultOptions, explorerOptions } from '@/shared/utils/constants';
 import { useSearchParams } from 'next/navigation';
-
 const promptLimit = 6;
+const trendingLimit = 6;
 
 export default function useModels() {
   const searchParams = useSearchParams();
@@ -12,8 +12,14 @@ export default function useModels() {
   const searchQuery = searchParams?.get('search');
 
   const [promptOffset, setPromptOffset] = useState(0);
+  const [trendingOffset, setTrendingOffset] = useState(0);
+
   const [prompts, setPrompts] = useState<any[]>([]);
+  const [trendingModels, setTrendingModels] = useState<any[]>([]);
+
   const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
+  const [isFetchingTrending, setIsFetchingTrending] = useState(false);
+
   const [search, setSearch] = useState('');
 
   const { data, isLoading, refetch } = trpc.explorer.getExplorerData.useQuery(
@@ -22,24 +28,30 @@ export default function useModels() {
       offset: 0,
       search: searchQuery || search,
     },
-    {
-      refetchOnWindowFocus: false,
-    },
+    { refetchOnWindowFocus: false },
   );
 
   const promptsQuery = trpc.explorer.getExplorerData.useQuery(
     {
       includeAgents: false,
       includeTools: false,
-      limit: 6,
+      limit: promptLimit,
       offset: promptOffset,
       search: searchQuery || search,
     },
-    {
-      enabled: promptOffset > 0,
-    },
+    { enabled: promptOffset > 0 },
   );
 
+  const trendingQuery = trpc.main.trending.useQuery(
+    {
+      limit: trendingLimit,
+      offset: trendingOffset,
+      search: "",
+    },
+    { enabled: trendingOffset < 12 },
+  );
+
+  const isTrendingLoading = trendingQuery.isLoading;
   const [options, setOptions] = useState(defaultOptions);
   const [filterOption, setFilterOption] = useState<string>(
     explorerOptions[0].value,
@@ -65,16 +77,31 @@ export default function useModels() {
     }
   }, [promptsQuery.data?.prompts]);
 
+  useEffect(() => {
+    if (trendingQuery.data?.data) {
+      setTrendingModels((prev) => [...prev, ...trendingQuery.data.data]);
+      setIsFetchingTrending(false);
+    }
+  }, [trendingQuery.data?.data]);
+
   const loadMorePrompts = useCallback(() => {
     setPromptOffset((prevOffset) => prevOffset + promptLimit);
     setIsFetchingPrompts(true);
   }, []);
+
+  const loadMoreTrending = useCallback(() => {
+    if (trendingOffset + trendingLimit <= 12) {
+      setTrendingOffset((prevOffset) => prevOffset + trendingLimit);
+      setIsFetchingTrending(true);
+    }
+  }, [trendingOffset]);
 
   const debouncedSearch = useMemo(() => debounce(setSearch, 0), []);
 
   const handleSearchChange = useCallback(
     (value: string) => {
       setPromptOffset(0);
+      setTrendingOffset(0);
       debouncedSearch(value);
     },
     [debouncedSearch],
@@ -84,22 +111,21 @@ export default function useModels() {
     ...(data?.prompts || []),
     ...(data?.agents || []),
     ...(data?.tools || []),
+    ...(trendingModels || []),
   ];
 
   const userIds = Array.from(new Set(allItems.map((item) => item.user_id)));
   const modelIds = Array.from(new Set(allItems.map((item) => item.id)));
 
-  const { data: users } =
-    trpc.main.getUsersByIds.useQuery(
-      { userIds },
-      { enabled: userIds.length > 0 },
-    );
+  const { data: users } = trpc.main.getUsersByIds.useQuery(
+    { userIds },
+    { enabled: userIds.length > 0 },
+  );
 
-  const { data: reviews } =
-    trpc.explorer.getReviewsByIds.useQuery(
-      { modelIds },
-      { enabled: modelIds.length > 0 },
-    );
+  const { data: reviews } = trpc.explorer.getReviewsByIds.useQuery(
+    { modelIds },
+    { enabled: modelIds.length > 0 },
+  );
 
   const usersMap = useMemo(() => {
     return users?.reduce(
@@ -123,7 +149,6 @@ export default function useModels() {
     );
   }, [reviews]);
 
-  // TODO: Add types
   const filterData = useCallback(
     (data: any, key: string) => {
       if (!data) return [];
@@ -159,11 +184,12 @@ export default function useModels() {
 
   const handleOptionChange = useCallback(
     (value: string) => {
-      if (isLoading || promptsQuery.isLoading) return;
+      if (isLoading || promptsQuery.isLoading || trendingQuery.isLoading)
+        return;
 
       setFilterOption(value);
     },
-    [isLoading, promptsQuery.isLoading],
+    [isLoading, promptsQuery.isLoading, trendingQuery.isLoading],
   );
 
   return {
@@ -171,16 +197,21 @@ export default function useModels() {
     filteredPrompts,
     filteredAgents,
     filteredTools,
+    trendingModels,
+    isTrendingLoading,
     search,
     options,
     usersMap,
     reviewsMap,
     hasMorePrompts: prompts.length > promptOffset,
+    hasMoreTrending: trendingModels.length < 12,
     filterOption,
     isLoading,
     isFetchingPrompts,
+    isFetchingTrending,
     refetch,
     loadMorePrompts,
+    loadMoreTrending,
     handleSearchChange,
     handleOptionChange,
   };

@@ -35,10 +35,10 @@ export default function Tools({
         ) : (
           <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
             {filteredTools.length > 0 ? (
-              filteredTools?.map((tool: any) => (
+              filteredTools?.map((tool: any, index: number) => (
                 <div
                   className="flex flex-col w-full h-[220px] sm:w-full mb-11"
-                  key={tool.id}
+                  key={`${tool?.id}-${index}`}
                 >
                   <InfoCard
                     id={tool.id || ''}

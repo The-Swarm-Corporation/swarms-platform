@@ -1,0 +1,83 @@
+.rich-text {
+  display: flex;
+  flex-direction: column;
+  font-family: monospace;
+}
+
+.rich-text h1,
+.rich-text h2,
+.rich-text h3,
+.rich-text h4 {
+  font-weight: bold;
+}
+
+.rich-text h1 {
+  font-size: 32px;
+}
+
+.rich-text h2 {
+  font-size: 34px;
+}
+
+.rich-text h3 {
+  font-size: 18px;
+}
+
+.rich-text p {
+  display: block;
+  line-height: 1.5;
+  font-weight: medium;
+}
+
+.rich-text a {
+  cursor: pointer;
+}
+
+.rich-text ol,
+.rich-text ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rich-text ol li,
+.rich-text ul li {
+  margin-bottom: 8px;
+  margin-left: 16px;
+}
+
+.rich-text ol li ul li {
+  margin-top: 2px;
+}
+
+.rich-text ol li {
+  list-style: decimal;
+  margin-bottom: 12px;
+}
+
+.rich-text ul li {
+  list-style: disc;
+}
+
+.rich-text ol li:last-child,
+.rich-text ul li:last-child {
+  margin-bottom: 0;
+}
+
+.rich-text b,
+.rich-text i {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.rich-text hr {
+  width: 100%;
+  border: 1px solid #8e8e8e;
+  margin: 32px 0;
+}
+
+.response-editor {
+  box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.2);
+
+  border: 2px solid #f9f9f914;
+}

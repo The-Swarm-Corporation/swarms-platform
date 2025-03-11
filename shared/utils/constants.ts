@@ -75,10 +75,11 @@ export const PLATFORM = {
   ACCOUNT_BILLING: '/platform/account/billing',
   SPREADSHEET: '/platform/spreadsheet',
   EXPLORER: '/',
-  SETTINGS: '/platform/organization',
+  SETTINGS: '/platform/account',
   WALLET: '/platform/wallet',
   ORGANIZATION: '/platform/organization',
   CHAT: '/platform/chat',
+  HISTORY: '/platform/history',
 };
 
 export const AUTH = {
