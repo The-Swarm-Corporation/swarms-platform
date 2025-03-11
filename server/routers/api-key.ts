@@ -3,8 +3,6 @@ import { generateApiKey } from '@/shared/utils/helpers';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { stripe } from '@/shared/utils/stripe/config';
-import Stripe from 'stripe';
 import { createOrRetrieveStripeCustomer } from '@/shared/utils/supabase/admin';
 
 const apiKeyRouter = router({
@@ -123,6 +121,28 @@ const apiKeyRouter = router({
         message: 'Error while deleting api key',
       });
     }),
+  getValidApiKey: userProcedure.query(async ({ ctx }) => {
+    const user = ctx.session.data.user as User;
+
+    if (!user || !user.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User not authenticated',
+      });
+    }
+
+    const { data, error } = await ctx.supabase
+      .from('swarms_cloud_api_keys')
+      .select('id, name, is_deleted, created_at, key')
+      .eq('user_id', user.id)
+      .not('is_deleted', 'eq', true)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+
+    return data?.[0] ?? null;
+  }),
 });
 
 export default apiKeyRouter;

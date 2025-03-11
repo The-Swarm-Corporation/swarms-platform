@@ -129,6 +129,7 @@ export class SwarmsApiClient {
         max_tokens: agent.max_tokens || 2048,
         role: 'worker',
         max_loops: 1,
+        auto_generate_prompt: false,
       }));
   }
 

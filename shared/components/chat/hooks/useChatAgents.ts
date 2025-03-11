@@ -70,7 +70,7 @@ export function useAgents({
 
         await updateSwarmConfigMutation.mutateAsync({
           chatId: activeConversationId,
-          architecture: swarmConfig?.architecture || 'SequentialWorkflow',
+          architecture: swarmConfig?.architecture || 'ConcurrentWorkflow',
           agentIds: updatedAgentIds,
         });
         refetchQuery();

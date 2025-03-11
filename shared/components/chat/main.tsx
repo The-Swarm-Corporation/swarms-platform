@@ -4,7 +4,7 @@ import type React from 'react';
 
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Ellipsis, Mic, Send, Shield } from 'lucide-react';
+import { Ellipsis, KeyRound, Mic, Send, Shield, Upload, X } from 'lucide-react';
 import { useAgents } from './hooks/useChatAgents';
 import { useConversations } from './hooks/useConversations';
 import LoadSequence from './components/loader';
@@ -17,27 +17,27 @@ import { SwarmsApiClient } from '@/shared/utils/api/swarms';
 import { useToast } from '../ui/Toasts/use-toast';
 import { useAuthContext } from '../ui/auth.provider';
 import { useFileUpload } from './hooks/useFileUpload';
+import { ProgressBar } from './components/progress';
+import Image from 'next/image';
+import LoadingSpinner from '../loading-spinner';
+import { trpc } from '@/shared/utils/trpc/trpc';
+import Modal from '../modal';
+import Link from 'next/link';
+import { Button } from '../ui/button';
+import { parseJSON } from './helper';
 
 interface SwarmsChatProps {
   modelFunction?: (message: string) => Promise<string>;
 }
 
-const getCurrentTime = () => {
-  return new Date().toLocaleTimeString('en-US', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-};
-
-const swarmsApi = new SwarmsApiClient(
-  process.env.NEXT_PUBLIC_SWARMS_API_KEY || '',
-);
-
 export default function SwarmsChat({}: SwarmsChatProps) {
   const { user } = useAuthContext();
+  const apiKey = trpc.apiKey.getValidApiKey.useQuery();
+
+  const swarmsApi = new SwarmsApiClient(apiKey.data?.key || '');
+
   const { toast } = useToast();
+
   const [isFetching, setIsFetching] = useState(true);
   const [messages, setMessages] = useState<
     Tables<'swarms_cloud_chat_messages'>[]
@@ -45,17 +45,27 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditLoading, setIsEditLoading] = useState(false);
+  const [loadingAfterMessageId, setLoadingAfterMessageId] = useState<
+    string | null
+  >(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognition = useRef<any>(null);
   const isCreatingConversation = useRef(false);
+
   const {
     conversations,
     activeConversation,
     activeConversationId,
+    isActiveLoading,
     isLoading: isLoadingConversations,
     isCreatePending,
     isDeletePending,
     isUpdatePending,
+    editingMessageId,
+    replaceMode,
+    setReplaceMode,
     refetch,
     createConversation,
     updateConversation,
@@ -83,7 +93,35 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   } = useAgents({
     activeConversationId,
   });
-  const { imageUrl } = useFileUpload();
+  const {
+    image,
+    filePath,
+    imageUrl,
+    uploadProgress,
+    uploadStatus,
+    isDeleteFile,
+    setImage,
+    setImageUrl,
+    uploadImage,
+    deleteImage,
+  } = useFileUpload();
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isLoading || isActiveLoading || uploadStatus === 'uploading') return;
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadImage(file, activeConversationId);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    if (isLoading || isActiveLoading || uploadStatus === 'uploading') return;
+
+    e.preventDefault();
+
+    const file = e.dataTransfer.files[0];
+    if (file) await uploadImage(file, activeConversationId);
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -109,8 +147,13 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (
@@ -126,15 +169,12 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   }, [isLoadingConversations, conversations?.length, createConversation]);
 
   useEffect(() => {
-    if (!activeConversation.data) return;
-
-    setMessages((prevMessages) => {
-      if (prevMessages.length === 0) {
-        return activeConversation.data.messages || [];
-      }
-      return prevMessages;
-    });
-  }, [activeConversation?.data]);
+    if (activeConversation?.data?.messages) {
+      setMessages(activeConversation.data.messages);
+    } else {
+      setMessages([]);
+    }
+  }, [activeConversation?.data?.messages]);
 
   const toggleListening = () => {
     if (isListening) {
@@ -147,13 +187,13 @@ export default function SwarmsChat({}: SwarmsChatProps) {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-  
+
     if (!input.trim() || isLoading || !activeConversation) return;
     if (activeConversation.data?.id !== activeConversationId) return;
-  
+
     const userMessage = input.trim();
     const timestamp = new Date().toISOString();
-  
+
     const userMessageObj = {
       id: crypto.randomUUID(),
       chat_id: activeConversation?.data?.id ?? '',
@@ -162,16 +202,16 @@ export default function SwarmsChat({}: SwarmsChatProps) {
       structured_content: null,
       timestamp,
       user_id: user?.id || null,
-      agent_id: "",
+      agent_id: '',
       metadata: null,
-      img: imageUrl || "",
+      img: imageUrl || '',
       created_at: timestamp,
     };
-  
+
     setMessages((prev) => [...prev, userMessageObj]);
     setInput('');
     setIsLoading(true);
-  
+
     try {
       await addMessage({
         content: userMessageObj.content,
@@ -180,7 +220,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         imageUrl: userMessageObj.img,
         agentId: agents?.[0]?.id,
       });
-  
+
       const activeAgents = agents
         .filter((agent) =>
           swarmConfig?.agents?.some(
@@ -188,7 +228,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           ),
         )
         .filter((agent) => agent.is_active);
-  
+
       if (!swarmConfig?.architecture || activeAgents.length < 2) {
         toast({
           description: 'A swarm must have at least two active agents.',
@@ -197,13 +237,129 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         setIsLoading(false);
         return;
       }
-  
+
       const apiAgents = SwarmsApiClient.convertAgentsToApiFormat(
         activeAgents,
         swarmConfig.architecture,
       );
       const swarmType = SwarmsApiClient.getSwarmType(swarmConfig.architecture);
-  
+
+      const swarmRequest = {
+        name: activeConversation.data?.name || 'Chat Session',
+        description: 'Chat interaction',
+        agents: apiAgents,
+        swarm_type: swarmType,
+        task: userMessage,
+        max_loops: 1,
+        img: imageUrl || '',
+      };
+
+      const response = await swarmsApi.executeSwarm(swarmRequest);
+
+      const aiResponseObj = {
+        id: crypto.randomUUID(),
+        chat_id: activeConversation?.data?.id ?? '',
+        role: 'assistant',
+        content: JSON.stringify(response?.output),
+        structured_content: response?.output
+          ? JSON.stringify(response?.output)
+          : null,
+        timestamp: new Date().toISOString(),
+        user_id: null,
+        img: imageUrl || null,
+        agent_id: activeAgents[0]?.id || '',
+        metadata: response?.metadata ? JSON.stringify(response.metadata) : null,
+        created_at: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, aiResponseObj]);
+      setIsLoading(false);
+      setImage(null);
+      setImageUrl(null);
+
+      await addMessage({
+        content: aiResponseObj.content,
+        role: 'assistant',
+        timestamp: aiResponseObj.timestamp,
+        agentId: aiResponseObj.agent_id,
+      });
+      activeConversation.refetch();
+    } catch (error) {
+      console.error('Error:', error);
+      setIsLoading(false);
+      toast({
+        description: 'An error occurred while processing your request.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleMessageEdit = async (
+    updatedMessage: Tables<'swarms_cloud_chat_messages'>,
+    replaceAll: boolean,
+  ) => {
+    setIsLoading(true);
+    setIsEditLoading(true);
+
+    setLoadingAfterMessageId(updatedMessage.id);
+
+    try {
+      const messageContent = parseJSON(updatedMessage.content);
+      const userMessage =
+        typeof messageContent === 'string'
+          ? messageContent
+          : Array.isArray(messageContent)
+            ? messageContent[0]?.content
+            : messageContent?.content || '';
+
+      setMessages((prevMessages) => {
+        const editedMsgIndex = prevMessages.findIndex(
+          (msg) => msg.id === updatedMessage.id,
+        );
+        if (editedMsgIndex === -1) return prevMessages;
+
+        const newMessages = [...prevMessages];
+        newMessages[editedMsgIndex] = updatedMessage;
+
+        if (replaceAll) {
+          return newMessages.slice(0, editedMsgIndex + 1);
+        } else {
+          if (
+            editedMsgIndex + 1 < newMessages.length &&
+            newMessages[editedMsgIndex + 1].role === 'assistant'
+          ) {
+            newMessages.splice(editedMsgIndex + 1, 1);
+          }
+          return newMessages;
+        }
+      });
+
+      if (!userMessage.trim()) {
+        return;
+      }
+
+      const activeAgents = agents
+        .filter((agent) =>
+          swarmConfig?.agents?.some(
+            (configAgent) => configAgent.agent_id === agent.id,
+          ),
+        )
+        .filter((agent) => agent.is_active);
+
+      if (!swarmConfig?.architecture || activeAgents.length < 2) {
+        toast({
+          description: 'A swarm must have at least two active agents.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const apiAgents = SwarmsApiClient.convertAgentsToApiFormat(
+        activeAgents,
+        swarmConfig.architecture,
+      );
+      const swarmType = SwarmsApiClient.getSwarmType(swarmConfig.architecture);
+
       const swarmRequest = {
         name: activeConversation.data?.name || 'Chat Session',
         description: 'Chat interaction',
@@ -212,54 +368,96 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         task: userMessage,
         max_loops: 1,
       };
-  
+
       const response = await swarmsApi.executeSwarm(swarmRequest);
-  
+
       const aiResponseObj = {
         id: crypto.randomUUID(),
-        chat_id: activeConversation?.data?.id ?? '',
+        chat_id: activeConversationId ?? '',
         role: 'assistant',
         content: JSON.stringify(response?.output),
-        structured_content: response?.output ? JSON.stringify(response?.output) : null,
+        structured_content: response?.output
+          ? JSON.stringify(response?.output)
+          : null,
         timestamp: new Date().toISOString(),
         user_id: null,
         img: null,
-        agent_id: activeAgents[0]?.id || "",
+        agent_id: activeAgents[0]?.id || '',
         metadata: response?.metadata ? JSON.stringify(response.metadata) : null,
         created_at: new Date().toISOString(),
+        is_edited: false,
       };
-  
-      setMessages((prev) => [...prev, aiResponseObj]);
-  
+
+      setMessages((prevMessages) => {
+        const newMessages = [...prevMessages];
+        const insertIndex = prevMessages.findIndex(
+          (msg) => msg.id === updatedMessage.id,
+        );
+
+        if (insertIndex !== -1) {
+          newMessages.splice(insertIndex + 1, 0, aiResponseObj);
+          return newMessages;
+        } else {
+          return [...prevMessages, aiResponseObj];
+        }
+      });
+      setIsLoading(false);
+      setLoadingAfterMessageId(null);
+
       await addMessage({
         content: aiResponseObj.content,
         role: 'assistant',
         timestamp: aiResponseObj.timestamp,
         agentId: aiResponseObj.agent_id,
+        afterMessageId: replaceAll ? '' : updatedMessage.id,
       });
 
-      console.log({ responseTwo: response });
-  
+      if (activeConversation && activeConversation.refetch) {
+        activeConversation.refetch();
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error processing edited message:', error);
       toast({
-        description: 'An error occurred while processing your request.',
+        description: 'Failed to process edited message',
         variant: 'destructive',
       });
-    } finally {
       setIsLoading(false);
+      setLoadingAfterMessageId(null);
+    } finally {
+      setIsEditLoading(false);
     }
   };
-  
 
-  const getAgentName = (agentId?: string) => {
-    if (!agentId) return 'System';
-    const agent = agents.find((a) => a.id === agentId);
-    return agent ? agent.name : 'Unknown Agent';
-  };
-
-  if (isFetching) {
+  if (isFetching || apiKey.isLoading) {
     return <LoadSequence onComplete={() => setIsFetching(false)} />;
+  }
+
+  if (!apiKey?.data || !apiKey.data?.key) {
+    return (
+      <Modal
+        isOpen
+        showHeader={false}
+        onClose={() => null}
+        className="border border-[#40403F] py-8"
+      >
+        <div className="flex flex-col gap-4 items-center">
+          <h1 className="text-2xl text-center"> Swarms Agent System</h1>
+          <p className="text-center">
+            Create an api key now to interact with your agents and seamlessly
+            integrate with our platform.
+          </p>
+          <Link
+            href="https://swarms.world/platform/api-keys"
+            target="_blank"
+            className="mt-6"
+          >
+            <Button>
+              <KeyRound size={20} className="mr-2" /> Create API Key
+            </Button>
+          </Link>
+        </div>
+      </Modal>
+    );
   }
 
   return (
@@ -287,27 +485,27 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         />
         <div className="flex-1 flex">
           <div className="flex-1 flex flex-col">
-            <div className="max-lg:hidden bg-white/40 dark:bg-black/40 backdrop-blur-sm border-b border-red-600/20 p-6 transition-colors duration-300">
+            <div className="max-lg:hidden bg-white/40 dark:bg-black/40 backdrop-blur-sm border-b border-[#f9f9f914] p-6 transition-colors duration-300">
               <div className="max-w-screen-xl mx-auto">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center space-x-4">
                     <div className="relative">
-                      <Shield className="w-10 h-10 text-red-500" />
+                      <Shield className="w-10 h-10 text-primary/50" />
                       <motion.div
                         animate={{ opacity: [0.5, 1, 0.5] }}
                         transition={{
                           duration: 2,
                           repeat: Number.POSITIVE_INFINITY,
                         }}
-                        className="absolute inset-0 text-red-500"
+                        className="absolute inset-0 text-primary"
                       >
                         <Shield className="w-10 h-10" />
                       </motion.div>
                     </div>
                     <div>
-                      <h2 className="text-red-500 font-bold text-3xl tracking-wider flex items-center gap-2">
+                      <h2 className="text-primary/70 font-semibold text-3xl tracking-wider flex items-center gap-2">
                         Swarms
-                        <span className="text-xs font-normal opacity-50">
+                        <span className="text-xs text-primary font-normal opacity-50">
                           v1.0.1
                         </span>
                       </h2>
@@ -321,50 +519,103 @@ export default function SwarmsChat({}: SwarmsChatProps) {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              <div className="max-w-screen-xl mx-auto">
+              <div className="max-w-screen-xl mx-auto relative">
                 {messages.map((message, index) => (
-                  <ChatMessage
-                    key={`${message?.id}-${index}`}
-                    message={message}
-                    getAgentName={getAgentName}
-                  />
+                  <>
+                    <ChatMessage
+                      key={`${message?.id}-${index}`}
+                      message={message}
+                      isEditLoading={isEditLoading}
+                      onEdit={handleMessageEdit}
+                      ref={
+                        index === messages.length - 1 &&
+                        (!editingMessageId || replaceMode === 'replaceAll')
+                          ? messagesEndRef
+                          : null
+                      }
+                    />
+
+                    {isLoading &&
+                      loadingAfterMessageId === message.id &&
+                      replaceMode !== 'replaceAll' && (
+                        <div className="flex items-center space-x-2 ml-6 mt-2 mb-6">
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{
+                              duration: 1,
+                              repeat: Number.POSITIVE_INFINITY,
+                            }}
+                            className="w-2 h-2 bg-primary/50 rounded-full"
+                          />
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{
+                              duration: 1,
+                              repeat: Number.POSITIVE_INFINITY,
+                              delay: 0.2,
+                            }}
+                            className="w-2 h-2 bg-primary/50 rounded-full"
+                          />
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{
+                              duration: 1,
+                              repeat: Number.POSITIVE_INFINITY,
+                              delay: 0.4,
+                            }}
+                            className="w-2 h-2 bg-primary/50 rounded-full"
+                          />
+                        </div>
+                      )}
+                  </>
                 ))}
 
-                {isLoading && (
-                  <div className="flex items-center space-x-2">
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{
-                        duration: 1,
-                        repeat: Number.POSITIVE_INFINITY,
-                      }}
-                      className="w-2 h-2 bg-primary/50 rounded-full"
-                    />
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{
-                        duration: 1,
-                        repeat: Number.POSITIVE_INFINITY,
-                        delay: 0.2,
-                      }}
-                      className="w-2 h-2 bg-primary/50 rounded-full"
-                    />
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{
-                        duration: 1,
-                        repeat: Number.POSITIVE_INFINITY,
-                        delay: 0.4,
-                      }}
-                      className="w-2 h-2 bg-primary/50 rounded-full"
-                    />
-                  </div>
+                {isActiveLoading && (
+                  <div className="absolute inset-0 bg-black/40 w-full" />
                 )}
+
+                {isLoading &&
+                  (!loadingAfterMessageId || replaceMode === 'replaceAll') && (
+                    <div className="flex items-center space-x-2">
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{
+                          duration: 1,
+                          repeat: Number.POSITIVE_INFINITY,
+                        }}
+                        className="w-2 h-2 bg-primary/50 rounded-full"
+                      />
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{
+                          duration: 1,
+                          repeat: Number.POSITIVE_INFINITY,
+                          delay: 0.2,
+                        }}
+                        className="w-2 h-2 bg-primary/50 rounded-full"
+                      />
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{
+                          duration: 1,
+                          repeat: Number.POSITIVE_INFINITY,
+                          delay: 0.4,
+                        }}
+                        className="w-2 h-2 bg-primary/50 rounded-full"
+                      />
+                    </div>
+                  )}
                 <div ref={messagesEndRef} />
               </div>
             </div>
 
-            <div className="bg-white/60 dark:bg-black/60 backdrop-blur-sm border-t border-red-600/20 p-6 transition-colors duration-300">
+            {isActiveLoading && (
+              <p className="font-mono absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-xs z-10">
+                Hang on...
+              </p>
+            )}
+
+            <div className="bg-white/60 relative dark:bg-black/60 backdrop-blur-sm border-t f9f9f914 p-6 transition-colors duration-300">
               <form onSubmit={handleSubmit} className="max-w-screen-xl mx-auto">
                 <div className="flex items-center space-x-2 lg:space-x-4">
                   <button
@@ -373,8 +624,8 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                     className={cn(
                       'p-2 lg:p-4 rounded-full transition-all duration-300 relative group',
                       isListening
-                        ? 'bg-red-600/20 text-red-500 border border-red-600/50'
-                        : 'bg-white/80 dark:bg-zinc-950/80 text-red-500 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 border border-red-600/20',
+                        ? 'bg-red-600/20 text-primary/50 border border-red-600/50'
+                        : 'bg-white/80 dark:bg-zinc-950/80 text-primary/50 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 border border-red-600/20',
                     )}
                   >
                     <Mic className="w-3 h-3 lg:w-6 lg:h-6" />
@@ -385,6 +636,77 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                       )}
                     />
                   </button>
+                  <>
+                    <div
+                      className="p-2 lg:p-4 rounded-full cursor-pointer w-fit"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={handleDrop}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        disabled={uploadStatus === 'uploading' || !!imageUrl}
+                        className="hidden"
+                        id={`upload-image-${activeConversationId}`}
+                      />
+                      <label
+                        htmlFor={`upload-image-${activeConversationId}`}
+                        className="cursor-pointer flex items-center text-primary/50"
+                      >
+                        <Upload
+                          className={cn(
+                            'w-3 h-3 lg:w-6 lg:h-6',
+                            uploadStatus === 'uploading' ? 'animate-pulse' : '',
+                          )}
+                        />
+                      </label>
+
+                      {(imageUrl || image) && (
+                        <div className="absolute z-10 -top-[166px] left-0 flex items-end w-full">
+                          <div className="relative h-40 w-40 mt-1 border border-[#40403F]">
+                            <Image
+                              src={imageUrl || image || ''}
+                              alt="Uploaded image"
+                              fill
+                              className="object-cover rounded-md"
+                            />
+                            {imageUrl &&
+                              (isDeleteFile ? (
+                                <LoadingSpinner
+                                  size={15}
+                                  className="absolute -top-2 -right-2"
+                                />
+                              ) : (
+                                <X
+                                  role="button"
+                                  size={20}
+                                  onClick={() =>
+                                    deleteImage(
+                                      filePath ?? '',
+                                      activeConversationId,
+                                    )
+                                  }
+                                  className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full"
+                                />
+                              ))}
+                          </div>
+                          {uploadStatus === 'uploading' &&
+                            uploadProgress > 0 && (
+                              <div className="w-full flex items-end gap-1 bg-white/80 dark:bg-black/70">
+                                <ProgressBar
+                                  progress={uploadProgress}
+                                  className="h-2.5"
+                                />
+                                <span className="text-sm text-black dark:text-[#928E8B]">
+                                  {uploadProgress}%
+                                </span>
+                              </div>
+                            )}
+                        </div>
+                      )}
+                    </div>
+                  </>
                   <div className="flex-1 relative">
                     <input
                       type="text"

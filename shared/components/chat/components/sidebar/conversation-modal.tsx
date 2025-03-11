@@ -47,7 +47,7 @@ export default function ConversationModal({
   return (
     <div
       className={cn(
-        'p-4 border-t border-red-600/20 pb-8 lg:block',
+        'p-4 border-t border-[#f9f9f914] pb-8 lg:block',
         isMobile && isExpanded ? 'block' : 'hidden',
       )}
     >
@@ -56,7 +56,7 @@ export default function ConversationModal({
           {isTrigger ? (
             <Button
               disabled={isCreatePending || isDeletePending}
-              className={`${isExpanded ? 'w-full' : 'w-auto'} bg-red-500 hover:bg-red-600 text-white`}
+              className={`${isExpanded ? 'w-full' : 'w-auto'} bg-primary/40 hover:bg-primary/70 text-white`}
             >
               {!isCreatePending && <Plus className="h-4 w-4" />}
               {isExpanded && <span className="ml-2">New Chat</span>}

@@ -112,22 +112,22 @@ export function ConversationSidebar({
       initial={false}
       animate={{ width: isExpanded ? 280 : isMobile ? 20 : 64 }}
       onClick={handleMobileExpand}
-      className="h-full bg-white/40 max-lg:z-10 dark:bg-black/40 backdrop-blur-sm border-r border-red-600/20 flex max-lg:absolute flex-col"
+      className="h-full bg-white/40 max-lg:z-10 dark:bg-black/40 backdrop-blur-sm border-r border-[#f9f9f914] flex max-lg:absolute flex-col"
     >
       <div
         className={cn(
-          'border-b border-red-600/20 flex items-center justify-between lg:p-4',
+          'border-b border-[#f9f9f914] flex items-center justify-between lg:p-4',
           isMobile && isExpanded ? 'p-4' : '',
         )}
       >
         {isExpanded && (
-          <h2 className="text-red-500 font-bold">Conversations</h2>
+          <h2 className="dark:text-[#f1f1f1] font-bold">Conversations</h2>
         )}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-red-500"
+          className="dark:text-[#f1f1f1]"
         >
           {isExpanded ? (
             <ChevronLeft className="h-4 w-4" />
@@ -164,20 +164,20 @@ export function ConversationSidebar({
                     exit={{ opacity: 0, y: -20 }}
                     className={`p-3 rounded-lg border transition-colors cursor-pointer ${
                       conversation.id === activeId
-                        ? 'bg-white/80 dark:bg-zinc-950/80 border-red-600/50'
-                        : 'bg-transparent border-transparent hover:bg-white/40 dark:hover:bg-zinc-900/40'
+                        ? 'bg-white/80 dark:bg-primary/40 dark:hover:bg-primary/50 border-primary/10'
+                        : 'bg-transparent border-transparent hover:bg-white/40 dark:hover:bg-zinc-900/40 dark:hover:border-[#40403F]'
                     }`}
                     onClick={() => onSwitchConversation(conversation?.id)}
                   >
                     {isExpanded ? (
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <MessageSquare className="w-5 h-5 text-red-500/70" />
+                          <MessageSquare className="w-5 h-5 dark:text-[#f1f1f1]" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-red-500 truncate">
+                            <p className="text-sm font-medium dark:text-[#f1f1f1] truncate">
                               {conversation.name}
                             </p>
-                            <p className="text-xs text-red-500/50">
+                            <p className="text-xs dark:text-[#f1f1f1]/50">
                               {format(
                                 new Date(
                                   conversation?.updated_at ?? new Date(),
@@ -193,7 +193,7 @@ export function ConversationSidebar({
                               variant="ghost"
                               size="icon"
                               disabled={isDeletePending}
-                              className="text-red-500/70 hover:text-red-500"
+                              className="dark:text-[#f1f1f1]/70 group focus-visible:ring-0"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}
@@ -201,7 +201,7 @@ export function ConversationSidebar({
                               {isDeletePending ? (
                                 <LoadingSpinner size={18} />
                               ) : (
-                                <MoreVertical className="h-4 w-4" />
+                                <MoreVertical className="h-4 w-4 group-hover:text-primary" />
                               )}
                             </Button>
                           </DropdownMenuTrigger>
@@ -211,6 +211,7 @@ export function ConversationSidebar({
                                 e.stopPropagation();
                                 handleEditModalOpen(conversation?.id);
                               }}
+                              className='cursor-pointer focus:text-red-600/50'
                             >
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit
@@ -220,12 +221,13 @@ export function ConversationSidebar({
                                 e.stopPropagation();
                                 onExportConversation(conversation.id);
                               }}
+                              className='cursor-pointer focus:text-red-600/50'
                             >
                               <Download className="mr-2 h-4 w-4" />
                               Export
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              className="text-red-600"
+                              className="text-red-600 focus:text-red-600/50 cursor-pointer"
                               onClick={async (e) => {
                                 e.stopPropagation();
                                 await onDeleteConversation(conversation.id);

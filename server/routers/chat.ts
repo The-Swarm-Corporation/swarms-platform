@@ -10,10 +10,12 @@ const messageSchema = z.object({
   timestamp: z.string(),
   imageUrl: z.string().optional(),
   agentId: z.string().optional(),
+  afterMessageId: z.string().optional(),
 });
 
 const conversationSchema = z.object({
   name: z.string().min(1),
+  isActive: z.boolean(),
 });
 
 const agentSchema = z.object({
@@ -26,7 +28,7 @@ const agentSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-const BUCKET_NAME = 'swarms_cloud_chat_file';
+const BUCKET_NAME = 'images';
 
 const chatRouter = router({
   getConversations: userProcedure.query(async ({ ctx }) => {
@@ -36,7 +38,7 @@ const chatRouter = router({
       .from('swarms_cloud_chat')
       .select('*')
       .eq('user_id', user_id)
-      .order('updated_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) throw new Error('Failed to fetch conversations');
 
@@ -73,6 +75,7 @@ const chatRouter = router({
         .from('swarms_cloud_chat')
         .insert({
           name: input.name,
+          is_active: input.isActive,
           user_id,
         })
         .select()
@@ -85,18 +88,28 @@ const chatRouter = router({
   updateConversation: userProcedure
     .input(
       z.object({
-        name: z.string().min(1),
+        name: z.string().min(1).optional(),
         id: z.string(),
+        is_active: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      console.log({ input });
       const user_id = ctx.session.data.user?.id ?? '';
+
+      if (input.is_active) {
+        await ctx.supabase
+          .from('swarms_cloud_chat')
+          .update({ is_active: false })
+          .eq('user_id', user_id);
+      }
 
       const { data, error } = await ctx.supabase
         .from('swarms_cloud_chat')
         .update({
-          name: input.name,
+          ...(input.name ? { name: input.name } : {}),
+          ...(input.is_active !== undefined
+            ? { is_active: input.is_active }
+            : {}),
         })
         .eq('id', input.id)
         .eq('user_id', user_id)
@@ -144,7 +157,89 @@ const chatRouter = router({
         userId: user_id,
         imageUrl: input.message.imageUrl ?? '',
         agentId: input.message.agentId ?? '',
+        afterMessageId: input.message.afterMessageId ?? '',
       });
+    }),
+
+  editMessage: userProcedure
+    .input(
+      z.object({
+        messageId: z.string(),
+        newContent: z.string(),
+        chatId: z.string(),
+        replaceAll: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      if (!user_id) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data: originalMessage, error: messageError } = await ctx.supabase
+        .from('swarms_cloud_chat_messages')
+        .select('*')
+        .eq('id', input.messageId)
+        .eq('user_id', user_id)
+        .single();
+
+      if (messageError) {
+        throw new Error('Failed to find original message or unauthorized');
+      }
+
+      const { data: updatedMessage, error: updateError } = await ctx.supabase
+        .from('swarms_cloud_chat_messages')
+        .update({
+          content: JSON.stringify([
+            { role: 'user', content: input.newContent },
+          ]),
+          is_edited: true,
+        })
+        .eq('id', input.messageId)
+        .eq('user_id', user_id)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new Error('Failed to update message');
+      }
+
+      if (input.replaceAll) {
+        const { error: deleteError } = await ctx.supabase
+          .from('swarms_cloud_chat_messages')
+          .delete()
+          .eq('chat_id', input.chatId)
+          .gt('timestamp', originalMessage.timestamp)
+          .neq('id', input.messageId);
+
+        if (deleteError) {
+          throw new Error('Failed to clean up subsequent messages');
+        }
+      } else {
+        const { data: nextMessages, error: nextError } = await ctx.supabase
+          .from('swarms_cloud_chat_messages')
+          .select('*')
+          .eq('chat_id', input.chatId)
+          .gt('timestamp', originalMessage.timestamp)
+          .order('timestamp', { ascending: true })
+          .limit(2);
+
+        if (!nextError && nextMessages && nextMessages.length > 0) {
+          if (nextMessages[0].role === 'assistant') {
+            const { error: deleteResponseError } = await ctx.supabase
+              .from('swarms_cloud_chat_messages')
+              .delete()
+              .eq('id', nextMessages[0].id);
+
+            if (deleteResponseError) {
+              throw new Error('Failed to delete immediate response');
+            }
+          }
+        }
+      }
+
+      return updatedMessage;
     }),
 });
 
@@ -394,59 +489,11 @@ const swarmConfigRouter = router({
 
 // File Router
 const fileUploadRouter = router({
-  uploadFile: userProcedure
-    .input(
-      z.object({
-        file: z.instanceof(File),
-        chatId: z.string(),
-        fileName: z.string(),
-        fileType: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.data.user?.id;
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      const filePath = `${userId}/${input.chatId}/${input.fileName}`;
-
-      try {
-        const { error: storageError } = await ctx.supabase.storage
-          .from(BUCKET_NAME)
-          .upload(filePath, input.file, {
-            contentType: input.fileType,
-            upsert: true,
-          });
-
-        if (storageError) {
-          throw storageError;
-        }
-
-        const { data: urlData } = ctx.supabase.storage
-          .from(BUCKET_NAME)
-          .getPublicUrl(filePath);
-
-        return {
-          publicUrl: urlData.publicUrl,
-          filePath,
-        };
-      } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to upload file',
-          cause: error,
-        });
-      }
-    }),
-
   deleteFile: userProcedure
     .input(
       z.object({
         filePath: z.string(),
+        chatId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -458,7 +505,7 @@ const fileUploadRouter = router({
         });
       }
 
-      if (!input.filePath.startsWith(`${userId}/`)) {
+      if (!input.filePath.startsWith(`public/${input?.chatId}/`)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Not authorized to delete this file',

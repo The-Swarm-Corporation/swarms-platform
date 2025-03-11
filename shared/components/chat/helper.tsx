@@ -30,3 +30,33 @@ export const parseJSON = (data: any) => {
     return data;
   }
 };
+
+export async function uploadFileWithProgress(
+  uploadUrl: string,
+  file: File,
+  onProgress: (progress: number) => void
+) {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', uploadUrl);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const progress = Math.round((event.loaded / event.total) * 100);
+        onProgress(progress);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        onProgress(100);
+        resolve();
+      } else {
+        reject(new Error(`Upload failed with status ${xhr.status}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Network error during file upload'));
+    xhr.send(file);
+  });
+}

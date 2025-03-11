@@ -147,20 +147,20 @@ export function AgentSidebar({
         initial={false}
         animate={{ width: isExpanded ? 280 : isMobile ? 20 : 64 }}
         onClick={handleMobileExpand}
-        className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-sm border-l max-lg:absolute right-0 max-lg:z-10 border-red-600/20 flex flex-col"
+        className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-sm border-l max-lg:absolute right-0 max-lg:z-10 border-[#f9f9f914] flex flex-col"
       >
         <div
           className={cn(
-            'border-b border-red-600/20 flex items-center justify-between lg:p-4',
+            'border-b border-[#f9f9f914] flex items-center justify-between lg:p-4',
             isMobile && isExpanded ? 'p-4' : '',
           )}
         >
-          {isExpanded && <h2 className="text-red-500 font-bold">Agents</h2>}
+          {isExpanded && <h2 className="dark:text-[#f1f1f1] font-bold">Agents</h2>}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-red-500"
+            className="dark:text-[#f1f1f1]"
           >
             {isExpanded ? (
               <ChevronRight className="h-4 w-4" />
@@ -176,7 +176,7 @@ export function AgentSidebar({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="p-4 border-b border-red-600/20 relative"
+              className="p-4 border-b border-[#f9f9f914] relative"
             >
               <SwarmSelector
                 value={swarmArchitecture}
@@ -203,14 +203,14 @@ export function AgentSidebar({
                   layout
                   className={`p-3 rounded-lg border transition-colors ${
                     agent.is_active
-                      ? 'bg-white/80 dark:bg-zinc-950/80 border-red-600/50'
-                      : 'bg-zinc-100/80 dark:bg-zinc-900/80 border-red-600/20'
+                      ? 'bg-white/80 dark:bg-primary/40 dark:hover:bg-primary/50 border-primary/10'
+                      : 'bg-zinc-100/80 dark:bg-zinc-900/80 border-[#40403F]'
                   }`}
                 >
                   {isExpanded ? (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-red-500">
+                        <h3 className="font-medium dark:text-[#f1f1f1]">
                           {agent?.name}
                         </h3>
                         <div className="flex items-center gap-2">
@@ -220,7 +220,7 @@ export function AgentSidebar({
                                 variant="ghost"
                                 size="icon"
                                 disabled={isToggleAgent || isDeleteAgent}
-                                className="text-red-500/70 hover:text-red-500"
+                                className="dark:text-[#f1f1f1]/70 hover:dark:text-[#f1f1f1]"
                               >
                                 <Settings className="h-4 w-4" />
                               </Button>
@@ -231,13 +231,13 @@ export function AgentSidebar({
                                   e.stopPropagation();
                                   setEditingAgent(editAgent);
                                 }}
-                                className="cursor-pointer"
+                                className="cursor-pointer focus:text-red-600/50"
                               >
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                className="text-red-600 cursor-pointer"
+                                className="text-red-600 cursor-pointer focus:text-red-600/50"
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   await onRemoveAgent(agent?.id);
@@ -256,8 +256,8 @@ export function AgentSidebar({
                             onClick={() => onToggleAgent(agent?.id)}
                             className={
                               agent.is_active
-                                ? 'text-red-500'
-                                : 'text-red-500/50'
+                                ? 'dark:text-[#f1f1f1]'
+                                : 'dark:text-[#f1f1f1]/50'
                             }
                           >
                             {agent?.is_active ? 'Active' : 'Inactive'}{' '}
@@ -267,10 +267,10 @@ export function AgentSidebar({
                           </Button>
                         </div>
                       </div>
-                      <p className="text-sm text-red-500/70">
+                      <p className={"text-sm dark:text-[#f1f1f1]/70"}>
                         {getTruncatedString(agent?.description ?? '', 50)}
                       </p>
-                      <div className="text-xs text-red-500/50">
+                      <div className="text-xs dark:text-[#f1f1f1]/50">
                         Model: {agent.model}
                       </div>
                     </div>
@@ -289,7 +289,7 @@ export function AgentSidebar({
 
         <div
           className={cn(
-            'p-4 border-t border-red-600/20 pb-8 lg:block',
+            'p-4 border-t border-[#f9f9f914] pb-8 lg:block',
             isMobile && isExpanded ? 'block' : 'hidden',
           )}
         >
@@ -297,7 +297,7 @@ export function AgentSidebar({
             <SheetTrigger asChild>
               <Button
                 disabled={isCreateAgent || isUpdateAgent}
-                className={`${isExpanded ? 'w-full' : 'w-auto'} bg-red-500 hover:bg-red-600 text-white`}
+                className={`${isExpanded ? 'w-full' : 'w-auto'} bg-primary/40 hover:bg-primary/70 text-white`}
               >
                 <Plus className="h-4 w-4" />
                 {isExpanded && <span className="ml-2">Add Agent</span>}

@@ -1,8 +1,9 @@
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { Tables } from '@/types_db';
 import { useState, useCallback } from 'react';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { MAX_FILE_SIZE } from '@/shared/utils/constants';
+import { uploadFileWithProgress } from '../helper';
+import { createClient } from '@/shared/utils/supabase/client';
 
 export type FileWithPreview = {
   file: File;
@@ -18,49 +19,53 @@ export type FileWithPreview = {
 
 export function useFileUpload() {
   const { toast } = useToast();
-  const [image, setImage] = useState<File | null>(null);
+  const [image, setImage] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [filePath, setFilePath] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadStatus, setUploadStatus] = useState<
     'idle' | 'uploading' | 'success' | 'error'
   >('idle');
 
-  const uploadFileMutation = trpc.fileUpload.uploadFile.useMutation();
   const deleteFileMutation = trpc.fileUpload.deleteFile.useMutation();
 
   const uploadImage = useCallback(
     async (file: File, chatId: string) => {
-      if(file.size > MAX_FILE_SIZE){
+      if (file.size > MAX_FILE_SIZE) {
         toast({
           description: 'File size exceeds the maximum limit of 10MB.',
           variant: 'destructive',
         });
         return null;
       }
-      setImage(file);
+
+      setImage(URL.createObjectURL(file));
       setUploadProgress(0);
       setUploadStatus('uploading');
 
-      try {
-        const fileData = await uploadFileMutation.mutateAsync({
-          file,
-          chatId,
-          fileName: file.name,
-          fileType: file.type,
-        });
+      const filePath = `public/${chatId}/${file.name}`;
+      const supabase = createClient();
 
-        setImageUrl(fileData?.publicUrl);
+      try {
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from('images')
+          .createSignedUploadUrl(filePath);
+
+        if (signedUrlError) throw signedUrlError;
+
+        const uploadUrl = signedUrlData.signedUrl;
+
+        await uploadFileWithProgress(uploadUrl, file, setUploadProgress);
+
+        const { data: publicUrlData } = supabase.storage
+          .from('images')
+          .getPublicUrl(filePath);
+
+        setImageUrl(publicUrlData.publicUrl);
+        setFilePath(filePath);
         setUploadStatus('success');
 
-        // Simulate progress bar
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += 20;
-          setUploadProgress(progress);
-          if (progress >= 100) clearInterval(interval);
-        }, 100);
-
-        return fileData?.publicUrl;
+        return publicUrlData.publicUrl;
       } catch (error) {
         setUploadStatus('error');
         toast({
@@ -72,13 +77,13 @@ export function useFileUpload() {
         return null;
       }
     },
-    [uploadFileMutation],
+    []
   );
 
   const deleteImage = useCallback(
-    async (filePath: string) => {
+    async (filePath: string, chatId: string) => {
       try {
-        await deleteFileMutation.mutateAsync({ filePath });
+        await deleteFileMutation.mutateAsync({ filePath, chatId });
         setImage(null);
         setImageUrl(null);
         toast({
@@ -98,8 +103,10 @@ export function useFileUpload() {
   return {
     image,
     imageUrl,
+    filePath,
     uploadProgress,
     uploadStatus,
+    isDeleteFile: deleteFileMutation.isPending,
     uploadImage,
     deleteImage,
     setImage,
