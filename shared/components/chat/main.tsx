@@ -521,9 +521,8 @@ export default function SwarmsChat({}: SwarmsChatProps) {
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               <div className="max-w-screen-xl mx-auto relative">
                 {messages.map((message, index) => (
-                  <>
+                  <div key={`${message?.id}-${index}`}>
                     <ChatMessage
-                      key={`${message?.id}-${index}`}
                       message={message}
                       isEditLoading={isEditLoading}
                       onEdit={handleMessageEdit}
@@ -567,7 +566,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                           />
                         </div>
                       )}
-                  </>
+                  </div>
                 ))}
 
                 {isActiveLoading && (

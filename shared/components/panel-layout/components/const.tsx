@@ -97,11 +97,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       title: 'Explorer',
       link: PLATFORM.EXPLORER,
     },
-    {
-      icon: <MessageSquareMore size={24} />,
-      title: 'Conversations',
-      link: PLATFORM.CHAT,
-    },
+    // {
+    //   icon: <MessageSquareMore size={24} />,
+    //   title: 'Conversations',
+    //   link: PLATFORM.CHAT,
+    // },
     {
       icon: <FileSpreadsheet size={24} />,
       title: 'Spreadsheet Swarm',
