@@ -1,464 +1,761 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
+import type React from 'react';
+
+import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Ellipsis, KeyRound, Mic, Send, Shield, Upload, X } from 'lucide-react';
+import { useAgents } from './hooks/useChatAgents';
+import { useConversations } from './hooks/useConversations';
+import LoadSequence from './components/loader';
+import { ConversationSidebar } from './components/sidebar/conversations';
+import { cn } from '@/shared/utils/cn';
+import { AgentSidebar } from './components/sidebar';
+import ChatMessage from './components/message';
+import { Tables } from '@/types_db';
+import { SwarmsApiClient } from '@/shared/utils/api/swarms';
+import { useToast } from '../ui/Toasts/use-toast';
+import { useAuthContext } from '../ui/auth.provider';
+import { useFileUpload } from './hooks/useFileUpload';
+import { ProgressBar } from './components/progress';
+import Image from 'next/image';
+import LoadingSpinner from '../loading-spinner';
+import { trpc } from '@/shared/utils/trpc/trpc';
+import Modal from '../modal';
+import Link from 'next/link';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { ScrollArea } from '../ui/scroll-area';
-import { Switch } from '../ui/switch';
-import { Textarea } from '../ui/textarea';
-import {
-  Settings,
-  Share2,
-  Download,
-  Send,
-  Plus,
-  MessageSquare,
-} from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle, DialogFooter } from '../ui/dialog';
+import { parseJSON } from './helper';
 
-interface Agent {
-  id: number;
-  name: string;
-  model: string;
-  systemPrompt: string;
-  active: boolean;
+interface SwarmsChatProps {
+  modelFunction?: (message: string) => Promise<string>;
 }
 
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'agent';
-  agentId?: number;
-  timestamp: Date;
-}
+export default function SwarmsChat({}: SwarmsChatProps) {
+  const { user } = useAuthContext();
+  const apiKey = trpc.apiKey.getValidApiKey.useQuery();
 
-interface Chat {
-  id: number;
-  title: string;
-  timestamp: string;
-  messages: Message[];
-}
+  const swarmsApi = new SwarmsApiClient(apiKey.data?.key || '');
 
-const generateChatTitle = async (message: string): Promise<string> => {
-  try {
-    const res = await fetch('/api/generateTitle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
-    });
-    const data = await res.json();
-    return data.title || 'New Chat';
-  } catch (error) {
-    console.error('Error generating chat title:', error);
-    return 'New Chat';
-  }
-};
+  const { toast } = useToast();
 
-const ChatInterface = () => {
-  const [darkMode, setDarkMode] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [isFetching, setIsFetching] = useState(true);
+  const [messages, setMessages] = useState<
+    Tables<'swarms_cloud_chat_messages'>[]
+  >([]);
   const [input, setInput] = useState('');
+  const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showNewChatDialog, setShowNewChatDialog] = useState(false);
-  const [newChatTitle, setNewChatTitle] = useState('');
-  const [agents, setAgents] = useState<Agent[]>([
-    {
-      id: 1,
-      name: 'Assistant',
-      model: 'gpt-4',
-      systemPrompt: 'You are a helpful assistant.',
-      active: true,
-    },
-  ]);
-  const [selectedChat, setSelectedChat] = useState<number | null>(null);
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [mode, setMode] = useState<
-    'concurrent' | 'hierarchical' | 'sequential'
-  >('concurrent');
+  const [isEditLoading, setIsEditLoading] = useState(false);
+  const [loadingAfterMessageId, setLoadingAfterMessageId] = useState<
+    string | null
+  >(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognition = useRef<any>(null);
+  const isCreatingConversation = useRef(false);
+
+  const {
+    conversations,
+    activeConversation,
+    activeConversationId,
+    isActiveLoading,
+    isLoading: isLoadingConversations,
+    isCreatePending,
+    isDeletePending,
+    isUpdatePending,
+    editingMessageId,
+    replaceMode,
+    setReplaceMode,
+    refetch,
+    createConversation,
+    updateConversation,
+    switchConversation,
+    deleteConversation,
+    addMessage,
+    exportConversation,
+  } = useConversations();
+  const {
+    agents,
+    isLoading: isLoadingAgents,
+    swarmConfig,
+    openAgentModal,
+    setOpenAgentModal,
+    agentsRefetch,
+    addAgent,
+    updateAgent,
+    removeAgent,
+    isCreateAgent,
+    isUpdateAgent,
+    isToggleAgent,
+    isDeleteAgent,
+    updateSwarmArchitecture,
+    toggleAgent,
+  } = useAgents({
+    activeConversationId,
+  });
+  const {
+    image,
+    filePath,
+    imageUrl,
+    uploadProgress,
+    uploadStatus,
+    isDeleteFile,
+    setImage,
+    setImageUrl,
+    uploadImage,
+    deleteImage,
+  } = useFileUpload();
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isLoading || isActiveLoading || uploadStatus === 'uploading') return;
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadImage(file, activeConversationId);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    if (isLoading || isActiveLoading || uploadStatus === 'uploading') return;
+
+    e.preventDefault();
+
+    const file = e.dataTransfer.files[0];
+    if (file) await uploadImage(file, activeConversationId);
+  };
 
   useEffect(() => {
-    const savedChats = localStorage.getItem('chats');
-    if (savedChats) {
-      setChats(JSON.parse(savedChats));
-    }
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
 
-    const savedDarkMode = localStorage.getItem('darkMode');
-    if (savedDarkMode) {
-      setDarkMode(JSON.parse(savedDarkMode));
+      if (SpeechRecognition) {
+        recognition.current = new SpeechRecognition();
+        recognition.current.continuous = true;
+        recognition.current.interimResults = true;
+
+        recognition.current.onresult = (event: any) => {
+          const transcript = Array.from(event.results)
+            .map((result: any) => result[0])
+            .map((result) => result.transcript)
+            .join('');
+
+          setInput(transcript);
+        };
+      }
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('chats', JSON.stringify(chats));
-  }, [chats]);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [messages]);
 
   useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-  }, [darkMode]);
+    if (
+      !isLoadingConversations &&
+      conversations?.length === 0 &&
+      !isCreatingConversation.current
+    ) {
+      isCreatingConversation.current = true;
+      createConversation('New Chat').finally(() => {
+        isCreatingConversation.current = false;
+      });
+    }
+  }, [isLoadingConversations, conversations?.length, createConversation]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  useEffect(() => {
+    if (activeConversation?.data?.messages) {
+      setMessages(activeConversation.data.messages);
+    } else {
+      setMessages([]);
+    }
+  }, [activeConversation?.data?.messages]);
 
-    const userMessage: Message = {
+  const toggleListening = () => {
+    if (isListening) {
+      recognition.current?.stop();
+    } else {
+      recognition.current?.start();
+    }
+    setIsListening(!isListening);
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+
+    if (!input.trim() || isLoading || !activeConversation) return;
+    if (activeConversation.data?.id !== activeConversationId) return;
+
+    const userMessage = input.trim();
+    const timestamp = new Date().toISOString();
+
+    const userMessageObj = {
       id: crypto.randomUUID(),
-      text: input,
-      sender: 'user',
-      timestamp: new Date(),
+      chat_id: activeConversation?.data?.id ?? '',
+      role: 'user',
+      content: JSON.stringify([{ role: 'user', content: userMessage }]),
+      structured_content: null,
+      timestamp,
+      user_id: user?.id || null,
+      agent_id: '',
+      metadata: null,
+      img: imageUrl || '',
+      created_at: timestamp,
     };
 
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    setMessages((prev) => [...prev, userMessageObj]);
+    setInput('');
     setIsLoading(true);
 
-    if (!selectedChat) {
-      // Create a new chat and generate a title
-      try {
-        const title = await generateChatTitle(input);
-        const newChat = {
-          id: Date.now(),
-          title,
-          timestamp: new Date().toLocaleTimeString(),
-          messages: updatedMessages,
-        };
-
-        setChats([newChat, ...chats]);
-        setSelectedChat(newChat.id);
-      } catch (error) {
-        console.error('Error generating chat title:', error);
-      }
-    } else {
-      // Update existing chat
-      const updatedChats = chats.map((chat) =>
-        chat.id === selectedChat
-          ? { ...chat, messages: updatedMessages }
-          : chat,
-      );
-      setChats(updatedChats);
-    }
-
     try {
-      const activeAgents = agents.filter((agent) => agent.active);
-      const responses = await Promise.all(
-        activeAgents.map((agent) =>
-          fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: input,
-              agentId: agent.id,
-              model: agent.model,
-              systemPrompt: agent.systemPrompt,
-              mode, // Pass the selected mode to the API
-            }),
-          }).then((res) => res.json()),
-        ),
-      );
-
-      const newMessages = [...updatedMessages];
-      responses.forEach((response, index) => {
-        const agentMessage: Message = {
-          id: crypto.randomUUID(),
-          text: response.text,
-          sender: 'agent',
-          agentId: activeAgents[index].id,
-          timestamp: new Date(),
-        };
-        newMessages.push(agentMessage);
+      await addMessage({
+        content: userMessageObj.content,
+        role: 'user',
+        timestamp: userMessageObj.timestamp,
+        imageUrl: userMessageObj.img,
+        agentId: agents?.[0]?.id,
       });
 
-      setMessages(newMessages);
+      const activeAgents = agents
+        .filter((agent) =>
+          swarmConfig?.agents?.some(
+            (configAgent) => configAgent.agent_id === agent.id,
+          ),
+        )
+        .filter((agent) => agent.is_active);
 
-      if (selectedChat) {
-        const updatedChats = chats.map((chat) =>
-          chat.id === selectedChat ? { ...chat, messages: newMessages } : chat,
+      if (!swarmConfig?.architecture || activeAgents.length < 2) {
+        toast({
+          description: 'A swarm must have at least two active agents.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const apiAgents = SwarmsApiClient.convertAgentsToApiFormat(
+        activeAgents,
+        swarmConfig.architecture,
+      );
+      const swarmType = SwarmsApiClient.getSwarmType(swarmConfig.architecture);
+
+      const swarmRequest = {
+        name: activeConversation.data?.name || 'Chat Session',
+        description: 'Chat interaction',
+        agents: apiAgents,
+        swarm_type: swarmType,
+        task: userMessage,
+        max_loops: 1,
+        img: imageUrl || '',
+      };
+
+      const response = await swarmsApi.executeSwarm(swarmRequest);
+
+      const aiResponseObj = {
+        id: crypto.randomUUID(),
+        chat_id: activeConversation?.data?.id ?? '',
+        role: 'assistant',
+        content: JSON.stringify(response?.output),
+        structured_content: response?.output
+          ? JSON.stringify(response?.output)
+          : null,
+        timestamp: new Date().toISOString(),
+        user_id: null,
+        img: imageUrl || null,
+        agent_id: activeAgents[0]?.id || '',
+        metadata: response?.metadata ? JSON.stringify(response.metadata) : null,
+        created_at: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, aiResponseObj]);
+      setIsLoading(false);
+      setImage(null);
+      setImageUrl(null);
+
+      await addMessage({
+        content: aiResponseObj.content,
+        role: 'assistant',
+        timestamp: aiResponseObj.timestamp,
+        agentId: aiResponseObj.agent_id,
+      });
+      activeConversation.refetch();
+    } catch (error) {
+      console.error('Error:', error);
+      setIsLoading(false);
+      toast({
+        description: 'An error occurred while processing your request.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleMessageEdit = async (
+    updatedMessage: Tables<'swarms_cloud_chat_messages'>,
+    replaceAll: boolean,
+  ) => {
+    setIsLoading(true);
+    setIsEditLoading(true);
+
+    setLoadingAfterMessageId(updatedMessage.id);
+
+    try {
+      const messageContent = parseJSON(updatedMessage.content);
+      const userMessage =
+        typeof messageContent === 'string'
+          ? messageContent
+          : Array.isArray(messageContent)
+            ? messageContent[0]?.content
+            : messageContent?.content || '';
+
+      setMessages((prevMessages) => {
+        const editedMsgIndex = prevMessages.findIndex(
+          (msg) => msg.id === updatedMessage.id,
         );
-        setChats(updatedChats);
+        if (editedMsgIndex === -1) return prevMessages;
+
+        const newMessages = [...prevMessages];
+        newMessages[editedMsgIndex] = updatedMessage;
+
+        if (replaceAll) {
+          return newMessages.slice(0, editedMsgIndex + 1);
+        } else {
+          if (
+            editedMsgIndex + 1 < newMessages.length &&
+            newMessages[editedMsgIndex + 1].role === 'assistant'
+          ) {
+            newMessages.splice(editedMsgIndex + 1, 1);
+          }
+          return newMessages;
+        }
+      });
+
+      if (!userMessage.trim()) {
+        return;
+      }
+
+      const activeAgents = agents
+        .filter((agent) =>
+          swarmConfig?.agents?.some(
+            (configAgent) => configAgent.agent_id === agent.id,
+          ),
+        )
+        .filter((agent) => agent.is_active);
+
+      if (!swarmConfig?.architecture || activeAgents.length < 2) {
+        toast({
+          description: 'A swarm must have at least two active agents.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const apiAgents = SwarmsApiClient.convertAgentsToApiFormat(
+        activeAgents,
+        swarmConfig.architecture,
+      );
+      const swarmType = SwarmsApiClient.getSwarmType(swarmConfig.architecture);
+
+      const swarmRequest = {
+        name: activeConversation.data?.name || 'Chat Session',
+        description: 'Chat interaction',
+        agents: apiAgents,
+        swarm_type: swarmType,
+        task: userMessage,
+        max_loops: 1,
+      };
+
+      const response = await swarmsApi.executeSwarm(swarmRequest);
+
+      const aiResponseObj = {
+        id: crypto.randomUUID(),
+        chat_id: activeConversationId ?? '',
+        role: 'assistant',
+        content: JSON.stringify(response?.output),
+        structured_content: response?.output
+          ? JSON.stringify(response?.output)
+          : null,
+        timestamp: new Date().toISOString(),
+        user_id: null,
+        img: null,
+        agent_id: activeAgents[0]?.id || '',
+        metadata: response?.metadata ? JSON.stringify(response.metadata) : null,
+        created_at: new Date().toISOString(),
+        is_edited: false,
+      };
+
+      setMessages((prevMessages) => {
+        const newMessages = [...prevMessages];
+        const insertIndex = prevMessages.findIndex(
+          (msg) => msg.id === updatedMessage.id,
+        );
+
+        if (insertIndex !== -1) {
+          newMessages.splice(insertIndex + 1, 0, aiResponseObj);
+          return newMessages;
+        } else {
+          return [...prevMessages, aiResponseObj];
+        }
+      });
+      setIsLoading(false);
+      setLoadingAfterMessageId(null);
+
+      await addMessage({
+        content: aiResponseObj.content,
+        role: 'assistant',
+        timestamp: aiResponseObj.timestamp,
+        agentId: aiResponseObj.agent_id,
+        afterMessageId: replaceAll ? '' : updatedMessage.id,
+      });
+
+      if (activeConversation && activeConversation.refetch) {
+        activeConversation.refetch();
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-    } finally {
+      console.error('Error processing edited message:', error);
+      toast({
+        description: 'Failed to process edited message',
+        variant: 'destructive',
+      });
       setIsLoading(false);
+      setLoadingAfterMessageId(null);
+    } finally {
+      setIsEditLoading(false);
     }
-
-    setInput('');
-  };
-  const createNewChat = () => {
-    if (!newChatTitle.trim()) return;
-
-    const newChat = {
-      id: Date.now(),
-      title: newChatTitle,
-      timestamp: new Date().toLocaleTimeString(),
-      messages: [],
-    };
-    setChats([newChat, ...chats]);
-    setSelectedChat(newChat.id);
-    setMessages([]);
-    setNewChatTitle('');
-    setShowNewChatDialog(false);
   };
 
-  const updateAgent = (id: number, updates: Partial<Agent>) => {
-    setAgents((prev) =>
-      prev.map((agent) => (agent.id === id ? { ...agent, ...updates } : agent)),
+  if (isFetching || apiKey.isLoading) {
+    return <LoadSequence onComplete={() => setIsFetching(false)} />;
+  }
+
+  if (!apiKey?.data || !apiKey.data?.key) {
+    return (
+      <Modal
+        isOpen
+        showHeader={false}
+        onClose={() => null}
+        className="border border-[#40403F] py-8"
+      >
+        <div className="flex flex-col gap-4 items-center">
+          <h1 className="text-2xl text-center"> Swarms Agent System</h1>
+          <p className="text-center">
+            Create an api key now to interact with your agents and seamlessly
+            integrate with our platform.
+          </p>
+          <Link
+            href="https://swarms.world/platform/api-keys"
+            target="_blank"
+            className="mt-6"
+          >
+            <Button>
+              <KeyRound size={20} className="mr-2" /> Create API Key
+            </Button>
+          </Link>
+        </div>
+      </Modal>
     );
-  };
+  }
 
   return (
-    <div className={`w-screen h-screen flex ${darkMode ? 'dark' : ''}`}>
-      <div className="w-full h-full flex bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        {/* Left Sidebar - Chat List */}
-        <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all">
-          <div className="p-4">
-            <Button
-              className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white shadow-sm transition-all"
-              onClick={() => setShowNewChatDialog(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" /> New Chat
-            </Button>
-          </div>
-          <ScrollArea className="h-[calc(100vh-80px)]">
-            {chats.map((chat) => (
-              <div
-                key={chat.id}
-                className={`mx-2 mb-2 p-3 rounded-lg cursor-pointer transition-all
-                  ${
-                    selectedChat === chat.id
-                      ? 'bg-blue-50 dark:bg-blue-900/20'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                onClick={() => {
-                  setSelectedChat(chat.id);
-                  setMessages(chat.messages || []);
-                }}
-              >
-                <div className="flex items-center">
-                  <MessageSquare className="h-4 w-4 mr-2 text-blue-500" />
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {chat.title}
+    <div
+      className={cn(
+        'fixed inset-0 z-50 lg:ml-[80px] max-lg:mt-16 transition-colors duration-300',
+        'bg-zinc-50 dark:bg-[#000000]',
+      )}
+    >
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-100/50 to-zinc-50/80 dark:from-zinc-950/50 dark:to-black" />
+      <div className="relative w-full h-full flex">
+        <ConversationSidebar
+          conversations={conversations || []}
+          activeId={activeConversationId}
+          isLoading={isLoadingConversations}
+          isDeletePending={isDeletePending}
+          isCreatePending={isCreatePending}
+          isUpdatePending={isUpdatePending}
+          conversationRefetch={refetch}
+          onUpdateConversation={updateConversation}
+          onCreateConversation={createConversation}
+          onSwitchConversation={switchConversation}
+          onDeleteConversation={deleteConversation}
+          onExportConversation={exportConversation}
+        />
+        <div className="flex-1 flex">
+          <div className="flex-1 flex flex-col">
+            <div className="max-lg:hidden bg-white/40 dark:bg-black/40 backdrop-blur-sm border-b border-[#f9f9f914] p-6 transition-colors duration-300">
+              <div className="max-w-screen-xl mx-auto">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      <Shield className="w-10 h-10 text-primary/50" />
+                      <motion.div
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{
+                          duration: 2,
+                          repeat: Number.POSITIVE_INFINITY,
+                        }}
+                        className="absolute inset-0 text-primary"
+                      >
+                        <Shield className="w-10 h-10" />
+                      </motion.div>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {chat.timestamp}
+                    <div>
+                      <h2 className="text-primary/70 font-semibold text-3xl tracking-wider flex items-center gap-2">
+                        Swarms
+                        <span className="text-xs text-primary font-normal opacity-50">
+                          v1.0.1
+                        </span>
+                      </h2>
+                      <p className="text-red-500/50 text-sm tracking-wide">
+                        Swarms Agent System
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </ScrollArea>
-        </div>
+            </div>
 
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-gray-800">
-          <div className="border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between bg-white dark:bg-gray-800 shadow-sm">
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Multi-Agent Chat
-            </h1>
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="w-96 bg-white dark:bg-gray-800">
-                  <h3 className="text-lg font-semibold mb-4">Settings</h3>
-                  <ScrollArea className="h-[calc(100vh-120px)] pr-4">
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <span>Dark Mode</span>
-                        <Switch
-                          checked={darkMode}
-                          onCheckedChange={setDarkMode}
-                        />
-                      </div>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium">Agents</h4>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setAgents([
-                                ...agents,
-                                {
-                                  id: Date.now(),
-                                  name: '',
-                                  model: '',
-                                  systemPrompt: '',
-                                  active: true,
-                                },
-                              ])
-                            }
-                          >
-                            Add Agent
-                          </Button>
-                        </div>
-                        {agents.map((agent) => (
-                          <AgentConfig
-                            key={agent.id}
-                            agent={agent}
-                            updateAgent={updateAgent}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="max-w-screen-xl mx-auto relative">
+                {messages.map((message, index) => (
+                  <>
+                    <ChatMessage
+                      key={`${message?.id}-${index}`}
+                      message={message}
+                      isEditLoading={isEditLoading}
+                      onEdit={handleMessageEdit}
+                      ref={
+                        index === messages.length - 1 &&
+                        (!editingMessageId || replaceMode === 'replaceAll')
+                          ? messagesEndRef
+                          : null
+                      }
+                    />
+
+                    {isLoading &&
+                      loadingAfterMessageId === message.id &&
+                      replaceMode !== 'replaceAll' && (
+                        <div className="flex items-center space-x-2 ml-6 mt-2 mb-6">
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{
+                              duration: 1,
+                              repeat: Number.POSITIVE_INFINITY,
+                            }}
+                            className="w-2 h-2 bg-primary/50 rounded-full"
                           />
-                        ))}
-                      </div>
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Mode</h4>
-                        <select
-                          value={mode}
-                          onChange={(e) =>
-                            setMode(
-                              e.target.value as
-                                | 'concurrent'
-                                | 'hierarchical'
-                                | 'sequential',
-                            )
-                          }
-                          className="w-full p-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700"
-                        >
-                          <option value="concurrent">Concurrent</option>
-                          <option value="hierarchical">Hierarchical</option>
-                          <option value="sequential">Sequential</option>
-                        </select>
-                      </div>
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{
+                              duration: 1,
+                              repeat: Number.POSITIVE_INFINITY,
+                              delay: 0.2,
+                            }}
+                            className="w-2 h-2 bg-primary/50 rounded-full"
+                          />
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{
+                              duration: 1,
+                              repeat: Number.POSITIVE_INFINITY,
+                              delay: 0.4,
+                            }}
+                            className="w-2 h-2 bg-primary/50 rounded-full"
+                          />
+                        </div>
+                      )}
+                  </>
+                ))}
+
+                {isActiveLoading && (
+                  <div className="absolute inset-0 bg-black/40 w-full" />
+                )}
+
+                {isLoading &&
+                  (!loadingAfterMessageId || replaceMode === 'replaceAll') && (
+                    <div className="flex items-center space-x-2">
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{
+                          duration: 1,
+                          repeat: Number.POSITIVE_INFINITY,
+                        }}
+                        className="w-2 h-2 bg-primary/50 rounded-full"
+                      />
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{
+                          duration: 1,
+                          repeat: Number.POSITIVE_INFINITY,
+                          delay: 0.2,
+                        }}
+                        className="w-2 h-2 bg-primary/50 rounded-full"
+                      />
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{
+                          duration: 1,
+                          repeat: Number.POSITIVE_INFINITY,
+                          delay: 0.4,
+                        }}
+                        className="w-2 h-2 bg-primary/50 rounded-full"
+                      />
                     </div>
-                  </ScrollArea>
-                </SheetContent>
-              </Sheet>
+                  )}
+                <div ref={messagesEndRef} />
+              </div>
             </div>
-          </div>
 
-          {/* Messages Area */}
-          <ScrollArea className="flex-1 p-4 bg-gray-50 dark:bg-gray-900">
-            <div className="space-y-4 max-w-4xl mx-auto">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[70%] p-4 rounded-2xl shadow-sm ${
-                      message.sender === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                    }`}
-                  >
-                    {message.agentId && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        {agents.find((a) => a.id === message.agentId)?.name}
-                      </div>
+            {isActiveLoading && (
+              <p className="font-mono absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-xs z-10">
+                Hang on...
+              </p>
+            )}
+
+            <div className="bg-white/60 relative dark:bg-black/60 backdrop-blur-sm border-t f9f9f914 p-6 transition-colors duration-300">
+              <form onSubmit={handleSubmit} className="max-w-screen-xl mx-auto">
+                <div className="flex items-center space-x-2 lg:space-x-4">
+                  <button
+                    type="button"
+                    onClick={toggleListening}
+                    className={cn(
+                      'p-2 lg:p-4 rounded-full transition-all duration-300 relative group',
+                      isListening
+                        ? 'bg-red-600/20 text-primary/50 border border-red-600/50'
+                        : 'bg-white/80 dark:bg-zinc-950/80 text-primary/50 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 border border-red-600/20',
                     )}
-                    {message.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+                  >
+                    <Mic className="w-3 h-3 lg:w-6 lg:h-6" />
+                    <div
+                      className={cn(
+                        'absolute inset-0 rounded-full',
+                        isListening && 'animate-ping bg-red-600/20',
+                      )}
+                    />
+                  </button>
+                  <>
+                    <div
+                      className="p-2 lg:p-4 rounded-full cursor-pointer w-fit"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={handleDrop}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        disabled={uploadStatus === 'uploading' || !!imageUrl}
+                        className="hidden"
+                        id={`upload-image-${activeConversationId}`}
+                      />
+                      <label
+                        htmlFor={`upload-image-${activeConversationId}`}
+                        className="cursor-pointer flex items-center text-primary/50"
+                      >
+                        <Upload
+                          className={cn(
+                            'w-3 h-3 lg:w-6 lg:h-6',
+                            uploadStatus === 'uploading' ? 'animate-pulse' : '',
+                          )}
+                        />
+                      </label>
 
-          {/* Input Area */}
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
-            <div className="max-w-4xl mx-auto flex gap-4">
-              <Input
-                placeholder="Type your message..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                className="flex-1 bg-gray-50 dark:bg-gray-900"
-                disabled={isLoading}
-              />
-              <Button
-                onClick={handleSend}
-                disabled={isLoading}
-                className="bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+                      {(imageUrl || image) && (
+                        <div className="absolute z-10 -top-[166px] left-0 flex items-end w-full">
+                          <div className="relative h-40 w-40 mt-1 border border-[#40403F]">
+                            <Image
+                              src={imageUrl || image || ''}
+                              alt="Uploaded image"
+                              fill
+                              className="object-cover rounded-md"
+                            />
+                            {imageUrl &&
+                              (isDeleteFile ? (
+                                <LoadingSpinner
+                                  size={15}
+                                  className="absolute -top-2 -right-2"
+                                />
+                              ) : (
+                                <X
+                                  role="button"
+                                  size={20}
+                                  onClick={() =>
+                                    deleteImage(
+                                      filePath ?? '',
+                                      activeConversationId,
+                                    )
+                                  }
+                                  className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full"
+                                />
+                              ))}
+                          </div>
+                          {uploadStatus === 'uploading' &&
+                            uploadProgress > 0 && (
+                              <div className="w-full flex items-end gap-1 bg-white/80 dark:bg-black/70">
+                                <ProgressBar
+                                  progress={uploadProgress}
+                                  className="h-2.5"
+                                />
+                                <span className="text-sm text-black dark:text-[#928E8B]">
+                                  {uploadProgress}%
+                                </span>
+                              </div>
+                            )}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Enter your message..."
+                      className="w-full bg-white/80 text-xs lg:text-base dark:bg-zinc-950/80 backdrop-blur-sm text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-[#928E8B] border border-red-600/20 rounded-md lg:rounded-lg px-3 lg:px-6 py-2 lg:py-4 focus:outline-none focus:border-red-500/50 transition-colors"
+                    />
+                    <div className="absolute inset-0 pointer-events-none border border-red-600/10 rounded-lg">
+                      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!input.trim() || isLoading}
+                    className="p-3 lg:p-4 bg-white/80 dark:bg-zinc-950/80 text-red-500 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative group border border-red-600/20"
+                  >
+                    {isLoading ? (
+                      <Ellipsis className="w-4 h-4 lg:w-6 lg:h-6 animate-pulse" />
+                    ) : (
+                      <Send className="w-4 h-4 lg:w-6 lg:h-6" />
+                    )}
+                    <div className="absolute inset-0 rounded-full group-hover:animate-ping bg-red-600/20 hidden group-hover:block" />
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
+          <AgentSidebar
+            agents={agents || []}
+            isLoadingAgents={isLoadingAgents}
+            isCreateAgent={isCreateAgent}
+            agentsRefetch={agentsRefetch}
+            isUpdateAgent={isUpdateAgent}
+            isToggleAgent={isToggleAgent}
+            isDeleteAgent={isDeleteAgent}
+            swarmArchitecture={
+              swarmConfig?.architecture || 'SequentialWorkflow'
+            }
+            openAgentModal={openAgentModal}
+            setOpenAgentModal={setOpenAgentModal}
+            onAddAgent={addAgent}
+            onUpdateAgent={updateAgent}
+            onRemoveAgent={removeAgent}
+            onUpdateSwarmArchitecture={updateSwarmArchitecture}
+            onToggleAgent={toggleAgent}
+          />
         </div>
       </div>
-
-      {/* New Chat Dialog */}
-      <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogTitle>New Chat</DialogTitle>
-
-          <div className="grid gap-4 py-4">
-            <Input
-              placeholder="Enter chat title..."
-              value={newChatTitle}
-              onChange={(e) => setNewChatTitle(e.target.value)}
-              className="col-span-3"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              onClick={createNewChat}
-              disabled={!newChatTitle.trim()}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              Create Chat
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
-};
-
-const AgentConfig = ({
-  agent,
-  updateAgent,
-}: {
-  agent: Agent;
-  updateAgent: (id: number, updates: Partial<Agent>) => void;
-}) => (
-  <div className="space-y-4 p-4 border rounded-lg dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
-    <div className="flex items-center justify-between">
-      <Input
-        placeholder="Agent Name"
-        value={agent.name}
-        onChange={(e) => updateAgent(agent.id, { name: e.target.value })}
-        className="w-48"
-      />
-      <Switch
-        checked={agent.active}
-        onCheckedChange={(checked) =>
-          updateAgent(agent.id, { active: checked })
-        }
-      />
-    </div>
-    <Input
-      placeholder="Model"
-      value={agent.model}
-      onChange={(e) => updateAgent(agent.id, { model: e.target.value })}
-    />
-    <Textarea
-      placeholder="System Prompt"
-      value={agent.systemPrompt}
-      onChange={(e) => updateAgent(agent.id, { systemPrompt: e.target.value })}
-      className="h-24"
-    />
-  </div>
-);
-
-export default ChatInterface;
+}

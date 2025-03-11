@@ -49,7 +49,7 @@ export async function POST(req: Request) {
           const ok = await upsertInvoiceRecord(
             event.data.object as Stripe.Invoice,
           );
-          if (ok) new Response(JSON.stringify({ received: true }));
+          if (ok) return new Response(JSON.stringify({ received: true }));
           break;
 
         case 'product.created':
@@ -98,7 +98,6 @@ export async function POST(req: Request) {
               try {
                 const ok = await increaseUserCredit(userId, amount);
                 if (ok) {
-                  // return success to stripe
                   return new Response(JSON.stringify({ received: true }));
                 }
               } catch (error) {
@@ -107,7 +106,6 @@ export async function POST(req: Request) {
             }
           }
           if (checkoutSession.status === 'complete') {
-            // Access payment method through payment intent
             const paymentIntent = await stripe.paymentIntents.retrieve(
               checkoutSession.payment_intent as string,
             );

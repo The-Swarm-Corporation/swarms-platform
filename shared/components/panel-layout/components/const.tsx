@@ -15,7 +15,7 @@ import {
   FileText,
   FileSpreadsheet,
   GripVertical,
-  MessageSquare,
+  MessageSquareMore,
   Wallet,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
@@ -96,6 +96,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <Blocks size={24} />,
       title: 'Explorer',
       link: PLATFORM.EXPLORER,
+    },
+    {
+      icon: <MessageSquareMore size={24} />,
+      title: 'Conversations',
+      link: PLATFORM.CHAT,
     },
     {
       icon: <FileSpreadsheet size={24} />,

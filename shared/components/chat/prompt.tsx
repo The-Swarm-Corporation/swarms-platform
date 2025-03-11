@@ -17,8 +17,8 @@ import {
 import { Button } from '../ui/button';
 import Separator from '../ui/AuthForms/Separator';
 import { cn } from '@/shared/utils/cn';
-import usePromptChat from './hook';
 import MarkdownComponent from '../markdown.tsx';
+import usePromptChat from './hooks/usePromptChat';
 
 export interface ChatComponentProps {
   promptId: string;

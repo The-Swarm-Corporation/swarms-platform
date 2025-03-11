@@ -113,7 +113,7 @@
     "remark-gfm": "^4.0.0",
     "rich-textarea": "^0.24.4",
     "sonner": "^1.7.1",
-    "stripe": "^14.16.0",
+    "stripe": "^17.6.0",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "^3.4.1",

@@ -80,6 +80,71 @@ export type Database = {
           },
         ]
       }
+      agent_comments: {
+        Row: {
+          agent_id: string
+          content: string
+          created_at: string
+          id: string
+          is_edited: boolean
+          metadata: Json | null
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_edited?: boolean
+          metadata?: Json | null
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_edited?: boolean
+          metadata?: Json | null
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_comments_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_statistics"
+            referencedColumns: ["agent_id"]
+          },
+          {
+            foreignKeyName: "agent_comments_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "web3agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "web3users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_prices: {
         Row: {
           agent_id: string | null
@@ -697,6 +762,41 @@ export type Database = {
           },
         ]
       }
+      failed_pool_creations: {
+        Row: {
+          bonding_curve_address: string | null
+          created_at: string
+          error: string | null
+          id: number
+          mint_address: string | null
+          reason: string | null
+        }
+        Insert: {
+          bonding_curve_address?: string | null
+          created_at?: string
+          error?: string | null
+          id?: number
+          mint_address?: string | null
+          reason?: string | null
+        }
+        Update: {
+          bonding_curve_address?: string | null
+          created_at?: string
+          error?: string | null
+          id?: number
+          mint_address?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "failed_pool_creations_bonding_curve_address_fkey"
+            columns: ["bonding_curve_address"]
+            isOneToOne: false
+            referencedRelation: "bonding_curve_keys"
+            referencedColumns: ["public_key"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           created: string | null
@@ -755,6 +855,96 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      meteora_individual_transactions: {
+        Row: {
+          created_at: string
+          id: string
+          is_swap: boolean
+          mint_address: string
+          price: number | null
+          side: string | null
+          signature: string
+          size: number | null
+          timestamp: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_swap?: boolean
+          mint_address: string
+          price?: number | null
+          side?: string | null
+          signature: string
+          size?: number | null
+          timestamp: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_swap?: boolean
+          mint_address?: string
+          price?: number | null
+          side?: string | null
+          signature?: string
+          size?: number | null
+          timestamp?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meteora_pool_stats: {
+        Row: {
+          created_at: string
+          data: Json
+          id: number
+          mint_address: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          id?: number
+          mint_address: string
+          updated_at: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: number
+          mint_address?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meteora_transactions: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          mint_address: string
+          transaction_signature: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          id?: string
+          mint_address: string
+          transaction_signature?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          mint_address?: string
+          transaction_signature?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       prices: {
         Row: {
@@ -982,6 +1172,35 @@ export type Database = {
           },
         ]
       }
+      swarms_api_logs: {
+        Row: {
+          api_key: string | null
+          created_at: string
+          data: Json | null
+          id: number
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: number
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_api_logs_api_key_fkey"
+            columns: ["api_key"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_api_keys"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       swarms_cloud_agents: {
         Row: {
           agent: string | null
@@ -1186,6 +1405,294 @@ export type Database = {
           type?: string | null
         }
         Relationships: []
+      }
+      swarms_cloud_chat: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_archived: boolean | null
+          name: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_archived?: boolean | null
+          name: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_archived?: boolean | null
+          name?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_chat_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_chat_agents: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_tokens: number | null
+          model: string
+          name: string
+          system_prompt: string | null
+          temperature: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          model: string
+          name: string
+          system_prompt?: string | null
+          temperature?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          model?: string
+          name?: string
+          system_prompt?: string | null
+          temperature?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_chat_agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_chat_files: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          message_id: string | null
+          public_url: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          message_id?: string | null
+          public_url: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          message_id?: string | null
+          public_url?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_chat_files_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_chat_files_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_chat_messages: {
+        Row: {
+          agent_id: string | null
+          chat_id: string | null
+          content: Json | null
+          created_at: string | null
+          id: string
+          img: string | null
+          metadata: Json | null
+          role: string
+          structured_content: Json | null
+          timestamp: string | null
+          user_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          chat_id?: string | null
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          img?: string | null
+          metadata?: Json | null
+          role: string
+          structured_content?: Json | null
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          chat_id?: string | null
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          img?: string | null
+          metadata?: Json | null
+          role?: string
+          structured_content?: Json | null
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_chat_messages_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_chat_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_chat_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_chat"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_chat_swarm_agents: {
+        Row: {
+          agent_id: string
+          position: number
+          swarm_config_id: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          position: number
+          swarm_config_id: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          position?: number
+          swarm_config_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_chat_swarm_agents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_chat_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_chat_swarm_agents_swarm_config_id_fkey"
+            columns: ["swarm_config_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_chat_swarm_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_chat_swarm_agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_chat_swarm_configs: {
+        Row: {
+          architecture: string
+          chat_id: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          architecture: string
+          chat_id?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          architecture?: string
+          chat_id?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_chat_swarm_configs_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_chat"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_chat_swarm_configs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       swarms_cloud_comments: {
         Row: {
@@ -2319,6 +2826,276 @@ export type Database = {
           },
         ]
       }
+      token_holders: {
+        Row: {
+          balance: string
+          created_at: string
+          id: number
+          last_updated: string
+          mint_address: string
+          owner: string | null
+          percentage: number | null
+          updated_at: string
+          wallet_address: string
+        }
+        Insert: {
+          balance: string
+          created_at?: string
+          id?: number
+          last_updated?: string
+          mint_address: string
+          owner?: string | null
+          percentage?: number | null
+          updated_at?: string
+          wallet_address: string
+        }
+        Update: {
+          balance?: string
+          created_at?: string
+          id?: number
+          last_updated?: string
+          mint_address?: string
+          owner?: string | null
+          percentage?: number | null
+          updated_at?: string
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "token_holders_mint_address_fkey"
+            columns: ["mint_address"]
+            isOneToOne: false
+            referencedRelation: "web3agents"
+            referencedColumns: ["mint_address"]
+          },
+        ]
+      }
+      token_market_stats: {
+        Row: {
+          active_traders_24h: number
+          apy: number
+          buy_volume_24h: number
+          circulating_supply: number
+          created_at: string
+          current_price: number
+          fees_24h: number
+          first_trade_timestamp: string | null
+          fully_diluted_market_cap: number
+          high_price_24h: number
+          id: number
+          last_price_update: string
+          last_trade_timestamp: string | null
+          liquidity_in_swarms: number
+          liquidity_in_token: number
+          low_price_24h: number
+          market_cap: number
+          metadata: Json | null
+          mint_address: string
+          number_of_buys_24h: number
+          number_of_holders: number
+          number_of_sells_24h: number
+          number_of_trades_24h: number
+          price_change_24h: number
+          price_in_swarms: number
+          sell_volume_24h: number
+          total_fees_collected: number
+          total_supply: number
+          total_value_locked: number
+          total_volume: number
+          updated_at: string
+          volume_24h: number
+        }
+        Insert: {
+          active_traders_24h?: number
+          apy?: number
+          buy_volume_24h?: number
+          circulating_supply?: number
+          created_at?: string
+          current_price?: number
+          fees_24h?: number
+          first_trade_timestamp?: string | null
+          fully_diluted_market_cap?: number
+          high_price_24h?: number
+          id?: number
+          last_price_update?: string
+          last_trade_timestamp?: string | null
+          liquidity_in_swarms?: number
+          liquidity_in_token?: number
+          low_price_24h?: number
+          market_cap?: number
+          metadata?: Json | null
+          mint_address: string
+          number_of_buys_24h?: number
+          number_of_holders?: number
+          number_of_sells_24h?: number
+          number_of_trades_24h?: number
+          price_change_24h?: number
+          price_in_swarms?: number
+          sell_volume_24h?: number
+          total_fees_collected?: number
+          total_supply?: number
+          total_value_locked?: number
+          total_volume?: number
+          updated_at?: string
+          volume_24h?: number
+        }
+        Update: {
+          active_traders_24h?: number
+          apy?: number
+          buy_volume_24h?: number
+          circulating_supply?: number
+          created_at?: string
+          current_price?: number
+          fees_24h?: number
+          first_trade_timestamp?: string | null
+          fully_diluted_market_cap?: number
+          high_price_24h?: number
+          id?: number
+          last_price_update?: string
+          last_trade_timestamp?: string | null
+          liquidity_in_swarms?: number
+          liquidity_in_token?: number
+          low_price_24h?: number
+          market_cap?: number
+          metadata?: Json | null
+          mint_address?: string
+          number_of_buys_24h?: number
+          number_of_holders?: number
+          number_of_sells_24h?: number
+          number_of_trades_24h?: number
+          price_change_24h?: number
+          price_in_swarms?: number
+          sell_volume_24h?: number
+          total_fees_collected?: number
+          total_supply?: number
+          total_value_locked?: number
+          total_volume?: number
+          updated_at?: string
+          volume_24h?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "token_market_stats_mint_address_fkey"
+            columns: ["mint_address"]
+            isOneToOne: false
+            referencedRelation: "web3agents"
+            referencedColumns: ["mint_address"]
+          },
+        ]
+      }
+      token_pools: {
+        Row: {
+          created_at: string
+          fees: Json
+          id: number
+          is_active: boolean
+          last_balance_update: string
+          metadata: Json | null
+          mint_address: string
+          pool_address: string
+          swarms_account_data: string
+          swarms_balance: number
+          swarms_vault_address: string
+          token_account_data: string
+          token_balance: number
+          token_vault_address: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fees?: Json
+          id?: number
+          is_active?: boolean
+          last_balance_update?: string
+          metadata?: Json | null
+          mint_address: string
+          pool_address: string
+          swarms_account_data: string
+          swarms_balance: number
+          swarms_vault_address: string
+          token_account_data: string
+          token_balance: number
+          token_vault_address: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fees?: Json
+          id?: number
+          is_active?: boolean
+          last_balance_update?: string
+          metadata?: Json | null
+          mint_address?: string
+          pool_address?: string
+          swarms_account_data?: string
+          swarms_balance?: number
+          swarms_vault_address?: string
+          token_account_data?: string
+          token_balance?: number
+          token_vault_address?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "token_pools_mint_address_fkey"
+            columns: ["mint_address"]
+            isOneToOne: false
+            referencedRelation: "web3agents"
+            referencedColumns: ["mint_address"]
+          },
+        ]
+      }
+      token_transactions: {
+        Row: {
+          block_number: number | null
+          created_at: string
+          id: string
+          is_swap: boolean | null
+          metadata: Json | null
+          mint_address: string
+          price: number | null
+          side: string | null
+          signature: string
+          size: number | null
+          timestamp: number
+          total_value: number | null
+          updated_at: string
+          user_address: string | null
+        }
+        Insert: {
+          block_number?: number | null
+          created_at?: string
+          id?: string
+          is_swap?: boolean | null
+          metadata?: Json | null
+          mint_address: string
+          price?: number | null
+          side?: string | null
+          signature: string
+          size?: number | null
+          timestamp: number
+          total_value?: number | null
+          updated_at?: string
+          user_address?: string | null
+        }
+        Update: {
+          block_number?: number | null
+          created_at?: string
+          id?: string
+          is_swap?: boolean | null
+          metadata?: Json | null
+          mint_address?: string
+          price?: number | null
+          side?: string | null
+          signature?: string
+          size?: number | null
+          timestamp?: number
+          total_value?: number | null
+          updated_at?: string
+          user_address?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           about_company: string | null
@@ -2393,7 +3170,133 @@ export type Database = {
           },
         ]
       }
+      virtual_prices: {
+        Row: {
+          created_at: string | null
+          id: number
+          pool_id: string
+          timestamp: number
+          virtual_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          pool_id: string
+          timestamp: number
+          virtual_price: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          pool_id?: string
+          timestamp?: number
+          virtual_price?: number
+        }
+        Relationships: []
+      }
       web3agents: {
+        Row: {
+          bonding_curve_address: string | null
+          can_update: boolean | null
+          created_at: string
+          creator_id: string | null
+          creator_wallet: string | null
+          current_price: number | null
+          current_supply: number | null
+          description: string
+          discord_server: string | null
+          graduated: boolean
+          id: string
+          image_url: string | null
+          initial_supply: number | null
+          is_verified: boolean
+          liquidity_pool_size: number | null
+          market_cap: string | null
+          metadata: Json | null
+          mint_address: string
+          name: string
+          pool_address: string | null
+          swarms_reserve: string | null
+          telegram_group: string | null
+          token_symbol: string
+          twitter_handle: string | null
+          updated_at: string
+          volume_24h: number | null
+        }
+        Insert: {
+          bonding_curve_address?: string | null
+          can_update?: boolean | null
+          created_at?: string
+          creator_id?: string | null
+          creator_wallet?: string | null
+          current_price?: number | null
+          current_supply?: number | null
+          description: string
+          discord_server?: string | null
+          graduated?: boolean
+          id?: string
+          image_url?: string | null
+          initial_supply?: number | null
+          is_verified?: boolean
+          liquidity_pool_size?: number | null
+          market_cap?: string | null
+          metadata?: Json | null
+          mint_address: string
+          name: string
+          pool_address?: string | null
+          swarms_reserve?: string | null
+          telegram_group?: string | null
+          token_symbol: string
+          twitter_handle?: string | null
+          updated_at?: string
+          volume_24h?: number | null
+        }
+        Update: {
+          bonding_curve_address?: string | null
+          can_update?: boolean | null
+          created_at?: string
+          creator_id?: string | null
+          creator_wallet?: string | null
+          current_price?: number | null
+          current_supply?: number | null
+          description?: string
+          discord_server?: string | null
+          graduated?: boolean
+          id?: string
+          image_url?: string | null
+          initial_supply?: number | null
+          is_verified?: boolean
+          liquidity_pool_size?: number | null
+          market_cap?: string | null
+          metadata?: Json | null
+          mint_address?: string
+          name?: string
+          pool_address?: string | null
+          swarms_reserve?: string | null
+          telegram_group?: string | null
+          token_symbol?: string
+          twitter_handle?: string | null
+          updated_at?: string
+          volume_24h?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "web3agents_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "web3users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "web3agents_creator_wallet_fkey"
+            columns: ["creator_wallet"]
+            isOneToOne: false
+            referencedRelation: "web3users"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
+      web3agents_archived: {
         Row: {
           bonding_curve_address: string | null
           created_at: string
@@ -2465,14 +3368,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "web3agents_creator_id_fkey"
+            foreignKeyName: "web3agents_archived_creator_id_fkey"
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "web3users"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "web3agents_creator_wallet_fkey"
+            foreignKeyName: "web3agents_archived_creator_wallet_fkey"
             columns: ["creator_wallet"]
             isOneToOne: false
             referencedRelation: "web3users"

@@ -1,0 +1,242 @@
+import React, { forwardRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import { cn } from '@/shared/utils/cn';
+import { Edit, Hexagon, Save } from 'lucide-react';
+import { Tables } from '@/types_db';
+import { MessageObj, parseJSON } from '../helper';
+import MarkdownComponent from '../../markdown';
+import Image from 'next/image';
+import { useToast } from '../../ui/Toasts/use-toast';
+import { useConversations } from '../hooks/useConversations';
+import { Button } from '../../ui/button';
+import LoadingSpinner from '../../loading-spinner';
+
+interface ChatMessageProps {
+  message: Tables<'swarms_cloud_chat_messages'>;
+  isEditLoading: boolean;
+  onEdit: (
+    updatedMessage: Tables<'swarms_cloud_chat_messages'>,
+    replaceAll: boolean,
+  ) => Promise<void>;
+}
+
+const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
+  ({ message, isEditLoading, onEdit }, ref) => {
+    const structuredContent = parseJSON(message?.structured_content ?? '');
+    const content = parseJSON(message?.content ?? '');
+
+    let displayContent = structuredContent || content;
+    if (!Array.isArray(displayContent)) {
+      displayContent = [displayContent];
+    }
+
+    const {
+      editingMessageId,
+      replaceMode,
+      setReplaceMode,
+      startEditingMessage,
+      cancelEditingMessage,
+      editMessage,
+    } = useConversations();
+    const [editContent, setEditContent] = useState('');
+
+    const isEditing = editingMessageId === message.id;
+
+    const handleEdit = () => {
+      startEditingMessage(message?.id);
+      setEditContent(
+        typeof content === 'string'
+          ? content
+          : Array.isArray(content)
+            ? content[0]?.content
+            : content?.content || '',
+      );
+    };
+
+    const handleEditSubmit = async () => {
+      if (!editContent.trim()) return;
+
+      const updatedMessage = await editMessage(
+        message.id,
+        editContent,
+        replaceMode === 'replaceAll',
+      );
+
+      if (updatedMessage && onEdit) {
+        await onEdit(updatedMessage, replaceMode === 'replaceAll');
+      }
+    };
+
+    return (
+      <div
+        className={cn(
+          'flex mb-6 flex-col',
+          message.role === 'user' ? 'justify-end' : '',
+        )}
+        ref={ref}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={cn(
+            'flex flex-col w-full',
+            message.role === 'user' ? 'items-end' : 'items-start',
+          )}
+        >
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-black dark:text-[#928E8B] text-[10px] lg:text-xs font-mono">
+              {new Date(message?.timestamp ?? '').toLocaleString('en-US')}
+            </span>
+
+            {message.role === 'user' && !isEditing && (
+              <button
+                onClick={handleEdit}
+                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"
+              >
+                <Edit className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          <div
+            className={cn(
+              'w-full',
+              message?.role !== 'user' ? 'grid lg:grid-cols-1 gap-10' : '',
+            )}
+          >
+            {isEditing ? (
+              <div className="w-full flex justify-end">
+                <div
+                  className={cn(
+                    'rounded-md lg:rounded-lg px-2 lg:px-6 py-3 text-black dark:text-white lg:py-4 relative overflow-hidden transition-colors duration-300',
+                    'max-w-[70%] xl:max-w-[60%] w-full bg-[#928E8B] dark:bg-[#444444]',
+                  )}
+                >
+                  <textarea
+                    value={editContent}
+                    autoFocus
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="w-full bg-transparent outline-none resize-none min-h-[100px] text-xs lg:text-base"
+                  />
+
+                  <div className="flex w-full items-center justify-between">
+                    <div className="flex items-center space-x-2 mt-2">
+                      <div className="flex items-center space-x-1">
+                        <input
+                          type="radio"
+                          id={`replaceAll-${message.id}`}
+                          name={`replaceMode-${message.id}`}
+                          checked={replaceMode === 'replaceAll'}
+                          onChange={() => setReplaceMode('replaceAll')}
+                        />
+                        <label
+                          htmlFor={`replaceAll-${message.id}`}
+                          className="text-sm"
+                        >
+                          Replace all following
+                        </label>
+                      </div>
+
+                      <div className="flex items-center space-x-1">
+                        <input
+                          type="radio"
+                          id={`replaceOriginal-${message.id}`}
+                          name={`replaceMode-${message.id}`}
+                          checked={replaceMode === 'replaceOriginal'}
+                          onChange={() => setReplaceMode('replaceOriginal')}
+                        />
+                        <label
+                          htmlFor={`replaceOriginal-${message.id}`}
+                          className="text-sm"
+                        >
+                          Keep following
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isEditLoading}
+                        onClick={cancelEditingMessage}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleEditSubmit}
+                        disabled={!editContent.trim() || isEditLoading}
+                      >
+                        Save {isEditLoading && <LoadingSpinner size={15} className='ml-2' />}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              displayContent
+                .filter((msg: MessageObj) =>
+                  message.role === 'assistant' ? msg.role !== 'user' : true,
+                )
+                .map((msg: MessageObj, index: number) => {
+                  return (
+                    <div
+                      key={`${msg?.role}-${index}`}
+                      className={cn(
+                        'flex flex-col',
+                        message.role === 'user' ? 'items-end' : 'items-start',
+                      )}
+                    >
+                      {msg?.role !== 'user' && (
+                        <div className="flex items-center gap-1 mb-2">
+                          <Hexagon className="h-3 w-3 lg:w-4 lg:h-4 text-red-500/50" />
+                          <span className="text-black dark:text-[#928E8B] text-xs font-bold font-mono capitalize">
+                            {msg?.role}
+                          </span>
+                        </div>
+                      )}
+                      <div
+                        key={index}
+                        className={cn(
+                          'rounded-md lg:rounded-lg px-2 lg:px-6 py-3 text-black dark:text-white lg:py-4 relative overflow-hidden transition-colors duration-300',
+                          message?.role === 'user'
+                            ? 'max-w-[70%] xl:max-w-[60%] bg-[#928E8B] dark:bg-[#444444]'
+                            : 'max-w-full dark:bg-[#131313] bg-[#928E8B] border-2 border-[#f9f9f914]',
+                        )}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
+                        <div className="relative text-xs lg:text-base w-full">
+                          <MarkdownComponent
+                            text={msg?.content ?? ''}
+                            className="px-0"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+            )}
+          </div>
+        </motion.div>
+        {message.role === 'user' && message?.img && (
+          <div className="flex w-full justify-end">
+            <div className="relative mt-1">
+              <Image
+                src={message?.img}
+                alt="Uploaded image"
+                height={50}
+                width={50}
+                className="object-cover rounded-md"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  },
+);
+
+ChatMessage.displayName = 'ChatMessage';
+
+export default ChatMessage;

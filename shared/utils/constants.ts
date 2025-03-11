@@ -10,6 +10,8 @@ export const themes: THEMES[] = [THEMES.LIGHT, THEMES.DARK];
 
 export const SINGLE = 'single';
 
+export const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 export const themeOptions = [
   { label: 'Single theme', value: SINGLE },
   { label: 'Sync with your system', value: THEMES.SYSTEM },
@@ -107,3 +109,9 @@ export const NAVIGATION: { [key in keyof typeof NAV_LINKS]: NAV_LINKS } = {
   DOCS: NAV_LINKS.DOCS,
   GET_DEMO: NAV_LINKS.GET_DEMO,
 };
+
+export const SECURITY_LEVELS = {
+  LOW: "LEVEL 1 - STANDARD",
+  MEDIUM: "LEVEL 2 - ENCRYPTED",
+  HIGH: "LEVEL 3 - QUANTUM SECURED",
+}

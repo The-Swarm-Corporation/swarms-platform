@@ -6,8 +6,8 @@ import { Tables } from '@/types_db';
 import { v4 as uuidv4 } from 'uuid';
 import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import { ChatComponentProps } from './prompt';
-import { useAuthContext } from '../ui/auth.provider';
+import { ChatComponentProps } from '../prompt';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 export default function usePromptChat({
   promptId,
