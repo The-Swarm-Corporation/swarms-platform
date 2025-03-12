@@ -214,7 +214,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     setIsLoading(true);
 
     try {
-      await addMessage({
+      const dbWritePromise = addMessage({
         content: userMessageObj.content,
         role: 'user',
         timestamp: userMessageObj.timestamp,
@@ -255,7 +255,9 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         img: imageUrl || '',
       };
 
-      const response = await swarmsApi.executeSwarm(swarmRequest);
+      const swarmPromise = swarmsApi.executeSwarm(swarmRequest);
+
+      const [, response] = await Promise.all([dbWritePromise, swarmPromise]);
 
       const aiResponseObj = {
         id: crypto.randomUUID(),
@@ -299,8 +301,8 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     updatedMessage: Tables<'swarms_cloud_chat_messages'>,
     replaceAll: boolean,
   ) => {
-    setIsLoading(true);
     setIsEditLoading(true);
+    setIsLoading(true);
 
     setLoadingAfterMessageId(updatedMessage.id);
 
@@ -405,6 +407,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         }
       });
       setIsLoading(false);
+      setIsEditLoading(false);
       setLoadingAfterMessageId(null);
 
       await addMessage({
@@ -425,9 +428,8 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         variant: 'destructive',
       });
       setIsLoading(false);
-      setLoadingAfterMessageId(null);
-    } finally {
       setIsEditLoading(false);
+      setLoadingAfterMessageId(null);
     }
   };
 
