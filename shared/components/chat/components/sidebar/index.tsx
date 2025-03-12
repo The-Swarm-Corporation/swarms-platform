@@ -73,8 +73,8 @@ function SwarmSelector({
         />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="SequentialWorkflow">Sequential</SelectItem>
         <SelectItem value="ConcurrentWorkflow">Concurrent</SelectItem>
+        <SelectItem value="SequentialWorkflow">Sequential</SelectItem>
         <SelectItem value="auto">Auto</SelectItem>
         <SelectItem value="AgentRearrange">Agent Rearrange</SelectItem>
         <SelectItem value="MixtureOfAgents">Mixture of Agents</SelectItem>

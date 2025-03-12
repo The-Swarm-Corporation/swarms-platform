@@ -60,9 +60,14 @@ const chatRouter = router({
         )
         .eq('id', input)
         .eq('user_id', user_id)
+        .order('timestamp', {
+          referencedTable: 'swarms_cloud_chat_messages',
+          ascending: true,
+        })
         .single();
 
       if (error) throw error;
+
       return data;
     }),
 
@@ -366,10 +371,30 @@ const swarmConfigRouter = router({
       const user_id = ctx.session.data.user?.id;
       if (!user_id) throw new Error('User not authenticated');
 
-      const { data, error } = await ctx.supabase
+      const { data: existingConfig, error: fetchError } = await ctx.supabase
         .from('swarms_cloud_chat_swarm_configs')
-        .select(
-          `
+        .select('id')
+        .eq('chat_id', input)
+        .eq('user_id', user_id)
+        .maybeSingle();
+
+      if (!existingConfig) {
+        const { data: newConfig, error: insertError } = await ctx.supabase
+          .from('swarms_cloud_chat_swarm_configs')
+          .insert({
+            chat_id: input,
+            architecture: 'ConcurrentWorkflow',
+            user_id,
+          })
+          .select('id')
+          .single();
+
+        if (insertError) throw insertError;
+
+        const { data, error } = await ctx.supabase
+          .from('swarms_cloud_chat_swarm_configs')
+          .select(
+            `
           *,
           agents:swarms_cloud_chat_swarm_agents(
             swarm_config_id,
@@ -377,13 +402,31 @@ const swarmConfigRouter = router({
             position,
             agent:swarms_cloud_chat_agents(*)
           )
+          `,
+          )
+          .eq('id', newConfig.id)
+          .single();
+
+        if (error) throw error;
+        return data as SwarmConfig;
+      }
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat_swarm_configs')
+        .select(
+          `
+        *,
+        agents:swarms_cloud_chat_swarm_agents(
+          swarm_config_id,
+          agent_id,
+          position,
+          agent:swarms_cloud_chat_agents(*)
+        )
         `,
         )
-        .eq('chat_id', input)
-        .eq('user_id', user_id)
+        .eq('id', existingConfig.id)
         .single();
 
-      console.log({ swarm_config: error });
       if (error) throw error;
       return data as SwarmConfig;
     }),

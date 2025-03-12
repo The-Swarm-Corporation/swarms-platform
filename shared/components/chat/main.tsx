@@ -63,7 +63,6 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     isCreatePending,
     isDeletePending,
     isUpdatePending,
-    editingMessageId,
     replaceMode,
     setReplaceMode,
     refetch,
@@ -166,7 +165,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         isCreatingConversation.current = false;
       });
     }
-  }, [isLoadingConversations, conversations?.length, createConversation]);
+  }, [isLoadingConversations]);
 
   useEffect(() => {
     if (activeConversation?.data?.messages) {
@@ -190,6 +189,8 @@ export default function SwarmsChat({}: SwarmsChatProps) {
 
     if (!input.trim() || isLoading || !activeConversation) return;
     if (activeConversation.data?.id !== activeConversationId) return;
+
+    setReplaceMode('replaceAll');
 
     const userMessage = input.trim();
     const timestamp = new Date().toISOString();
@@ -322,8 +323,10 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         newMessages[editedMsgIndex] = updatedMessage;
 
         if (replaceAll) {
+          setReplaceMode('replaceAll');
           return newMessages.slice(0, editedMsgIndex + 1);
         } else {
+          setReplaceMode('replaceOriginal');
           if (
             editedMsgIndex + 1 < newMessages.length &&
             newMessages[editedMsgIndex + 1].role === 'assistant'
@@ -528,7 +531,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                       onEdit={handleMessageEdit}
                       ref={
                         index === messages.length - 1 &&
-                        (!editingMessageId || replaceMode === 'replaceAll')
+                        replaceMode === 'replaceAll'
                           ? messagesEndRef
                           : null
                       }
@@ -604,7 +607,6 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                       />
                     </div>
                   )}
-                <div ref={messagesEndRef} />
               </div>
             </div>
 
