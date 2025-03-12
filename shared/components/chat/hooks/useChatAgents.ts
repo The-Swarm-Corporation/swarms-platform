@@ -44,6 +44,7 @@ export function useAgents({
   }, [getAgentsQuery.data]);
 
   useEffect(() => {
+    console.log({ configData: getSwarmConfigQuery.data, swarmConfig });
     if (getSwarmConfigQuery.data) {
       setSwarmConfig(getSwarmConfigQuery.data);
     }

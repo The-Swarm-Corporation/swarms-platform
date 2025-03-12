@@ -273,7 +273,7 @@ const agentRouter = router({
         .insert({
           name: input.name,
           description: input.description,
-          model: input.model,
+          model: input.model || 'gpt-4o-mini',
           temperature: input.temperature,
           max_tokens: input.maxTokens,
           system_prompt: input.systemPrompt,

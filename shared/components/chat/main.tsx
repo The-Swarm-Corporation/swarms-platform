@@ -230,6 +230,8 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         )
         .filter((agent) => agent.is_active);
 
+      console.log('Submit Chat', { swarmConfig, activeAgents, agents });
+
       if (!swarmConfig?.architecture || activeAgents.length < 2) {
         toast({
           description: 'A swarm must have at least two active agents.',
