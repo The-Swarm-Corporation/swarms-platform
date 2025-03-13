@@ -25,6 +25,7 @@ import { cn } from '@/shared/utils/cn';
 import { Tables } from '@/types_db';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import ConversationModal from './conversation-modal';
+import { getTruncatedString } from '@/shared/utils/helpers';
 
 interface ConversationSidebarProps {
   conversations: Tables<'swarms_cloud_chat'>[];
@@ -175,7 +176,7 @@ export function ConversationSidebar({
                           <MessageSquare className="w-5 h-5 dark:text-[#f1f1f1]" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium dark:text-[#f1f1f1] truncate">
-                              {conversation.name}
+                              {getTruncatedString(conversation?.name, 25)}
                             </p>
                             <p className="text-xs dark:text-[#f1f1f1]/50">
                               {format(

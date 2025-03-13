@@ -1409,27 +1409,33 @@ export type Database = {
       swarms_cloud_chat: {
         Row: {
           created_at: string | null
+          description: string | null
           id: string
           is_active: boolean | null
           is_archived: boolean | null
+          max_loops: number
           name: string
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean | null
           is_archived?: boolean | null
+          max_loops?: number
           name: string
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean | null
           is_archived?: boolean | null
+          max_loops?: number
           name?: string
           updated_at?: string | null
           user_id?: string | null
@@ -1446,6 +1452,7 @@ export type Database = {
       }
       swarms_cloud_chat_agents: {
         Row: {
+          chat_id: string | null
           created_at: string | null
           description: string | null
           id: string
@@ -1459,6 +1466,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          chat_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -1472,6 +1480,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          chat_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -1486,58 +1495,14 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "swarms_cloud_chat_agents_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_chat"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "swarms_cloud_chat_agents_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "safe_users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      swarms_cloud_chat_files: {
-        Row: {
-          created_at: string | null
-          file_name: string
-          file_path: string
-          file_size: number
-          file_type: string
-          id: string
-          message_id: string | null
-          public_url: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          file_name: string
-          file_path: string
-          file_size: number
-          file_type: string
-          id?: string
-          message_id?: string | null
-          public_url: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          file_name?: string
-          file_path?: string
-          file_size?: number
-          file_type?: string
-          id?: string
-          message_id?: string | null
-          public_url?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "swarms_cloud_chat_files_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "swarms_cloud_chat_messages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "swarms_cloud_chat_files_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "safe_users"
@@ -1553,10 +1518,12 @@ export type Database = {
           created_at: string | null
           id: string
           img: string | null
+          is_edited: boolean | null
           metadata: Json | null
           role: string
           structured_content: Json | null
           timestamp: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -1566,10 +1533,12 @@ export type Database = {
           created_at?: string | null
           id?: string
           img?: string | null
+          is_edited?: boolean | null
           metadata?: Json | null
           role: string
           structured_content?: Json | null
           timestamp?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -1579,10 +1548,12 @@ export type Database = {
           created_at?: string | null
           id?: string
           img?: string | null
+          is_edited?: boolean | null
           metadata?: Json | null
           role?: string
           structured_content?: Json | null
           timestamp?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [

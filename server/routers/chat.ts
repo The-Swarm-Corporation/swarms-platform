@@ -22,6 +22,7 @@ const agentSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
   model: z.string(),
+  chatId: z.string(),
   temperature: z.number().min(0).max(1).optional(),
   maxTokens: z.number().positive().optional(),
   systemPrompt: z.string().optional(),
@@ -94,6 +95,8 @@ const chatRouter = router({
     .input(
       z.object({
         name: z.string().min(1).optional(),
+        description: z.string().min(1).optional(),
+        maxLoops: z.number().positive().optional(),
         id: z.string(),
         is_active: z.boolean().optional(),
       }),
@@ -112,6 +115,8 @@ const chatRouter = router({
         .from('swarms_cloud_chat')
         .update({
           ...(input.name ? { name: input.name } : {}),
+          ...(input.description ? { description: input.description } : {}),
+          ...(input.maxLoops !== undefined ? { max_loops: Number(input.maxLoops) } : {}),
           ...(input.is_active !== undefined
             ? { is_active: input.is_active }
             : {}),
@@ -250,13 +255,14 @@ const chatRouter = router({
 
 // Agent Router
 const agentRouter = router({
-  getAgents: userProcedure.query(async ({ ctx }) => {
+  getAgents: userProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const user_id = ctx.session.data.user?.id ?? '';
 
     const { data, error } = await ctx.supabase
       .from('swarms_cloud_chat_agents')
       .select('*')
       .eq('user_id', user_id)
+      .eq('chat_id', input)
       .order('created_at', { ascending: true });
 
     if (error) throw error;
@@ -273,8 +279,9 @@ const agentRouter = router({
         .insert({
           name: input.name,
           description: input.description,
-          model: input.model || 'gpt-4o-mini',
+          model: input.model || 'gpt-4o',
           temperature: input.temperature,
+          chat_id: input.chatId,
           max_tokens: input.maxTokens,
           system_prompt: input.systemPrompt,
           is_active: input.isActive,

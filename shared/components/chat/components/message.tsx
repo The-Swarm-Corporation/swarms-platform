@@ -168,7 +168,10 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                         onClick={handleEditSubmit}
                         disabled={!editContent.trim() || isEditLoading}
                       >
-                        Save {isEditLoading && <LoadingSpinner size={15} className='ml-2' />}
+                        Save{' '}
+                        {isEditLoading && (
+                          <LoadingSpinner size={15} className="ml-2" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -177,7 +180,9 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
             ) : (
               displayContent
                 .filter((msg: MessageObj) =>
-                  message.role === 'assistant' ? msg.role !== 'user' : true,
+                  message.role === 'assistant'
+                    ? msg?.role?.toLowerCase() !== 'user'
+                    : true,
                 )
                 .map((msg: MessageObj, index: number) => {
                   return (
@@ -188,7 +193,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                         message.role === 'user' ? 'items-end' : 'items-start',
                       )}
                     >
-                      {msg?.role !== 'user' && (
+                      {msg?.role?.toLowerCase() !== 'user' && (
                         <div className="flex items-center gap-1 mb-2">
                           <Hexagon className="h-3 w-3 lg:w-4 lg:h-4 text-red-500/50" />
                           <span className="text-black dark:text-[#928E8B] text-xs font-bold font-mono capitalize">
@@ -208,7 +213,12 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
                         <div className="relative text-xs lg:text-base w-full">
                           <MarkdownComponent
-                            text={msg?.content ?? ''}
+                            text={
+                              msg?.content?.replace(
+                                /^Time:\s[\d-]+\s[\d:]+\s*/,
+                                '',
+                              ) ?? ''
+                            }
                             className="px-0"
                           />
                         </div>
@@ -219,8 +229,13 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
             )}
           </div>
         </motion.div>
-        {message.role === 'user' && message?.img && (
-          <div className="flex w-full justify-end">
+        <div className="flex w-full justify-end">
+          {(message as any)?.is_edited && !isEditing && (
+            <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 text-right">
+              (edited)
+            </div>
+          )}
+          {message.role === 'user' && message?.img && !isEditing && (
             <div className="relative mt-1">
               <Image
                 src={message?.img}
@@ -230,8 +245,8 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 className="object-cover rounded-md"
               />
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   },
