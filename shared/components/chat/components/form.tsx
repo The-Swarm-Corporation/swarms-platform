@@ -33,7 +33,7 @@ export function AgentForm({
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     description: initialData?.description || '',
-    model: initialData?.model || 'gpt-4',
+    model: initialData?.model || 'gpt-4o',
     temperature: initialData?.temperature || 0.7,
     maxTokens: initialData?.maxTokens || 2048,
     systemPrompt: initialData?.systemPrompt || '',
@@ -96,8 +96,8 @@ export function AgentForm({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-            {/* <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-            <SelectItem value="claude-2">Claude 2</SelectItem> */}
+            <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+            <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
           </SelectContent>
         </Select>
       </div>

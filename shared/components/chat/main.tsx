@@ -5,12 +5,12 @@ import type React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Ellipsis, KeyRound, Mic, Send, Shield, Upload, X } from 'lucide-react';
-import { useAgents } from './hooks/useChatAgents';
+import { useConfig } from './hooks/useChatConfig';
 import { useConversations } from './hooks/useConversations';
 import LoadSequence from './components/loader';
 import { ConversationSidebar } from './components/sidebar/conversations';
 import { cn } from '@/shared/utils/cn';
-import { AgentSidebar } from './components/sidebar';
+import { ConfigSidebar } from './components/sidebar';
 import ChatMessage from './components/message';
 import { Tables } from '@/types_db';
 import { SwarmsApiClient } from '@/shared/utils/api/swarms';
@@ -89,7 +89,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     isDeleteAgent,
     updateSwarmArchitecture,
     toggleAgent,
-  } = useAgents({
+  } = useConfig({
     activeConversationId,
   });
   const {
@@ -206,8 +206,34 @@ export default function SwarmsChat({}: SwarmsChatProps) {
       agent_id: '',
       metadata: null,
       img: imageUrl || '',
+      is_edited: false,
       created_at: timestamp,
+      updated_at: timestamp,
     };
+
+    const activeAgents = agents
+      .filter((agent) =>
+        swarmConfig?.agents?.some(
+          (configAgent) => configAgent.agent_id === agent.id,
+        ),
+      )
+      .filter((agent) => agent.is_active);
+
+    if (!swarmConfig?.architecture) {
+      toast({
+        description: 'No active swarm architecture selected',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (activeAgents.length < 2) {
+      toast({
+        description: 'A swarm must have at least two active agents.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setMessages((prev) => [...prev, userMessageObj]);
     setInput('');
@@ -222,25 +248,6 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         agentId: agents?.[0]?.id,
       });
 
-      const activeAgents = agents
-        .filter((agent) =>
-          swarmConfig?.agents?.some(
-            (configAgent) => configAgent.agent_id === agent.id,
-          ),
-        )
-        .filter((agent) => agent.is_active);
-
-      console.log('Submit Chat', { swarmConfig, activeAgents, agents });
-
-      if (!swarmConfig?.architecture || activeAgents.length < 2) {
-        toast({
-          description: 'A swarm must have at least two active agents.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
-      }
-
       const apiAgents = SwarmsApiClient.convertAgentsToApiFormat(
         activeAgents,
         swarmConfig.architecture,
@@ -249,11 +256,12 @@ export default function SwarmsChat({}: SwarmsChatProps) {
 
       const swarmRequest = {
         name: activeConversation.data?.name || 'Chat Session',
-        description: 'Chat interaction',
+        description:
+          activeConversation.data?.description || 'Chat Session Description',
         agents: apiAgents,
         swarm_type: swarmType,
         task: userMessage,
-        max_loops: 1,
+        max_loops: activeConversation.data?.max_loops || 1,
         img: imageUrl || '',
       };
 
@@ -274,7 +282,9 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         img: imageUrl || null,
         agent_id: activeAgents[0]?.id || '',
         metadata: response?.metadata ? JSON.stringify(response.metadata) : null,
+        is_edited: false,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       setMessages((prev) => [...prev, aiResponseObj]);
@@ -391,8 +401,9 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         img: null,
         agent_id: activeAgents[0]?.id || '',
         metadata: response?.metadata ? JSON.stringify(response.metadata) : null,
-        created_at: new Date().toISOString(),
         is_edited: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       setMessages((prevMessages) => {
@@ -740,11 +751,14 @@ export default function SwarmsChat({}: SwarmsChatProps) {
               </form>
             </div>
           </div>
-          <AgentSidebar
+          <ConfigSidebar
             agents={agents || []}
+            activeConversation={activeConversation}
             isLoadingAgents={isLoadingAgents}
             isCreateAgent={isCreateAgent}
             agentsRefetch={agentsRefetch}
+            chatRefetch={refetch}
+            isUpdatePending={isUpdatePending}
             isUpdateAgent={isUpdateAgent}
             isToggleAgent={isToggleAgent}
             isDeleteAgent={isDeleteAgent}
@@ -753,6 +767,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
             }
             openAgentModal={openAgentModal}
             setOpenAgentModal={setOpenAgentModal}
+            onUpdateConversation={updateConversation}
             onAddAgent={addAgent}
             onUpdateAgent={updateAgent}
             onRemoveAgent={removeAgent}

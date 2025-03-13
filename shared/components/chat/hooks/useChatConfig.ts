@@ -10,7 +10,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { Tables } from '@/types_db';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 
-export function useAgents({
+export function useConfig({
   activeConversationId,
 }: {
   activeConversationId: string;
@@ -22,9 +22,13 @@ export function useAgents({
   const [swarmConfig, setSwarmConfig] = useState<SwarmConfig | null>(null);
   const [openAgentModal, setOpenAgentModal] = useState(false);
 
-  const getAgentsQuery = trpc.chatAgent.getAgents.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
+  const getAgentsQuery = trpc.chatAgent.getAgents.useQuery(
+    activeConversationId,
+    {
+      enabled: !!activeConversationId,
+      refetchOnWindowFocus: false,
+    },
+  );
   const getSwarmConfigQuery = trpc.swarmConfig.getSwarmConfig.useQuery(
     activeConversationId,
     { enabled: !!activeConversationId, refetchOnWindowFocus: false },
@@ -44,7 +48,6 @@ export function useAgents({
   }, [getAgentsQuery.data]);
 
   useEffect(() => {
-    console.log({ configData: getSwarmConfigQuery.data, swarmConfig });
     if (getSwarmConfigQuery.data) {
       setSwarmConfig(getSwarmConfigQuery.data);
     }
@@ -59,7 +62,10 @@ export function useAgents({
     async (agent: Omit<Agent, 'id'>) => {
       try {
         // Create new agent
-        const newAgent = await createAgentMutation.mutateAsync(agent);
+        const newAgent = await createAgentMutation.mutateAsync({
+          ...agent,
+          chatId: activeConversationId,
+        });
         setAgents((prev) => [...prev, newAgent]);
 
         if (!activeConversationId) return;
@@ -74,8 +80,11 @@ export function useAgents({
           architecture: swarmConfig?.architecture || 'ConcurrentWorkflow',
           agentIds: updatedAgentIds,
         });
-        refetchQuery();
+        toast({
+          description: `${agent?.name} added successfully`,
+        });
         setOpenAgentModal(false);
+        refetchQuery();
       } catch (error) {
         console.error('Error adding agent:', error);
         toast({
@@ -140,6 +149,9 @@ export function useAgents({
           chatId: activeConversationId,
           architecture: swarmConfig.architecture,
           agentIds: updatedAgentIds,
+        });
+        toast({
+          description: `Agent status changed successfully`,
         });
         refetchQuery();
       } catch (error) {
