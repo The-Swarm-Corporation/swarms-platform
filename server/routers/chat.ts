@@ -27,6 +27,7 @@ const agentSchema = z.object({
   maxTokens: z.number().positive().optional(),
   systemPrompt: z.string().optional(),
   isActive: z.boolean().optional(),
+  templateId: z.string().optional(),
 });
 
 const BUCKET_NAME = 'images';
@@ -116,7 +117,9 @@ const chatRouter = router({
         .update({
           ...(input.name ? { name: input.name } : {}),
           ...(input.description ? { description: input.description } : {}),
-          ...(input.maxLoops !== undefined ? { max_loops: Number(input.maxLoops) } : {}),
+          ...(input.maxLoops !== undefined
+            ? { max_loops: Number(input.maxLoops) }
+            : {}),
           ...(input.is_active !== undefined
             ? { is_active: input.is_active }
             : {}),
@@ -285,6 +288,7 @@ const agentRouter = router({
           max_tokens: input.maxTokens,
           system_prompt: input.systemPrompt,
           is_active: input.isActive,
+          template_id: input.templateId,
           user_id,
         })
         .select()
@@ -367,6 +371,240 @@ const agentRouter = router({
       }
 
       return { success: true, is_active: newStatus };
+    }),
+
+  getAllAgentTemplates: userProcedure.query(async ({ ctx }) => {
+    const user_id = ctx.session.data.user?.id ?? '';
+
+    const { data, error } = await ctx.supabase
+      .from('swarms_cloud_chat_agent_templates')
+      .select('*')
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data;
+  }),
+
+  // Get agent templates with their status for a specific chat
+  getAgentTemplatesForChat: userProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: chatId }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      // Get all templates
+      const { data: templates, error: templatesError } = await ctx.supabase
+        .from('swarms_cloud_chat_agent_templates')
+        .select('*')
+        .eq('user_id', user_id)
+        .order('created_at', { ascending: true });
+
+      if (templatesError) throw templatesError;
+
+      // Get chat-specific agent instances
+      const { data: chatAgents, error: agentsError } = await ctx.supabase
+        .from('swarms_cloud_chat_agents')
+        .select('*')
+        .eq('user_id', user_id)
+        .eq('chat_id', chatId);
+
+      if (agentsError) throw agentsError;
+
+      // Map templates with their status in the current chat
+      const templatesWithStatus = templates.map((template) => {
+        const chatAgent = chatAgents.find(
+          (agent) => agent.template_id === template.id,
+        );
+        return {
+          ...template,
+          chatStatus: chatAgent
+            ? {
+                id: chatAgent.id,
+                is_active: chatAgent.is_active,
+                is_selected: true,
+                // Include any chat-specific overrides
+                name: chatAgent.name,
+                description: chatAgent.description,
+                system_prompt: chatAgent.system_prompt,
+                model: chatAgent.model,
+                temperature: chatAgent.temperature,
+                max_tokens: chatAgent.max_tokens,
+              }
+            : {
+                is_selected: false,
+                is_active: false,
+              },
+        };
+      });
+
+      return templatesWithStatus;
+    }),
+
+  // Create a new agent template
+  createAgentTemplate: userProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        model: z.string().default('gpt-4o'),
+        temperature: z.number().default(0.7),
+        max_tokens: z.number().default(2048),
+        system_prompt: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat_agent_templates')
+        .insert({
+          name: input.name,
+          description: input.description,
+          model: input.model,
+          temperature: input.temperature,
+          max_tokens: input.max_tokens,
+          system_prompt: input.system_prompt,
+          user_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }),
+
+  // Add an existing agent template to a chat
+  addAgentTemplateToChat: userProcedure
+    .input(
+      z.object({
+        templateId: z.string(),
+        chatId: z.string(),
+        // Optional overrides for chat-specific settings
+        overrides: z
+          .object({
+            name: z.string().optional(),
+            description: z.string().optional(),
+            model: z.string().optional(),
+            temperature: z.number().optional(),
+            max_tokens: z.number().optional(),
+            system_prompt: z.string().optional(),
+            is_active: z.boolean().default(true),
+          })
+          .optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      // Check if this template is already added to this chat
+      const { data: existing, error: checkError } = await ctx.supabase
+        .from('swarms_cloud_chat_agents')
+        .select('id')
+        .eq('template_id', input.templateId)
+        .eq('chat_id', input.chatId)
+        .eq('user_id', user_id)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existing) {
+        // If it exists, update it to be active
+        const { data, error } = await ctx.supabase
+          .from('swarms_cloud_chat_agents')
+          .update({
+            is_active: true,
+            ...input.overrides,
+          })
+          .eq('id', existing.id)
+          .eq('user_id', user_id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } else {
+        // Get the template data first
+        const { data: template, error: templateError } = await ctx.supabase
+          .from('swarms_cloud_chat_agent_templates')
+          .select('*')
+          .eq('id', input.templateId)
+          .eq('user_id', user_id)
+          .single();
+
+        if (templateError) throw templateError;
+
+        // Add the agent to the chat
+        const { data, error } = await ctx.supabase
+          .from('swarms_cloud_chat_agents')
+          .insert({
+            name: input.overrides?.name || template.name,
+            description: input.overrides?.description || template.description,
+            model: input.overrides?.model || template.model,
+            temperature: input.overrides?.temperature || template.temperature,
+            max_tokens: input.overrides?.max_tokens || template.max_tokens,
+            system_prompt:
+              input.overrides?.system_prompt || template.system_prompt,
+            is_active: input.overrides?.is_active ?? true,
+            chat_id: input.chatId,
+            template_id: input.templateId,
+            user_id,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+    }),
+
+  removeAgentFromChat: userProcedure
+    .input(
+      z.object({
+        templateId: z.string(),
+        chatId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat_agents')
+        .delete()
+        .eq('template_id', input.templateId)
+        .eq('chat_id', input.chatId)
+        .eq('user_id', user_id);
+
+      if (error) throw error;
+      return { success: true };
+    }),
+
+  updateAgentTemplate: userProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        updates: z.object({
+          name: z.string().optional(),
+          description: z.string().optional(),
+          model: z.string().optional(),
+          temperature: z.number().optional(),
+          max_tokens: z.number().optional(),
+          system_prompt: z.string().optional(),
+        }),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat_agent_templates')
+        .update(input.updates)
+        .eq('id', input.id)
+        .eq('user_id', user_id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     }),
 });
 

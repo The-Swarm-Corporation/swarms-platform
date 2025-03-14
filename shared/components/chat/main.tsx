@@ -87,6 +87,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     isUpdateAgent,
     isToggleAgent,
     isDeleteAgent,
+    swarmConfigRefetch,
     updateSwarmArchitecture,
     toggleAgent,
   } = useConfig({
@@ -753,11 +754,13 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           </div>
           <ConfigSidebar
             agents={agents || []}
+            swarmConfig={swarmConfig!}
             activeConversation={activeConversation}
             isLoadingAgents={isLoadingAgents}
             isCreateAgent={isCreateAgent}
             agentsRefetch={agentsRefetch}
             chatRefetch={refetch}
+            swarmConfigRefetch={swarmConfigRefetch}
             isUpdatePending={isUpdatePending}
             isUpdateAgent={isUpdateAgent}
             isToggleAgent={isToggleAgent}

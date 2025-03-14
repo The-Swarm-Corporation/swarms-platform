@@ -1450,6 +1450,53 @@ export type Database = {
           },
         ]
       }
+      swarms_cloud_chat_agent_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          max_tokens: number | null
+          model: string
+          name: string
+          system_prompt: string | null
+          temperature: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          max_tokens?: number | null
+          model: string
+          name: string
+          system_prompt?: string | null
+          temperature?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          max_tokens?: number | null
+          model?: string
+          name?: string
+          system_prompt?: string | null
+          temperature?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_chat_agent_templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       swarms_cloud_chat_agents: {
         Row: {
           chat_id: string | null
@@ -1462,6 +1509,7 @@ export type Database = {
           name: string
           system_prompt: string | null
           temperature: number | null
+          template_id: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -1476,6 +1524,7 @@ export type Database = {
           name: string
           system_prompt?: string | null
           temperature?: number | null
+          template_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -1490,6 +1539,7 @@ export type Database = {
           name?: string
           system_prompt?: string | null
           temperature?: number | null
+          template_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -1499,6 +1549,13 @@ export type Database = {
             columns: ["chat_id"]
             isOneToOne: false
             referencedRelation: "swarms_cloud_chat"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_chat_agents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "swarms_cloud_chat_agent_templates"
             referencedColumns: ["id"]
           },
           {

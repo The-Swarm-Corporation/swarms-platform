@@ -65,3 +65,27 @@ export type FormAgent = Omit<
   Tables<'swarms_cloud_chat_agents'>,
   'created_at' | 'updated_at' | 'user_id'
 >;
+
+export type AgentTemplateWithStatus = {
+  id: string;
+  name: string;
+  description: string;
+  model: string;
+  temperature: number;
+  max_tokens: number;
+  system_prompt: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  chatStatus: {
+    id?: string;
+    is_selected: boolean;
+    is_active: boolean;
+    name?: string;
+    description?: string;
+    system_prompt?: string;
+    model?: string;
+    temperature?: number;
+    max_tokens?: number;
+  };
+};

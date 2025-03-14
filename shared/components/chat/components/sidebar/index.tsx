@@ -6,12 +6,17 @@ import {
   ChevronLeft,
   ChevronRight,
   Cog,
+  Library,
   Pencil,
   Plus,
   Settings,
   Trash,
 } from 'lucide-react';
-import type { Agent, SwarmArchitecture } from '@/shared/components/chat/types';
+import type {
+  Agent,
+  SwarmArchitecture,
+  SwarmConfig,
+} from '@/shared/components/chat/types';
 import { Button } from '@/shared/components/ui/button';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import {
@@ -44,6 +49,14 @@ import { getTruncatedString } from '@/shared/utils/helpers';
 import { Input } from '@/shared/components/ui/input';
 import { UseQueryResult } from '@tanstack/react-query';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
+import { AgentLibrary } from '../agent-library';
 
 interface SwarmSelectorProps {
   isLoading?: boolean;
@@ -101,6 +114,7 @@ interface ConfigSidebarProps {
   agents: Tables<'swarms_cloud_chat_agents'>[];
   activeConversation: UseQueryResult<ConversationWithMessages | null, any>;
   swarmArchitecture: SwarmArchitecture;
+  swarmConfig: SwarmConfig;
   isLoadingAgents: boolean;
   isUpdatePending: boolean;
   isCreateAgent: boolean;
@@ -110,6 +124,7 @@ interface ConfigSidebarProps {
   openAgentModal: boolean;
   agentsRefetch: () => void;
   chatRefetch: () => void;
+  swarmConfigRefetch: () => void;
   setOpenAgentModal: Dispatch<SetStateAction<boolean>>;
   onUpdateConversation: ({
     id,
@@ -139,6 +154,7 @@ export function ConfigSidebar({
   agents,
   activeConversation,
   swarmArchitecture,
+  swarmConfig,
   isUpdatePending,
   isCreateAgent,
   isUpdateAgent,
@@ -150,6 +166,7 @@ export function ConfigSidebar({
   onUpdateAgent,
   chatRefetch,
   agentsRefetch,
+  swarmConfigRefetch,
   isToggleAgent,
   isDeleteAgent,
   onRemoveAgent,
@@ -160,6 +177,7 @@ export function ConfigSidebar({
   const [isExpanded, setIsExpanded] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
   const [agentId, setAgentId] = useState('');
+  const [openAgentLibrary, setOpenAgentLibrary] = useState(false);
   const [configData, setConfigData] = useState({
     name: '',
     description: '',
@@ -385,10 +403,19 @@ export function ConfigSidebar({
             )}
             <div
               className={cn(
-                'lg:block',
-                isMobile && isExpanded ? 'block' : 'hidden',
+                'lg:flex items-center gap-2',
+                isExpanded ? 'flex-row' : 'flex-col',
+                isMobile && isExpanded ? 'flex' : 'hidden',
               )}
             >
+              <Button
+                onClick={() => setOpenAgentLibrary(true)}
+                className={`${isExpanded ? 'w-full' : 'w-auto'} outline outline-[#40403F] hover:bg-primary/40 hover:outline-none bg-secondary/70 text-white`}
+                size="sm"
+              >
+                <Library className="h-4 w-4" />
+              </Button>
+
               <Sheet open={openAgentModal} onOpenChange={setOpenAgentModal}>
                 <SheetTrigger asChild>
                   <Button
@@ -415,8 +442,27 @@ export function ConfigSidebar({
               </Sheet>
             </div>
           </div>
+          <Dialog open={openAgentLibrary} onOpenChange={setOpenAgentLibrary}>
+            <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col border border-[#40403F]">
+              <DialogHeader>
+                <DialogTitle>Agent Library</DialogTitle>
+                <DialogDescription>
+                  Browse and select agents from your library.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex-1 overflow-hidden">
+                <AgentLibrary
+                  swarmConfig={swarmConfig}
+                  chatId={activeConversation?.data?.id || ''}
+                  agentsRefetch={agentsRefetch}
+                  swarmConfigRefetch={swarmConfigRefetch}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
           <ScrollArea className="flex-1">
-            <div className="p-4 space-y-2 h-[300px]">
+            <div className="p-4 space-y-2 h-[230px] 2xl:h-[300px]">
               {agents.map((agent) => {
                 const editAgent = convertEditingAgent(agent);
                 return (

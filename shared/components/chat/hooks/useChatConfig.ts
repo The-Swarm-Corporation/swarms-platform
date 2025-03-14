@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type {
   Agent,
+  AgentTemplateWithStatus,
   SwarmArchitecture,
   SwarmConfig,
 } from '@/shared/components/chat/types';
@@ -38,8 +39,17 @@ export function useConfig({
   const updateAgentMutation = trpc.chatAgent.updateAgent.useMutation();
   const deleteAgentMutation = trpc.chatAgent.removeAgent.useMutation();
   const toggleAgentMutation = trpc.chatAgent.toggleAgent.useMutation();
+  const createAgentTemplate = trpc.chatAgent.createAgentTemplate.useMutation();
   const updateSwarmConfigMutation =
     trpc.swarmConfig.updateSwarmConfig.useMutation();
+  const addAgentToChat = trpc.chatAgent.addAgentTemplateToChat.useMutation();
+  const agentTemplatesQuery = trpc.chatAgent.getAgentTemplatesForChat.useQuery(
+    activeConversationId,
+    {
+      enabled: !!activeConversationId,
+      refetchOnWindowFocus: false,
+    },
+  );
 
   useEffect(() => {
     if (getAgentsQuery.data) {
@@ -60,31 +70,52 @@ export function useConfig({
 
   const addAgent = useCallback(
     async (agent: Omit<Agent, 'id'>) => {
+      if (!activeConversationId) return;
+
       try {
-        // Create new agent
+        const template = await createAgentTemplate.mutateAsync({
+          name: agent.name,
+          description: agent.description,
+          model: agent.model,
+          temperature: agent.temperature,
+          max_tokens: agent.maxTokens,
+          system_prompt: agent.systemPrompt,
+        });
+
         const newAgent = await createAgentMutation.mutateAsync({
           ...agent,
+          templateId: template.id,
           chatId: activeConversationId,
         });
-        setAgents((prev) => [...prev, newAgent]);
 
-        if (!activeConversationId) return;
+        setAgents((prev) => [...prev, newAgent]);
+        setOpenAgentModal(false);
 
         const updatedAgentIds = [
           ...(swarmConfig?.agents?.map((a) => a.agent_id) || []),
           newAgent.id,
         ];
 
-        await updateSwarmConfigMutation.mutateAsync({
-          chatId: activeConversationId,
-          architecture: swarmConfig?.architecture || 'ConcurrentWorkflow',
-          agentIds: updatedAgentIds,
-        });
+        await Promise.all([
+          updateSwarmConfigMutation.mutateAsync({
+            chatId: activeConversationId,
+            architecture: swarmConfig?.architecture || 'ConcurrentWorkflow',
+            agentIds: updatedAgentIds,
+          }),
+          addAgentToChat.mutateAsync({
+            templateId: template.id,
+            chatId: activeConversationId,
+            overrides: {
+              is_active: true,
+            },
+          }),
+        ]);
+
         toast({
-          description: `${agent?.name} added successfully`,
+          description: `${agent.name} added successfully`,
         });
-        setOpenAgentModal(false);
         refetchQuery();
+        agentTemplatesQuery.refetch();
       } catch (error) {
         console.error('Error adding agent:', error);
         toast({
@@ -176,11 +207,12 @@ export function useConfig({
     updateSwarmArchitecture,
     toggleAgent,
     agentsRefetch: getAgentsQuery.refetch,
+    swarmConfigRefetch: getSwarmConfigQuery.refetch,
     isLoading:
       getAgentsQuery.isLoading ||
       getSwarmConfigQuery.isLoading ||
       updateSwarmConfigMutation.isPending,
-    isCreateAgent: createAgentMutation.isPending,
+    isCreateAgent: createAgentMutation.isPending || agentTemplatesQuery.isPending,
     isUpdateAgent: updateAgentMutation.isPending,
     isToggleAgent: toggleAgentMutation.isPending,
     isDeleteAgent: deleteAgentMutation.isPending,
