@@ -386,13 +386,11 @@ const agentRouter = router({
     return data;
   }),
 
-  // Get agent templates with their status for a specific chat
   getAgentTemplatesForChat: userProcedure
     .input(z.string())
     .query(async ({ ctx, input: chatId }) => {
       const user_id = ctx.session.data.user?.id ?? '';
 
-      // Get all templates
       const { data: templates, error: templatesError } = await ctx.supabase
         .from('swarms_cloud_chat_agent_templates')
         .select('*')
@@ -401,7 +399,6 @@ const agentRouter = router({
 
       if (templatesError) throw templatesError;
 
-      // Get chat-specific agent instances
       const { data: chatAgents, error: agentsError } = await ctx.supabase
         .from('swarms_cloud_chat_agents')
         .select('*')
@@ -410,7 +407,6 @@ const agentRouter = router({
 
       if (agentsError) throw agentsError;
 
-      // Map templates with their status in the current chat
       const templatesWithStatus = templates.map((template) => {
         const chatAgent = chatAgents.find(
           (agent) => agent.template_id === template.id,
@@ -422,7 +418,7 @@ const agentRouter = router({
                 id: chatAgent.id,
                 is_active: chatAgent.is_active,
                 is_selected: true,
-                // Include any chat-specific overrides
+
                 name: chatAgent.name,
                 description: chatAgent.description,
                 system_prompt: chatAgent.system_prompt,
@@ -440,7 +436,6 @@ const agentRouter = router({
       return templatesWithStatus;
     }),
 
-  // Create a new agent template
   createAgentTemplate: userProcedure
     .input(
       z.object({
@@ -473,13 +468,12 @@ const agentRouter = router({
       return data;
     }),
 
-  // Add an existing agent template to a chat
   addAgentTemplateToChat: userProcedure
     .input(
       z.object({
         templateId: z.string(),
         chatId: z.string(),
-        // Optional overrides for chat-specific settings
+
         overrides: z
           .object({
             name: z.string().optional(),
@@ -496,7 +490,6 @@ const agentRouter = router({
     .mutation(async ({ ctx, input }) => {
       const user_id = ctx.session.data.user?.id ?? '';
 
-      // Check if this template is already added to this chat
       const { data: existing, error: checkError } = await ctx.supabase
         .from('swarms_cloud_chat_agents')
         .select('id')
@@ -508,7 +501,6 @@ const agentRouter = router({
       if (checkError) throw checkError;
 
       if (existing) {
-        // If it exists, update it to be active
         const { data, error } = await ctx.supabase
           .from('swarms_cloud_chat_agents')
           .update({
@@ -523,7 +515,6 @@ const agentRouter = router({
         if (error) throw error;
         return data;
       } else {
-        // Get the template data first
         const { data: template, error: templateError } = await ctx.supabase
           .from('swarms_cloud_chat_agent_templates')
           .select('*')
@@ -533,7 +524,6 @@ const agentRouter = router({
 
         if (templateError) throw templateError;
 
-        // Add the agent to the chat
         const { data, error } = await ctx.supabase
           .from('swarms_cloud_chat_agents')
           .insert({
@@ -700,7 +690,6 @@ const swarmConfigRouter = router({
       const user_id = ctx.session.data.user?.id;
       if (!user_id) throw new Error('User not authenticated');
 
-      // Start transaction
       const { data: existingConfig, error: fetchError } = await ctx.supabase
         .from('swarms_cloud_chat_swarm_configs')
         .select('id')
@@ -710,7 +699,6 @@ const swarmConfigRouter = router({
 
       if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
 
-      // Create or update config
       const configPromise = existingConfig
         ? ctx.supabase
             .from('swarms_cloud_chat_swarm_configs')
@@ -731,7 +719,6 @@ const swarmConfigRouter = router({
 
       const configId = existingConfig?.id || configData[0].id;
 
-      // Delete existing agent associations
       const { error: deleteError } = await ctx.supabase
         .from('swarms_cloud_chat_swarm_agents')
         .delete()
@@ -740,7 +727,6 @@ const swarmConfigRouter = router({
 
       if (deleteError) throw deleteError;
 
-      // Create new agent associations
       if (input.agentIds.length > 0) {
         const { error: insertError } = await ctx.supabase
           .from('swarms_cloud_chat_swarm_agents')
@@ -756,7 +742,6 @@ const swarmConfigRouter = router({
         if (insertError) throw insertError;
       }
 
-      // Return updated config with agents
       return ctx.supabase
         .from('swarms_cloud_chat_swarm_configs')
         .select(
