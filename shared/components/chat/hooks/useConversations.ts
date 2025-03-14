@@ -4,10 +4,15 @@ import { useState, useEffect } from 'react';
 import { Message } from '@/shared/components/chat/types';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-
-const STORAGE_KEY = 'active-sup-convo';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export function useConversations() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const activeConversationId = searchParams?.get('conversationId') || '';
+
   const {
     data: conversations,
     refetch,
@@ -28,12 +33,6 @@ export function useConversations() {
   const [replaceMode, setReplaceMode] = useState<
     'replaceAll' | 'replaceOriginal'
   >('replaceAll');
-  const [activeConversationId, setActiveConversationId] = useState<string>(
-    () =>
-      typeof window !== 'undefined'
-        ? localStorage.getItem(STORAGE_KEY) || ''
-        : '',
-  );
 
   const activeConversation = trpc.chat.getConversation.useQuery(
     activeConversationId,
@@ -43,18 +42,25 @@ export function useConversations() {
   );
 
   useEffect(() => {
-    if (conversations?.length) {
-      const storedId = localStorage.getItem(STORAGE_KEY);
-      const activeChat =
-        conversations.find((chat) => chat.id === storedId) ||
-        conversations.find((chat) => chat.is_active);
-      if (activeChat) {
-        setActiveConversation(activeChat.id);
-      } else {
-        setActiveConversation(conversations[0].id);
+    if (conversations?.length && !activeConversationId) {
+      const firstConversation =
+        conversations.find((chat) => chat.is_active) || conversations[0];
+      if (firstConversation) {
+        updateQueryParams(firstConversation.id);
       }
     }
-  }, [conversations]);
+  }, [conversations, activeConversationId]);
+
+  const updateQueryParams = (conversationId: string) => {
+    const newSearchParams = new URLSearchParams(searchParams ?? '');
+    newSearchParams.set('conversationId', conversationId);
+
+    router.push(`${pathname}?${newSearchParams.toString()}`);
+  };
+
+  const setActiveConversation = (id: string) => {
+    updateQueryParams(id);
+  };
 
   const startEditingMessage = (messageId: string) => {
     setEditingMessageId(messageId);
@@ -62,11 +68,6 @@ export function useConversations() {
 
   const cancelEditingMessage = () => {
     setEditingMessageId(null);
-  };
-
-  const setActiveConversation = (id: string) => {
-    setActiveConversationId(id);
-    localStorage.setItem(STORAGE_KEY, id);
   };
 
   const createConversation = async (name: string) => {

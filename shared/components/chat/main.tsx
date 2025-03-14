@@ -24,7 +24,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import Modal from '../modal';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { parseJSON } from './helper';
+import { buildSwarmTask, buildSwarmTaskForEdit, parseJSON } from './helper';
 
 interface SwarmsChatProps {
   modelFunction?: (message: string) => Promise<string>;
@@ -68,7 +68,6 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     refetch,
     createConversation,
     updateConversation,
-    switchConversation,
     deleteConversation,
     addMessage,
     exportConversation,
@@ -255,13 +254,15 @@ export default function SwarmsChat({}: SwarmsChatProps) {
       );
       const swarmType = SwarmsApiClient.getSwarmType(swarmConfig.architecture);
 
+      const taskPayload = buildSwarmTask(activeConversation.data?.messages, userMessage);
+
       const swarmRequest = {
         name: activeConversation.data?.name || 'Chat Session',
         description:
           activeConversation.data?.description || 'Chat Session Description',
         agents: apiAgents,
         swarm_type: swarmType,
-        task: userMessage,
+        task: taskPayload.task,
         max_loops: activeConversation.data?.max_loops || 1,
         img: imageUrl || '',
       };
@@ -378,13 +379,16 @@ export default function SwarmsChat({}: SwarmsChatProps) {
       );
       const swarmType = SwarmsApiClient.getSwarmType(swarmConfig.architecture);
 
+      const taskPayload = buildSwarmTaskForEdit(activeConversation.data?.messages, updatedMessage, userMessage);
+
       const swarmRequest = {
         name: activeConversation.data?.name || 'Chat Session',
-        description: 'Chat interaction',
+        description:
+          activeConversation.data?.description || 'Chat Session Description',
         agents: apiAgents,
         swarm_type: swarmType,
-        task: userMessage,
-        max_loops: 1,
+        task: taskPayload?.task,
+        max_loops: activeConversation.data?.max_loops || 1,
       };
 
       const response = await swarmsApi.executeSwarm(swarmRequest);
@@ -498,7 +502,6 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           conversationRefetch={refetch}
           onUpdateConversation={updateConversation}
           onCreateConversation={createConversation}
-          onSwitchConversation={switchConversation}
           onDeleteConversation={deleteConversation}
           onExportConversation={exportConversation}
         />

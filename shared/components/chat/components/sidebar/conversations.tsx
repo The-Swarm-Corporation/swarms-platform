@@ -10,6 +10,7 @@ import {
   Download,
   Trash,
   Pencil,
+  Share2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/shared/components/ui/button';
@@ -26,6 +27,10 @@ import { Tables } from '@/types_db';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import ConversationModal from './conversation-modal';
 import { getTruncatedString } from '@/shared/utils/helpers';
+import { useSearchParams } from 'next/navigation';
+import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 interface ConversationSidebarProps {
   conversations: Tables<'swarms_cloud_chat'>[];
@@ -36,7 +41,6 @@ interface ConversationSidebarProps {
   isDeletePending: boolean;
   onUpdateConversation: ({ id, name }: { id: string; name: string }) => void;
   onCreateConversation: (name: string) => void;
-  onSwitchConversation: (id: string) => void;
   onDeleteConversation: (id: string) => void;
   onExportConversation: (id: string) => void;
   conversationRefetch?: () => void;
@@ -52,10 +56,15 @@ export function ConversationSidebar({
   conversationRefetch,
   onUpdateConversation,
   onCreateConversation,
-  onSwitchConversation,
   onDeleteConversation,
   onExportConversation,
 }: ConversationSidebarProps) {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const currentConversationId = searchParams?.get('conversationId');
+
+  const { toast } = useToast();
+
   const [isExpanded, setIsExpanded] = useState(true);
   const [activeChatId, setActiveChatId] = useState('');
   const [newChatName, setNewChatName] = useState('');
@@ -77,6 +86,23 @@ export function ConversationSidebar({
   const handleEditModalOpen = (id: string) => {
     setActiveChatId(id);
     setIsEditModalOpen(true);
+  };
+
+  async function copyToClipboard(text: string) {
+    if (!text) return;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({ title: 'Copied to clipboard' });
+    } catch (error) {
+      console.error('Failed to copy: ', error);
+    }
+  }
+
+  const getConversationUrl = (id: string) => {
+    const params = new URLSearchParams(searchParams ?? '');
+    params.set('conversationId', id);
+    return `${pathname}?${params.toString()}`;
   };
 
   const handleEditConversation = async () => {
@@ -157,102 +183,119 @@ export function ConversationSidebar({
             ) : (
               <AnimatePresence>
                 {conversations.map((conversation) => (
-                  <motion.div
+                  <Link
                     key={conversation.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                      conversation.id === activeId
-                        ? 'bg-white/80 dark:bg-primary/40 dark:hover:bg-primary/50 border-primary/10'
-                        : 'bg-transparent border-transparent hover:bg-white/40 dark:hover:bg-zinc-900/40 dark:hover:border-[#40403F]'
-                    }`}
-                    onClick={() => onSwitchConversation(conversation?.id)}
+                    href={getConversationUrl(conversation.id)}
+                    passHref
+                    legacyBehavior
                   >
-                    {isExpanded ? (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <MessageSquare className="w-5 h-5 dark:text-[#f1f1f1]" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium dark:text-[#f1f1f1] truncate">
-                              {getTruncatedString(conversation?.name, 25)}
-                            </p>
-                            <p className="text-xs dark:text-[#f1f1f1]/50">
-                              {format(
-                                new Date(
-                                  conversation?.updated_at ?? new Date(),
-                                ),
-                                'MMM d, yyyy',
-                              )}
-                            </p>
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                        conversation.id === currentConversationId
+                          ? 'bg-white/80 dark:bg-primary/40 dark:hover:bg-primary/50 border-primary/10'
+                          : 'bg-transparent border-transparent hover:bg-white/40 dark:hover:bg-zinc-900/40 dark:hover:border-[#40403F]'
+                      }`}
+                    >
+                      {isExpanded ? (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <MessageSquare className="w-5 h-5 dark:text-[#f1f1f1]" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium dark:text-[#f1f1f1] truncate">
+                                {getTruncatedString(conversation?.name, 25)}
+                              </p>
+                              <p className="text-xs dark:text-[#f1f1f1]/50">
+                                {format(
+                                  new Date(
+                                    conversation?.updated_at ?? new Date(),
+                                  ),
+                                  'MMM d, yyyy',
+                                )}
+                              </p>
+                            </div>
                           </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={isDeletePending}
+                                className="dark:text-[#f1f1f1]/70 group focus-visible:ring-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                {isDeletePending ? (
+                                  <LoadingSpinner size={18} />
+                                ) : (
+                                  <MoreVertical className="h-4 w-4 group-hover:text-primary" />
+                                )}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditModalOpen(conversation?.id);
+                                }}
+                                className="cursor-pointer focus:text-red-600/50"
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  await copyToClipboard(
+                                    `${process.env.NEXT_PUBLIC_SITE_URL}/platform/chat?conversationId=${conversation.id}`,
+                                  );
+                                }}
+                                className="cursor-pointer focus:text-red-600/50"
+                              >
+                                <Share2 className="mr-2 h-4 w-4" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onExportConversation(conversation.id);
+                                }}
+                                className="cursor-pointer focus:text-red-600/50"
+                              >
+                                <Download className="mr-2 h-4 w-4" />
+                                Export
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600 focus:text-red-600/50 cursor-pointer"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  await onDeleteConversation(conversation.id);
+                                  conversationRefetch?.();
+                                }}
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              disabled={isDeletePending}
-                              className="dark:text-[#f1f1f1]/70 group focus-visible:ring-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
-                            >
-                              {isDeletePending ? (
-                                <LoadingSpinner size={18} />
-                              ) : (
-                                <MoreVertical className="h-4 w-4 group-hover:text-primary" />
-                              )}
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditModalOpen(conversation?.id);
-                              }}
-                              className='cursor-pointer focus:text-red-600/50'
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onExportConversation(conversation.id);
-                              }}
-                              className='cursor-pointer focus:text-red-600/50'
-                            >
-                              <Download className="mr-2 h-4 w-4" />
-                              Export
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-red-600 focus:text-red-600/50 cursor-pointer"
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                await onDeleteConversation(conversation.id);
-                                conversationRefetch?.();
-                              }}
-                            >
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    ) : (
-                      <div className="flex justify-center">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            conversation.id === activeId
-                              ? 'bg-red-500'
-                              : 'bg-red-500/30'
-                          }`}
-                        />
-                      </div>
-                    )}
-                  </motion.div>
+                      ) : (
+                        <div className="flex justify-center">
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              conversation.id === activeId
+                                ? 'bg-red-500'
+                                : 'bg-red-500/30'
+                            }`}
+                          />
+                        </div>
+                      )}
+                    </motion.div>
+                  </Link>
                 ))}
               </AnimatePresence>
             )}
