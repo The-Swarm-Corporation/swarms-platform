@@ -32,7 +32,9 @@ interface SwarmsChatProps {
 
 export default function SwarmsChat({}: SwarmsChatProps) {
   const { user } = useAuthContext();
-  const apiKey = trpc.apiKey.getValidApiKey.useQuery();
+  const apiKey = trpc.apiKey.getValidApiKey.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
 
   const swarmsApi = new SwarmsApiClient(apiKey.data?.key || '');
 
@@ -49,6 +51,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   const [loadingAfterMessageId, setLoadingAfterMessageId] = useState<
     string | null
   >(null);
+  const [models, setModels] = useState<string[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognition = useRef<any>(null);
@@ -173,6 +176,18 @@ export default function SwarmsChat({}: SwarmsChatProps) {
       setMessages([]);
     }
   }, [activeConversation?.data?.messages]);
+
+  const handleFetchModels = async () => {
+    const data = await swarmsApi.getModels();
+
+    setModels(data);
+  };
+
+  useEffect(() => {
+    if (!apiKey.isLoading) {
+      handleFetchModels();
+    }
+  }, [apiKey.isLoading]);
 
   const toggleListening = () => {
     if (isListening) {
@@ -757,6 +772,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           </div>
           <ConfigSidebar
             agents={agents || []}
+            models={models || []}
             activeConversation={activeConversation}
             isLoadingAgents={isLoadingAgents}
             isCreateAgent={isCreateAgent}

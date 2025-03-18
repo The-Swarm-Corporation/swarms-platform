@@ -88,6 +88,24 @@ export class SwarmsApiClient {
     }
   }
 
+  async getModels() {
+    try {
+      const response = await fetch(`${this.baseUrl}/v1/models/available`, {
+        method: 'GET',
+        headers: this.headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Swarm API error:', error);
+      throw error;
+    }
+  }
+
   // Stream the response (if API supports streaming)
   async streamSwarm(
     request: SwarmRequest,

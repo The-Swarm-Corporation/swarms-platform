@@ -117,6 +117,7 @@ interface ConfigSidebarProps {
   isToggleAgent: boolean;
   isDeleteAgent: boolean;
   openAgentModal: boolean;
+  models: string[];
   agentsRefetch: () => void;
   chatRefetch: () => void;
   setOpenAgentModal: Dispatch<SetStateAction<boolean>>;
@@ -146,6 +147,7 @@ interface ConfigSidebarProps {
 
 export function ConfigSidebar({
   agents,
+  models,
   activeConversation,
   swarmArchitecture,
   isUpdatePending,
@@ -426,6 +428,7 @@ export function ConfigSidebar({
                   </SheetHeader>
                   <div className="mt-4">
                     <AgentForm
+                      models={models}
                       isLoading={isCreateAgent}
                       onSubmit={onAddAgent}
                     />
@@ -445,6 +448,7 @@ export function ConfigSidebar({
 
               <div className="flex-1 overflow-hidden">
                 <AgentLibrary
+                  models={models}
                   chatId={activeConversation?.data?.id || ''}
                   agentsRefetch={agentsRefetch}
                 />
@@ -582,6 +586,7 @@ export function ConfigSidebar({
           <div className="mt-4">
             {editingAgent && (
               <AgentForm
+                models={models}
                 initialData={editingAgent}
                 isLoading={isUpdateAgent}
                 onSubmit={async (updates) => {

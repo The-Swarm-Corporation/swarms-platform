@@ -5,7 +5,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from '@/shared/components/ui/sheet';
 import {
   Dialog,
@@ -29,6 +28,7 @@ import { Tables } from '@/types_db';
 import { getTruncatedString } from '@/shared/utils/helpers';
 
 interface AgentLibraryProps {
+  models: string[];
   chatId: string;
   agentsRefetch: () => void;
 }
@@ -46,7 +46,11 @@ const INITIAL_DATA = {
   systemPrompt: '',
 };
 
-export function AgentLibrary({ chatId, agentsRefetch }: AgentLibraryProps) {
+export function AgentLibrary({
+  models,
+  chatId,
+  agentsRefetch,
+}: AgentLibraryProps) {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [openAgentModal, setOpenAgentModal] = useState(false);
@@ -82,10 +86,7 @@ export function AgentLibrary({ chatId, agentsRefetch }: AgentLibraryProps) {
   const userExplorerItems = useMemo(() => {
     if (!explorerItemsQuery.data || !agentTemplatesQuery.data) return [];
 
-    const userId = agentTemplatesQuery.data[0]?.user_id || '';
-    const explorerItems = explorerItemsQuery.data?.combinedItems?.filter(
-      (item) => item.user_id === userId,
-    );
+    const explorerItems = explorerItemsQuery.data?.combinedItems;
 
     return explorerItems.filter((item) => {
       return !agentTemplatesQuery.data.some(
@@ -320,6 +321,7 @@ export function AgentLibrary({ chatId, agentsRefetch }: AgentLibraryProps) {
             </SheetHeader>
             <div className="mt-4">
               <AgentForm
+                models={models}
                 isLoading={isCreatingTemplate}
                 onSubmit={handleCreateTemplate}
                 initialData={agentFormInitialValues}
@@ -404,7 +406,7 @@ export function AgentLibrary({ chatId, agentsRefetch }: AgentLibraryProps) {
                             <DialogHeader>
                               <DialogTitle></DialogTitle>
                               <DialogDescription className="text-center text-white">
-                                You're deleting this agent across all
+                                You&apos;re deleting this agent across all
                                 conversations?
                               </DialogDescription>
                             </DialogHeader>
