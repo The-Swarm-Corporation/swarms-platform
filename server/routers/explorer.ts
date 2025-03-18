@@ -247,6 +247,18 @@ const explorerRouter = router({
 
       return prompts;
     }),
+  getUserPrompts: userProcedure.query(async ({ ctx }) => {
+    const user_id = ctx.session.data.user?.id ?? '';
+
+    const { data, error } = await ctx.supabase
+      .from('swarms_cloud_prompts')
+      .select('*')
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }),
   getPromptById: publicProcedure
     .input(z.string())
     .query(async ({ input, ctx }) => {
@@ -892,6 +904,44 @@ const explorerRouter = router({
 
       return { success: true };
     }),
+  getUserExplorerItems: userProcedure.query(async ({ ctx }) => {
+    const user_id = ctx.session.data.user?.id ?? '';
+
+    const { data: prompts, error: promptsError } = await ctx.supabase
+      .from('swarms_cloud_prompts')
+      .select('*')
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: false });
+
+    if (promptsError) throw promptsError;
+
+    const { data: agents, error: agentsError } = await ctx.supabase
+      .from('swarms_cloud_agents')
+      .select('*')
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: false });
+
+    if (agentsError) throw agentsError;
+
+    const userPrompts = prompts.map((item) => ({
+      ...item,
+      itemType: 'prompt' as const,
+    }));
+
+    const userAgents = agents.map((agent) => ({
+      ...agent,
+      itemType: 'agent' as const,
+    }));
+
+    return {
+      prompts: userPrompts || [],
+      agents: userAgents || [],
+      combinedItems: [...userPrompts, ...userAgents].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      ),
+    };
+  }),
 });
 
 export default explorerRouter;

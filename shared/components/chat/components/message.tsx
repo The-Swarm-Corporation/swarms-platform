@@ -1,18 +1,24 @@
 import React, { forwardRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/shared/utils/cn';
-import { Edit, Hexagon, Save } from 'lucide-react';
+import { Edit, Hexagon, Save, Trash } from 'lucide-react';
 import { Tables } from '@/types_db';
 import { MessageObj, parseJSON } from '../helper';
 import MarkdownComponent from '../../markdown';
 import Image from 'next/image';
-import { useToast } from '../../ui/Toasts/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
 import { useConversations } from '../hooks/useConversations';
 import { Button } from '../../ui/button';
 import LoadingSpinner from '../../loading-spinner';
 
 interface ChatMessageProps {
-  message: Tables<'swarms_cloud_chat_messages'>;
+  message: Omit<Tables<'swarms_cloud_chat_messages'>, 'is_deleted'>;
   isEditLoading: boolean;
   onEdit: (
     updatedMessage: Tables<'swarms_cloud_chat_messages'>,
@@ -33,14 +39,22 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
     const {
       editingMessageId,
       replaceMode,
+      isDeleteMessage,
       setReplaceMode,
       startEditingMessage,
       cancelEditingMessage,
       editMessage,
+      deleteMessage,
     } = useConversations();
     const [editContent, setEditContent] = useState('');
+    const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
     const isEditing = editingMessageId === message.id;
+
+    const handleOpenDeleteModal = () => setOpenDeleteModal(true);
+    const handleCloseDeleteModal = () => {
+      setOpenDeleteModal(false);
+    };
 
     const handleEdit = () => {
       startEditingMessage(message?.id);
@@ -51,6 +65,12 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
             ? content[0]?.content
             : content?.content || '',
       );
+    };
+
+    const handleDelete = async () => {
+      await deleteMessage(message?.id);
+
+      handleCloseDeleteModal();
     };
 
     const handleEditSubmit = async () => {
@@ -70,7 +90,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
     return (
       <div
         className={cn(
-          'flex mb-6 flex-col',
+          'flex mb-6 flex-col group',
           message.role === 'user' ? 'justify-end' : '',
         )}
         ref={ref}
@@ -88,15 +108,55 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
               {new Date(message?.timestamp ?? '').toLocaleString('en-US')}
             </span>
 
-            {message.role === 'user' && !isEditing && (
+            <div className="flex items-center">
+              {message.role === 'user' && !isEditing && (
+                <button
+                  onClick={handleEdit}
+                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"
+                >
+                  <Edit className="h-3 w-3" />
+                </button>
+              )}
               <button
-                onClick={handleEdit}
-                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"
+                onClick={handleOpenDeleteModal}
+                className="p-1 rounded invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
               >
-                <Edit className="h-3 w-3" />
+                <Trash className="h-3 w-3 text-primary" />
               </button>
-            )}
+            </div>
           </div>
+
+          <Dialog open={openDeleteModal} onOpenChange={setOpenDeleteModal}>
+            <DialogContent className="max-w-xl border border-[#40403F]">
+              <DialogHeader>
+                <DialogTitle></DialogTitle>
+                <DialogDescription className="text-center text-white">
+                  Are you sure you'd like to delete this message?
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex mt-4 justify-center gap-2">
+                <Button
+                  variant="outline"
+                  // size="sm"
+                  disabled={isDeleteMessage}
+                  onClick={handleCloseDeleteModal}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  // size="sm"
+                  disabled={isDeleteMessage}
+                  onClick={handleDelete}
+                >
+                  Delete
+                  {isDeleteMessage && (
+                    <LoadingSpinner size={15} className="ml-2" />
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <div
             className={cn(

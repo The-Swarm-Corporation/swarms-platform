@@ -4,10 +4,15 @@ import { useState, useEffect } from 'react';
 import { Message } from '@/shared/components/chat/types';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-
-const STORAGE_KEY = 'active-sup-convo';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export function useConversations() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const activeConversationId = searchParams?.get('conversationId') || '';
+
   const {
     data: conversations,
     refetch,
@@ -20,20 +25,17 @@ export function useConversations() {
   const createConversationMutation = trpc.chat.createConversation.useMutation();
   const updateConversationMutation = trpc.chat.updateConversation.useMutation();
   const deleteConversationMutation = trpc.chat.deleteConversation.useMutation();
+
   const addMessageMutation = trpc.chat.addMessage.useMutation();
   const editMessageMutation = trpc.chat.editMessage.useMutation();
+  const deleteMessageMutation = trpc.chat.deleteMessage.useMutation();
+
   const { toast } = useToast();
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [replaceMode, setReplaceMode] = useState<
     'replaceAll' | 'replaceOriginal'
   >('replaceAll');
-  const [activeConversationId, setActiveConversationId] = useState<string>(
-    () =>
-      typeof window !== 'undefined'
-        ? localStorage.getItem(STORAGE_KEY) || ''
-        : '',
-  );
 
   const activeConversation = trpc.chat.getConversation.useQuery(
     activeConversationId,
@@ -43,18 +45,25 @@ export function useConversations() {
   );
 
   useEffect(() => {
-    if (conversations?.length) {
-      const storedId = localStorage.getItem(STORAGE_KEY);
-      const activeChat =
-        conversations.find((chat) => chat.id === storedId) ||
-        conversations.find((chat) => chat.is_active);
-      if (activeChat) {
-        setActiveConversation(activeChat.id);
-      } else {
-        setActiveConversation(conversations[0].id);
+    if (conversations?.length && !activeConversationId) {
+      const firstConversation =
+        conversations.find((chat) => chat.is_active) || conversations[0];
+      if (firstConversation) {
+        updateQueryParams(firstConversation.id);
       }
     }
-  }, [conversations]);
+  }, [conversations, activeConversationId]);
+
+  const updateQueryParams = (conversationId: string) => {
+    const newSearchParams = new URLSearchParams(searchParams ?? '');
+    newSearchParams.set('conversationId', conversationId);
+
+    router.push(`${pathname}?${newSearchParams.toString()}`);
+  };
+
+  const setActiveConversation = (id: string) => {
+    updateQueryParams(id);
+  };
 
   const startEditingMessage = (messageId: string) => {
     setEditingMessageId(messageId);
@@ -62,11 +71,6 @@ export function useConversations() {
 
   const cancelEditingMessage = () => {
     setEditingMessageId(null);
-  };
-
-  const setActiveConversation = (id: string) => {
-    setActiveConversationId(id);
-    localStorage.setItem(STORAGE_KEY, id);
   };
 
   const createConversation = async (name: string) => {
@@ -181,6 +185,47 @@ export function useConversations() {
     }
   };
 
+  const deleteMessage = async (messageId: string | null) => {
+    if (!messageId) {
+      toast({
+        description: 'No message to delete',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!activeConversationId) {
+      toast({
+        description: 'No active conversation',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const updatedMessage = await deleteMessageMutation.mutateAsync({
+        messageId: messageId ?? '',
+      });
+
+      if (activeConversation && activeConversation.refetch) {
+        activeConversation.refetch();
+      }
+
+      toast({
+        description: 'Message deleted successfully',
+        variant: 'destructive',
+      });
+      return updatedMessage;
+    } catch (err) {
+      console.error(err);
+      toast({
+        description: 'Failed to delete message',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
   const exportConversation = async () => {
     if (
       !activeConversation.data?.name ||
@@ -231,10 +276,12 @@ export function useConversations() {
     addMessage,
     editingMessageId,
     replaceMode,
+    isDeleteMessage: deleteMessageMutation.isPending,
     setReplaceMode,
     startEditingMessage,
     cancelEditingMessage,
     editMessage,
+    deleteMessage,
     exportConversation,
   };
 }

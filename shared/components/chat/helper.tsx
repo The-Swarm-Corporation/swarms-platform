@@ -1,5 +1,6 @@
 import { FileText, Image, Video, Music, File } from 'lucide-react';
 import { FileWithPreview } from './hooks/useFileUpload';
+import { Tables } from '@/types_db';
 
 export interface MessageObj {
   role: string;
@@ -34,7 +35,7 @@ export const parseJSON = (data: any) => {
 export async function uploadFileWithProgress(
   uploadUrl: string,
   file: File,
-  onProgress: (progress: number) => void
+  onProgress: (progress: number) => void,
 ) {
   return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -58,5 +59,71 @@ export async function uploadFileWithProgress(
 
     xhr.onerror = () => reject(new Error('Network error during file upload'));
     xhr.send(file);
+  });
+}
+
+export function transformMessages(
+  messages: Tables<'swarms_cloud_chat_messages'>[] = [],
+) {
+  return messages.flatMap((msg) => {
+    try {
+      let parsedContent = JSON.parse(msg?.content as string);
+
+      if (!Array.isArray(parsedContent)) return [];
+
+      return parsedContent
+        .filter(
+          (entry) =>
+            msg.role.toLowerCase() !== 'assistant' ||
+            entry.role.toLowerCase() !== 'user',
+        )
+        .map((entry) => ({
+          role: entry.role,
+          content: entry.content
+            .replace(/Time:\s\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s*/g, '')
+            .trim(),
+        }));
+    } catch (error) {
+      console.error('Error parsing content:', error);
+      return [];
+    }
+  });
+}
+
+export function transformEditMessages(
+  messages: Tables<'swarms_cloud_chat_messages'>[] = [],
+  updatedMessage: Tables<'swarms_cloud_chat_messages'>,
+) {
+  const updatedTimestamp = updatedMessage.timestamp
+    ? new Date(updatedMessage.timestamp).getTime()
+    : 0;
+
+  const priorMessages = messages.filter((msg) => {
+    if (!msg.timestamp || msg.id === updatedMessage.id) return false;
+    return new Date(msg.timestamp).getTime() < updatedTimestamp;
+  });
+
+  return priorMessages.flatMap((msg) => {
+    try {
+      let parsedContent = JSON.parse(msg?.content as string);
+
+      if (!Array.isArray(parsedContent)) return [];
+
+      return parsedContent
+        .filter(
+          (entry) =>
+            msg.role.toLowerCase() !== 'assistant' ||
+            entry.role.toLowerCase() !== 'user',
+        )
+        .map((entry) => ({
+          role: entry.role,
+          content: entry.content
+            .replace(/Time:\s\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s*/g, '')
+            .trim(),
+        }));
+    } catch (error) {
+      console.error('Error parsing content:', error);
+      return [];
+    }
   });
 }
