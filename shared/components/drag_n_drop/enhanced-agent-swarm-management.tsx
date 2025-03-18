@@ -1730,7 +1730,10 @@ const FlowContent = () => {
       );
 
       const validResults = incomingResults
-        .filter((res) => res.status === 'fulfilled')
+        .filter(
+          (res): res is PromiseFulfilledResult<string> =>
+            res.status === 'fulfilled',
+        )
         .map((res) => res.value);
 
       const systemOptimizationPrompt = `${agent.systemPrompt}

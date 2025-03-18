@@ -76,7 +76,6 @@ export const PLATFORM = {
   SPREADSHEET: '/platform/spreadsheet',
   EXPLORER: '/',
   SETTINGS: '/platform/account',
-  WALLET: '/platform/wallet',
   ORGANIZATION: '/platform/organization',
   CHAT: '/platform/chat',
   HISTORY: '/platform/history',

@@ -47,7 +47,7 @@ export default function EditorProvider({
   model: string;
 }) {
   const [language, setLanguage] = useState<LanguageType>(languages[0]);
-  const [theme, setTheme] = useState<string>(themes[0]);
+  const [theme, setTheme] = useState<string>("monokai");
   const paddings = ['0', '4px', '8px', '16px']; // Define paddings array
   const [padding, setPadding] = useState(paddings[2]);
   const [codeValue, setCodeValue] = useState<string>('');

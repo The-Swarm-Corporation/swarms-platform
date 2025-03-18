@@ -1,5 +1,3 @@
-'use client';
-
 import EntityComponent from '@/shared/components/entity';
 import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
@@ -8,9 +6,6 @@ import dynamic from 'next/dynamic';
 
 const ToolPlayground = dynamic(
   () => import('../agent/components/agent-playground'),
-  {
-    ssr: false,
-  },
 );
 
 const Tool = async ({ id }: { id: string }) => {
