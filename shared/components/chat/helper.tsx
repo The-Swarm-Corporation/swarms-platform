@@ -62,41 +62,38 @@ export async function uploadFileWithProgress(
   });
 }
 
-export const buildSwarmTask = (
+export function transformMessages(
   messages: Tables<'swarms_cloud_chat_messages'>[] = [],
-  latestUserMessage: string,
-) => {
-  const conversationHistory = messages.length
-    ? messages
-        .filter((msg) => msg.role === 'user' || msg.role === 'assistant')
-        .map((msg) => {
-          const parsedContent = JSON.parse(msg?.content as string);
-          return parsedContent
-            .map(
-              (item: any) =>
-                `${item.role}: ${item.content.replace(/\n/g, ' ')}`,
-            )
-            .join('\n');
-        })
-        .join('\n')
-    : null;
+) {
+  return messages.flatMap((msg) => {
+    try {
+      let parsedContent = JSON.parse(msg?.content as string);
 
-  const task = conversationHistory
-    ? {
-        task: `Conversation History:\n${conversationHistory}\n\nCurrent Question: ${latestUserMessage}`,
-      }
-    : {
-        task: `Current Question: ${latestUserMessage}`,
-      };
+      if (!Array.isArray(parsedContent)) return [];
 
-  return task;
-};
+      return parsedContent
+        .filter(
+          (entry) =>
+            msg.role.toLowerCase() !== 'assistant' ||
+            entry.role.toLowerCase() !== 'user',
+        )
+        .map((entry) => ({
+          role: entry.role,
+          content: entry.content
+            .replace(/Time:\s\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s*/g, '')
+            .trim(),
+        }));
+    } catch (error) {
+      console.error('Error parsing content:', error);
+      return [];
+    }
+  });
+}
 
-export const buildSwarmTaskForEdit = (
+export function transformEditMessages(
   messages: Tables<'swarms_cloud_chat_messages'>[] = [],
   updatedMessage: Tables<'swarms_cloud_chat_messages'>,
-  userMessage: string,
-) => {
+) {
   const updatedTimestamp = updatedMessage.timestamp
     ? new Date(updatedMessage.timestamp).getTime()
     : 0;
@@ -106,25 +103,27 @@ export const buildSwarmTaskForEdit = (
     return new Date(msg.timestamp).getTime() < updatedTimestamp;
   });
 
-  const conversationHistory = priorMessages.length
-    ? priorMessages
-        .filter((msg) => msg.role === 'user' || msg.role === 'assistant')
-        .map((msg) => {
-          const parsedContent = JSON.parse(msg?.content as string);
-          return parsedContent
-            .map((item: any) => `${item.role}: ${item.content.replace(/\n/g, ' ')}`)
-            .join('\n');
-        })
-        .join('\n')
-    : null;
+  return priorMessages.flatMap((msg) => {
+    try {
+      let parsedContent = JSON.parse(msg?.content as string);
 
-  const task = conversationHistory
-    ? {
-        task: `Conversation History:\n${conversationHistory}\n\nCurrent Question: ${userMessage}`,
-      }
-    : {
-        task: `Current Question: ${userMessage}`,
-      };
+      if (!Array.isArray(parsedContent)) return [];
 
-  return task;
-};
+      return parsedContent
+        .filter(
+          (entry) =>
+            msg.role.toLowerCase() !== 'assistant' ||
+            entry.role.toLowerCase() !== 'user',
+        )
+        .map((entry) => ({
+          role: entry.role,
+          content: entry.content
+            .replace(/Time:\s\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s*/g, '')
+            .trim(),
+        }));
+    } catch (error) {
+      console.error('Error parsing content:', error);
+      return [];
+    }
+  });
+}

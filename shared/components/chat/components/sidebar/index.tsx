@@ -12,11 +12,7 @@ import {
   Settings,
   Trash,
 } from 'lucide-react';
-import type {
-  Agent,
-  SwarmArchitecture,
-  SwarmConfig,
-} from '@/shared/components/chat/types';
+import type { Agent, SwarmArchitecture } from '@/shared/components/chat/types';
 import { Button } from '@/shared/components/ui/button';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import {
@@ -114,7 +110,6 @@ interface ConfigSidebarProps {
   agents: Tables<'swarms_cloud_chat_agents'>[];
   activeConversation: UseQueryResult<ConversationWithMessages | null, any>;
   swarmArchitecture: SwarmArchitecture;
-  swarmConfig: SwarmConfig;
   isLoadingAgents: boolean;
   isUpdatePending: boolean;
   isCreateAgent: boolean;
@@ -124,7 +119,6 @@ interface ConfigSidebarProps {
   openAgentModal: boolean;
   agentsRefetch: () => void;
   chatRefetch: () => void;
-  swarmConfigRefetch: () => void;
   setOpenAgentModal: Dispatch<SetStateAction<boolean>>;
   onUpdateConversation: ({
     id,
@@ -154,7 +148,6 @@ export function ConfigSidebar({
   agents,
   activeConversation,
   swarmArchitecture,
-  swarmConfig,
   isUpdatePending,
   isCreateAgent,
   isUpdateAgent,
@@ -166,7 +159,6 @@ export function ConfigSidebar({
   onUpdateAgent,
   chatRefetch,
   agentsRefetch,
-  swarmConfigRefetch,
   isToggleAgent,
   isDeleteAgent,
   onRemoveAgent,
@@ -453,10 +445,8 @@ export function ConfigSidebar({
 
               <div className="flex-1 overflow-hidden">
                 <AgentLibrary
-                  swarmConfig={swarmConfig}
                   chatId={activeConversation?.data?.id || ''}
                   agentsRefetch={agentsRefetch}
-                  swarmConfigRefetch={swarmConfigRefetch}
                 />
               </div>
             </DialogContent>

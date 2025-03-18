@@ -1456,6 +1456,7 @@ export type Database = {
           description: string | null
           id: string
           max_tokens: number | null
+          metadata: Json | null
           model: string
           name: string
           system_prompt: string | null
@@ -1468,6 +1469,7 @@ export type Database = {
           description?: string | null
           id?: string
           max_tokens?: number | null
+          metadata?: Json | null
           model: string
           name: string
           system_prompt?: string | null
@@ -1480,6 +1482,7 @@ export type Database = {
           description?: string | null
           id?: string
           max_tokens?: number | null
+          metadata?: Json | null
           model?: string
           name?: string
           system_prompt?: string | null
@@ -1575,6 +1578,7 @@ export type Database = {
           created_at: string | null
           id: string
           img: string | null
+          is_deleted: boolean
           is_edited: boolean | null
           metadata: Json | null
           role: string
@@ -1590,6 +1594,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           img?: string | null
+          is_deleted?: boolean
           is_edited?: boolean | null
           metadata?: Json | null
           role: string
@@ -1605,6 +1610,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           img?: string | null
+          is_deleted?: boolean
           is_edited?: boolean | null
           metadata?: Json | null
           role?: string

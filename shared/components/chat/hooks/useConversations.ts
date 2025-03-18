@@ -25,8 +25,11 @@ export function useConversations() {
   const createConversationMutation = trpc.chat.createConversation.useMutation();
   const updateConversationMutation = trpc.chat.updateConversation.useMutation();
   const deleteConversationMutation = trpc.chat.deleteConversation.useMutation();
+
   const addMessageMutation = trpc.chat.addMessage.useMutation();
   const editMessageMutation = trpc.chat.editMessage.useMutation();
+  const deleteMessageMutation = trpc.chat.deleteMessage.useMutation();
+
   const { toast } = useToast();
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -182,6 +185,47 @@ export function useConversations() {
     }
   };
 
+  const deleteMessage = async (messageId: string | null) => {
+    if (!messageId) {
+      toast({
+        description: 'No message to delete',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!activeConversationId) {
+      toast({
+        description: 'No active conversation',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const updatedMessage = await deleteMessageMutation.mutateAsync({
+        messageId: messageId ?? '',
+      });
+
+      if (activeConversation && activeConversation.refetch) {
+        activeConversation.refetch();
+      }
+
+      toast({
+        description: 'Message deleted successfully',
+        variant: 'destructive',
+      });
+      return updatedMessage;
+    } catch (err) {
+      console.error(err);
+      toast({
+        description: 'Failed to delete message',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
   const exportConversation = async () => {
     if (
       !activeConversation.data?.name ||
@@ -232,10 +276,12 @@ export function useConversations() {
     addMessage,
     editingMessageId,
     replaceMode,
+    isDeleteMessage: deleteMessageMutation.isPending,
     setReplaceMode,
     startEditingMessage,
     cancelEditingMessage,
     editMessage,
+    deleteMessage,
     exportConversation,
   };
 }

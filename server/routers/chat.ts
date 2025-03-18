@@ -62,6 +62,7 @@ const chatRouter = router({
         )
         .eq('id', input)
         .eq('user_id', user_id)
+        .eq('messages.is_deleted', false)
         .order('timestamp', {
           referencedTable: 'swarms_cloud_chat_messages',
           ascending: true,
@@ -250,6 +251,47 @@ const chatRouter = router({
             }
           }
         }
+      }
+
+      return updatedMessage;
+    }),
+
+  deleteMessage: userProcedure
+    .input(
+      z.object({
+        messageId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      if (!user_id) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data: message, error: messageError } = await ctx.supabase
+        .from('swarms_cloud_chat_messages')
+        .select('*')
+        .eq('id', input.messageId)
+        .eq('user_id', user_id)
+        .single();
+
+      if (messageError) {
+        throw new Error('Failed to find message or unauthorized');
+      }
+
+      const { data: updatedMessage, error: updateError } = await ctx.supabase
+        .from('swarms_cloud_chat_messages')
+        .update({
+          is_deleted: true,
+        })
+        .eq('id', input.messageId)
+        .eq('user_id', user_id)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new Error('Failed to delete message');
       }
 
       return updatedMessage;
@@ -445,6 +487,7 @@ const agentRouter = router({
         temperature: z.number().default(0.7),
         max_tokens: z.number().default(2048),
         system_prompt: z.string().optional(),
+        metadata: z.record(z.any()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -459,6 +502,7 @@ const agentRouter = router({
           temperature: input.temperature,
           max_tokens: input.max_tokens,
           system_prompt: input.system_prompt,
+          metadata: input.metadata,
           user_id,
         })
         .select()
@@ -466,6 +510,22 @@ const agentRouter = router({
 
       if (error) throw error;
       return data;
+    }),
+
+  deleteAgentTemplate: userProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { error } = await ctx.supabase
+        .from('swarms_cloud_chat_agent_templates')
+        .delete()
+        .eq('id', input)
+        .eq('user_id', user_id);
+
+      if (error) throw error;
+
+      return { success: true };
     }),
 
   addAgentTemplateToChat: userProcedure

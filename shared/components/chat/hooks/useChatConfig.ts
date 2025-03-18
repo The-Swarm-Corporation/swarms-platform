@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import type {
   Agent,
-  AgentTemplateWithStatus,
   SwarmArchitecture,
   SwarmConfig,
 } from '@/shared/components/chat/types';
@@ -70,7 +69,13 @@ export function useConfig({
 
   const addAgent = useCallback(
     async (agent: Omit<Agent, 'id'>) => {
-      if (!activeConversationId) return;
+      if (
+        !activeConversationId ||
+        createAgentTemplate.isPending ||
+        createAgentMutation.isPending ||
+        addAgentToChat.isPending
+      )
+        return;
 
       try {
         const template = await createAgentTemplate.mutateAsync({
@@ -91,25 +96,13 @@ export function useConfig({
         setAgents((prev) => [...prev, newAgent]);
         setOpenAgentModal(false);
 
-        const updatedAgentIds = [
-          ...(swarmConfig?.agents?.map((a) => a.agent_id) || []),
-          newAgent.id,
-        ];
-
-        await Promise.all([
-          updateSwarmConfigMutation.mutateAsync({
-            chatId: activeConversationId,
-            architecture: swarmConfig?.architecture || 'ConcurrentWorkflow',
-            agentIds: updatedAgentIds,
-          }),
-          addAgentToChat.mutateAsync({
-            templateId: template.id,
-            chatId: activeConversationId,
-            overrides: {
-              is_active: true,
-            },
-          }),
-        ]);
+        await addAgentToChat.mutateAsync({
+          templateId: template.id,
+          chatId: activeConversationId,
+          overrides: {
+            is_active: true,
+          },
+        });
 
         toast({
           description: `${agent.name} added successfully`,
@@ -129,6 +122,8 @@ export function useConfig({
 
   const updateSwarmArchitecture = useCallback(
     async (architecture: SwarmArchitecture) => {
+      if (updateSwarmConfigMutation.isPending) return;
+
       try {
         if (!activeConversationId) return;
 
@@ -156,6 +151,8 @@ export function useConfig({
 
   const toggleAgent = useCallback(
     async (agentId: string) => {
+      if (toggleAgentMutation.isPending) return;
+
       try {
         const updatedAgent = await toggleAgentMutation.mutateAsync({
           id: agentId,
@@ -169,21 +166,10 @@ export function useConfig({
           ),
         );
 
-        if (!swarmConfig || !activeConversationId) return;
-
-        const currentAgentIds = swarmConfig.agents.map((a) => a.agent_id);
-        const updatedAgentIds = currentAgentIds.includes(agentId)
-          ? currentAgentIds.filter((id) => id !== agentId)
-          : [...currentAgentIds, agentId];
-
-        await updateSwarmConfigMutation.mutateAsync({
-          chatId: activeConversationId,
-          architecture: swarmConfig.architecture,
-          agentIds: updatedAgentIds,
-        });
         toast({
           description: `Agent status changed successfully`,
         });
+
         refetchQuery();
       } catch (error) {
         console.error('Error toggling agent:', error);
@@ -212,7 +198,8 @@ export function useConfig({
       getAgentsQuery.isLoading ||
       getSwarmConfigQuery.isLoading ||
       updateSwarmConfigMutation.isPending,
-    isCreateAgent: createAgentMutation.isPending || agentTemplatesQuery.isPending,
+    isCreateAgent:
+      createAgentMutation.isPending || createAgentTemplate.isPending,
     isUpdateAgent: updateAgentMutation.isPending,
     isToggleAgent: toggleAgentMutation.isPending,
     isDeleteAgent: deleteAgentMutation.isPending,

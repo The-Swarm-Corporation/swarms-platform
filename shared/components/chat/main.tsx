@@ -24,7 +24,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import Modal from '../modal';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { buildSwarmTask, buildSwarmTaskForEdit, parseJSON } from './helper';
+import { parseJSON, transformEditMessages, transformMessages } from './helper';
 
 interface SwarmsChatProps {
   modelFunction?: (message: string) => Promise<string>;
@@ -40,7 +40,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
 
   const [isFetching, setIsFetching] = useState(true);
   const [messages, setMessages] = useState<
-    Tables<'swarms_cloud_chat_messages'>[]
+    Omit<Tables<'swarms_cloud_chat_messages'>, 'is_deleted'>[]
   >([]);
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -86,7 +86,6 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     isUpdateAgent,
     isToggleAgent,
     isDeleteAgent,
-    swarmConfigRefetch,
     updateSwarmArchitecture,
     toggleAgent,
   } = useConfig({
@@ -211,13 +210,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
       updated_at: timestamp,
     };
 
-    const activeAgents = agents
-      .filter((agent) =>
-        swarmConfig?.agents?.some(
-          (configAgent) => configAgent.agent_id === agent.id,
-        ),
-      )
-      .filter((agent) => agent.is_active);
+    const activeAgents = agents.filter((agent) => agent.is_active);
 
     if (!swarmConfig?.architecture) {
       toast({
@@ -254,7 +247,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
       );
       const swarmType = SwarmsApiClient.getSwarmType(swarmConfig.architecture);
 
-      const taskPayload = buildSwarmTask(activeConversation.data?.messages, userMessage);
+      const messages = transformMessages(activeConversation?.data?.messages);
 
       const swarmRequest = {
         name: activeConversation.data?.name || 'Chat Session',
@@ -262,9 +255,10 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           activeConversation.data?.description || 'Chat Session Description',
         agents: apiAgents,
         swarm_type: swarmType,
-        task: taskPayload.task,
+        task: userMessage,
         max_loops: activeConversation.data?.max_loops || 1,
         img: imageUrl || '',
+        messages,
       };
 
       const swarmPromise = swarmsApi.executeSwarm(swarmRequest);
@@ -357,15 +351,17 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         return;
       }
 
-      const activeAgents = agents
-        .filter((agent) =>
-          swarmConfig?.agents?.some(
-            (configAgent) => configAgent.agent_id === agent.id,
-          ),
-        )
-        .filter((agent) => agent.is_active);
+      const activeAgents = agents.filter((agent) => agent.is_active);
 
-      if (!swarmConfig?.architecture || activeAgents.length < 2) {
+      if (!swarmConfig?.architecture) {
+        toast({
+          description: 'No active swarm architecture selected',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (activeAgents.length < 2) {
         toast({
           description: 'A swarm must have at least two active agents.',
           variant: 'destructive',
@@ -379,7 +375,10 @@ export default function SwarmsChat({}: SwarmsChatProps) {
       );
       const swarmType = SwarmsApiClient.getSwarmType(swarmConfig.architecture);
 
-      const taskPayload = buildSwarmTaskForEdit(activeConversation.data?.messages, updatedMessage, userMessage);
+      const messages = transformEditMessages(
+        activeConversation?.data?.messages,
+        updatedMessage,
+      );
 
       const swarmRequest = {
         name: activeConversation.data?.name || 'Chat Session',
@@ -387,8 +386,9 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           activeConversation.data?.description || 'Chat Session Description',
         agents: apiAgents,
         swarm_type: swarmType,
-        task: taskPayload?.task,
+        task: userMessage,
         max_loops: activeConversation.data?.max_loops || 1,
+        messages: messages || [],
       };
 
       const response = await swarmsApi.executeSwarm(swarmRequest);
@@ -757,13 +757,11 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           </div>
           <ConfigSidebar
             agents={agents || []}
-            swarmConfig={swarmConfig!}
             activeConversation={activeConversation}
             isLoadingAgents={isLoadingAgents}
             isCreateAgent={isCreateAgent}
             agentsRefetch={agentsRefetch}
             chatRefetch={refetch}
-            swarmConfigRefetch={swarmConfigRefetch}
             isUpdatePending={isUpdatePending}
             isUpdateAgent={isUpdateAgent}
             isToggleAgent={isToggleAgent}
