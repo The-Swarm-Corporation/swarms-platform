@@ -16,7 +16,6 @@ import {
   FileSpreadsheet,
   GripVertical,
   MessageSquareMore,
-  Wallet,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -112,12 +111,6 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       title: 'Drag & Drop',
       link: PLATFORM.DRAG_N_DROP,
     },
-    {
-      icon: <Wallet size={24} />,
-      title: 'Wallet',
-      link: PLATFORM.WALLET,
-    },
-
     {
       icon: <LockKeyhole size={24} />,
       title: 'API Keys',

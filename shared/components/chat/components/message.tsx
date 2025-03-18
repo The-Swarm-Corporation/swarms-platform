@@ -131,21 +131,19 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
               <DialogHeader>
                 <DialogTitle></DialogTitle>
                 <DialogDescription className="text-center text-white">
-                  Are you sure you'd like to delete this message?
+                  Are you sure you&apos;d like to delete this message?
                 </DialogDescription>
               </DialogHeader>
 
               <div className="flex mt-4 justify-center gap-2">
                 <Button
                   variant="outline"
-                  // size="sm"
                   disabled={isDeleteMessage}
                   onClick={handleCloseDeleteModal}
                 >
                   Cancel
                 </Button>
                 <Button
-                  // size="sm"
                   disabled={isDeleteMessage}
                   onClick={handleDelete}
                 >
