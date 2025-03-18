@@ -19,6 +19,7 @@ import LoadingSpinner from '../../loading-spinner';
 import { useToast } from '../../ui/Toasts/use-toast';
 
 interface AgentFormProps {
+  models: string[];
   isLoading: boolean;
   onSubmit: (agent: Omit<Agent, 'id'>) => void;
   initialData?: Partial<Agent>;
@@ -26,6 +27,7 @@ interface AgentFormProps {
 
 export function AgentForm({
   onSubmit,
+  models = [],
   initialData,
   isLoading,
 }: AgentFormProps) {
@@ -94,10 +96,13 @@ export function AgentForm({
           <SelectTrigger className="bg-white/80 dark:bg-zinc-950/80">
             <SelectValue placeholder="Select model" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-            <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
-            <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+          <SelectContent className='border border-[#40403F]'>
+            {models.length > 0 &&
+              models.map((model) => (
+                <SelectItem key={model} value={model}>
+                  {model}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
       </div>

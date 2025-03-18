@@ -58,7 +58,7 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
     const fetchConfig = async () => {
       setIsFetching(true);
       try {
-        const response = await fetch('/api/solana/config');
+        const response = await fetch('/api/config');
         const config = await response.json();
 
         if (config?.rpcUrl) {
