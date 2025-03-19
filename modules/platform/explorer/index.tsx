@@ -12,7 +12,7 @@ import { Input } from '@/shared/components/ui/input';
 import useModels from './hook/models';
 import { explorerOptions } from '@/shared/utils/constants';
 import AddPromptModal from './components/add-prompt-modal';
-import { Activity } from 'lucide-react';
+import { Activity, Search } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import AddAgentModal from './components/add-agent-modal';
 import dynamic from 'next/dynamic';
@@ -62,9 +62,11 @@ const Explorer = () => {
     reviewsMap,
     filterOption,
     isLoading,
+    searchValue,
     refetch,
     loadMorePrompts,
     loadMoreTrending,
+    searchClickHandler,
     handleSearchChange,
     handleOptionChange,
   } = useModels();
@@ -177,13 +179,31 @@ const Explorer = () => {
               })}
             </ul>
             <div className="flex items-center gap-3">
-              <Input
-                placeholder="Search..."
-                onChange={(e) => handleSearchChange(e.target.value)}
-                value={search}
-                disabled={isAllLoading}
-                className="disabled:cursor-not-allowed disabled:opacity-50"
-              />
+              <div className="relative w-full">
+                <Input
+                  placeholder="Search..."
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      searchClickHandler();
+                    }
+                  }}
+                  value={search}
+                  disabled={isAllLoading}
+                  className="disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <button
+                  className={cn(
+                    'border-none absolute right-0 h-full top-0 rounded-tr-md w-[50px] flex items-center justify-center rounded-br-md',
+                    search.trim()
+                      ? 'bg-primary/70 cursor-pointer'
+                      : 'bg-[#1e1e1e] cursor-default',
+                  )}
+                  onClick={searchClickHandler}
+                >
+                  <Search className="h-4 w-4 text-white" />
+                </button>
+              </div>
 
               <Select
                 onValueChange={(value) => {
@@ -214,7 +234,7 @@ const Explorer = () => {
               : 'translate-y-0',
           )}
         >
-          {filterOption === 'all' && !search && (
+          {filterOption === 'all' && !searchValue && (
             <Trending
               {...{
                 trendingModels,

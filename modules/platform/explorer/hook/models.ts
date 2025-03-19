@@ -21,12 +21,13 @@ export default function useModels() {
   const [isFetchingTrending, setIsFetchingTrending] = useState(false);
 
   const [search, setSearch] = useState('');
+  const [searchValue, setSearchValue] = useState('');
 
   const { data, isLoading, refetch } = trpc.explorer.getExplorerData.useQuery(
     {
       limit: 6,
       offset: 0,
-      search: searchQuery || search,
+      search: searchQuery || searchValue,
     },
     { refetchOnWindowFocus: false },
   );
@@ -37,7 +38,7 @@ export default function useModels() {
       includeTools: false,
       limit: promptLimit,
       offset: promptOffset,
-      search: searchQuery || search,
+      search: searchQuery || searchValue,
     },
     { enabled: promptOffset > 0 },
   );
@@ -46,7 +47,7 @@ export default function useModels() {
     {
       limit: trendingLimit,
       offset: trendingOffset,
-      search: "",
+      search: '',
     },
     { enabled: trendingOffset < 12 },
   );
@@ -59,7 +60,7 @@ export default function useModels() {
 
   useEffect(() => {
     if (searchQuery && categoryQuery) {
-      setSearch(searchQuery);
+      setSearchValue(searchQuery);
       setFilterOption(categoryQuery);
     }
   }, [searchQuery, categoryQuery]);
@@ -98,11 +99,23 @@ export default function useModels() {
 
   const debouncedSearch = useMemo(() => debounce(setSearch, 0), []);
 
+  const searchClickHandler = () => {
+    if (!search.trim()) {
+      setSearchValue("");
+      return;
+    }
+
+    setPromptOffset(0);
+    setTrendingOffset(0);
+    setSearchValue(search);
+  };
+
   const handleSearchChange = useCallback(
     (value: string) => {
-      setPromptOffset(0);
-      setTrendingOffset(0);
       debouncedSearch(value);
+      if (value.trim() === "") {
+        setSearchValue("");
+      }
     },
     [debouncedSearch],
   );
@@ -155,18 +168,18 @@ export default function useModels() {
       if (filterOption === 'all') {
         return data.filter(
           (item: any) =>
-            item?.name?.toLowerCase().includes(search.toLowerCase()) ||
-            item?.prompt?.toLowerCase().includes(search.toLowerCase()),
+            item?.name?.toLowerCase().includes(searchValue.toLowerCase()) ||
+            item?.prompt?.toLowerCase().includes(searchValue.toLowerCase()),
         );
       }
-      if (!search || filterOption !== key) return data;
+      if (!searchValue || filterOption !== key) return data;
       return data.filter(
         (item: any) =>
-          item?.name?.toLowerCase().includes(search.toLowerCase()) ||
-          item?.prompt?.toLowerCase().includes(search.toLowerCase()),
+          item?.name?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          item?.prompt?.toLowerCase().includes(searchValue.toLowerCase()),
       );
     },
-    [search, filterOption],
+    [searchValue, filterOption],
   );
 
   const filteredPrompts = useMemo(
@@ -200,6 +213,7 @@ export default function useModels() {
     trendingModels,
     isTrendingLoading,
     search,
+    searchValue,
     options,
     usersMap,
     reviewsMap,
@@ -212,6 +226,7 @@ export default function useModels() {
     refetch,
     loadMorePrompts,
     loadMoreTrending,
+    searchClickHandler,
     handleSearchChange,
     handleOptionChange,
   };

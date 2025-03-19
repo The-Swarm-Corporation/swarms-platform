@@ -113,9 +113,11 @@ export function AgentLibrary({
     ) || [];
 
   const filteredExplorerItems = userExplorerItems.filter(
-    (prompt) =>
-      prompt?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prompt?.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+    (item) =>
+      item?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.itemType !== "agent" &&
+        item.prompt?.toLowerCase().includes(searchQuery.toLowerCase())),
   );
 
   const isAgentToggle =
