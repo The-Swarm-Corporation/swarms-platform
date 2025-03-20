@@ -15,14 +15,14 @@ import {
 } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
-import { Plus, Search, Trash } from 'lucide-react';
+import { Pencil, Plus, Search, Trash } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { AgentForm } from './form';
 import { Checkbox } from '@/shared/components/ui/checkbox';
-import { AgentTemplateWithStatus, SwarmConfig } from '../types';
+import { AgentTemplateWithStatus } from '../types';
 import LoadingSpinner from '../../loading-spinner';
 import { Tables } from '@/types_db';
 import { getTruncatedString } from '@/shared/utils/helpers';
@@ -67,6 +67,7 @@ export function AgentLibrary({
     useState(INITIAL_DATA);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [skipNextRowClick, setSkipNextRowClick] = useState(false);
+  const [isEditingTemplate, setIsEditingTemplate] = useState(false);
 
   const agentTemplatesQuery = trpc.chatAgent.getAgentTemplatesForChat.useQuery(
     chatId,
@@ -102,6 +103,7 @@ export function AgentLibrary({
   const addAgentToChat = trpc.chatAgent.addAgentTemplateToChat.useMutation();
   const removeAgentFromChat = trpc.chatAgent.removeAgentFromChat.useMutation();
   const createAgentTemplate = trpc.chatAgent.createAgentTemplate.useMutation();
+  const updateAgentTemplate = trpc.chatAgent.updateAgentTemplate.useMutation();
   const deleteAgentTemplate = trpc.chatAgent.deleteAgentTemplate.useMutation();
 
   const filteredAgents =
@@ -116,7 +118,7 @@ export function AgentLibrary({
     (item) =>
       item?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.itemType !== "agent" &&
+      (item.itemType !== 'agent' &&
         item.prompt?.toLowerCase().includes(searchQuery.toLowerCase())),
   );
 
@@ -137,6 +139,30 @@ export function AgentLibrary({
   const handleOpenAgentModal = () => {
     setExplorerItemToAdd(null);
     setAgentFormInitialValues(INITIAL_DATA);
+    setIsEditingTemplate(false);
+    setOpenAgentModal(true);
+  };
+
+  const handleOpenEditModal = (
+    e: SyntheticEvent,
+    agent: AgentTemplateWithStatus,
+  ) => {
+    e.stopPropagation();
+    setSkipNextRowClick(true);
+    setSelectedAgent(agent);
+
+    const editValues = {
+      name: agent.name,
+      description: agent.description || '',
+      model: agent.model,
+      temperature: agent.temperature,
+      maxTokens: agent.max_tokens,
+      systemPrompt: agent.system_prompt || '',
+      metadata: (agent as any).metadata || {},
+    };
+
+    setAgentFormInitialValues(editValues);
+    setIsEditingTemplate(true);
     setOpenAgentModal(true);
   };
 
@@ -212,7 +238,7 @@ export function AgentLibrary({
     }
   };
 
-  const handleCreateTemplate = async (formData: any) => {
+  const handleFormSubmit = async (formData: any) => {
     try {
       if (!formData.systemPrompt.trim()) {
         toast({
@@ -228,7 +254,7 @@ export function AgentLibrary({
         ...formData.metadata,
       };
 
-      if (explorerItemToAdd) {
+      if (!isEditingTemplate && explorerItemToAdd) {
         if ('prompt' in explorerItemToAdd) {
           metadata.explorerPromptId = explorerItemToAdd.id;
           metadata.source = 'explorer_prompt';
@@ -238,33 +264,54 @@ export function AgentLibrary({
         }
       }
 
-      await createAgentTemplate.mutateAsync({
-        name: formData.name,
-        description: formData.description,
-        model: formData.model,
-        temperature: formData.temperature,
-        max_tokens: formData.maxTokens,
-        system_prompt: formData.systemPrompt,
-        metadata: metadata || {},
-      });
+      if (isEditingTemplate && selectedAgent) {
+        await updateAgentTemplate.mutateAsync({
+          id: selectedAgent.id,
+          name: formData.name,
+          description: formData.description,
+          model: formData.model,
+          temperature: formData.temperature,
+          max_tokens: formData.maxTokens,
+          system_prompt: formData.systemPrompt,
+          metadata: metadata || {},
+        });
 
-      toast({
-        description: 'Agent template created successfully',
-      });
+        toast({
+          description: 'Agent template updated successfully',
+        });
+      } else {
+        await createAgentTemplate.mutateAsync({
+          name: formData.name,
+          description: formData.description,
+          model: formData.model,
+          temperature: formData.temperature,
+          max_tokens: formData.maxTokens,
+          system_prompt: formData.systemPrompt,
+          metadata: metadata || {},
+        });
+
+        toast({
+          description: 'Agent template created successfully',
+        });
+      }
 
       agentTemplatesQuery.refetch();
+      if (isEditingTemplate) {
+        agentsRefetch();
+      }
       explorerItemsQuery.refetch();
 
       setActiveTab('library');
       setOpenAgentModal(false);
       setIsCreatingTemplate(false);
       setExplorerItemToAdd(null);
+      setIsEditingTemplate(false);
 
       return true;
     } catch (error) {
-      console.error('Error creating agent template:', error);
+      console.error('Error handling agent template:', error);
       toast({
-        description: 'Failed to create agent template. Please try again.',
+        description: `Failed to ${isEditingTemplate ? 'update' : 'create'} agent template. Please try again.`,
         variant: 'destructive',
       });
       setIsCreatingTemplate(false);
@@ -313,19 +360,34 @@ export function AgentLibrary({
         >
           <Plus className="w-4 h-4 mr-2" /> Create Agent
         </Button>
-        <Sheet open={openAgentModal} onOpenChange={setOpenAgentModal}>
+        <Sheet
+          open={openAgentModal}
+          onOpenChange={(open) => {
+            setOpenAgentModal(open);
+            if (!open) {
+              setIsEditingTemplate(false);
+              setAgentFormInitialValues(INITIAL_DATA);
+            }
+          }}
+        >
           <SheetContent>
             <SheetHeader>
-              <SheetTitle>Create New Agent Template</SheetTitle>
+              <SheetTitle>
+                {isEditingTemplate
+                  ? 'Edit Agent Template'
+                  : 'Create New Agent Template'}
+              </SheetTitle>
               <SheetDescription>
-                Create a new agent that can be used across multiple chats.
+                {isEditingTemplate
+                  ? 'Edit your agent template settings.'
+                  : 'Create a new agent that can be used across multiple chats.'}
               </SheetDescription>
             </SheetHeader>
             <div className="mt-4">
               <AgentForm
                 models={models}
                 isLoading={isCreatingTemplate}
-                onSubmit={handleCreateTemplate}
+                onSubmit={handleFormSubmit}
                 initialData={agentFormInitialValues}
               />
             </div>
@@ -386,6 +448,17 @@ export function AgentLibrary({
                             <Badge variant="secondary">In Chat</Badge>
                           )
                         )}
+                        <button
+                          onClick={(e) =>
+                            handleOpenEditModal(
+                              e,
+                              agent as AgentTemplateWithStatus,
+                            )
+                          }
+                          className="p-1 rounded-sm hover:bg-primary/70 dark:hover:bg-gray-800 -translate-x-1 mr-1"
+                        >
+                          <Pencil className="h-3 w-3 text-white" />
+                        </button>
                         <button
                           onClick={(e) =>
                             handleOpenDeleteModal(

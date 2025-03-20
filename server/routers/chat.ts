@@ -512,6 +512,62 @@ const agentRouter = router({
       return data;
     }),
 
+  updateAgentTemplate: userProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        description: z.string().optional(),
+        model: z.string().default('gpt-4o'),
+        temperature: z.number().default(0.7),
+        max_tokens: z.number().default(2048),
+        system_prompt: z.string().optional(),
+        metadata: z.record(z.any()).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { error: templateError } = await ctx.supabase
+        .from('swarms_cloud_chat_agent_templates')
+        .update({
+          name: input.name,
+          description: input.description,
+          model: input.model,
+          temperature: input.temperature,
+          max_tokens: input.max_tokens,
+          system_prompt: input.system_prompt,
+          metadata: input.metadata,
+        })
+        .eq('id', input.id)
+        .eq('user_id', user_id);
+
+      if (templateError) {
+        throw templateError;
+      }
+
+      const { error: agentUpdateError } = await ctx.supabase
+        .from('swarms_cloud_chat_agents')
+        .update({
+          name: input.name,
+          description: input.description,
+          model: input.model,
+          temperature: input.temperature,
+          max_tokens: input.max_tokens,
+          system_prompt: input.system_prompt,
+        })
+        .eq('template_id', input.id)
+        .eq('user_id', user_id);
+
+      if (agentUpdateError) {
+        throw agentUpdateError;
+      }
+
+      return {
+        success: true,
+      };
+    }),
+
   deleteAgentTemplate: userProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
@@ -626,35 +682,6 @@ const agentRouter = router({
 
       if (error) throw error;
       return { success: true };
-    }),
-
-  updateAgentTemplate: userProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        updates: z.object({
-          name: z.string().optional(),
-          description: z.string().optional(),
-          model: z.string().optional(),
-          temperature: z.number().optional(),
-          max_tokens: z.number().optional(),
-          system_prompt: z.string().optional(),
-        }),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const user_id = ctx.session.data.user?.id ?? '';
-
-      const { data, error } = await ctx.supabase
-        .from('swarms_cloud_chat_agent_templates')
-        .update(input.updates)
-        .eq('id', input.id)
-        .eq('user_id', user_id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
     }),
 });
 
