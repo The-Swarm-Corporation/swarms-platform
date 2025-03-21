@@ -138,6 +138,7 @@ const apiKeyRouter = router({
         message: 'Error while deleting api key',
       });
     }),
+
   getValidApiKey: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.user as User;
 
@@ -159,6 +160,77 @@ const apiKeyRouter = router({
     if (error) throw error;
 
     return data?.[0] ?? null;
+  }),
+
+  createDefaultApiKey: userProcedure.mutation(async ({ ctx }) => {
+    const user = ctx.session.data.user as User;
+
+    if (!user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User not authenticated',
+      });
+    }
+
+    try {
+      const existingKeys = await ctx.supabase
+        .from('swarms_cloud_api_keys')
+        .select('id')
+        .eq('user_id', user.id)
+        .not('is_deleted', 'eq', true)
+        .limit(1);
+
+      if (existingKeys.data && existingKeys.data.length > 0) {
+        return null;
+      }
+
+      const stripeCustomerId = await createOrRetrieveStripeCustomer({
+        email: user.email ?? '',
+        uuid: user.id,
+      });
+
+      if (!stripeCustomerId) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error while creating Stripe customer',
+        });
+      }
+
+      const { credit, free_credit } = await getUserCredit(user.id);
+      const totalCredit = credit + free_credit;
+
+      if (totalCredit <= 0) {
+        const paymentMethods = await stripe.paymentMethods.list({
+          customer: stripeCustomerId,
+          type: 'card',
+        });
+
+        if (!paymentMethods.data.length) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'No credit available and payment method missing.',
+          });
+        }
+      }
+
+      const key = generateApiKey();
+      const defaultName = `Auto-generated-${user.id}`;
+
+      const newApiKey = await ctx.supabase
+        .from('swarms_cloud_api_keys')
+        .insert({ name: defaultName, key, user_id: user.id });
+
+      if (newApiKey.error) {
+        throw new Error(newApiKey.error.message);
+      }
+
+      return { key, name: defaultName };
+    } catch (e) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: `Error while automatically creating API key: ${e instanceof Error ? e.message : 'Unknown error'}`,
+      });
+    }
   }),
 });
 

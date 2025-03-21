@@ -114,7 +114,9 @@ export default function EntityComponent({
   userId,
 }: Entity) {
   const toast = useToast();
-  const user = trpc.main.getUser.useQuery();
+  const user = trpc.main.getUser.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
   const reviewQuery = user
     ? trpc.explorer.checkReview.useQuery({ modelId: id ?? '' })
     : null;

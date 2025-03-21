@@ -28,6 +28,7 @@ export default function PlatformNavBar() {
 
   const getUser = trpc.main.getUser.useQuery(undefined, {
     enabled: !!user,
+    refetchOnWindowFocus: false,
   });
 
   const profileName = user

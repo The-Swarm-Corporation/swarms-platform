@@ -4,7 +4,17 @@ import type React from 'react';
 
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Ellipsis, KeyRound, Mic, Send, Shield, Upload, X } from 'lucide-react';
+import {
+  AlertTriangle,
+  Ellipsis,
+  KeyRound,
+  Loader2,
+  Mic,
+  Send,
+  Shield,
+  Upload,
+  X,
+} from 'lucide-react';
 import { useConfig } from './hooks/useChatConfig';
 import { useConversations } from './hooks/useConversations';
 import LoadSequence from './components/loader';
@@ -21,10 +31,10 @@ import { ProgressBar } from './components/progress';
 import Image from 'next/image';
 import LoadingSpinner from '../loading-spinner';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import Modal from '../modal';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { parseJSON, transformEditMessages, transformMessages } from './helper';
+import MessageScreen from './components/message-screen';
 
 interface SwarmsChatProps {
   modelFunction?: (message: string) => Promise<string>;
@@ -32,12 +42,6 @@ interface SwarmsChatProps {
 
 export default function SwarmsChat({}: SwarmsChatProps) {
   const { user } = useAuthContext();
-  const apiKey = trpc.apiKey.getValidApiKey.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-
-  const swarmsApi = new SwarmsApiClient(apiKey.data?.key || '');
-
   const { toast } = useToast();
 
   const [isFetching, setIsFetching] = useState(true);
@@ -56,6 +60,63 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognition = useRef<any>(null);
   const isCreatingConversation = useRef(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [creationError, setCreationError] = useState<string | null>(null);
+
+  const isCreatingApiKey = useRef(false);
+
+  const apiKeyQuery = trpc.apiKey.getValidApiKey.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+
+  const createApiKeyMutation = trpc.apiKey.createDefaultApiKey.useMutation({
+    onSuccess: () => {
+      apiKeyQuery.refetch();
+      isCreatingApiKey.current = false;
+      setCreationError(null);
+    },
+    onError: (error) => {
+      isCreatingApiKey.current = false;
+      setCreationError(error.message);
+      setIsInitializing(false);
+    },
+    onSettled: () => {
+      // Only update initialization state if we're no longer creating an API key
+      if (!isCreatingApiKey.current) {
+        setIsInitializing(false);
+      }
+    },
+  });
+
+  const swarmsApi = useRef<SwarmsApiClient | null>(null);
+
+  useEffect(() => {
+    if (!apiKeyQuery.isLoading) {
+      if (!apiKeyQuery.data && !isCreatingApiKey.current) {
+        isCreatingApiKey.current = true;
+        createApiKeyMutation.mutate();
+      }
+    }
+  }, [apiKeyQuery.isLoading, apiKeyQuery.data]);
+
+  useEffect(() => {
+    if (apiKeyQuery.data?.key && isInitializing) {
+      swarmsApi.current = new SwarmsApiClient(apiKeyQuery.data.key);
+
+      const fetchModels = async () => {
+        try {
+          const data = await swarmsApi.current!.getModels();
+          setModels(data);
+        } catch (error) {
+          console.error('Error fetching models:', error);
+        } finally {
+          setIsInitializing(false);
+        }
+      };
+
+      fetchModels();
+    }
+  }, [apiKeyQuery.data, isInitializing]);
 
   const {
     conversations,
@@ -177,18 +238,6 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     }
   }, [activeConversation?.data?.messages]);
 
-  const handleFetchModels = async () => {
-    const data = await swarmsApi.getModels();
-
-    setModels(data);
-  };
-
-  useEffect(() => {
-    if (!apiKey.isLoading) {
-      handleFetchModels();
-    }
-  }, [apiKey.isLoading]);
-
   const toggleListening = () => {
     if (isListening) {
       recognition.current?.stop();
@@ -276,7 +325,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         messages,
       };
 
-      const swarmPromise = swarmsApi.executeSwarm(swarmRequest);
+      const swarmPromise = swarmsApi?.current?.executeSwarm(swarmRequest);
 
       const [, response] = await Promise.all([dbWritePromise, swarmPromise]);
 
@@ -406,7 +455,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         messages: messages || [],
       };
 
-      const response = await swarmsApi.executeSwarm(swarmRequest);
+      const response = await swarmsApi?.current?.executeSwarm(swarmRequest);
 
       const aiResponseObj = {
         id: crypto.randomUUID(),
@@ -466,36 +515,90 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     }
   };
 
-  if (isFetching || apiKey.isLoading) {
-    return <LoadSequence onComplete={() => setIsFetching(false)} />;
+  if (apiKeyQuery.isLoading || isCreatingApiKey.current || isInitializing) {
+    return (
+      <MessageScreen
+        containerClass="h-full w-full bg-zinc-900"
+        borderClass="border border-zinc-700/50"
+        title="Swarms Agent System"
+      >
+        <div className="flex items-center gap-3">
+          <Loader2 className="animate-spin h-6 w-6 text-primary" />
+          <p className="text-zinc-300">
+            {apiKeyQuery.isLoading
+              ? 'Checking for existing API credentials...'
+              : isCreatingApiKey.current
+                ? 'Generating secure API key for you...'
+                : 'Initializing Swarms Chat...'}
+          </p>
+        </div>
+        <p className="text-sm text-zinc-400 text-center mt-2">
+          We&apos;re setting up your environment to interact with our AI agents.
+          This only takes a moment and ensures a seamless experience.
+        </p>
+      </MessageScreen>
+    );
   }
 
-  if (!apiKey?.data || !apiKey.data?.key) {
+  if (creationError) {
     return (
-      <Modal
-        isOpen
-        showHeader={false}
-        onClose={() => null}
-        className="border border-[#40403F] py-8"
+      <MessageScreen
+        icon={AlertTriangle}
+        iconClass="h-12 w-12 text-primary mb-2"
+        title="API Key Creation Failed"
+        borderClass="border border-primary/50"
       >
-        <div className="flex flex-col gap-4 items-center">
-          <h1 className="text-2xl text-center"> Swarms Agent System</h1>
-          <p className="text-center">
-            Create an api key now to interact with your agents and seamlessly
-            integrate with our platform.
-          </p>
-          <Link
-            href="https://swarms.world/platform/api-keys"
-            target="_blank"
-            className="mt-6"
-          >
-            <Button>
-              <KeyRound size={20} className="mr-2" /> Create API Key
-            </Button>
-          </Link>
-        </div>
-      </Modal>
+        <p className="text-center text-zinc-300">
+          We encountered an issue creating your API key:
+        </p>
+        <p className="text-primary text-center font-mono text-sm p-3 bg-red-900/20 rounded-md border border-red-900/50">
+          {creationError}
+        </p>
+        <Link
+          href="https://swarms.world/platform/api-keys"
+          target="_blank"
+          className="mt-6"
+        >
+          <Button className="bg-primary hover:bg-primary/80">
+            <KeyRound size={20} className="mr-2" /> Manage API Keys
+          </Button>
+        </Link>
+      </MessageScreen>
     );
+  }
+
+  if (
+    !apiKeyQuery.data?.key &&
+    !apiKeyQuery.isLoading &&
+    !isCreatingApiKey.current &&
+    !isInitializing
+  ) {
+    return (
+      <MessageScreen
+        icon={KeyRound}
+        iconClass="h-12 w-12 text-yellow-500 mb-2"
+        title="API Key Required"
+        borderClass="border border-zinc-700/50"
+      >
+        <p className="text-center text-zinc-300">
+          You&apos;ll need an API key to interact with our platform. We tried to
+          create one automatically but ran into an issue.
+        </p>
+        <Link
+          href="https://swarms.world/platform/api-keys"
+          target="_blank"
+          className="mt-6"
+        >
+          <Button className="bg-primary hover:bg-primary/80">
+            <KeyRound size={20} className="mr-2" /> Create API Key
+          </Button>
+        </Link>
+      </MessageScreen>
+    );
+  }
+
+  if (isFetching) {
+    return <LoadSequence onComplete={() => setIsFetching(false)} />;
   }
 
   return (

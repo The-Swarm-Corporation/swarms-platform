@@ -37,7 +37,9 @@ export default function UsernameModal() {
   const [error, setError] = useState('');
   const toast = useToast();
 
-  const userQuery = trpc.main.getUser.useQuery();
+  const userQuery = trpc.main.getUser.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
   const updateUserMutation = trpc.main.updateUsername.useMutation();
 
   useEffect(() => {
