@@ -6,7 +6,9 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import React from 'react';
 
 export default function LayoutModals() {
-  const { data, isLoading } = trpc.main.getUser.useQuery();
+  const { data, isLoading } = trpc.main.getUser.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
 
   if (!data) return null;
 

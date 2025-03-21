@@ -23,7 +23,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/shared/components/ui/sheet';
-import { AgentForm } from '../form';
+import { AgentForm } from '../forms/form';
 import {
   Select,
   SelectContent,
@@ -52,7 +52,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
-import { AgentLibrary } from '../agent-library';
+import { AgentLibrary } from '../explorer-library/agent-library';
 
 interface SwarmSelectorProps {
   isLoading?: boolean;
@@ -438,14 +438,7 @@ export function ConfigSidebar({
             </div>
           </div>
           <Dialog open={openAgentLibrary} onOpenChange={setOpenAgentLibrary}>
-            <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col border border-[#40403F]">
-              <DialogHeader>
-                <DialogTitle>Agent Library</DialogTitle>
-                <DialogDescription>
-                  Browse and select agents from your library.
-                </DialogDescription>
-              </DialogHeader>
-
+            <DialogContent className="max-w-3xl lg:max-w-[93.5vw] lg:left-auto lg:right-0 lg:-translate-x-0 max-h-[85vh] lg:max-h-[100vh] h-full overflow-hidden flex flex-col border border-[#40403F]">
               <div className="flex-1 overflow-hidden">
                 <AgentLibrary
                   models={models}
