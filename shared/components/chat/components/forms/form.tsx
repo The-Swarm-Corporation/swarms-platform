@@ -15,8 +15,8 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { Agent } from '@/shared/components/chat/types';
-import LoadingSpinner from '../../loading-spinner';
-import { useToast } from '../../ui/Toasts/use-toast';
+import LoadingSpinner from '../../../loading-spinner';
+import { useToast } from '../../../ui/Toasts/use-toast';
 
 interface AgentFormProps {
   models: string[];

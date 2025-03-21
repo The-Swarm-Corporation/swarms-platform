@@ -19,7 +19,10 @@ export interface Agent {
   description: string;
   model: string;
   temperature?: number;
+  role?: string;
   maxTokens?: number;
+  maxLoops?: number;
+  autoGeneratePrompt?: boolean;
   systemPrompt?: string;
   isActive: boolean;
 }
