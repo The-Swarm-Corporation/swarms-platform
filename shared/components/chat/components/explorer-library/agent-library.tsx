@@ -29,7 +29,6 @@ import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { AgentForm } from '../forms/form';
 import { Checkbox } from '@/shared/components/ui/checkbox';
 import { AgentTemplateWithStatus } from '../../types';
 import LoadingSpinner from '../../../loading-spinner';
@@ -298,33 +297,30 @@ export function AgentLibrary({
         }
       }
 
-      console.log({ client: metadata, formData })
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        model: formData.model,
+        temperature: formData.temperature,
+        max_tokens: formData.maxTokens,
+        system_prompt: formData.systemPrompt,
+        auto_generate_prompt: formData.autoGeneratePrompt,
+        max_loops: formData.maxLoops,
+        role: formData.role,
+        metadata: metadata || {},
+      };
 
       if (isEditingTemplate && selectedAgent) {
         await updateAgentTemplate.mutateAsync({
           id: selectedAgent.id,
-          name: formData.name,
-          description: formData.description,
-          model: formData.model,
-          temperature: formData.temperature,
-          max_tokens: formData.maxTokens,
-          system_prompt: formData.systemPrompt,
-          metadata: metadata || {},
+          ...payload,
         });
 
         toast({
           description: 'Agent template updated successfully',
         });
       } else {
-        await createAgentTemplate.mutateAsync({
-          name: formData.name,
-          description: formData.description,
-          model: formData.model,
-          temperature: formData.temperature,
-          max_tokens: formData.maxTokens,
-          system_prompt: formData.systemPrompt,
-          metadata: metadata || {},
-        });
+        await createAgentTemplate.mutateAsync(payload);
 
         toast({
           description: 'Agent template created successfully',
@@ -794,7 +790,7 @@ export function AgentLibrary({
         open={isDetailDialogOpen && !selectedDeleteAgent}
         onOpenChange={setIsDetailDialogOpen}
       >
-        <DialogContent className="max-w-3xl border border-[#40403F]">
+        <DialogContent className="max-w-3xl border border-[#40403F] font-mono">
           {selectedAgent && (
             <>
               <DialogHeader>
@@ -804,7 +800,7 @@ export function AgentLibrary({
                     <Badge variant="secondary">In Chat</Badge>
                   )}
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className='text-xs'>
                   {selectedAgent.description}
                 </DialogDescription>
               </DialogHeader>
@@ -812,7 +808,7 @@ export function AgentLibrary({
               <div className="space-y-4 mt-4">
                 <div>
                   <h4 className="font-medium mb-1">System Prompt</h4>
-                  <div className="bg-accent p-4 rounded-md whitespace-pre-wrap max-h-64 overflow-y-auto font-xs text-black dark:text-[#928E8B]">
+                  <div className="bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner italic whitespace-pre-wrap max-h-64 overflow-y-auto text-sm font-medium text-black dark:text-[#928E8B]">
                     {selectedAgent.system_prompt || 'No system prompt defined'}
                   </div>
                 </div>
@@ -865,7 +861,10 @@ export function AgentLibrary({
                   >
                     {selectedAgent.chatStatus.is_selected
                       ? 'Remove from Chat'
-                      : 'Add to Chat'} {isAgentToggle && <LoadingSpinner size={15} className='ml-2' />}
+                      : 'Add to Chat'}{' '}
+                    {isAgentToggle && (
+                      <LoadingSpinner size={15} className="ml-2" />
+                    )}
                   </Button>
                 </div>
               </div>

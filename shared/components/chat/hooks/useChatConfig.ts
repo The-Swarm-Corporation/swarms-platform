@@ -85,6 +85,9 @@ export function useConfig({
           temperature: agent.temperature,
           max_tokens: agent.maxTokens,
           system_prompt: agent.systemPrompt,
+          auto_generate_prompt: agent.autoGeneratePrompt,
+          max_loops: agent.maxLoops,
+          role: agent.role,
         });
 
         const newAgent = await createAgentMutation.mutateAsync({

@@ -32,6 +32,7 @@ import {
 } from '@/shared/components/ui/tooltip';
 import { Brain, HelpCircle, Pencil } from 'lucide-react';
 import { Switch } from '@/shared/components/ui/switch';
+import { AGENT_ROLES } from '../../helper';
 
 interface AgentFormProps {
   models: string[];
@@ -41,8 +42,6 @@ interface AgentFormProps {
   handleCloseModal: () => void;
   initialData?: Partial<Agent>;
 }
-
-const roles = ['worker', 'supervisor', 'specialist', 'analyst'];
 
 export function LibraryAgentForm({
   onSubmit,
@@ -146,11 +145,12 @@ export function LibraryAgentForm({
                     <SelectValue placeholder="Select model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {models.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {model}
-                      </SelectItem>
-                    ))}
+                    {models?.length > 0 &&
+                      models?.map((model) => (
+                        <SelectItem key={model} value={model}>
+                          {model}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -227,7 +227,7 @@ export function LibraryAgentForm({
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
-                    {roles.map((role) => (
+                    {AGENT_ROLES.map((role) => (
                       <SelectItem key={role} value={role}>
                         {role.charAt(0).toUpperCase() + role.slice(1)}
                       </SelectItem>

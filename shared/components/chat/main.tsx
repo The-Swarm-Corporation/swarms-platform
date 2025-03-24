@@ -20,7 +20,7 @@ import { useConversations } from './hooks/useConversations';
 import LoadSequence from './components/loader';
 import { ConversationSidebar } from './components/sidebar/conversations';
 import { cn } from '@/shared/utils/cn';
-import { ConfigSidebar } from './components/sidebar';
+import { ConfigSidebar } from './components/sidebar/config';
 import ChatMessage from './components/message';
 import { Tables } from '@/types_db';
 import { SwarmsApiClient } from '@/shared/utils/api/swarms';
@@ -106,7 +106,14 @@ export default function SwarmsChat({}: SwarmsChatProps) {
       const fetchModels = async () => {
         try {
           const data = await swarmsApi.current!.getModels();
-          setModels(data);
+          setModels(
+            data?.models || [
+              'gpt-4o',
+              'gpt-4o-mini',
+              'gpt-3.5-turbo',
+              'openai/gpt-4o',
+            ],
+          );
         } catch (error) {
           console.error('Error fetching models:', error);
         } finally {
@@ -518,13 +525,13 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   if (apiKeyQuery.isLoading || isCreatingApiKey.current || isInitializing) {
     return (
       <MessageScreen
-        containerClass="h-full w-full bg-zinc-900"
+        containerClass="h-full w-full"
         borderClass="border border-zinc-700/50"
         title="Swarms Agent System"
       >
         <div className="flex items-center gap-3">
           <Loader2 className="animate-spin h-6 w-6 text-primary" />
-          <p className="text-zinc-300">
+          <p className="text-zinc-300 text-xs font-semibold">
             {apiKeyQuery.isLoading
               ? 'Checking for existing API credentials...'
               : isCreatingApiKey.current
@@ -532,7 +539,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                 : 'Initializing Swarms Chat...'}
           </p>
         </div>
-        <p className="text-sm text-zinc-400 text-center mt-2">
+        <p className="text-xs text-zinc-400 text-center mt-2">
           We&apos;re setting up your environment to interact with our AI agents.
           This only takes a moment and ensures a seamless experience.
         </p>
@@ -544,11 +551,11 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     return (
       <MessageScreen
         icon={AlertTriangle}
-        iconClass="h-12 w-12 text-primary mb-2"
+        iconClass="h-10 w-10 text-primary mb-2"
         title="API Key Creation Failed"
         borderClass="border border-primary/50"
       >
-        <p className="text-center text-zinc-300">
+        <p className="text-sm text-center text-zinc-300">
           We encountered an issue creating your API key:
         </p>
         <p className="text-primary text-center font-mono text-sm p-3 bg-red-900/20 rounded-md border border-red-900/50">
@@ -580,7 +587,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         title="API Key Required"
         borderClass="border border-zinc-700/50"
       >
-        <p className="text-center text-zinc-300">
+        <p className="text-center text-sm text-zinc-300">
           You&apos;ll need an API key to interact with our platform. We tried to
           create one automatically but ran into an issue.
         </p>

@@ -11,8 +11,8 @@ interface MessageScreenProps {
 }
 
 export default function MessageScreen({
-  containerClass = 'h-screen w-full bg-zinc-900',
-  boxClass = 'bg-zinc-800/50 rounded-lg shadow-xl',
+  containerClass = 'h-screen w-full',
+  boxClass = 'bg-zinc-800/50 dark:bg-[#131313] rounded-lg shadow-xl',
   borderClass = 'border border-zinc-700/50',
   icon: Icon,
   iconClass = 'h-12 w-12 mb-2',
@@ -21,7 +21,7 @@ export default function MessageScreen({
 }: MessageScreenProps) {
   return (
     <div
-      className={`flex flex-col items-center justify-center ${containerClass}`}
+      className={`flex flex-col items-center justify-center font-mono ${containerClass}`}
     >
       <div
         className={`flex flex-col gap-4 items-center max-w-md px-6 py-8 ${boxClass} ${borderClass}`}
