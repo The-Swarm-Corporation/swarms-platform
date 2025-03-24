@@ -1452,39 +1452,48 @@ export type Database = {
       }
       swarms_cloud_chat_agent_templates: {
         Row: {
+          auto_generate_prompt: boolean
           created_at: string | null
           description: string | null
           id: string
+          max_loops: number
           max_tokens: number | null
           metadata: Json | null
           model: string
           name: string
+          role: string
           system_prompt: string | null
           temperature: number | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
+          auto_generate_prompt?: boolean
           created_at?: string | null
           description?: string | null
           id?: string
+          max_loops?: number
           max_tokens?: number | null
           metadata?: Json | null
           model: string
           name: string
+          role?: string
           system_prompt?: string | null
           temperature?: number | null
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
+          auto_generate_prompt?: boolean
           created_at?: string | null
           description?: string | null
           id?: string
+          max_loops?: number
           max_tokens?: number | null
           metadata?: Json | null
           model?: string
           name?: string
+          role?: string
           system_prompt?: string | null
           temperature?: number | null
           updated_at?: string | null
@@ -1502,14 +1511,17 @@ export type Database = {
       }
       swarms_cloud_chat_agents: {
         Row: {
+          auto_generate_prompt: boolean
           chat_id: string | null
           created_at: string | null
           description: string | null
           id: string
           is_active: boolean | null
+          max_loops: number
           max_tokens: number | null
           model: string
           name: string
+          role: string
           system_prompt: string | null
           temperature: number | null
           template_id: string | null
@@ -1517,14 +1529,17 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          auto_generate_prompt?: boolean
           chat_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
+          max_loops?: number
           max_tokens?: number | null
           model: string
           name: string
+          role?: string
           system_prompt?: string | null
           temperature?: number | null
           template_id?: string | null
@@ -1532,14 +1547,17 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          auto_generate_prompt?: boolean
           chat_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
+          max_loops?: number
           max_tokens?: number | null
           model?: string
           name?: string
+          role?: string
           system_prompt?: string | null
           temperature?: number | null
           template_id?: string | null

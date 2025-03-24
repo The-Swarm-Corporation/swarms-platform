@@ -2,6 +2,8 @@ import { FileText, Image, Video, Music, File } from 'lucide-react';
 import { FileWithPreview } from './hooks/useFileUpload';
 import { Tables } from '@/types_db';
 
+export const AGENT_ROLES = ['worker', 'supervisor', 'specialist', 'analyst'];
+
 export interface MessageObj {
   role: string;
   content: string;

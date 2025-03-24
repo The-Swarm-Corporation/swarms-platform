@@ -25,6 +25,9 @@ const agentSchema = z.object({
   chatId: z.string(),
   temperature: z.number().min(0).max(1).optional(),
   maxTokens: z.number().positive().optional(),
+  autoGeneratePrompt: z.boolean().default(false),
+  maxLoops: z.number().default(1),
+  role: z.string().default('worker'),
   systemPrompt: z.string().optional(),
   isActive: z.boolean().optional(),
   templateId: z.string().optional(),
@@ -331,6 +334,9 @@ const agentRouter = router({
           system_prompt: input.systemPrompt,
           is_active: input.isActive,
           template_id: input.templateId,
+          auto_generate_prompt: input.autoGeneratePrompt,
+          max_loops: input.maxLoops,
+          role: input.role,
           user_id,
         })
         .select()
@@ -360,6 +366,9 @@ const agentRouter = router({
           temperature: input.updates.temperature,
           max_tokens: input.updates.maxTokens,
           system_prompt: input.updates.systemPrompt,
+          auto_generate_prompt: input.updates.autoGeneratePrompt,
+          max_loops: input.updates.maxLoops,
+          role: input.updates.role,
         })
         .eq('id', input.id)
         .eq('user_id', user_id)
@@ -467,6 +476,9 @@ const agentRouter = router({
                 model: chatAgent.model,
                 temperature: chatAgent.temperature,
                 max_tokens: chatAgent.max_tokens,
+                auto_generate_prompt: chatAgent.auto_generate_prompt,
+                role: chatAgent.role,
+                max_loops: chatAgent.max_loops,
               }
             : {
                 is_selected: false,
@@ -487,6 +499,9 @@ const agentRouter = router({
         temperature: z.number().default(0.7),
         max_tokens: z.number().default(2048),
         system_prompt: z.string().optional(),
+        auto_generate_prompt: z.boolean().default(false),
+        max_loops: z.number().default(1),
+        role: z.string().default('worker'),
         metadata: z.record(z.any()).optional(),
       }),
     )
@@ -496,13 +511,7 @@ const agentRouter = router({
       const { data, error } = await ctx.supabase
         .from('swarms_cloud_chat_agent_templates')
         .insert({
-          name: input.name,
-          description: input.description,
-          model: input.model,
-          temperature: input.temperature,
-          max_tokens: input.max_tokens,
-          system_prompt: input.system_prompt,
-          metadata: input.metadata,
+          ...input,
           user_id,
         })
         .select()
@@ -522,6 +531,9 @@ const agentRouter = router({
         temperature: z.number().default(0.7),
         max_tokens: z.number().default(2048),
         system_prompt: z.string().optional(),
+        auto_generate_prompt: z.boolean().default(false),
+        max_loops: z.number().default(1),
+        role: z.string().default('worker'),
         metadata: z.record(z.any()).optional(),
       }),
     )
@@ -530,15 +542,7 @@ const agentRouter = router({
 
       const { error: templateError } = await ctx.supabase
         .from('swarms_cloud_chat_agent_templates')
-        .update({
-          name: input.name,
-          description: input.description,
-          model: input.model,
-          temperature: input.temperature,
-          max_tokens: input.max_tokens,
-          system_prompt: input.system_prompt,
-          metadata: input.metadata,
-        })
+        .update(input)
         .eq('id', input.id)
         .eq('user_id', user_id);
 

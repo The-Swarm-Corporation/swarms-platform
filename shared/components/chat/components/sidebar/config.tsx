@@ -23,7 +23,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/shared/components/ui/sheet';
-import { AgentForm } from '../forms/form';
+import { AgentForm } from '../forms/agent-form';
 import {
   Select,
   SelectContent,
@@ -48,7 +48,6 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
@@ -71,6 +70,9 @@ const convertEditingAgent = (
   maxTokens: agent.max_tokens ?? 2048,
   systemPrompt: agent.system_prompt ?? '',
   isActive: agent.is_active ?? false,
+  autoGeneratePrompt: agent.auto_generate_prompt ?? false,
+  maxLoops: agent.max_loops,
+  role: agent.role,
 });
 
 function SwarmSelector({
@@ -438,6 +440,9 @@ export function ConfigSidebar({
             </div>
           </div>
           <Dialog open={openAgentLibrary} onOpenChange={setOpenAgentLibrary}>
+            <DialogHeader>
+              <DialogTitle className="invisible"></DialogTitle>
+            </DialogHeader>
             <DialogContent className="max-w-3xl lg:max-w-[93.5vw] lg:left-auto lg:right-0 lg:-translate-x-0 max-h-[85vh] lg:max-h-[100vh] h-full overflow-hidden flex flex-col border border-[#40403F]">
               <div className="flex-1 overflow-hidden">
                 <AgentLibrary

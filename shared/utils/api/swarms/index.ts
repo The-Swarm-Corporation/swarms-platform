@@ -145,9 +145,9 @@ export class SwarmsApiClient {
         temperature:
           agent.temperature !== null ? Number(agent.temperature) : 0.5,
         max_tokens: agent.max_tokens || 2048,
-        role: 'worker',
-        max_loops: 1,
-        auto_generate_prompt: false,
+        role: agent.role,
+        max_loops: agent.max_loops,
+        auto_generate_prompt: agent.auto_generate_prompt,
       }));
   }
 
