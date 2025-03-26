@@ -433,6 +433,21 @@ const getUserCredit = async (uuid: string) => {
   };
 };
 
+export const getUserPromptChat = async (userId: string, promptId: string) => {
+  const { data, error } = await supabaseAdmin
+    .from('swarms_cloud_prompts_chat')
+    .select('text, sender')
+    .eq('prompt_id', promptId)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to fetch user prompt chat: ${error.message}`);
+  }
+
+  return data;
+};
+
 const getStripeCustomerId = async (userId: string): Promise<string | null> => {
   const { data, error } = await supabaseAdmin
     .from('customers')

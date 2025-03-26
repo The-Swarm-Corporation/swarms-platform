@@ -23,14 +23,12 @@ import usePromptChat from './hooks/usePromptChat';
 export interface ChatComponentProps {
   promptId: string;
   systemPrompt: string;
-  userId: string;
   model?: string;
 }
 
 const ChatComponent = ({
   promptId,
   systemPrompt,
-  userId,
   model = 'gpt-4o',
 }: ChatComponentProps) => {
   const {
@@ -51,7 +49,7 @@ const ChatComponent = ({
     handleEditMessage,
     handleInputChange,
     handleDeleteMessage,
-  } = usePromptChat({ promptId, systemPrompt, userId, model });
+  } = usePromptChat({ promptId, systemPrompt, model });
 
   return (
     <div className="relative mx-auto bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-10 rounded-lg leading-normal overflow-hidden no-scrollbar w-full">

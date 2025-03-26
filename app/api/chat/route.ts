@@ -1,12 +1,21 @@
 import { OpenAI } from 'openai';
-import { getUserCredit } from '@/shared/utils/supabase/admin';
+import {
+  getUserCredit,
+  getUserPromptChat,
+} from '@/shared/utils/supabase/admin';
 
 export const runtime = 'edge';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: Request) {
-  const { message, systemPrompt, model = 'gpt-4o', userId } = await req.json();
+  const {
+    message,
+    systemPrompt,
+    model = 'gpt-4o',
+    userId,
+    promptId,
+  } = await req.json();
 
   const estimateTokens = (text: string) => Math.ceil(text.length / 4);
 
@@ -19,7 +28,10 @@ export async function POST(req: Request) {
 
   const estimatedInputCost = (totalInputTokens / 1000) * inputCostPerThousand;
 
-  const { credit, free_credit } = await getUserCredit(userId);
+  const [{ credit, free_credit }, pastMessages] = await Promise.all([
+    getUserCredit(userId),
+    getUserPromptChat(userId, promptId),
+  ]);
   const totalCredit = credit + free_credit;
 
   if (totalCredit < estimatedInputCost) {
@@ -28,13 +40,22 @@ export async function POST(req: Request) {
     });
   }
 
+  const messageHistory = pastMessages || [];
+  const chatHistory = messageHistory?.map(({ text, sender }) => ({
+    role: sender === 'user' ? 'user' : 'assistant',
+    content: text || "",
+  }));
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...chatHistory,
+    { role: 'user', content: message },
+  ];
+
   try {
     const response = await openai.chat.completions.create({
       model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message },
-      ],
+      messages: messages as any,
       stream: true,
     });
 
