@@ -407,7 +407,6 @@ export default function EntityComponent({
             <h2 className="mb-5">Prompt Agent Chat</h2>
             <ChatComponent
               promptId={id ?? ''}
-              userId={userId ?? ''}
               systemPrompt={prompt}
             />
           </div>

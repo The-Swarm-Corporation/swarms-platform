@@ -12,7 +12,6 @@ import { useAuthContext } from '@/shared/components/ui/auth.provider';
 export default function usePromptChat({
   promptId,
   systemPrompt,
-  userId,
   model = 'gpt-4',
 }: ChatComponentProps) {
   const { user } = useAuthContext();
@@ -37,7 +36,7 @@ export default function usePromptChat({
 
   const fetchMessages = trpc.explorer.getPromptChats.useQuery(
     { promptId },
-    { enabled: false },
+    { enabled: false, refetchOnWindowFocus: false },
   );
   const fetchMutation = trpc.explorer.savePromptChat.useMutation();
   const editMutation = trpc.explorer.editPromptChat.useMutation();
@@ -74,12 +73,12 @@ export default function usePromptChat({
   }, [streamedResponse, editingMessageId]);
 
   useEffect(() => {
-    if (user && !messages.length) {
+    if (user && fetchMessages.data === undefined && !fetchMessages.isFetching) {
       fetchMessages.refetch().then(({ data }) => {
         if (data) setMessages(data);
       });
     }
-  }, [fetchMessages, messages, user]);
+  }, [fetchMessages.data, user]);
 
   useEffect(() => {
     if (latestMessageRef.current) {
@@ -107,7 +106,7 @@ export default function usePromptChat({
       text: input,
       sender: 'user',
       prompt_id: promptId,
-      user_id: userId,
+      user_id: user?.id,
       response_id: `${messageId}`,
     } as Tables<'swarms_cloud_prompts_chat'>;
 
@@ -117,7 +116,7 @@ export default function usePromptChat({
       text: '',
       sender: 'agent',
       prompt_id: promptId,
-      user_id: userId,
+      user_id: user?.id,
       response_id: `${messageId}_agent`,
     } as Tables<'swarms_cloud_prompts_chat'>;
 
@@ -127,7 +126,12 @@ export default function usePromptChat({
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input, systemPrompt, userId }),
+        body: JSON.stringify({
+          message: input,
+          systemPrompt,
+          userId: user?.id,
+          promptId,
+        }),
       });
 
       if (!response.ok) {
@@ -232,7 +236,12 @@ export default function usePromptChat({
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: editInput, systemPrompt, userId }),
+        body: JSON.stringify({
+          message: editInput,
+          systemPrompt,
+          userId: user?.id,
+          promptId,
+        }),
       });
 
       if (!response.ok) {
