@@ -115,7 +115,7 @@ const explorerRouter = router({
         name: z.string().optional(),
         prompt: z.string(),
         description: z.string().optional(),
-        useCases: z.array(z.any()),
+        useCases: z.array(z.any()).optional(),
         tags: z.string().optional(),
       }),
     )
@@ -176,7 +176,7 @@ const explorerRouter = router({
         name: z.string(),
         prompt: z.string().optional(),
         description: z.string().optional(),
-        useCases: z.array(z.any()),
+        useCases: z.array(z.any()).optional(),
         tags: z.string().optional(),
       }),
     )
@@ -215,6 +215,7 @@ const explorerRouter = router({
         throw 'Prompt could not be updated';
       }
     }),
+
   getAllPrompts: publicProcedure
     .input(
       z.object({
@@ -301,8 +302,8 @@ const explorerRouter = router({
         agent: z.string(),
         language: z.string().optional(),
         description: z.string().optional(),
-        requirements: z.array(z.any()),
-        useCases: z.array(z.any()),
+        requirements: z.array(z.any()).optional(),
+        useCases: z.array(z.any()).optional(),
         tags: z.string().optional(),
       }),
     )
