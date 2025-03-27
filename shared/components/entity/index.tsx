@@ -333,7 +333,7 @@ export default function EntityComponent({
           key={id}
         />
       </div>
-      {usecases && <UseCases usecases={usecases} />}
+      {usecases && usecases?.some((uc) => uc?.title?.trim() !== '') && <UseCases usecases={usecases} />}
       {title.toLowerCase() === 'agent' ||
         (title.toLowerCase() === 'tool' && (
           <AgentRequirements
@@ -405,10 +405,7 @@ export default function EntityComponent({
         <div className="mt-10 lg:mt-20 flex flex-col items-end">
           <div className="w-full lg:w-[90%]">
             <h2 className="mb-5">Prompt Agent Chat</h2>
-            <ChatComponent
-              promptId={id ?? ''}
-              systemPrompt={prompt}
-            />
+            <ChatComponent promptId={id ?? ''} systemPrompt={prompt} />
           </div>
         </div>
       )}
