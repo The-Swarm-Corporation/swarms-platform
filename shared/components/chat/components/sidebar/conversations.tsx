@@ -31,6 +31,7 @@ import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import useChatQuery from '../../hooks/useChatQuery';
 
 interface ConversationSidebarProps {
   conversations: Tables<'swarms_cloud_chat'>[];
@@ -62,6 +63,8 @@ export function ConversationSidebar({
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const currentConversationId = searchParams?.get('conversationId');
+
+  const { sharedConversationId } = useChatQuery();
 
   const { toast } = useToast();
 
@@ -237,21 +240,23 @@ export function ConversationSidebar({
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditModalOpen(conversation?.id);
-                                }}
-                                className="cursor-pointer focus:text-red-600/50"
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
+                              {!sharedConversationId && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditModalOpen(conversation?.id);
+                                  }}
+                                  className="cursor-pointer focus:text-red-600/50"
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   await copyToClipboard(
-                                    `${process.env.NEXT_PUBLIC_SITE_URL}/platform/chat?conversationId=${conversation.id}`,
+                                    `${process.env.NEXT_PUBLIC_SITE_URL}/platform/chat?conversationId=${conversation.id}&shareId=${conversation.share_id}`,
                                   );
                                 }}
                                 className="cursor-pointer focus:text-red-600/50"
@@ -269,17 +274,19 @@ export function ConversationSidebar({
                                 <Download className="mr-2 h-4 w-4" />
                                 Export
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600 focus:text-red-600/50 cursor-pointer"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  await onDeleteConversation(conversation.id);
-                                  conversationRefetch?.();
-                                }}
-                              >
-                                <Trash className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
+                              {!sharedConversationId && (
+                                <DropdownMenuItem
+                                  className="text-red-600 focus:text-red-600/50 cursor-pointer"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    await onDeleteConversation(conversation.id);
+                                    conversationRefetch?.();
+                                  }}
+                                >
+                                  <Trash className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>

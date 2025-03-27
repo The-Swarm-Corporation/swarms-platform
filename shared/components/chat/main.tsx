@@ -35,6 +35,7 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import { parseJSON, transformEditMessages, transformMessages } from './helper';
 import MessageScreen from './components/message-screen';
+import useChatQuery from './hooks/useChatQuery';
 
 interface SwarmsChatProps {
   modelFunction?: (message: string) => Promise<string>;
@@ -63,11 +64,16 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   const [isInitializing, setIsInitializing] = useState(true);
   const [creationError, setCreationError] = useState<string | null>(null);
 
+  const { sharedConversationId } = useChatQuery();
+
   const isCreatingApiKey = useRef(false);
 
-  const apiKeyQuery = trpc.apiKey.getValidApiKey.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
+  const apiKeyQuery = trpc.apiKey.getValidApiKey.useQuery(
+    { isShareId: !!sharedConversationId },
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
 
   const createApiKeyMutation = trpc.apiKey.createDefaultApiKey.useMutation({
     onSuccess: () => {
@@ -618,7 +624,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-100/50 to-zinc-50/80 dark:from-zinc-950/50 dark:to-black" />
       <div className="relative w-full h-full flex">
         <ConversationSidebar
-          conversations={conversations || []}
+          conversations={(conversations as Tables<'swarms_cloud_chat'>[]) || []}
           activeId={activeConversationId}
           isLoading={isLoadingConversations}
           isDeletePending={isDeletePending}
@@ -760,125 +766,132 @@ export default function SwarmsChat({}: SwarmsChatProps) {
               </p>
             )}
 
-            <div className="bg-white/60 relative dark:bg-black/60 backdrop-blur-sm border-t f9f9f914 p-6 transition-colors duration-300">
-              <form onSubmit={handleSubmit} className="max-w-screen-xl mx-auto">
-                <div className="flex items-center space-x-2 lg:space-x-4">
-                  <button
-                    type="button"
-                    onClick={toggleListening}
-                    className={cn(
-                      'p-2 lg:p-4 rounded-full transition-all duration-300 relative group',
-                      isListening
-                        ? 'bg-red-600/20 text-primary/50 border border-red-600/50'
-                        : 'bg-white/80 dark:bg-zinc-950/80 text-primary/50 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 border border-red-600/20',
-                    )}
-                  >
-                    <Mic className="w-3 h-3 lg:w-6 lg:h-6" />
-                    <div
+            {!sharedConversationId && (
+              <div className="bg-white/60 relative dark:bg-black/60 backdrop-blur-sm border-t f9f9f914 p-6 transition-colors duration-300">
+                <form
+                  onSubmit={handleSubmit}
+                  className="max-w-screen-xl mx-auto"
+                >
+                  <div className="flex items-center space-x-2 lg:space-x-4">
+                    <button
+                      type="button"
+                      onClick={toggleListening}
                       className={cn(
-                        'absolute inset-0 rounded-full',
-                        isListening && 'animate-ping bg-red-600/20',
+                        'p-2 lg:p-4 rounded-full transition-all duration-300 relative group',
+                        isListening
+                          ? 'bg-red-600/20 text-primary/50 border border-red-600/50'
+                          : 'bg-white/80 dark:bg-zinc-950/80 text-primary/50 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 border border-red-600/20',
                       )}
-                    />
-                  </button>
-                  <>
-                    <div
-                      className="p-2 lg:p-4 rounded-full cursor-pointer w-fit"
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={handleDrop}
                     >
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileSelect}
-                        disabled={uploadStatus === 'uploading' || !!imageUrl}
-                        className="hidden"
-                        id={`upload-image-${activeConversationId}`}
+                      <Mic className="w-3 h-3 lg:w-6 lg:h-6" />
+                      <div
+                        className={cn(
+                          'absolute inset-0 rounded-full',
+                          isListening && 'animate-ping bg-red-600/20',
+                        )}
                       />
-                      <label
-                        htmlFor={`upload-image-${activeConversationId}`}
-                        className="cursor-pointer flex items-center text-primary/50"
+                    </button>
+                    <>
+                      <div
+                        className="p-2 lg:p-4 rounded-full cursor-pointer w-fit"
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={handleDrop}
                       >
-                        <Upload
-                          className={cn(
-                            'w-3 h-3 lg:w-6 lg:h-6',
-                            uploadStatus === 'uploading' ? 'animate-pulse' : '',
-                          )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileSelect}
+                          disabled={uploadStatus === 'uploading' || !!imageUrl}
+                          className="hidden"
+                          id={`upload-image-${activeConversationId}`}
                         />
-                      </label>
-
-                      {(imageUrl || image) && (
-                        <div className="absolute z-10 -top-[166px] left-0 flex items-end w-full">
-                          <div className="relative h-40 w-40 mt-1 border border-[#40403F]">
-                            <Image
-                              src={imageUrl || image || ''}
-                              alt="Uploaded image"
-                              fill
-                              className="object-cover rounded-md"
-                            />
-                            {imageUrl &&
-                              (isDeleteFile ? (
-                                <LoadingSpinner
-                                  size={15}
-                                  className="absolute -top-2 -right-2"
-                                />
-                              ) : (
-                                <X
-                                  role="button"
-                                  size={20}
-                                  onClick={() =>
-                                    deleteImage(
-                                      filePath ?? '',
-                                      activeConversationId,
-                                    )
-                                  }
-                                  className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full"
-                                />
-                              ))}
-                          </div>
-                          {uploadStatus === 'uploading' &&
-                            uploadProgress > 0 && (
-                              <div className="w-full flex items-end gap-1 bg-white/80 dark:bg-black/70">
-                                <ProgressBar
-                                  progress={uploadProgress}
-                                  className="h-2.5"
-                                />
-                                <span className="text-sm text-black dark:text-[#928E8B]">
-                                  {uploadProgress}%
-                                </span>
-                              </div>
+                        <label
+                          htmlFor={`upload-image-${activeConversationId}`}
+                          className="cursor-pointer flex items-center text-primary/50"
+                        >
+                          <Upload
+                            className={cn(
+                              'w-3 h-3 lg:w-6 lg:h-6',
+                              uploadStatus === 'uploading'
+                                ? 'animate-pulse'
+                                : '',
                             )}
-                        </div>
+                          />
+                        </label>
+
+                        {(imageUrl || image) && (
+                          <div className="absolute z-10 -top-[166px] left-0 flex items-end w-full">
+                            <div className="relative h-40 w-40 mt-1 border border-[#40403F]">
+                              <Image
+                                src={imageUrl || image || ''}
+                                alt="Uploaded image"
+                                fill
+                                className="object-cover rounded-md"
+                              />
+                              {imageUrl &&
+                                (isDeleteFile ? (
+                                  <LoadingSpinner
+                                    size={15}
+                                    className="absolute -top-2 -right-2"
+                                  />
+                                ) : (
+                                  <X
+                                    role="button"
+                                    size={20}
+                                    onClick={() =>
+                                      deleteImage(
+                                        filePath ?? '',
+                                        activeConversationId,
+                                      )
+                                    }
+                                    className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full"
+                                  />
+                                ))}
+                            </div>
+                            {uploadStatus === 'uploading' &&
+                              uploadProgress > 0 && (
+                                <div className="w-full flex items-end gap-1 bg-white/80 dark:bg-black/70">
+                                  <ProgressBar
+                                    progress={uploadProgress}
+                                    className="h-2.5"
+                                  />
+                                  <span className="text-sm text-black dark:text-[#928E8B]">
+                                    {uploadProgress}%
+                                  </span>
+                                </div>
+                              )}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Enter your message..."
+                        className="w-full bg-white/80 text-xs lg:text-base dark:bg-zinc-950/80 backdrop-blur-sm text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-[#928E8B] border border-red-600/20 rounded-md lg:rounded-lg px-3 lg:px-6 py-2 lg:py-4 focus:outline-none focus:border-red-500/50 transition-colors"
+                      />
+                      <div className="absolute inset-0 pointer-events-none border border-red-600/10 rounded-lg">
+                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={!input.trim() || isLoading}
+                      className="p-3 lg:p-4 bg-white/80 dark:bg-zinc-950/80 text-red-500 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative group border border-red-600/20"
+                    >
+                      {isLoading ? (
+                        <Ellipsis className="w-4 h-4 lg:w-6 lg:h-6 animate-pulse" />
+                      ) : (
+                        <Send className="w-4 h-4 lg:w-6 lg:h-6" />
                       )}
-                    </div>
-                  </>
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder="Enter your message..."
-                      className="w-full bg-white/80 text-xs lg:text-base dark:bg-zinc-950/80 backdrop-blur-sm text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-[#928E8B] border border-red-600/20 rounded-md lg:rounded-lg px-3 lg:px-6 py-2 lg:py-4 focus:outline-none focus:border-red-500/50 transition-colors"
-                    />
-                    <div className="absolute inset-0 pointer-events-none border border-red-600/10 rounded-lg">
-                      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
-                    </div>
+                      <div className="absolute inset-0 rounded-full group-hover:animate-ping bg-red-600/20 hidden group-hover:block" />
+                    </button>
                   </div>
-                  <button
-                    type="submit"
-                    disabled={!input.trim() || isLoading}
-                    className="p-3 lg:p-4 bg-white/80 dark:bg-zinc-950/80 text-red-500 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative group border border-red-600/20"
-                  >
-                    {isLoading ? (
-                      <Ellipsis className="w-4 h-4 lg:w-6 lg:h-6 animate-pulse" />
-                    ) : (
-                      <Send className="w-4 h-4 lg:w-6 lg:h-6" />
-                    )}
-                    <div className="absolute inset-0 rounded-full group-hover:animate-ping bg-red-600/20 hidden group-hover:block" />
-                  </button>
-                </div>
-              </form>
-            </div>
+                </form>
+              </div>
+            )}
           </div>
           <ConfigSidebar
             agents={agents || []}

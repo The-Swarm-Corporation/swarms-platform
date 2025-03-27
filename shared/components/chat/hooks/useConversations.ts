@@ -4,17 +4,19 @@ import { useState, useEffect } from 'react';
 import { Message } from '@/shared/components/chat/types';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import useChatQuery from './useChatQuery';
 
 export function useConversations() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const activeConversationId = searchParams?.get('conversationId') || '';
+  const {
+    activeConversationId,
+    sharedConversationId,
+    sharedConversation,
+    sharedConversations,
+    updateQueryParams,
+  } = useChatQuery();
 
   const {
-    data: conversations,
+    data: chatConversations,
     refetch,
     isLoading,
     error: chatError,
@@ -37,29 +39,28 @@ export function useConversations() {
     'replaceAll' | 'replaceOriginal'
   >('replaceAll');
 
-  const activeConversation = trpc.chat.getConversation.useQuery(
+  const chatConversation = trpc.chat.getConversation.useQuery(
     activeConversationId,
-    {
-      refetchOnWindowFocus: false,
-    },
+    { enabled: !sharedConversationId, refetchOnWindowFocus: false },
   );
+
+  const conversations = sharedConversationId
+    ? sharedConversations
+    : chatConversations;
+
+  const activeConversation = sharedConversationId
+    ? sharedConversation
+    : chatConversation;
 
   useEffect(() => {
     if (conversations?.length && !activeConversationId) {
       const firstConversation =
-        conversations.find((chat) => chat.is_active) || conversations[0];
+        conversations.find((chat) => chat?.is_active) || conversations[0];
       if (firstConversation) {
         updateQueryParams(firstConversation.id);
       }
     }
   }, [conversations, activeConversationId]);
-
-  const updateQueryParams = (conversationId: string) => {
-    const newSearchParams = new URLSearchParams(searchParams ?? '');
-    newSearchParams.set('conversationId', conversationId);
-
-    router.push(`${pathname}?${newSearchParams.toString()}`);
-  };
 
   const setActiveConversation = (id: string) => {
     updateQueryParams(id);
@@ -114,7 +115,7 @@ export function useConversations() {
     try {
       await deleteConversationMutation.mutateAsync(id);
       if (id === activeConversationId) {
-        const remainingConversation = conversations?.find((c) => c.id !== id);
+        const remainingConversation = conversations?.find((c) => c?.id !== id);
         setActiveConversation(remainingConversation?.id ?? '');
       }
       refetch();

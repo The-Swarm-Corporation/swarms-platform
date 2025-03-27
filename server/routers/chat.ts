@@ -77,6 +77,56 @@ const chatRouter = router({
       return data;
     }),
 
+  getSharedConversations: userProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        shareId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat')
+        .select('*')
+        .eq('id', input.conversationId)
+        .eq('share_id', input.shareId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw new Error('Failed to fetch conversations');
+
+      return data;
+    }),
+
+  getSharedConversation: userProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        shareId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat')
+        .select(
+          `
+          *,
+          messages:swarms_cloud_chat_messages(*)
+        `,
+        )
+        .eq('id', input.conversationId)
+        .eq('share_id', input.shareId)
+        .eq('messages.is_deleted', false)
+        .order('timestamp', {
+          referencedTable: 'swarms_cloud_chat_messages',
+          ascending: true,
+        })
+        .single();
+
+      if (error) throw error;
+
+      return data;
+    }),
+
   createConversation: userProcedure
     .input(conversationSchema)
     .mutation(async ({ ctx, input }) => {
