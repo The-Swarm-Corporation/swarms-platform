@@ -85,6 +85,15 @@ export function useConversations() {
   const handleCloseCloneModal = () => setOpenCloneModal(false);
 
   const createConversation = async (name: string) => {
+    if (!user) {
+      toast({
+        description: 'Log in to perform this action',
+        variant: 'destructive',
+      });
+      router.push('/signin');
+      return;
+    }
+
     try {
       const newConversation = await createConversationMutation.mutateAsync({
         name,
@@ -110,7 +119,7 @@ export function useConversations() {
       return;
     }
 
-    if(!user) {
+    if (!user) {
       toast({
         description: 'Log in to perform this action',
         variant: 'destructive',
