@@ -36,6 +36,7 @@ export default function useChatQuery() {
     activeConversationId,
     sharedConversationId,
     sharedConversation,
+    isSharedConversation: activeConversationId && sharedConversationId,
     sharedConversations: [sharedConversation.data],
     updateQueryParams,
     getConversationUrl,

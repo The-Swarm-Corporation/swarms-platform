@@ -10,6 +10,7 @@ export function useConversations() {
   const {
     activeConversationId,
     sharedConversationId,
+    isSharedConversation,
     sharedConversation,
     sharedConversations,
     updateQueryParams,
@@ -27,6 +28,8 @@ export function useConversations() {
   const createConversationMutation = trpc.chat.createConversation.useMutation();
   const updateConversationMutation = trpc.chat.updateConversation.useMutation();
   const deleteConversationMutation = trpc.chat.deleteConversation.useMutation();
+  const cloneConversationMutation =
+    trpc.chat.addSharedConversation.useMutation();
 
   const addMessageMutation = trpc.chat.addMessage.useMutation();
   const editMessageMutation = trpc.chat.editMessage.useMutation();
@@ -38,17 +41,18 @@ export function useConversations() {
   const [replaceMode, setReplaceMode] = useState<
     'replaceAll' | 'replaceOriginal'
   >('replaceAll');
+  const [openCloneModal, setOpenCloneModal] = useState(false);
 
   const chatConversation = trpc.chat.getConversation.useQuery(
     activeConversationId,
-    { enabled: !sharedConversationId, refetchOnWindowFocus: false },
+    { enabled: !isSharedConversation, refetchOnWindowFocus: false },
   );
 
-  const conversations = sharedConversationId
+  const conversations = isSharedConversation
     ? sharedConversations
     : chatConversations;
 
-  const activeConversation = sharedConversationId
+  const activeConversation = isSharedConversation
     ? sharedConversation
     : chatConversation;
 
@@ -74,6 +78,8 @@ export function useConversations() {
     setEditingMessageId(null);
   };
 
+  const handleCloseCloneModal = () => setOpenCloneModal(false);
+
   const createConversation = async (name: string) => {
     try {
       const newConversation = await createConversationMutation.mutateAsync({
@@ -86,6 +92,33 @@ export function useConversations() {
       console.error(err);
       toast({
         description: 'Failed to create conversation',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const cloneSharedConversation = async () => {
+    if (!isSharedConversation) {
+      toast({
+        description: 'No shared conversation selected',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const newChat = await cloneConversationMutation.mutateAsync({
+        conversationId: activeConversationId,
+        shareId: sharedConversationId,
+      });
+
+      toast({ description: 'Chat cloned successfully!' });
+      setActiveConversation(newChat.id);
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast({
+        description: 'Failed to clone shared chat',
         variant: 'destructive',
       });
     }
@@ -284,5 +317,10 @@ export function useConversations() {
     editMessage,
     deleteMessage,
     exportConversation,
+    cloneSharedConversation,
+    isClonePending: cloneConversationMutation.isPending,
+    openCloneModal,
+    setOpenCloneModal,
+    handleCloseCloneModal,
   };
 }

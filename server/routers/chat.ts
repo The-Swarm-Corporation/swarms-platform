@@ -77,24 +77,134 @@ const chatRouter = router({
       return data;
     }),
 
-  getSharedConversations: userProcedure
-    .input(
-      z.object({
-        conversationId: z.string(),
-        shareId: z.string(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const { data, error } = await ctx.supabase
+  addSharedConversation: userProcedure
+    .input(z.object({ conversationId: z.string(), shareId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data: sharedChat, error: chatError } = await ctx.supabase
         .from('swarms_cloud_chat')
         .select('*')
         .eq('id', input.conversationId)
         .eq('share_id', input.shareId)
-        .order('created_at', { ascending: false });
+        .single();
 
-      if (error) throw new Error('Failed to fetch conversations');
+      if (chatError) throw chatError;
 
-      return data;
+      const { data: newChat, error: createError } = await ctx.supabase
+        .from('swarms_cloud_chat')
+        .insert({
+          name: sharedChat.name,
+          description: sharedChat.description,
+          max_loops: sharedChat.max_loops,
+          is_active: true,
+          user_id,
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      const { data: messages, error: messageError } = await ctx.supabase
+        .from('swarms_cloud_chat_messages')
+        .select('*')
+        .eq('chat_id', input.conversationId);
+
+      if (messageError) throw messageError;
+
+      const copiedMessages = messages.map((msg) => ({
+        ...msg,
+        chat_id: newChat.id,
+        user_id,
+      }));
+
+      if (copiedMessages.length > 0) {
+        const { error: insertMessageError } = await ctx.supabase
+          .from('swarms_cloud_chat_messages')
+          .insert(copiedMessages);
+        if (insertMessageError) throw insertMessageError;
+      }
+
+      const { data: agents, error: agentError } = await ctx.supabase
+        .from('swarms_cloud_chat_agents')
+        .select('*')
+        .eq('chat_id', input.conversationId);
+
+      if (agentError) throw agentError;
+
+      for (const agent of agents) {
+        let { data: template, error: templateError } = await ctx.supabase
+          .from('swarms_cloud_chat_agent_templates')
+          .select('*')
+          .eq('id', agent?.template_id || '')
+          .eq('user_id', user_id)
+          .single();
+
+        if (!template) {
+          const { data: newTemplate, error: createTemplateError } =
+            await ctx.supabase
+              .from('swarms_cloud_chat_agent_templates')
+              .insert({
+                name: agent.name,
+                description: agent.description,
+                model: agent.model,
+                temperature: agent.temperature,
+                max_tokens: agent.max_tokens,
+                system_prompt: agent.system_prompt,
+                auto_generate_prompt: agent.auto_generate_prompt,
+                max_loops: agent.max_loops,
+                role: agent.role,
+                user_id,
+              })
+              .select()
+              .single();
+
+          if (createTemplateError) throw createTemplateError;
+          template = newTemplate;
+        }
+
+        const { error: insertAgentError } = await ctx.supabase
+          .from('swarms_cloud_chat_agents')
+          .insert({
+            name: agent.name,
+            description: agent.description,
+            model: agent.model,
+            temperature: agent.temperature,
+            chat_id: newChat.id,
+            max_tokens: agent.max_tokens,
+            system_prompt: agent.system_prompt,
+            is_active: true,
+            template_id: template.id,
+            auto_generate_prompt: agent.auto_generate_prompt,
+            max_loops: agent.max_loops,
+            role: agent.role,
+            user_id,
+          });
+
+        if (insertAgentError) throw insertAgentError;
+      }
+
+      const { data: config, error: configError } = await ctx.supabase
+        .from('swarms_cloud_chat_swarm_configs')
+        .select('*')
+        .eq('chat_id', input.conversationId)
+        .single();
+
+      if (configError) throw configError;
+
+      if (config?.id) {
+        const { error: insertConfigError } = await ctx.supabase
+          .from('swarms_cloud_chat_swarm_configs')
+          .insert({
+            ...config,
+            chat_id: newChat.id,
+            user_id,
+          });
+
+        if (insertConfigError) throw insertConfigError;
+      }
+
+      return newChat;
     }),
 
   getSharedConversation: userProcedure
@@ -131,6 +241,10 @@ const chatRouter = router({
     .input(conversationSchema)
     .mutation(async ({ ctx, input }) => {
       const user_id = ctx.session.data.user?.id ?? '';
+
+      if (!user_id) {
+        throw new Error('User not authenticated');
+      }
 
       const { data, error } = await ctx.supabase
         .from('swarms_cloud_chat')

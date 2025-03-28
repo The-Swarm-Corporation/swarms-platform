@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   AlertTriangle,
+  CopyPlus,
   Ellipsis,
   KeyRound,
   Loader2,
@@ -36,6 +37,14 @@ import { Button } from '../ui/button';
 import { parseJSON, transformEditMessages, transformMessages } from './helper';
 import MessageScreen from './components/message-screen';
 import useChatQuery from './hooks/useChatQuery';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
 
 interface SwarmsChatProps {
   modelFunction?: (message: string) => Promise<string>;
@@ -64,12 +73,12 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   const [isInitializing, setIsInitializing] = useState(true);
   const [creationError, setCreationError] = useState<string | null>(null);
 
-  const { sharedConversationId } = useChatQuery();
+  const { isSharedConversation } = useChatQuery();
 
   const isCreatingApiKey = useRef(false);
 
   const apiKeyQuery = trpc.apiKey.getValidApiKey.useQuery(
-    { isShareId: !!sharedConversationId },
+    { isShareId: !!isSharedConversation },
     {
       refetchOnWindowFocus: false,
     },
@@ -148,6 +157,11 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     deleteConversation,
     addMessage,
     exportConversation,
+    cloneSharedConversation,
+    isClonePending,
+    openCloneModal,
+    setOpenCloneModal,
+    handleCloseCloneModal,
   } = useConversations();
   const {
     agents,
@@ -667,6 +681,47 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                       </p>
                     </div>
                   </div>
+
+                  <Dialog
+                    open={openCloneModal}
+                    onOpenChange={setOpenCloneModal}
+                  >
+                    <DialogTrigger asChild>
+                      <Button className="w-full bg-primary/40 hover:bg-primary/70 text-white">
+                        {!isClonePending && <CopyPlus className="h-4 w-4" />}
+                        <span className="ml-2">Clone conversation</span>
+                        {isClonePending && <LoadingSpinner size={18} />}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-xl border border-[#40403F]">
+                      <DialogHeader>
+                        <DialogTitle></DialogTitle>
+                        <DialogDescription className="text-center text-white">
+                          Are you sure you&apos;d like to clone this
+                          conversation? Make sure you&apos;re signed in!
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <div className="flex mt-4 justify-center gap-2">
+                        <Button
+                          variant="outline"
+                          disabled={isClonePending}
+                          onClick={handleCloseCloneModal}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          disabled={isClonePending}
+                          onClick={cloneSharedConversation}
+                        >
+                          Clone
+                          {isClonePending && (
+                            <LoadingSpinner size={15} className="ml-2" />
+                          )}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </div>
@@ -766,7 +821,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
               </p>
             )}
 
-            {!sharedConversationId && (
+            {!isSharedConversation && (
               <div className="bg-white/60 relative dark:bg-black/60 backdrop-blur-sm border-t f9f9f914 p-6 transition-colors duration-300">
                 <form
                   onSubmit={handleSubmit}

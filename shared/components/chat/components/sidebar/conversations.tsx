@@ -64,7 +64,7 @@ export function ConversationSidebar({
   const pathname = usePathname();
   const currentConversationId = searchParams?.get('conversationId');
 
-  const { sharedConversationId } = useChatQuery();
+  const { isSharedConversation } = useChatQuery();
 
   const { toast } = useToast();
 
@@ -240,7 +240,7 @@ export function ConversationSidebar({
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              {!sharedConversationId && (
+                              {!isSharedConversation && (
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -274,7 +274,7 @@ export function ConversationSidebar({
                                 <Download className="mr-2 h-4 w-4" />
                                 Export
                               </DropdownMenuItem>
-                              {!sharedConversationId && (
+                              {!isSharedConversation && (
                                 <DropdownMenuItem
                                   className="text-red-600 focus:text-red-600/50 cursor-pointer"
                                   onClick={async (e) => {

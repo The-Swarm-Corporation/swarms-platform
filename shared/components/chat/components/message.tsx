@@ -37,7 +37,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
       displayContent = [displayContent];
     }
 
-    const { sharedConversationId } = useChatQuery();
+    const { isSharedConversation } = useChatQuery();
     const {
       editingMessageId,
       replaceMode,
@@ -110,7 +110,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
               {new Date(message?.timestamp ?? '').toLocaleString('en-US')}
             </span>
 
-            {!sharedConversationId && (
+            {!isSharedConversation && (
               <div className="flex items-center">
                 {message.role === 'user' && !isEditing && (
                   <button

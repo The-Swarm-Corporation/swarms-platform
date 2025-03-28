@@ -57,7 +57,7 @@ import useChatQuery from '../../hooks/useChatQuery';
 interface SwarmSelectorProps {
   isLoading?: boolean;
   value: SwarmArchitecture;
-  sharedConversationId: string;
+  isSharedConversation: string;
   onValueChange: (value: SwarmArchitecture) => void;
 }
 
@@ -80,10 +80,10 @@ const convertEditingAgent = (
 function SwarmSelector({
   value,
   isLoading,
-  sharedConversationId,
+  isSharedConversation,
   onValueChange,
 }: SwarmSelectorProps) {
-  const isDisabled = isLoading || Boolean(sharedConversationId);
+  const isDisabled = isLoading || Boolean(isSharedConversation);
 
   return (
     <Select
@@ -182,7 +182,7 @@ export function ConfigSidebar({
   onUpdateSwarmArchitecture,
   onToggleAgent,
 }: ConfigSidebarProps) {
-  const { sharedConversationId } = useChatQuery();
+  const { isSharedConversation } = useChatQuery();
 
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -197,8 +197,8 @@ export function ConfigSidebar({
 
   const filteredAgents = useMemo(
     () =>
-      sharedConversationId ? agents.filter((agent) => agent.is_active) : agents,
-    [agents, sharedConversationId],
+      isSharedConversation ? agents.filter((agent) => agent.is_active) : agents,
+    [agents, isSharedConversation],
   );
 
   const isMobile = useIsMobile();
@@ -319,7 +319,7 @@ export function ConfigSidebar({
               >
                 <SwarmSelector
                   value={swarmArchitecture}
-                  sharedConversationId={sharedConversationId}
+                  isSharedConversation={isSharedConversation}
                   isLoading={isLoadingAgents}
                   onValueChange={onUpdateSwarmArchitecture}
                 />
@@ -347,15 +347,15 @@ export function ConfigSidebar({
               <Input
                 id="swarmName"
                 value={configData.name}
-                readOnly={!!sharedConversationId}
+                readOnly={!!isSharedConversation}
                 onChange={(e) => {
-                  if (sharedConversationId) return;
+                  if (isSharedConversation) return;
                   setConfigData((prev) => ({ ...prev, name: e.target.value }));
                 }}
                 placeholder="Name"
                 className={cn(
                   'bg-white/80 dark:bg-zinc-950/80 border border-[#40403F]',
-                  sharedConversationId
+                  isSharedConversation
                     ? 'outline-none focus-visible:ring-0 focus-visible:ring-offset-0 pointer-events-none'
                     : '',
                 )}
@@ -378,9 +378,9 @@ export function ConfigSidebar({
               <Input
                 id="swarmDescription"
                 value={configData.description}
-                readOnly={!!sharedConversationId}
+                readOnly={!!isSharedConversation}
                 onChange={(e) => {
-                  if (sharedConversationId) return;
+                  if (isSharedConversation) return;
                   setConfigData((prev) => ({
                     ...prev,
                     description: e.target.value,
@@ -389,7 +389,7 @@ export function ConfigSidebar({
                 placeholder="Description"
                 className={cn(
                   'bg-white/80 dark:bg-zinc-950/80 border border-[#40403F]',
-                  sharedConversationId
+                  isSharedConversation
                     ? 'outline-none focus-visible:ring-0 focus-visible:ring-offset-0 pointer-events-none'
                     : '',
                 )}
@@ -411,10 +411,10 @@ export function ConfigSidebar({
               <Input
                 id="maxLoops"
                 type="number"
-                readOnly={!!sharedConversationId}
+                readOnly={!!isSharedConversation}
                 value={configData.maxLoops}
                 onChange={(e) => {
-                  if (sharedConversationId) return;
+                  if (isSharedConversation) return;
                   setConfigData((prev) => ({
                     ...prev,
                     maxLoops: Number.parseInt(e.target.value),
@@ -422,7 +422,7 @@ export function ConfigSidebar({
                 }}
                 className={cn(
                   'bg-white/80 dark:bg-zinc-950/80 border border-[#40403F]',
-                  sharedConversationId
+                  isSharedConversation
                     ? 'outline-none focus-visible:ring-0 focus-visible:ring-offset-0 pointer-events-none'
                     : '',
                 )}
@@ -440,7 +440,7 @@ export function ConfigSidebar({
                 Swarm Agents
               </label>
             )}
-            {!sharedConversationId && (
+            {!isSharedConversation && (
               <div
                 className={cn(
                   'lg:flex items-center gap-2',
@@ -500,113 +500,126 @@ export function ConfigSidebar({
           </Dialog>
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-2 h-[230px] 2xl:h-[300px]">
-              {filteredAgents?.map((agent) => {
-                const editAgent = convertEditingAgent(agent);
-                return (
-                  <motion.div
-                    key={agent.id}
-                    layout
-                    className={`p-3 rounded-lg border transition-colors ${
-                      agent.is_active
-                        ? 'bg-white/80 dark:bg-primary/40 dark:hover:bg-primary/50 border-primary/10'
-                        : 'bg-zinc-100/80 dark:bg-zinc-900/80 border-[#40403F]'
-                    }`}
-                    onClick={() => handleAgentId(agent.id!)}
-                  >
-                    {isExpanded ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium dark:text-[#f1f1f1]">
-                            {agent?.name}
-                          </h3>
-                          <div className="flex items-center gap-2">
-                            {!sharedConversationId && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    disabled={isToggleAgent || isDeleteAgent}
-                                    className="dark:text-[#f1f1f1]/70 hover:dark:text-[#f1f1f1]"
-                                  >
-                                    <Settings className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setEditingAgent(editAgent);
-                                    }}
-                                    className="cursor-pointer focus:text-red-600/50"
-                                  >
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-red-600 cursor-pointer focus:text-red-600/50"
-                                    onClick={async (e) => {
-                                      e.stopPropagation();
-                                      await onRemoveAgent(agent?.id);
-                                      agentsRefetch();
-                                    }}
-                                  >
-                                    <Trash className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            )}
-                            {sharedConversationId ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className={cn(
-                                  agent.is_active
-                                    ? 'dark:text-[#f1f1f1]'
-                                    : 'dark:text-[#f1f1f1]/50',
-                                  'cursor-default',
-                                )}
-                              >
-                                {agent?.is_active ? 'Active' : 'Inactive'}
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={isToggleAgent}
-                                onClick={() => onToggleAgent(agent?.id)}
-                                className={
-                                  agent.is_active
-                                    ? 'dark:text-[#f1f1f1]'
-                                    : 'dark:text-[#f1f1f1]/50'
-                                }
-                              >
-                                {agent?.is_active ? 'Active' : 'Inactive'}{' '}
-                                {isToggleAgent && agentId === agent?.id && (
-                                  <LoadingSpinner size={10} className="ml-1" />
-                                )}
-                              </Button>
-                            )}
+              {filteredAgents.length > 0 ? (
+                filteredAgents?.map((agent) => {
+                  const editAgent = convertEditingAgent(agent);
+                  return (
+                    <motion.div
+                      key={agent.id}
+                      layout
+                      className={`p-3 rounded-lg border transition-colors ${
+                        agent.is_active
+                          ? 'bg-white/80 dark:bg-primary/40 dark:hover:bg-primary/50 border-primary/10'
+                          : 'bg-zinc-100/80 dark:bg-zinc-900/80 border-[#40403F]'
+                      }`}
+                      onClick={() => handleAgentId(agent.id!)}
+                    >
+                      {isExpanded ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium dark:text-[#f1f1f1]">
+                              {agent?.name}
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              {!isSharedConversation && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      disabled={isToggleAgent || isDeleteAgent}
+                                      className="dark:text-[#f1f1f1]/70 hover:dark:text-[#f1f1f1]"
+                                    >
+                                      <Settings className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingAgent(editAgent);
+                                      }}
+                                      className="cursor-pointer focus:text-red-600/50"
+                                    >
+                                      <Pencil className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      className="text-red-600 cursor-pointer focus:text-red-600/50"
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        await onRemoveAgent(agent?.id);
+                                        agentsRefetch();
+                                      }}
+                                    >
+                                      <Trash className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
+                              {isSharedConversation ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className={cn(
+                                    agent.is_active
+                                      ? 'dark:text-[#f1f1f1]'
+                                      : 'dark:text-[#f1f1f1]/50',
+                                    'cursor-default',
+                                  )}
+                                >
+                                  {agent?.is_active ? 'Active' : 'Inactive'}
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={isToggleAgent}
+                                  onClick={() => onToggleAgent(agent?.id)}
+                                  className={
+                                    agent.is_active
+                                      ? 'dark:text-[#f1f1f1]'
+                                      : 'dark:text-[#f1f1f1]/50'
+                                  }
+                                >
+                                  {agent?.is_active ? 'Active' : 'Inactive'}{' '}
+                                  {isToggleAgent && agentId === agent?.id && (
+                                    <LoadingSpinner
+                                      size={10}
+                                      className="ml-1"
+                                    />
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          <p className={'text-sm dark:text-[#f1f1f1]/70'}>
+                            {getTruncatedString(agent?.description ?? '', 50)}
+                          </p>
+                          <div className="text-xs dark:text-[#f1f1f1]/50">
+                            Model: {agent.model}
                           </div>
                         </div>
-                        <p className={'text-sm dark:text-[#f1f1f1]/70'}>
-                          {getTruncatedString(agent?.description ?? '', 50)}
-                        </p>
-                        <div className="text-xs dark:text-[#f1f1f1]/50">
-                          Model: {agent.model}
+                      ) : (
+                        <div className="flex justify-center">
+                          <div
+                            className={`w-2 h-2 rounded-full ${agent.is_active ? 'bg-red-500' : 'bg-red-500/30'}`}
+                          />
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex justify-center">
-                        <div
-                          className={`w-2 h-2 rounded-full ${agent.is_active ? 'bg-red-500' : 'bg-red-500/30'}`}
-                        />
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })}
+                      )}
+                    </motion.div>
+                  );
+                })
+              ) : (
+                <div className="p-3 rounded-lg border transition-colors bg-zinc-100/80 dark:bg-zinc-900/80 border-[#40403F]">
+                  {isExpanded && (
+                    <p className="text-xs font-mono font-semibold text-primary/70 text-center">
+                      No Agents Found
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </ScrollArea>
         </div>
