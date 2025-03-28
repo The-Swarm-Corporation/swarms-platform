@@ -643,6 +643,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           isLoading={isLoadingConversations}
           isDeletePending={isDeletePending}
           isCreatePending={isCreatePending}
+          isClonePending={isClonePending}
           isUpdatePending={isUpdatePending}
           conversationRefetch={refetch}
           onUpdateConversation={updateConversation}
@@ -703,9 +704,13 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                             <DialogDescription className="text-center text-white">
                               Are you sure you&apos;d like to clone this
                               conversation?
-                              <span className="flex font-mono text-primary/70 justify-center mt-2">
-                                Make sure you&apos;re signed in!
-                              </span>
+                              {!user && (
+                                <Link href="/signin">
+                                  <span className="flex font-mono text-primary/70 justify-center mt-2 hover:underline">
+                                    Make sure you&apos;re signed in!
+                                  </span>
+                                </Link>
+                              )}
                             </DialogDescription>
                           </DialogHeader>
 

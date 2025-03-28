@@ -128,6 +128,7 @@ export function useConversations() {
       toast({ description: 'Chat cloned successfully!' });
       setActiveConversation(newChat.id);
       refetch();
+      setOpenCloneModal(false);
     } catch (err) {
       console.error(err);
       toast({

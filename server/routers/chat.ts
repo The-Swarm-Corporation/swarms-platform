@@ -78,7 +78,12 @@ const chatRouter = router({
     }),
 
   addSharedConversation: userProcedure
-    .input(z.object({ conversationId: z.string(), shareId: z.string() }))
+    .input(
+      z.object({
+        conversationId: z.string(),
+        shareId: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const user_id = ctx.session.data.user?.id ?? '';
 
@@ -94,7 +99,7 @@ const chatRouter = router({
       const { data: newChat, error: createError } = await ctx.supabase
         .from('swarms_cloud_chat')
         .insert({
-          name: sharedChat.name,
+          name: `${sharedChat.name}-cloned`,
           description: sharedChat.description,
           max_loops: sharedChat.max_loops,
           is_active: true,
@@ -108,12 +113,21 @@ const chatRouter = router({
       const { data: messages, error: messageError } = await ctx.supabase
         .from('swarms_cloud_chat_messages')
         .select('*')
-        .eq('chat_id', input.conversationId);
+        .eq('chat_id', input.conversationId)
+        .eq('is_deleted', false);
 
       if (messageError) throw messageError;
 
       const copiedMessages = messages.map((msg) => ({
-        ...msg,
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        agent_id: msg.agent_id,
+        metadata: msg.metadata,
+        structured_content: msg.structured_content,
+        img: msg.img,
+        is_edited: false,
+        is_deleted: false,
         chat_id: newChat.id,
         user_id,
       }));
@@ -188,7 +202,8 @@ const chatRouter = router({
         .from('swarms_cloud_chat_swarm_configs')
         .select('*')
         .eq('chat_id', input.conversationId)
-        .single();
+        .limit(1)
+        .maybeSingle();
 
       if (configError) throw configError;
 
@@ -196,7 +211,7 @@ const chatRouter = router({
         const { error: insertConfigError } = await ctx.supabase
           .from('swarms_cloud_chat_swarm_configs')
           .insert({
-            ...config,
+            architecture: config.architecture,
             chat_id: newChat.id,
             user_id,
           });

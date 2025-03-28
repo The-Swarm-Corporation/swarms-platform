@@ -21,8 +21,11 @@ export default function useChatQuery() {
 
   const updateQueryParams = (conversationId: string) => {
     const newSearchParams = new URLSearchParams(searchParams ?? '');
+  
+    newSearchParams.delete('shareId');
+  
     newSearchParams.set('conversationId', conversationId);
-
+  
     router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
