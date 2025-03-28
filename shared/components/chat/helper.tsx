@@ -129,3 +129,12 @@ export function transformEditMessages(
     }
   });
 }
+
+export function extractContentAsString(
+  messages: ReturnType<typeof transformMessages>,
+  newUserMessage: string,
+): string {
+  const lines = messages?.map((msg) => msg.content.trim());
+  lines.push(newUserMessage?.trim());
+  return lines?.join("\n");
+}

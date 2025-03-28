@@ -34,7 +34,12 @@ import LoadingSpinner from '../loading-spinner';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { parseJSON, transformEditMessages, transformMessages } from './helper';
+import {
+  extractContentAsString,
+  parseJSON,
+  transformEditMessages,
+  transformMessages,
+} from './helper';
 import MessageScreen from './components/message-screen';
 import useChatQuery from './hooks/useChatQuery';
 import {
@@ -340,13 +345,15 @@ export default function SwarmsChat({}: SwarmsChatProps) {
 
       const messages = transformMessages(activeConversation?.data?.messages);
 
+      const extractedTask = extractContentAsString(messages, userMessage);
+
       const swarmRequest = {
         name: activeConversation.data?.name || 'Chat Session',
         description:
           activeConversation.data?.description || 'Chat Session Description',
         agents: apiAgents,
         swarm_type: swarmType,
-        task: userMessage,
+        task: extractedTask,
         max_loops: activeConversation.data?.max_loops || 1,
         img: imageUrl || '',
         messages,
@@ -471,13 +478,15 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         updatedMessage,
       );
 
+      const extractedTask = extractContentAsString(messages, userMessage);
+
       const swarmRequest = {
         name: activeConversation.data?.name || 'Chat Session',
         description:
           activeConversation.data?.description || 'Chat Session Description',
         agents: apiAgents,
         swarm_type: swarmType,
-        task: userMessage,
+        task: extractedTask,
         max_loops: activeConversation.data?.max_loops || 1,
         messages: messages || [],
       };

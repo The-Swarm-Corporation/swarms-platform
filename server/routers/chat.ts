@@ -1,4 +1,8 @@
-import { publicProcedure, router, userProcedure } from '@/app/api/trpc/trpc-router';
+import {
+  publicProcedure,
+  router,
+  userProcedure,
+} from '@/app/api/trpc/trpc-router';
 import { SwarmConfig } from '@/shared/components/chat/types';
 import { addMessage } from '@/shared/utils/api/swarms/server';
 import { TRPCError } from '@trpc/server';
