@@ -139,28 +139,46 @@ const apiKeyRouter = router({
       });
     }),
 
-  getValidApiKey: userProcedure.query(async ({ ctx }) => {
-    const user = ctx.session.data.user as User;
+  getValidApiKey: userProcedure
+    .input(z.object({ isShareId: z.boolean().optional() }))
+    .query(async ({ ctx, input }) => {
+      if (input.isShareId) {
+        const userId = process.env.DEFAULT_USER_ID ?? '';
 
-    if (!user || !user.id) {
-      throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'User not authenticated',
-      });
-    }
+        const { data, error } = await ctx.supabase
+          .from('swarms_cloud_api_keys')
+          .select('id, name, is_deleted, created_at, key')
+          .eq('user_id', userId)
+          .not('is_deleted', 'eq', true)
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-    const { data, error } = await ctx.supabase
-      .from('swarms_cloud_api_keys')
-      .select('id, name, is_deleted, created_at, key')
-      .eq('user_id', user.id)
-      .not('is_deleted', 'eq', true)
-      .order('created_at', { ascending: false })
-      .limit(1);
+        if (error) throw error;
 
-    if (error) throw error;
+        return data?.[0] ?? null;
+      }
 
-    return data?.[0] ?? null;
-  }),
+      const user = ctx.session.data.user as User;
+
+      if (!user || !user.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_api_keys')
+        .select('id, name, is_deleted, created_at, key')
+        .eq('user_id', user.id)
+        .not('is_deleted', 'eq', true)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+
+      return data?.[0] ?? null;
+    }),
 
   createDefaultApiKey: userProcedure.mutation(async ({ ctx }) => {
     const user = ctx.session.data.user as User;

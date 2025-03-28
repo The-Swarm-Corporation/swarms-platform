@@ -1415,6 +1415,7 @@ export type Database = {
           is_archived: boolean | null
           max_loops: number
           name: string
+          share_id: string
           updated_at: string | null
           user_id: string | null
         }
@@ -1426,6 +1427,7 @@ export type Database = {
           is_archived?: boolean | null
           max_loops?: number
           name: string
+          share_id?: string
           updated_at?: string | null
           user_id?: string | null
         }
@@ -1437,6 +1439,7 @@ export type Database = {
           is_archived?: boolean | null
           max_loops?: number
           name?: string
+          share_id?: string
           updated_at?: string | null
           user_id?: string | null
         }

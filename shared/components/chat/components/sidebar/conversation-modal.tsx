@@ -19,6 +19,7 @@ interface ConversationModalProps {
   ctaText?: string;
   isCreatePending: boolean;
   isDeletePending: boolean;
+  isClonePending: boolean;
   isTrigger?: boolean;
   isMobile: boolean;
   isExpanded: boolean;
@@ -32,6 +33,7 @@ interface ConversationModalProps {
 export default function ConversationModal({
   isCreatePending,
   isDeletePending,
+  isClonePending,
   isExpanded,
   isMobile,
   isTrigger = true,
@@ -55,7 +57,7 @@ export default function ConversationModal({
         <DialogTrigger asChild>
           {isTrigger ? (
             <Button
-              disabled={isCreatePending || isDeletePending}
+              disabled={isCreatePending || isDeletePending || isClonePending}
               className={`${isExpanded ? 'w-full' : 'w-auto'} bg-primary/40 hover:bg-primary/70 text-white`}
             >
               {!isCreatePending && <Plus className="h-4 w-4" />}

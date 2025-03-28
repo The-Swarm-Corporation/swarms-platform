@@ -10,7 +10,7 @@ import React from 'react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { Button } from '@/shared/components/ui/button';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
 
 const pathnames = ['/signin', '/signup', '/pricing', '/tool/', '/prompt'];
@@ -19,6 +19,14 @@ function AuthModal() {
   const { isAuthModalOpen } = useAuthContext();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const conversationId = searchParams?.get('conversationId');
+  const shareId = searchParams?.get('shareId');
+
+  if (conversationId && shareId) {
+    pathnames.push('/platform/chat');
+  }
 
   const handleLogin = () => router.push('/signin');
   const handleSignup = () => router.push('/signin/signup');

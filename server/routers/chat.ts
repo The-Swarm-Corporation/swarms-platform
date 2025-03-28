@@ -77,10 +77,189 @@ const chatRouter = router({
       return data;
     }),
 
+  addSharedConversation: userProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        shareId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data: sharedChat, error: chatError } = await ctx.supabase
+        .from('swarms_cloud_chat')
+        .select('*')
+        .eq('id', input.conversationId)
+        .eq('share_id', input.shareId)
+        .single();
+
+      if (chatError) throw chatError;
+
+      const { data: newChat, error: createError } = await ctx.supabase
+        .from('swarms_cloud_chat')
+        .insert({
+          name: `${sharedChat.name}-cloned`,
+          description: sharedChat.description,
+          max_loops: sharedChat.max_loops,
+          is_active: true,
+          user_id,
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      const { data: messages, error: messageError } = await ctx.supabase
+        .from('swarms_cloud_chat_messages')
+        .select('*')
+        .eq('chat_id', input.conversationId)
+        .eq('is_deleted', false);
+
+      if (messageError) throw messageError;
+
+      const copiedMessages = messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        agent_id: msg.agent_id,
+        metadata: msg.metadata,
+        structured_content: msg.structured_content,
+        img: msg.img,
+        is_edited: false,
+        is_deleted: false,
+        chat_id: newChat.id,
+        user_id,
+      }));
+
+      if (copiedMessages.length > 0) {
+        const { error: insertMessageError } = await ctx.supabase
+          .from('swarms_cloud_chat_messages')
+          .insert(copiedMessages);
+        if (insertMessageError) throw insertMessageError;
+      }
+
+      const { data: agents, error: agentError } = await ctx.supabase
+        .from('swarms_cloud_chat_agents')
+        .select('*')
+        .eq('chat_id', input.conversationId);
+
+      if (agentError) throw agentError;
+
+      for (const agent of agents) {
+        let { data: template, error: templateError } = await ctx.supabase
+          .from('swarms_cloud_chat_agent_templates')
+          .select('*')
+          .eq('id', agent?.template_id || '')
+          .eq('user_id', user_id)
+          .single();
+
+        if (!template) {
+          const { data: newTemplate, error: createTemplateError } =
+            await ctx.supabase
+              .from('swarms_cloud_chat_agent_templates')
+              .insert({
+                name: agent.name,
+                description: agent.description,
+                model: agent.model,
+                temperature: agent.temperature,
+                max_tokens: agent.max_tokens,
+                system_prompt: agent.system_prompt,
+                auto_generate_prompt: agent.auto_generate_prompt,
+                max_loops: agent.max_loops,
+                role: agent.role,
+                user_id,
+              })
+              .select()
+              .single();
+
+          if (createTemplateError) throw createTemplateError;
+          template = newTemplate;
+        }
+
+        const { error: insertAgentError } = await ctx.supabase
+          .from('swarms_cloud_chat_agents')
+          .insert({
+            name: agent.name,
+            description: agent.description,
+            model: agent.model,
+            temperature: agent.temperature,
+            chat_id: newChat.id,
+            max_tokens: agent.max_tokens,
+            system_prompt: agent.system_prompt,
+            is_active: true,
+            template_id: template.id,
+            auto_generate_prompt: agent.auto_generate_prompt,
+            max_loops: agent.max_loops,
+            role: agent.role,
+            user_id,
+          });
+
+        if (insertAgentError) throw insertAgentError;
+      }
+
+      const { data: config, error: configError } = await ctx.supabase
+        .from('swarms_cloud_chat_swarm_configs')
+        .select('*')
+        .eq('chat_id', input.conversationId)
+        .limit(1)
+        .maybeSingle();
+
+      if (configError) throw configError;
+
+      if (config?.id) {
+        const { error: insertConfigError } = await ctx.supabase
+          .from('swarms_cloud_chat_swarm_configs')
+          .insert({
+            architecture: config.architecture,
+            chat_id: newChat.id,
+            user_id,
+          });
+
+        if (insertConfigError) throw insertConfigError;
+      }
+
+      return newChat;
+    }),
+
+  getSharedConversation: userProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        shareId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.supabase
+        .from('swarms_cloud_chat')
+        .select(
+          `
+          *,
+          messages:swarms_cloud_chat_messages(*)
+        `,
+        )
+        .eq('id', input.conversationId)
+        .eq('share_id', input.shareId)
+        .eq('messages.is_deleted', false)
+        .order('timestamp', {
+          referencedTable: 'swarms_cloud_chat_messages',
+          ascending: true,
+        })
+        .single();
+
+      if (error) throw error;
+
+      return data;
+    }),
+
   createConversation: userProcedure
     .input(conversationSchema)
     .mutation(async ({ ctx, input }) => {
       const user_id = ctx.session.data.user?.id ?? '';
+
+      if (!user_id) {
+        throw new Error('User not authenticated');
+      }
 
       const { data, error } = await ctx.supabase
         .from('swarms_cloud_chat')

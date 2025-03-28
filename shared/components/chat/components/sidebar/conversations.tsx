@@ -31,12 +31,14 @@ import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import useChatQuery from '../../hooks/useChatQuery';
 
 interface ConversationSidebarProps {
   conversations: Tables<'swarms_cloud_chat'>[];
   activeId?: string;
   isLoading?: boolean;
   isCreatePending: boolean;
+  isClonePending: boolean;
   isUpdatePending: boolean;
   isDeletePending: boolean;
   onUpdateConversation: ({ id, name }: { id: string; name: string }) => void;
@@ -51,6 +53,7 @@ export function ConversationSidebar({
   activeId,
   isLoading,
   isCreatePending,
+  isClonePending,
   isDeletePending,
   isUpdatePending,
   conversationRefetch,
@@ -63,10 +66,13 @@ export function ConversationSidebar({
   const pathname = usePathname();
   const currentConversationId = searchParams?.get('conversationId');
 
+  const { isSharedConversation } = useChatQuery();
+
   const { toast } = useToast();
 
   const [isExpanded, setIsExpanded] = useState(true);
   const [activeChatId, setActiveChatId] = useState('');
+  const [currentId, setCurrentId] = useState('');
   const [newChatName, setNewChatName] = useState('');
   const [editChatName, setEditChatName] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -184,8 +190,8 @@ export function ConversationSidebar({
               <AnimatePresence>
                 {conversations.map((conversation) => (
                   <Link
-                    key={conversation.id}
-                    href={getConversationUrl(conversation.id)}
+                    key={conversation?.id}
+                    href={getConversationUrl(conversation?.id || '')}
                     passHref
                     legacyBehavior
                   >
@@ -195,7 +201,7 @@ export function ConversationSidebar({
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                        conversation.id === currentConversationId
+                        conversation?.id === currentConversationId
                           ? 'bg-white/80 dark:bg-primary/40 dark:hover:bg-primary/50 border-primary/10'
                           : 'bg-transparent border-transparent hover:bg-white/40 dark:hover:bg-zinc-900/40 dark:hover:border-[#40403F]'
                       }`}
@@ -229,7 +235,8 @@ export function ConversationSidebar({
                                   e.stopPropagation();
                                 }}
                               >
-                                {isDeletePending ? (
+                                {isDeletePending &&
+                                currentId === conversation?.id ? (
                                   <LoadingSpinner size={18} />
                                 ) : (
                                   <MoreVertical className="h-4 w-4 group-hover:text-primary" />
@@ -237,21 +244,23 @@ export function ConversationSidebar({
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditModalOpen(conversation?.id);
-                                }}
-                                className="cursor-pointer focus:text-red-600/50"
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
+                              {!isSharedConversation && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditModalOpen(conversation?.id);
+                                  }}
+                                  className="cursor-pointer focus:text-red-600/50"
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   await copyToClipboard(
-                                    `${process.env.NEXT_PUBLIC_SITE_URL}/platform/chat?conversationId=${conversation.id}`,
+                                    `${process.env.NEXT_PUBLIC_SITE_URL}/platform/chat?conversationId=${conversation?.id}&shareId=${conversation?.share_id}`,
                                   );
                                 }}
                                 className="cursor-pointer focus:text-red-600/50"
@@ -262,24 +271,29 @@ export function ConversationSidebar({
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onExportConversation(conversation.id);
+                                  onExportConversation(conversation?.id);
                                 }}
                                 className="cursor-pointer focus:text-red-600/50"
                               >
                                 <Download className="mr-2 h-4 w-4" />
                                 Export
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600 focus:text-red-600/50 cursor-pointer"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  await onDeleteConversation(conversation.id);
-                                  conversationRefetch?.();
-                                }}
-                              >
-                                <Trash className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
+                              {!isSharedConversation && (
+                                <DropdownMenuItem
+                                  className="text-red-600 focus:text-red-600/50 cursor-pointer"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    setCurrentId(conversation?.id);
+                                    await onDeleteConversation(
+                                      conversation?.id,
+                                    );
+                                    conversationRefetch?.();
+                                  }}
+                                >
+                                  <Trash className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
@@ -287,7 +301,7 @@ export function ConversationSidebar({
                         <div className="flex justify-center">
                           <div
                             className={`w-2 h-2 rounded-full ${
-                              conversation.id === activeId
+                              conversation?.id === activeId
                                 ? 'bg-red-500'
                                 : 'bg-red-500/30'
                             }`}
@@ -310,6 +324,7 @@ export function ConversationSidebar({
           isDialogOpen,
           isDeletePending,
           isCreatePending,
+          isClonePending,
           newChatName,
           setIsDialogOpen,
           setNewChatName,
@@ -329,6 +344,7 @@ export function ConversationSidebar({
             isDialogOpen: isEditModalOpen,
             isDeletePending,
             isCreatePending: isUpdatePending,
+            isClonePending,
             newChatName: editChatName,
             setIsDialogOpen: setIsEditModalOpen,
             setNewChatName: setEditChatName,

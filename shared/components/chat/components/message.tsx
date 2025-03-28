@@ -16,6 +16,7 @@ import {
 import { useConversations } from '../hooks/useConversations';
 import { Button } from '../../ui/button';
 import LoadingSpinner from '../../loading-spinner';
+import useChatQuery from '../hooks/useChatQuery';
 
 interface ChatMessageProps {
   message: Omit<Tables<'swarms_cloud_chat_messages'>, 'is_deleted'>;
@@ -36,6 +37,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
       displayContent = [displayContent];
     }
 
+    const { isSharedConversation } = useChatQuery();
     const {
       editingMessageId,
       replaceMode,
@@ -108,22 +110,24 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
               {new Date(message?.timestamp ?? '').toLocaleString('en-US')}
             </span>
 
-            <div className="flex items-center">
-              {message.role === 'user' && !isEditing && (
+            {!isSharedConversation && (
+              <div className="flex items-center">
+                {message.role === 'user' && !isEditing && (
+                  <button
+                    onClick={handleEdit}
+                    className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"
+                  >
+                    <Edit className="h-3 w-3" />
+                  </button>
+                )}
                 <button
-                  onClick={handleEdit}
-                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"
+                  onClick={handleOpenDeleteModal}
+                  className="p-1 rounded invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
                 >
-                  <Edit className="h-3 w-3" />
+                  <Trash className="h-3 w-3 text-primary" />
                 </button>
-              )}
-              <button
-                onClick={handleOpenDeleteModal}
-                className="p-1 rounded invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
-              >
-                <Trash className="h-3 w-3 text-primary" />
-              </button>
-            </div>
+              </div>
+            )}
           </div>
 
           <Dialog open={openDeleteModal} onOpenChange={setOpenDeleteModal}>
@@ -143,10 +147,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 >
                   Cancel
                 </Button>
-                <Button
-                  disabled={isDeleteMessage}
-                  onClick={handleDelete}
-                >
+                <Button disabled={isDeleteMessage} onClick={handleDelete}>
                   Delete
                   {isDeleteMessage && (
                     <LoadingSpinner size={15} className="ml-2" />
