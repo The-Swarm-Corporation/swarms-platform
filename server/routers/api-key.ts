@@ -1,4 +1,4 @@
-import { router, userProcedure } from '@/app/api/trpc/trpc-router';
+import { publicProcedure, router, userProcedure } from '@/app/api/trpc/trpc-router';
 import { generateApiKey } from '@/shared/utils/helpers';
 import { User } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
@@ -139,7 +139,7 @@ const apiKeyRouter = router({
       });
     }),
 
-  getValidApiKey: userProcedure
+  getValidApiKey: publicProcedure
     .input(z.object({ isShareId: z.boolean().optional() }))
     .query(async ({ ctx, input }) => {
       if (input.isShareId) {

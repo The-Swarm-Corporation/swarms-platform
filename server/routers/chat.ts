@@ -1,4 +1,4 @@
-import { router, userProcedure } from '@/app/api/trpc/trpc-router';
+import { publicProcedure, router, userProcedure } from '@/app/api/trpc/trpc-router';
 import { SwarmConfig } from '@/shared/components/chat/types';
 import { addMessage } from '@/shared/utils/api/swarms/server';
 import { TRPCError } from '@trpc/server';
@@ -222,7 +222,7 @@ const chatRouter = router({
       return newChat;
     }),
 
-  getSharedConversation: userProcedure
+  getSharedConversation: publicProcedure
     .input(
       z.object({
         conversationId: z.string(),
@@ -482,7 +482,7 @@ const chatRouter = router({
 
 // Agent Router
 const agentRouter = router({
-  getAgents: userProcedure.input(z.string()).query(async ({ ctx, input }) => {
+  getAgents: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const user_id = ctx.session.data.user?.id ?? '';
 
     const { data, error } = await ctx.supabase
@@ -870,7 +870,7 @@ const agentRouter = router({
 
 // Swarms Config Router
 const swarmConfigRouter = router({
-  getSwarmConfig: userProcedure
+  getSwarmConfig: publicProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
       const user_id = ctx.session.data.user?.id;
