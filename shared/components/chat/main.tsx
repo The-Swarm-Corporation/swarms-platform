@@ -682,46 +682,55 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                     </div>
                   </div>
 
-                  <Dialog
-                    open={openCloneModal}
-                    onOpenChange={setOpenCloneModal}
-                  >
-                    <DialogTrigger asChild>
-                      <Button className="w-full bg-primary/40 hover:bg-primary/70 text-white">
-                        {!isClonePending && <CopyPlus className="h-4 w-4" />}
-                        <span className="ml-2">Clone conversation</span>
-                        {isClonePending && <LoadingSpinner size={18} />}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-xl border border-[#40403F]">
-                      <DialogHeader>
-                        <DialogTitle></DialogTitle>
-                        <DialogDescription className="text-center text-white">
-                          Are you sure you&apos;d like to clone this
-                          conversation? Make sure you&apos;re signed in!
-                        </DialogDescription>
-                      </DialogHeader>
+                  {isSharedConversation && (
+                    <div>
+                      <Dialog
+                        open={openCloneModal}
+                        onOpenChange={setOpenCloneModal}
+                      >
+                        <DialogTrigger asChild>
+                          <Button className="w-full bg-primary/40 hover:bg-primary/70 text-white">
+                            {!isClonePending && (
+                              <CopyPlus className="h-4 w-4" />
+                            )}
+                            <span className="ml-2">Clone conversation</span>
+                            {isClonePending && <LoadingSpinner size={18} />}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-xl border border-[#40403F]">
+                          <DialogHeader>
+                            <DialogTitle></DialogTitle>
+                            <DialogDescription className="text-center text-white">
+                              Are you sure you&apos;d like to clone this
+                              conversation?
+                              <span className="flex font-mono text-primary/70 justify-center mt-2">
+                                Make sure you&apos;re signed in!
+                              </span>
+                            </DialogDescription>
+                          </DialogHeader>
 
-                      <div className="flex mt-4 justify-center gap-2">
-                        <Button
-                          variant="outline"
-                          disabled={isClonePending}
-                          onClick={handleCloseCloneModal}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          disabled={isClonePending}
-                          onClick={cloneSharedConversation}
-                        >
-                          Clone
-                          {isClonePending && (
-                            <LoadingSpinner size={15} className="ml-2" />
-                          )}
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                          <div className="flex mt-4 justify-center gap-2">
+                            <Button
+                              variant="outline"
+                              disabled={isClonePending}
+                              onClick={handleCloseCloneModal}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              disabled={isClonePending}
+                              onClick={cloneSharedConversation}
+                            >
+                              Clone
+                              {isClonePending && (
+                                <LoadingSpinner size={15} className="ml-2" />
+                              )}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

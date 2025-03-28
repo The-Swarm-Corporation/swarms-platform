@@ -5,6 +5,8 @@ import { Message } from '@/shared/components/chat/types';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import useChatQuery from './useChatQuery';
+import { useRouter } from 'next/navigation';
+import { useAuthContext } from '../../ui/auth.provider';
 
 export function useConversations() {
   const {
@@ -35,7 +37,9 @@ export function useConversations() {
   const editMessageMutation = trpc.chat.editMessage.useMutation();
   const deleteMessageMutation = trpc.chat.deleteMessage.useMutation();
 
+  const { user } = useAuthContext();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [replaceMode, setReplaceMode] = useState<
@@ -103,6 +107,15 @@ export function useConversations() {
         description: 'No shared conversation selected',
         variant: 'destructive',
       });
+      return;
+    }
+
+    if(!user) {
+      toast({
+        description: 'Log in to perform this action',
+        variant: 'destructive',
+      });
+      router.push('/signin');
       return;
     }
 
