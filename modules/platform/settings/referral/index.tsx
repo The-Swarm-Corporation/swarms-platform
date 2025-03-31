@@ -40,48 +40,8 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { referralData } from './const';
 
 export default function ReferralDashboard() {
-  const [referralLink] = useState('https://example.com/ref/USER123');
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [currentTime, setCurrentTime] = useState(
-    new Date().toLocaleTimeString(),
-  );
   const { toast } = useToast();
-
-  // Initialize dark mode
-  useEffect(() => {
-    // Check for system preference or saved preference
-    const savedMode = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia(
-      '(prefers-color-scheme: dark)',
-    ).matches;
-
-    if (savedMode === 'dark' || (!savedMode && prefersDark)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove('dark');
-    }
-
-    // Update time every second
-    const interval = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Toggle dark mode
-  const toggleDarkMode = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    }
-    setIsDarkMode(!isDarkMode);
-  };
+  const [referralLink] = useState('https://example.com/ref/USER123');
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
