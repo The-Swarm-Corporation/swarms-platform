@@ -94,7 +94,7 @@ export default function ReferralDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 text-black dark:bg-black dark:text-white transition-colors duration-200 cyberpunk-bg w-full">
       <main className="container px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex items-center mb-10">
+        <div className="flex items-center mb-20">
           <h2 className="text-3xl sm:text-4xl font-mono font-extrabold uppercase tracking-wider dark:text-white text-black">
             Referral Dashboard
           </h2>
@@ -225,7 +225,6 @@ export default function ReferralDashboard() {
           </CardContent>
         </Card>
 
-        {/* Referrals Table */}
         <Card className="mt-8 border-0 dark:bg-black/40 bg-white overflow-hidden shadow-lg dark:shadow-red-900/10 cyber-card">
           <CardHeader className="bg-red-600 pb-2 cyber-header">
             <CardTitle className="text-white font-light tracking-wider flex items-center">
@@ -410,7 +409,6 @@ export default function ReferralDashboard() {
         </Card>
       </main>
 
-      {/* Footer with scan line effect */}
       <footer className="mt-8 border-t border-red-600/20 py-4 relative overflow-hidden">
         <div className="scan-line"></div>
         <div className="container px-4 text-center text-xs font-mono dark:text-red-500/70 text-red-600/70">
