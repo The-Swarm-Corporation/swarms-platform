@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Copy,
   Facebook,
   Instagram,
   Linkedin,
-  Moon,
-  Sun,
   Twitter,
   ChevronRight,
   Shield,
