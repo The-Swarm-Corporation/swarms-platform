@@ -149,7 +149,7 @@ export function ConversationSidebar({
     >
       <div
         className={cn(
-          'border-b border-[#f9f9f914] flex items-center justify-between lg:p-4',
+          'border-b border-[#f9f9f914] flex items-center justify-between md:p-4',
           isMobile && isExpanded ? 'p-4' : '',
         )}
       >
@@ -169,10 +169,9 @@ export function ConversationSidebar({
           )}
         </Button>
       </div>
-
       <div
         className={cn(
-          'flex-col h-full lg:flex',
+          'flex-col h-screen overflow-y-auto md:h-full md:flex',
           isMobile && isExpanded ? 'flex' : 'hidden',
         )}
       >

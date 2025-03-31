@@ -168,7 +168,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 <div
                   className={cn(
                     'rounded-md lg:rounded-lg px-2 lg:px-6 py-3 text-black dark:text-white lg:py-4 relative overflow-hidden transition-colors duration-300',
-                    'max-w-[70%] xl:max-w-[60%] w-full bg-[#928E8B] dark:bg-[#444444]',
+                    'max-w-[90%] md:max-w-[70%] xl:max-w-[60%] w-full bg-[#928E8B] dark:bg-[#444444]',
                   )}
                 >
                   <textarea
@@ -178,7 +178,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                     className="w-full bg-transparent outline-none resize-none min-h-[100px] text-xs lg:text-base"
                   />
 
-                  <div className="flex w-full items-center justify-between">
+                  <div className="flex w-full flex-col md:flex-row md:items-center justify-between">
                     <div className="flex items-center space-x-2 mt-2">
                       <div className="flex items-center space-x-1">
                         <input
@@ -190,7 +190,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                         />
                         <label
                           htmlFor={`replaceAll-${message.id}`}
-                          className="text-sm"
+                          className="text-xs md:text-sm"
                         >
                           Replace all following
                         </label>
@@ -206,17 +206,18 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                         />
                         <label
                           htmlFor={`replaceOriginal-${message.id}`}
-                          className="text-sm"
+                          className="text-xs md:text-sm"
                         >
                           Keep following
                         </label>
                       </div>
                     </div>
 
-                    <div className="flex justify-end space-x-2">
+                    <div className="flex md:justify-end space-x-2 mt-3 md:mt-0">
                       <Button
                         variant="outline"
                         size="sm"
+                        className="w-full"
                         disabled={isEditLoading}
                         onClick={cancelEditingMessage}
                       >
@@ -225,6 +226,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                       <Button
                         size="sm"
                         onClick={handleEditSubmit}
+                        className="w-full"
                         disabled={!editContent.trim() || isEditLoading}
                       >
                         Save{' '}
