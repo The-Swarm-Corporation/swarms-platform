@@ -749,7 +749,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 md:px-20 lg:p-6 space-y-6">
               <div className="max-w-screen-xl mx-auto relative">
                 {messages.map((message, index) => (
                   <div key={`${message?.id}-${index}`}>

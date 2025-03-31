@@ -1,12 +1,5 @@
 import { useState, useMemo, SyntheticEvent } from 'react';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/shared/components/ui/sheet';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -17,13 +10,13 @@ import { Button } from '@/shared/components/ui/button';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import {
   AlertCircle,
+  Box,
   MoreVertical,
   NotebookTabs,
   Pencil,
   Plus,
   Search,
   Trash,
-  User,
 } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
@@ -410,7 +403,7 @@ export function AgentLibrary({
           </Dialog>
 
           {activeTab === 'library' ? (
-            <div className="p-6 space-y-6">
+            <div className="md:p-2 lg:p-6 space-y-6">
               <div>
                 <h1 className="text-2xl font-bold text-red-600">Agents</h1>
                 <div className="mt-1 space-y-2 text-zinc-900 dark:text-white">
@@ -481,21 +474,21 @@ export function AgentLibrary({
                     )}
                   </div>
                 ) : (
-                  <Table>
+                  <Table className='font-mono'>
                     <TableHeader>
                       <TableRow className="border-zinc-800 hover:bg-zinc-800/50">
-                        <TableHead className="text-primary/70">Name</TableHead>
-                        <TableHead className="text-primary/70">Model</TableHead>
-                        <TableHead className="text-primary/70">
+                        <TableHead className="text-primary/70 text-xs md:text-sm lg:text-base">Name</TableHead>
+                        <TableHead className="text-primary/70 text-xs md:text-sm lg:text-base">Model</TableHead>
+                        <TableHead className="text-primary/70 text-xs md:text-sm lg:text-base">
                           In Chat
                         </TableHead>
-                        <TableHead className="text-primary/70">
+                        <TableHead className="text-primary/70 text-xs md:text-sm lg:text-base">
                           Status
                         </TableHead>
-                        <TableHead className="text-primary/70">
+                        <TableHead className="text-primary/70 text-xs md:text-sm lg:text-base">
                           Updated At
                         </TableHead>
-                        <TableHead className="text-primary/70 text-right">
+                        <TableHead className="text-primary/70 text-xs md:text-sm lg:text-base text-right">
                           Actions
                         </TableHead>
                       </TableRow>
@@ -509,16 +502,16 @@ export function AgentLibrary({
                             handleSelectAgent(agent as AgentTemplateWithStatus)
                           }
                         >
-                          <TableCell className="font-medium text-zinc-900 dark:text-white">
+                          <TableCell className="font-medium text-zinc-900 dark:text-white text-xs md:text-sm lg:text-base">
                             <div className="flex items-center space-x-3">
-                              <User className="h-4 w-4 text-red-500" />
+                              <Box className="h-4 w-4 text-red-500" />
                               <span>{agent.name}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-zinc-900 dark:text-white">
+                          <TableCell className="text-zinc-900 dark:text-white text-xs md:text-sm lg:text-base">
                             {agent.model}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className='text-xs md:text-sm lg:text-base'>
                             <Badge
                               variant="outline"
                               className={
@@ -532,7 +525,7 @@ export function AgentLibrary({
                                 : 'Disabled'}
                             </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className='text-xs md:text-sm lg:text-base'>
                             <Badge
                               variant="outline"
                               className={
@@ -546,7 +539,7 @@ export function AgentLibrary({
                                 : 'Inactive'}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-zinc-900 dark:text-white">
+                          <TableCell className="text-zinc-900 text-xs md:text-sm lg:text-base dark:text-white">
                             {new Date(
                               agent.updated_at ?? new Date(),
                             )?.toLocaleString()}
@@ -562,7 +555,7 @@ export function AgentLibrary({
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
+                              <DropdownMenuContent align="end" className='font-mono border border-[#40403F]'>
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -601,11 +594,6 @@ export function AgentLibrary({
                                   ) : (
                                     <Checkbox
                                       checked={agent.chatStatus.is_selected}
-                                      // onCheckedChange={() =>
-                                      //   handleToggleAgent(
-                                      //     agent as AgentTemplateWithStatus,
-                                      //   )
-                                      // }
                                       disabled={isAgentToggle}
                                     />
                                   )}
@@ -677,7 +665,7 @@ export function AgentLibrary({
               </Card>
             </div>
           ) : (
-            <div className="p-6 space-y-6">
+            <div className="md:p-2 lg:p-6 space-y-6">
               <div>
                 <h1 className="text-2xl font-bold text-red-600">
                   Explorer Models
@@ -728,7 +716,7 @@ export function AgentLibrary({
                     {filteredExplorerItems?.map((item) => (
                       <div
                         key={item?.id}
-                        className="flex items-start justify-between p-5 rounded-lg bg-zinc-900/40 border border-zinc-800/50 hover:bg-zinc-800/60 transition-all duration-200 shadow-lg hover:shadow-xl hover:border-zinc-700/70 my-3"
+                        className="flex flex-col md:flex-row md:items-start md:justify-between p-5 rounded-lg bg-zinc-900/40 border border-zinc-800/50 hover:bg-zinc-800/60 transition-all duration-200 shadow-lg hover:shadow-xl hover:border-zinc-700/70 my-3"
                       >
                         <div className="flex-1 font-mono">
                           <Link
@@ -736,7 +724,7 @@ export function AgentLibrary({
                             href={`/${item.itemType}/${item.id}`}
                           >
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-medium text-lg">
+                              <h3 className="font-medium text-sm md:text-lg">
                                 {item.name}
                               </h3>
                               <Badge
@@ -753,7 +741,7 @@ export function AgentLibrary({
                           </Link>
 
                           {item?.description && (
-                            <p className="text-sm font-semibold text-muted-foreground mt-2 leading-relaxed">
+                            <p className="text-xs md:text-sm font-semibold text-muted-foreground mt-2 leading-relaxed">
                               {getTruncatedString(item.description, 500)}
                             </p>
                           )}
@@ -767,12 +755,14 @@ export function AgentLibrary({
                           )}
                         </div>
 
-                        <div className="flex-[0.5] flex justify-end items-start ml-4">
+                        <div className="flex-[0.5] flex justify-end items-start md:ml-4 mt-3 md:mt-0 ">
                           <Button
                             className="bg-gradient-to-r from-primary/80 to-primary/60 hover:from-primary/90 hover:to-primary/70 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
                             onClick={() => handleOpenExplorerItem(item)}
+                            aria-label="Add to Library"
                           >
-                            Add to Library
+                            <span className="hidden md:block">Add to Library</span>
+                            <Plus className="md:hidden" />
                           </Button>
                         </div>
                       </div>
@@ -800,7 +790,7 @@ export function AgentLibrary({
                     <Badge variant="secondary">In Chat</Badge>
                   )}
                 </DialogTitle>
-                <DialogDescription className='text-xs'>
+                <DialogDescription className="text-xs">
                   {selectedAgent.description}
                 </DialogDescription>
               </DialogHeader>
