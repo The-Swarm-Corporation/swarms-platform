@@ -94,7 +94,7 @@ export default function ReferralDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-black dark:bg-black dark:text-white transition-colors duration-200 cyberpunk-bg w-full">
-      <main className="container px-4 py-6 sm:px-6 lg:px-8">
+      <main className="container px-0 py-6 md:px-6 lg:px-8">
         <div className="flex items-center mb-20">
           <h2 className="text-3xl sm:text-4xl font-mono font-extrabold uppercase tracking-wider dark:text-white text-black">
             Referral Dashboard
@@ -234,7 +234,7 @@ export default function ReferralDashboard() {
               <div className="cyber-lines ml-4"></div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6 relative">
+          <CardContent className="pt-6 px-0 md:px-6 relative">
             <div className="absolute top-0 left-0 w-full h-full cyber-grid opacity-5"></div>
             <Tabs defaultValue="all" className="relative z-10">
               <TabsList className="grid w-full grid-cols-3 dark:bg-black/90 bg-gray-100 border-0 cyber-tabs">
@@ -283,13 +283,13 @@ export default function ReferralDashboard() {
                           key={referral.id}
                           className="border-b dark:border-red-900/20 border-gray-200 dark:hover:bg-red-950/10 hover:bg-gray-50 cyber-row"
                         >
-                          <TableCell className="font-medium dark:text-white text-black">
+                          <TableCell className="font-medium dark:text-white text-black text-xs md:text-sm">
                             {referral.name}
                           </TableCell>
-                          <TableCell className="dark:text-gray-300 text-gray-700 font-mono text-sm">
+                          <TableCell className="dark:text-gray-300 text-gray-700 font-mono text-xs md:text-sm">
                             {referral.email}
                           </TableCell>
-                          <TableCell className="dark:text-gray-300 text-gray-700 font-mono text-sm">
+                          <TableCell className="dark:text-gray-300 text-gray-700 font-mono text-xs md:text-sm">
                             {referral.date}
                           </TableCell>
                           <TableCell className="text-right">
@@ -409,14 +409,6 @@ export default function ReferralDashboard() {
           </CardContent>
         </Card>
       </main>
-
-      <footer className="mt-8 border-t border-red-600/20 py-4 relative overflow-hidden">
-        <div className="scan-line"></div>
-        <div className="container px-4 text-center text-xs font-mono dark:text-red-500/70 text-red-600/70">
-          ARASAKA CORPORATION • SECURE REFERRAL SYSTEM v2.077 •{' '}
-          {new Date().getFullYear()}
-        </div>
-      </footer>
     </div>
   );
 }
