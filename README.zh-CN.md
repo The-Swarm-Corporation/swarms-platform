@@ -33,27 +33,27 @@
 
 ![Swarms Banner](swarms_platform.png)
 
-**English** | [中文](./README.zh-CN.md)
+**中文** | [English](./README.md)
 
-## 🚀 Our Vision
+## 🚀 我们的愿景
 
-Swarms Platform Marketplace is revolutionizing the AI agent ecosystem by creating the first decentralized marketplace for autonomous agents. We're building the infrastructure that enables developers worldwide to:
+Swarms Platform Marketplace 正在通过创建第一个去中心化的自主智能体市场，彻底改变AI智能体生态系统。我们正在构建使全球开发者能够：
 
-- 🛠️ **Create & Deploy**: Build sophisticated AI agents using our robust development framework
-- 💰 **Monetize**: Set your own pricing and earn revenue from your agent creations
-- 🔄 **Share & Exchange**: Connect with other developers and share agent capabilities
-- 🔍 **Discover**: Find and integrate pre-built agents for any task or industry
-- 🤝 **Collaborate**: Join a thriving community of agent developers and innovators
+- 🛠️ **创建与部署**：使用我们强大的开发框架构建复杂的AI智能体
+- 💰 **变现**：为您的智能体创作设置价格并获取收益
+- 🔄 **分享与交换**：与其他开发者连接并分享智能体功能
+- 🔍 **发现**：寻找并集成适用于任何任务或行业的预构建智能体
+- 🤝 **协作**：加入一个蓬勃发展的智能体开发者和创新者社区
 
-## ✨ Why Swarms Platform?
+## ✨ 为什么选择Swarms Platform？
 
-- **Open Economy**: True ownership and monetization of your AI agents
-- **Composability**: Mix and match agent capabilities to create powerful workflows
-- **Quality Assurance**: Built-in testing and verification systems
-- **Developer-First**: Comprehensive SDK and development tools
-- **Community-Driven**: Active ecosystem of developers and users
+- **开放经济**：真正拥有并变现您的AI智能体
+- **可组合性**：混合搭配智能体功能以创建强大的工作流
+- **质量保证**：内置测试和验证系统
+- **开发者优先**：全面的SDK和开发工具
+- **社区驱动**：活跃的开发者和用户生态系统
 
-## 🛠️ Quick Start
+## 🛠️ 快速开始
 
 ```bash
 git clone https://github.com/kyegomez/swarms-platform.git
@@ -62,9 +62,9 @@ yarn install
 yarn run dev
 ```
 
-## 🔑 Environment Setup
+## 🔑 环境设置
 
-Copy `.env.example` to `.env` and configure:
+复制`.env.example`到`.env`并配置：
 
 ```env
 # Core Configuration
@@ -89,61 +89,61 @@ STRIPE_WEBHOOK_SECRET=
 # Additional settings in .env.example
 ```
 
-## 🏗️ Technology Stack
+## 🏗️ 技术栈
 
-- **Frontend**: Next.js 14, React, Tailwind CSS
-- **UI Components**: shadcn/ui
-- **Backend**: Supabase, tRPC
-- **Payments**: Stripe
-- **Deployment**: Vercel
-- **Type Safety**: TypeScript
+- **前端**：Next.js 14, React, Tailwind CSS
+- **UI组件**：shadcn/ui
+- **后端**：Supabase, tRPC
+- **支付**：Stripe
+- **部署**：Vercel
+- **类型安全**：TypeScript
 
-## 🤝 Join the Agent Revolution
+## 🤝 加入智能体革命
 
-We're building the future of autonomous AI agents, and we need developers like you! 
+我们正在构建自主AI智能体的未来，我们需要像您这样的开发者！
 
-### 💰 Bounty Program
+### 💰 赏金计划
 
-Every issue in our [GitHub Issues](https://github.com/The-Swarm-Corporation/swarms-platform/issues) has a bounty attached to it! This is your chance to:
-- Earn rewards while contributing to cutting-edge AI technology
-- Get paid for fixing bugs and implementing features
-- Build your portfolio in the AI agents space
+我们的[GitHub Issues](https://github.com/The-Swarm-Corporation/swarms-platform/issues)中的每个问题都附带赏金！这是您的机会：
+- 在为前沿AI技术做贡献的同时获得奖励
+- 修复bug和实现功能获得报酬
+- 在AI智能体领域建立您的作品集
 
-Check our [issues page](https://github.com/The-Swarm-Corporation/swarms-platform/issues) to find tasks that match your skills and start earning today!
+查看我们的[问题页面](https://github.com/The-Swarm-Corporation/swarms-platform/issues)，找到与您技能相匹配的任务，今天就开始赚取奖励！
 
-### Ways to Get Started:
+### 入门方式：
 
-- 🌟 Star this repository to show your support
-- 💸 Pick up a bounty from our [issues page](https://github.com/The-Swarm-Corporation/swarms-platform/issues)
-- 📚 Read our [Contributing Guidelines](CONTRIBUTING.md)
-- 💬 Join our [Discord Community](https://discord.gg/kS3rwKs3ZC)
-- 🗓️ Attend our [Weekly Community Gatherings](https://lu.ma/5p2jnc2v)
+- 🌟 为此仓库加星以表示支持
+- 💸 从我们的[问题页面](https://github.com/The-Swarm-Corporation/swarms-platform/issues)挑选赏金任务
+- 📚 阅读我们的[贡献指南](CONTRIBUTING.md)
+- 💬 加入我们的[Discord社区](https://discord.gg/kS3rwKs3ZC)
+- 🗓️ 参加我们的[每周社区聚会](https://lu.ma/5p2jnc2v)
 
-## 🌐 Community & Support
+## 🌐 社区与支持
 
-Join our growing community of agent developers:
+加入我们不断壮大的智能体开发者社区：
 
-- 📝 [Official Blog](https://docs.swarms.world)
-- 💬 [Discord Server](https://discord.gg/kS3rwKs3ZC)
-- 🐦 [Twitter Updates](https://twitter.com/KyeGomezB)
+- 📝 [官方博客](https://docs.swarms.world)
+- 💬 [Discord服务器](https://discord.gg/kS3rwKs3ZC)
+- 🐦 [Twitter更新](https://twitter.com/KyeGomezB)
 - 🔗 [LinkedIn](https://www.linkedin.com/company/the-swarm-corporation)
-- 📺 [YouTube Channel](https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ)
+- 📺 [YouTube频道](https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ)
 
-## 📈 Roadmap
+## 📈 路线图
 
-- [ ] Enhanced agent testing framework
-- [ ] Advanced agent composability features
-- [ ] Improved documentation and tutorials
-- [ ] Agent performance analytics
-- [ ] Community governance system
-- [ ] Multi-chain integration
+- [ ] 增强智能体测试框架
+- [ ] 高级智能体可组合特性
+- [ ] 改进文档和教程
+- [ ] 智能体性能分析
+- [ ] 社区治理系统
+- [ ] 多链集成
 
-## 📜 License
+## 📜 许可证
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+该项目基于MIT许可证 - 详情请参阅[LICENSE](LICENSE)文件。
 
 ---
 
 <p align="center">
-  <strong>Build the Future of AI Agents with Swarms Platform</strong>
+  <strong>与Swarms Platform一起构建AI智能体的未来</strong>
 </p>
