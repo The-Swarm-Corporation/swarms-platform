@@ -90,6 +90,7 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
   };
 
   const connectWallet = async () => {
+    setIsLoading(true);
     try {
       const { solana } = window as any;
       if (!solana) {
@@ -102,12 +103,18 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
       const response = await solana.connect();
       setPublicKey(response.publicKey.toString());
       fetchSwarmsBalance(response.publicKey.toString(), rpcUrl!);
+      toast({
+        description: 'Wallet connected successfully',
+        style: { backgroundColor: '#10B981', color: 'white' },
+      });
     } catch (error) {
       console.error('Connect error:', error);
       toast({
         description: 'Failed to connect wallet',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
