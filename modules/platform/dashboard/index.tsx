@@ -33,11 +33,15 @@ const Dashboard = () => {
     return formatSpentTime(
       estimatedTimeSaved,
     ).split(' ');
-  }, [userRequests?.data]);
+  }, [requestCount]);
 
   async function subscribe() {
-    await checkUserSession();
-    subscription.createSubscriptionPortal();
+    try {
+      await checkUserSession();
+      subscription.createSubscriptionPortal();
+    } catch (error) {
+      console.error("Session verification failed", error);
+    }
   }
 
   const agentsGoal = agentsLength ? agentsLength * 5 : 0;
