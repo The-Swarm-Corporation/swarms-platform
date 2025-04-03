@@ -80,10 +80,10 @@ export default function useModels() {
 
   useEffect(() => {
     if (trendingQuery.data?.data) {
-      setTrendingModels((prev) => [...prev, ...trendingQuery.data.data]);
+      setTrendingModels(prevModels => [...prevModels, ...trendingQuery.data?.data]);
       setIsFetchingTrending(false);
     }
-  }, [trendingQuery.data?.data]);
+  }, [trendingQuery.data?.data, setTrendingModels, setIsFetchingTrending]);
 
   const loadMorePrompts = useCallback(() => {
     setPromptOffset((prevOffset) => prevOffset + promptLimit);
