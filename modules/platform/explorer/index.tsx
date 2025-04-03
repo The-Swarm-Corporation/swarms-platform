@@ -31,6 +31,9 @@ const Agents = dynamic(() => import('./components/content/agents'), {
 const Tools = dynamic(() => import('./components/content/tools'), {
   ssr: false,
 });
+
+const StickyComponent = Sticky as unknown as React.ComponentType<any>;
+
 const Explorer = () => {
   const [addPromptModalOpen, setAddPromptModalOpen] = useState(false);
   const [addAgentModalOpen, setAddAgentModalOpen] = useState(false);
@@ -142,7 +145,7 @@ const Explorer = () => {
             Search and discover tools, agents, and prompts.
           </span>
         </div>
-        <Sticky
+        <StickyComponent
           enabled
           top={48}
           innerZ={10}
@@ -225,7 +228,7 @@ const Explorer = () => {
               </Select>
             </div>
           </div>
-        </Sticky>
+        </StickyComponent>
         <div
           className={cn(
             'flex flex-col h-full p-2',
