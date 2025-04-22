@@ -1,6 +1,7 @@
 import { createClient } from '@/shared/utils/supabase/server';
 import { supabaseAdmin } from '../supabase/admin';
 import axios from 'axios';
+import { User } from '@supabase/supabase-js';
 
 interface TwentyCrmUser {
   name: string;
@@ -65,6 +66,30 @@ export const getUserById = async (id: string) => {
     console.error('getUserById', id, error);
   }
 };
+
+export const updateReferralStatus = async (user: User) => {
+  const { data: referralData } = await supabaseAdmin
+  .from('swarms_cloud_users_referral')
+  .select('referrer_id, status')
+  .eq('referred_id', user.id)
+  .eq('status', 'Pending')
+  .single();
+
+if (referralData) {
+  await supabaseAdmin
+    .from('swarms_cloud_users_referral')
+    .update({ status: 'Completed' })
+    .eq('referred_id', user.id)
+    .eq('referrer_id', referralData.referrer_id);
+  
+  const referralAmount = 20;
+  
+  await supabaseAdmin.rpc('add_referral_credits', {
+    p_user_id: referralData.referrer_id,
+    p_amount: referralAmount
+  });
+}
+}
 
 export async function updateTwentyCrmUser(id: string, data: any) {
   if (!id) return;

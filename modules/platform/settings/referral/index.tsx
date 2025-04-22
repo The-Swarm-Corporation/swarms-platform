@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Copy,
   Facebook,
@@ -35,11 +35,32 @@ import {
   TabsTrigger,
 } from '@/shared/components/ui/tabs';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import { referralData } from './const';
+import { trpc } from '@/shared/utils/trpc/trpc';
 
 export default function ReferralDashboard() {
   const { toast } = useToast();
-  const [referralLink] = useState('https://example.com/ref/USER123');
+  const [referralLink, setReferralLink] = useState('');
+
+  const { data: referralData, isLoading: loadingReferral } =
+    trpc.referral.getUserReferralCode.useQuery(undefined, {
+      refetchOnWindowFocus: false,
+    });
+
+  const { data: stats, isLoading: loadingStats } =
+    trpc.referral.getReferralStats.useQuery(undefined, {
+      refetchOnWindowFocus: false,
+    });
+
+  const { data: tableData, isLoading: loadingTable } =
+    trpc.referral.getReferralData.useQuery(undefined, {
+      refetchOnWindowFocus: false,
+    });
+
+  useEffect(() => {
+    if (referralData?.link) {
+      setReferralLink(referralData.link);
+    }
+  }, [referralData]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
@@ -47,7 +68,37 @@ export default function ReferralDashboard() {
   };
 
   const shareToSocial = (platform: string) => {
+    let shareUrl;
+
+    switch (platform) {
+      case 'Twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=Join me on this platform and get started with a special offer!&url=${encodeURIComponent(referralLink)}`;
+        break;
+      case 'Facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`;
+        break;
+      case 'LinkedIn':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(referralLink)}`;
+        break;
+      case 'Instagram':
+        // Instagram doesn't have a direct share URL, but we can copy the link for Instagram
+        navigator.clipboard.writeText(referralLink);
+        toast({ description: `Link copied for ${platform} sharing` });
+        return;
+    }
+
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    }
+
     toast({ description: `Sharing to ${platform}` });
+  };
+
+  // Format numbers for display
+  const formatChange = (value: number) => {
+    if (value > 0) return `+${value.toFixed(1)}%`;
+    if (value < 0) return `${value.toFixed(1)}%`;
+    return '0%';
   };
 
   return (
@@ -77,10 +128,11 @@ export default function ReferralDashboard() {
             <CardContent className="pt-6 dark:bg-black/80 bg-white relative">
               <div className="absolute top-0 left-0 w-full h-full cyber-grid opacity-10"></div>
               <p className="text-5xl font-black text-center dark:text-white text-black cyber-glow relative z-10">
-                247
+                {loadingStats ? '...' : stats?.totalSignups || 0}
               </p>
               <div className="text-xs text-center mt-2 font-mono dark:text-red-500/70 text-red-600/70">
-                +12.5% FROM LAST WEEK
+                {loadingStats ? '...' : formatChange(stats?.weeklyChange || 0)}{' '}
+                FROM LAST WEEK
               </div>
             </CardContent>
           </Card>
@@ -94,10 +146,13 @@ export default function ReferralDashboard() {
             <CardContent className="pt-6 dark:bg-black/80 bg-white relative">
               <div className="absolute top-0 left-0 w-full h-full cyber-grid opacity-10"></div>
               <p className="text-5xl font-black text-center dark:text-white text-black cyber-glow relative z-10">
-                $1,235
+                ${loadingStats ? '...' : stats?.totalCredits || 0}
               </p>
               <div className="text-xs text-center mt-2 font-mono dark:text-red-500/70 text-red-600/70">
-                CONVERSION RATE: 68%
+                CONVERSION RATE:{' '}
+                {loadingStats
+                  ? '...'
+                  : `${(stats?.conversionRate || 0).toFixed(1)}%`}
               </div>
             </CardContent>
           </Card>
@@ -111,10 +166,13 @@ export default function ReferralDashboard() {
             <CardContent className="pt-6 dark:bg-black/80 bg-white relative">
               <div className="absolute top-0 left-0 w-full h-full cyber-grid opacity-10"></div>
               <p className="text-5xl font-black text-center dark:text-white text-black cyber-glow relative z-10">
-                189
+                {loadingStats ? '...' : stats?.activeReferrals || 0}
               </p>
               <div className="text-xs text-center mt-2 font-mono dark:text-red-500/70 text-red-600/70">
-                RETENTION: 76.5%
+                RETENTION:{' '}
+                {loadingStats
+                  ? '...'
+                  : `${(stats?.retentionRate || 0).toFixed(1)}%`}
               </div>
             </CardContent>
           </Card>
@@ -236,7 +294,7 @@ export default function ReferralDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {referralData.map((referral) => (
+                      {(tableData || [])?.map((referral) => (
                         <TableRow
                           key={referral.id}
                           className="border-b dark:border-red-900/20 border-gray-200 dark:hover:bg-red-950/10 hover:bg-gray-50 cyber-row"
@@ -288,9 +346,9 @@ export default function ReferralDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {referralData
-                        .filter((referral) => referral.status === 'Pending')
-                        .map((referral) => (
+                      {(tableData || [])
+                        ?.filter((referral) => referral?.status === 'Pending')
+                        ?.map((referral) => (
                           <TableRow
                             key={referral.id}
                             className="border-b dark:border-red-900/20 border-gray-200 dark:hover:bg-red-950/10 hover:bg-gray-50 cyber-row"
@@ -336,9 +394,9 @@ export default function ReferralDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {referralData
-                        .filter((referral) => referral.status === 'Completed')
-                        .map((referral) => (
+                      {(tableData || [])
+                        ?.filter((referral) => referral.status === 'Completed')
+                        ?.map((referral) => (
                           <TableRow
                             key={referral.id}
                             className="border-b dark:border-red-900/20 border-gray-200 dark:hover:bg-red-950/10 hover:bg-gray-50 cyber-row"
