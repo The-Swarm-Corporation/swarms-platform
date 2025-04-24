@@ -22,9 +22,13 @@ export default function useModels() {
 
   const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
+  const [tagCategory, setTagCategory] = useState<string>('all');
+
+  const { data: categoryTags, isLoading: isCategoryLoading } = trpc.explorer.getAgentTags.useQuery();
 
   const { data, isLoading, refetch } = trpc.explorer.getExplorerData.useQuery(
     {
+      includeAgents: false,
       limit: 6,
       offset: 0,
       search: searchQuery || searchValue,
@@ -41,6 +45,16 @@ export default function useModels() {
       search: searchQuery || searchValue,
     },
     { enabled: promptOffset > 0 },
+  );
+
+  const agentsQuery = trpc.explorer.getExplorerData.useQuery(
+    {
+      includePrompts: false,
+      includeTools: false,
+      search: searchQuery || searchValue,
+      category: tagCategory,
+    },
+    { refetchOnWindowFocus: false },
   );
 
   const trendingQuery = trpc.main.trending.useQuery(
@@ -99,30 +113,35 @@ export default function useModels() {
 
   const debouncedSearch = useMemo(() => debounce(setSearch, 0), []);
 
+
   const searchClickHandler = () => {
     if (!search.trim()) {
-      setSearchValue("");
+      setSearchValue('');
       return;
     }
 
     setPromptOffset(0);
     setTrendingOffset(0);
     setSearchValue(search);
-  };
+  }
 
   const handleSearchChange = useCallback(
     (value: string) => {
       debouncedSearch(value);
-      if (value.trim() === "") {
-        setSearchValue("");
+      if (value.trim() === '') {
+        setSearchValue('');
       }
     },
     [debouncedSearch],
   );
 
+  const handleCategoryChange = (category: string) => {
+    setTagCategory(category);
+  };
+
   const allItems = [
     ...(data?.prompts || []),
-    ...(data?.agents || []),
+    ...(agentsQuery.data?.agents || []),
     ...(data?.tools || []),
     ...(trendingModels || []),
   ];
@@ -187,8 +206,8 @@ export default function useModels() {
     [prompts, filterData],
   );
   const filteredAgents = useMemo(
-    () => filterData(data?.agents, 'agents'),
-    [data?.agents, filterData],
+    () => filterData(agentsQuery.data?.agents, 'agents'),
+    [agentsQuery.data?.agents, filterData],
   );
   const filteredTools = useMemo(
     () => filterData(data?.tools, 'tools'),
@@ -205,10 +224,40 @@ export default function useModels() {
     [isLoading, promptsQuery.isLoading, trendingQuery.isLoading],
   );
 
+  console.log({ filteredAgents, tagCategory });
+
+  const filteredAgentsByCategory = useMemo(() => {
+    if (!filteredAgents || tagCategory === 'all') return filteredAgents;
+
+    return filteredAgents.filter((agent: any) => {
+      if (!agent?.tags) return false;
+
+      const tags = agent?.tags.split(',');
+      return tags.some((tag: string) => {
+        const trimmedTag = tag.trim();
+        // Check if tag contains the selected category
+        if (trimmedTag.toLowerCase().includes(tagCategory.toLowerCase())) {
+          return true;
+        }
+
+        // Check for tags like "Finance Agents" when category is "Finance"
+        const agentsMatch = trimmedTag.match(
+          /^(.*?)\s+(?:Agents?|agents?|Swarm|swarm)$/i,
+        );
+        if (agentsMatch && agentsMatch[1]) {
+          const category = agentsMatch[1].trim();
+          return category.toLowerCase() === tagCategory.toLowerCase();
+        }
+
+        return false;
+      });
+    });
+  }, [filteredAgents, tagCategory]);
+
   return {
     promptsQuery,
     filteredPrompts,
-    filteredAgents,
+    filteredAgents: filteredAgentsByCategory,
     filteredTools,
     trendingModels,
     isTrendingLoading,
@@ -221,6 +270,7 @@ export default function useModels() {
     hasMoreTrending: trendingModels.length < 12,
     filterOption,
     isLoading,
+    isAgentsLoading: agentsQuery.isLoading,
     isFetchingPrompts,
     isFetchingTrending,
     refetch,
@@ -229,5 +279,9 @@ export default function useModels() {
     searchClickHandler,
     handleSearchChange,
     handleOptionChange,
+    handleCategoryChange,
+    categories: categoryTags?.categories || [],
+    tagCategory,
+    isCategoryLoading,
   };
 }

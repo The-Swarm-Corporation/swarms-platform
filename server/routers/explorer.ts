@@ -3,6 +3,7 @@ import {
   router,
   userProcedure,
 } from '@/app/api/trpc/trpc-router';
+import { extractCategories } from '@/shared/utils/helpers';
 import { Tables } from '@/types_db';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
@@ -17,6 +18,7 @@ const explorerRouter = router({
         limit: z.number().default(6),
         offset: z.number().default(0),
         search: z.string().optional(),
+        category: z.string().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -27,14 +29,13 @@ const explorerRouter = router({
         limit,
         offset,
         search,
+        category,
       } = input;
 
-      // Define empty arrays to ensure valid default types
       let prompts: any[] = [];
       let agents: any[] = [];
       let tools: any[] = [];
 
-      // Fetch Prompts
       if (includePrompts) {
         let query = ctx.supabase
           .from('swarms_cloud_prompts')
@@ -51,29 +52,45 @@ const explorerRouter = router({
         if (error) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
         }
-        prompts = data ?? []; // Ensure it's always an array
+        prompts = data ?? [];
       }
 
-      // Fetch Agents
       if (includeAgents) {
-        const { data, error } = await ctx.supabase
+        let query = ctx.supabase
           .from('swarms_cloud_agents')
           .select('*')
           .order('created_at', { ascending: false });
 
+        if (category && category.toLowerCase() !== 'all') {
+          query = query.or(`tags.ilike.%${category}%`);
+        }
+
+        if (search) {
+          query = query
+            .ilike('name', `%${search}%`)
+            .or(`description.ilike.%${search}%`);
+        }
+
+        const { data, error } = await query;
         if (error) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
         }
         agents = data ?? [];
       }
 
-      // Fetch Tools
       if (includeTools) {
-        const { data, error } = await ctx.supabase
+        let query = ctx.supabase
           .from('swarms_cloud_tools')
           .select('*')
           .order('created_at', { ascending: false });
 
+        if (search) {
+          query = query
+            .ilike('name', `%${search}%`)
+            .or(`description.ilike.%${search}%`);
+        }
+
+        const { data, error } = await query;
         if (error) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
         }
@@ -82,6 +99,21 @@ const explorerRouter = router({
 
       return { prompts, agents, tools };
     }),
+
+  getAgentTags: publicProcedure.query(async ({ ctx }) => {
+    const { data, error } = await ctx.supabase
+      .from('swarms_cloud_agents')
+      .select('tags')
+      .not('tags', 'is', null);
+
+    if (error) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+    }
+
+    const categories = extractCategories(data ?? []);
+    return { categories: ['all', ...categories] };
+  }),
+
   // Validate prompt
   validatePrompt: userProcedure
     .input(z.string())

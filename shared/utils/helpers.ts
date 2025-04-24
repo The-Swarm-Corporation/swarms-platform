@@ -438,3 +438,32 @@ export const optimizePromptKeywords = (prompt: TPrompt) => {
     ].join(', '),
   };
 };
+
+export const extractCategories = (agents: any[]): string[] => {
+  if (!agents || agents.length === 0) return [];
+
+  const categoriesSet = new Set<string>();
+  
+  agents.forEach(agent => {
+    if (!agent.tags) return;
+    
+    const tags = agent.tags.split(',');
+    
+    tags.forEach((tag: string) => {
+      const trimmedTag = tag.trim();
+      
+      if (!trimmedTag) return;
+      
+      let category = trimmedTag;
+      
+      const agentsMatch = trimmedTag.match(/^(.*?)\s+(?:Agents?|agents?|Swarm|swarm)$/i);
+      if (agentsMatch && agentsMatch[1]) {
+        category = agentsMatch[1].trim();
+      }
+      
+      categoriesSet.add(category);
+    });
+  });
+  
+  return Array.from(categoriesSet).sort();
+};
