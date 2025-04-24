@@ -8,6 +8,8 @@ import { Tables } from '@/types_db';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
+const BUCKET_NAME = 'images';
+
 const explorerRouter = router({
   getExplorerData: publicProcedure
     .input(
@@ -638,6 +640,52 @@ const explorerRouter = router({
         .eq('id', input)
         .single();
       return tool.data;
+    }),
+  deleteFile: userProcedure
+    .input(
+      z.object({
+        filePath: z.string(),
+        modelType: z.string(),
+        imageId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.data.user?.id;
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
+
+      if (
+        !input.filePath.startsWith(
+          `public/models/${input.modelType}/${input.imageId}/`,
+        )
+      ) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Not authorized to delete this file',
+        });
+      }
+
+      try {
+        const { error } = await ctx.supabase.storage
+          .from(BUCKET_NAME)
+          .remove([input.filePath]);
+
+        if (error) {
+          throw error;
+        }
+
+        return { success: true };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete file',
+          cause: error,
+        });
+      }
     }),
   checkReview: userProcedure
     .input(
