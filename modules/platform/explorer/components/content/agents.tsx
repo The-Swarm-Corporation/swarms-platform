@@ -8,6 +8,7 @@ import { Bot } from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
+import ModelCategories from './categories';
 
 // TODO: Add types
 export default function Agents({
@@ -15,7 +16,11 @@ export default function Agents({
   filteredAgents,
   setAddAgentModalOpen,
   usersMap,
-  reviewsMap
+  reviewsMap,
+  handleCategoryChange,
+  categories,
+  tagCategory,
+  isCategoryLoading,
 }: any) {
   async function handleAgentModal() {
     await checkUserSession();
@@ -29,6 +34,12 @@ export default function Agents({
           Add Agent
         </Button>
       </div>
+      <ModelCategories
+        categories={categories}
+        isLoading={isCategoryLoading}
+        onCategoryClick={handleCategoryChange}
+        activeCategory={tagCategory}
+      />
       <div>
         {isLoading ? (
           <ExplorerSkeletonLoaders />

@@ -65,6 +65,7 @@ const Explorer = () => {
     isFetchingTrending,
     isFetchingPrompts,
     isTrendingLoading,
+    isAgentsLoading,
     hasMoreTrending,
     hasMorePrompts,
     search,
@@ -80,6 +81,10 @@ const Explorer = () => {
     searchClickHandler,
     handleSearchChange,
     handleOptionChange,
+    handleCategoryChange,
+    categories,
+    tagCategory,
+    isCategoryLoading,
   } = useModels();
 
   const isAllLoading = isLoading || promptsQuery.isLoading;
@@ -106,8 +111,17 @@ const Explorer = () => {
       key: 'agents',
       content: (
         <Agents
-          {...{ filteredAgents, setAddAgentModalOpen, usersMap, reviewsMap }}
-          isLoading={isLoading}
+          {...{
+            filteredAgents,
+            setAddAgentModalOpen,
+            usersMap,
+            reviewsMap,
+            handleCategoryChange,
+            categories,
+            tagCategory,
+            isCategoryLoading,
+          }}
+          isLoading={isAgentsLoading}
         />
       ),
     },
@@ -151,7 +165,7 @@ const Explorer = () => {
           <div className="relative group">
             {/* Animated border overlay */}
             <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 via-red-900 to-red-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x"></div>
-            
+
             {/* Main banner content */}
             <div className="relative w-full bg-gradient-to-r from-black to-red-950 p-8 rounded-lg">
               <div className="relative z-10">
@@ -167,10 +181,11 @@ const Explorer = () => {
           </div>
         </div>
 
-        <div 
+        <div
           className={cn(
             'bg-white dark:bg-black sticky top-[48px] z-10 pb-4',
-            isFixed && 'shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]'
+            isFixed &&
+              'shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
           )}
         >
           <ul className="p-0 mb-2 flex items-center flex-wrap gap-3">
