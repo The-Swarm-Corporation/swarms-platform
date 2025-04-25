@@ -111,33 +111,34 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
 
   return (
     <Modal
-      className="max-w-2xl overflow-y-auto"
+      className="max-w-2xl overflow-y-auto border-2 border-red-500 rounded-lg bg-black/5 backdrop-blur-sm"
       isOpen={isOpen}
       onClose={onClose}
       title="Add Agent"
     >
-      <div className="flex flex-col gap-2 overflow-y-auto h-[60vh] relative px-4">
-        <div className="flex flex-col gap-1">
-          <span>Name</span>
+      <div className="flex flex-col gap-4 overflow-y-auto h-[60vh] relative px-6 py-4">
+        <div className="flex flex-col gap-2">
+          <span className="font-medium text-sm text-gray-200">Name</span>
           <div className="relative">
             <Input
               value={agentName}
               onChange={setAgentName}
               placeholder="Enter name"
+              className="border border-red-500/30 focus:border-red-500 transition-colors"
             />
           </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span>Description</span>
+        </div> 
+        <div className="flex flex-col gap-2">
+          <span className="font-medium text-sm text-gray-200">Description</span>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter description"
-            className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+            className="w-full h-20 p-3 border border-red-500/30 focus:border-red-500 rounded-md bg-transparent outline-0 resize-none transition-colors"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <span>Agent Code in Python</span>
+        <div className="flex flex-col gap-2">
+          <span className="font-medium text-sm text-gray-200">Agent Code in Python</span>
           <div className="relative">
             <textarea
               value={agent}
@@ -147,14 +148,14 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
               }}
               required
               placeholder="Enter agent code here..."
-              className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+              className="w-full h-32 p-3 border border-red-500/30 focus:border-red-500 rounded-md bg-transparent outline-0 resize-none font-mono text-sm transition-colors"
             />
             {validateAgent.isPending ? (
-              <div className="absolute right-2 top-2">
+              <div className="absolute right-3 top-3">
                 <LoadingSpinner />
               </div>
             ) : (
-              <div className="absolute right-2.5 top-2.5">
+              <div className="absolute right-3 top-3">
                 {agent.length > 0 && validateAgent.data && (
                   <span
                     className={
@@ -178,13 +179,13 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
               </span>
             )}
         </div>
-        <div className="flex flex-col gap-1">
-          <span>Language</span>
+        <div className="flex flex-col gap-2">
+          <span className="font-medium text-sm text-gray-200">Language</span>
           <Select onValueChange={setLanguage} value={language}>
-            <SelectTrigger className="w-1/2 cursor-pointer, capitalize">
+            <SelectTrigger className="w-1/2 cursor-pointer capitalize border border-red-500/30 focus:border-red-500 transition-colors">
               <SelectValue placeholder={language} />
             </SelectTrigger>
-            <SelectContent className="capitalize">
+            <SelectContent className="capitalize border border-red-500/30">
               {languageOptions?.map((option) => (
                 <SelectItem key={option} value={option}>
                   {option}
@@ -193,19 +194,20 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex flex-col gap-1">
-          <span>Tags</span>
+        <div className="flex flex-col gap-2">
+          <span className="font-medium text-sm text-gray-200">Tags</span>
           <Input
             value={tags}
             onChange={setTags}
             placeholder="Tools, Search, etc."
+            className="border border-red-500/30 focus:border-red-500 transition-colors"
           />
         </div>
         <div className="flex justify-end mt-4">
           <Button
             disabled={addAgent.isPending}
             onClick={submit}
-            className="w-32"
+            className="w-32 border-2 border-red-500 bg-black/20 hover:bg-red-500/10 text-red-500 hover:text-red-400 transition-colors duration-200"
           >
             Submit
           </Button>
