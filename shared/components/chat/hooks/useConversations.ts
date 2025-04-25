@@ -32,6 +32,8 @@ export function useConversations() {
   const deleteConversationMutation = trpc.chat.deleteConversation.useMutation();
   const cloneConversationMutation =
     trpc.chat.addSharedConversation.useMutation();
+  const togglePublicConversationMutation =
+    trpc.chat.togglePublicConversation.useMutation();
 
   const addMessageMutation = trpc.chat.addMessage.useMutation();
   const editMessageMutation = trpc.chat.editMessage.useMutation();
@@ -46,6 +48,7 @@ export function useConversations() {
     'replaceAll' | 'replaceOriginal'
   >('replaceAll');
   const [openCloneModal, setOpenCloneModal] = useState(false);
+  const [openTogglePublicModal, setOpenTogglePublicModal] = useState(false);
 
   const chatConversation = trpc.chat.getConversation.useQuery(
     activeConversationId,
@@ -83,6 +86,7 @@ export function useConversations() {
   };
 
   const handleCloseCloneModal = () => setOpenCloneModal(false);
+  const handleCloseTogglePublicModal = () => setOpenTogglePublicModal(false);
 
   const createConversation = async (name: string) => {
     if (!user) {
@@ -105,6 +109,56 @@ export function useConversations() {
       console.error(err);
       toast({
         description: 'Failed to create conversation',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const togglePublicConversation = async () => {
+    if (!user) {
+      toast({
+        description: 'Log in to perform this action',
+        variant: 'destructive',
+      });
+      router.push('/signin');
+      return;
+    }
+
+    const isPublic = activeConversation?.data?.is_public;
+    const assistantReplies =
+      activeConversation?.data?.messages?.filter(
+        (msg) => msg.role === 'assistant',
+      ) ?? [];
+
+    if (!isPublic && assistantReplies.length < 2) {
+      toast({
+        description:
+          'You need at least two responses from your agents before making this conversation public',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await togglePublicConversationMutation.mutateAsync({
+        id: activeConversationId,
+      });
+
+      const isNowPublic = !activeConversation?.data?.is_public;
+
+      toast({
+        description: isNowPublic
+          ? 'Conversation made public'
+          : 'Conversation made private',
+      });
+
+      refetch();
+      activeConversation?.refetch();
+      handleCloseTogglePublicModal();
+    } catch (err) {
+      console.error(err);
+      toast({
+        description: 'Failed to toggle public conversation',
         variant: 'destructive',
       });
     }
@@ -168,6 +222,16 @@ export function useConversations() {
   };
 
   const deleteConversation = async (id: string) => {
+    const conversation = conversations?.find((c) => c?.id === id);
+
+    if (conversation?.is_public) {
+      toast({
+        description: 'Please make the conversation private before deleting it.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       await deleteConversationMutation.mutateAsync(id);
       if (id === activeConversationId) {
@@ -259,6 +323,28 @@ export function useConversations() {
       return;
     }
 
+    if (activeConversation?.data?.is_public) {
+      const messages = activeConversation.data.messages ?? [];
+      const messagesAfterDelete = messages.filter(
+        (msg) => msg.id !== messageId,
+      );
+      const assistantCount = messagesAfterDelete.filter(
+        (m) => m.role === 'assistant',
+      ).length;
+      const userCount = messagesAfterDelete.filter(
+        (m) => m.role === 'user',
+      ).length;
+
+      if (assistantCount < 2 || userCount < 2) {
+        toast({
+          description:
+            'You must retain at least some messages and responses in a public conversation.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     try {
       const updatedMessage = await deleteMessageMutation.mutateAsync({
         messageId: messageId ?? '',
@@ -342,8 +428,13 @@ export function useConversations() {
     exportConversation,
     cloneSharedConversation,
     isClonePending: cloneConversationMutation.isPending,
+    togglePublicConversation,
+    isTogglePublicPending: togglePublicConversationMutation.isPending,
     openCloneModal,
     setOpenCloneModal,
     handleCloseCloneModal,
+    openTogglePublicModal,
+    setOpenTogglePublicModal,
+    handleCloseTogglePublicModal,
   };
 }

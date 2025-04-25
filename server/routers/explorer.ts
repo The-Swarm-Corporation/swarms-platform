@@ -15,6 +15,7 @@ const explorerRouter = router({
         includePrompts: z.boolean().default(true),
         includeAgents: z.boolean().default(true),
         includeTools: z.boolean().default(true),
+        includePublicChats: z.boolean().default(true),
         limit: z.number().default(6),
         offset: z.number().default(0),
         search: z.string().optional(),
@@ -26,6 +27,7 @@ const explorerRouter = router({
         includePrompts,
         includeAgents,
         includeTools,
+        includePublicChats,
         limit,
         offset,
         search,
@@ -35,6 +37,7 @@ const explorerRouter = router({
       let prompts: any[] = [];
       let agents: any[] = [];
       let tools: any[] = [];
+      let publicChats: any[] = [];
 
       if (includePrompts) {
         let query = ctx.supabase
@@ -97,7 +100,53 @@ const explorerRouter = router({
         tools = data ?? [];
       }
 
-      return { prompts, agents, tools };
+      if (includePublicChats) {
+        let chatQuery = ctx.supabase
+          .from('swarms_cloud_chat')
+          .select('id, name, user_id, share_id, description, updated_at')
+          .eq('is_public', true)
+          .order('updated_at', { ascending: false });
+
+        if (search) {
+          chatQuery = chatQuery
+            .ilike('name', `%${search}%`)
+            .or(`description.ilike.%${search}%`);
+        }
+
+        const { data: chats, error: chatError } = await chatQuery;
+        if (chatError)
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: chatError.message,
+          });
+
+        const chatIds = chats.map((chat) => chat.id);
+        const { data: agentsData, error: agentError } = await ctx.supabase
+          .from('swarms_cloud_chat_agents')
+          .select('chat_id, name')
+          .in('chat_id', chatIds)
+          .eq('is_active', true);
+
+        if (agentError)
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: agentError.message,
+          });
+
+        const agentMap =
+          agentsData?.reduce<Record<string, string[]>>((acc, item) => {
+            if (!acc[item.chat_id ?? '']) acc[item.chat_id ?? ''] = [];
+            acc[item.chat_id ?? ''].push(item.name);
+            return acc;
+          }, {}) || {};
+
+        publicChats = chats.map((chat) => ({
+          ...chat,
+          agents: agentMap[chat.id ?? ''] ?? [],
+        }));
+      }
+
+      return { prompts, agents, tools, publicChats };
     }),
 
   getAgentTags: publicProcedure.query(async ({ ctx }) => {

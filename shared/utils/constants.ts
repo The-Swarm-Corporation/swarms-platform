@@ -44,9 +44,10 @@ export const explorerOptions = [
   { label: 'Agents', value: 'agents' },
   { label: 'Prompts', value: 'prompts' },
   { label: 'Tools', value: 'tools' },
+  { label: 'Public Chats', value: 'chats' },
 ];
 
-export const defaultOptions = ['agents', 'prompts', 'tools'];
+export const defaultOptions = ['agents', 'prompts', 'tools', 'chats'];
 
 export const languageOptions = [
   'python',

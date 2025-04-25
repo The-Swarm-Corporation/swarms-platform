@@ -33,6 +33,9 @@ document.head.appendChild(style);
 const Trending = dynamic(() => import('./components/content/trending'), {
   ssr: false,
 });
+const PublicChats = dynamic(() => import('./components/content/public-chats'), {
+  ssr: false,
+});
 const Prompts = dynamic(() => import('./components/content/prompts'), {
   ssr: false,
 });
@@ -82,6 +85,7 @@ const Explorer = () => {
     handleSearchChange,
     handleOptionChange,
     handleCategoryChange,
+    filteredPublicChats,
     categories,
     tagCategory,
     isCategoryLoading,
@@ -90,6 +94,12 @@ const Explorer = () => {
   const isAllLoading = isLoading || promptsQuery.isLoading;
 
   const elements = [
+    {
+      key: 'chats',
+      content: (
+        <PublicChats {...{ isLoading, filteredPublicChats, usersMap }} />
+      ),
+    },
     {
       key: 'prompts',
       content: (

@@ -320,6 +320,37 @@ const chatRouter = router({
       return data;
     }),
 
+  togglePublicConversation: userProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id ?? '';
+
+      const { data: conversation, error } = await ctx.supabase
+        .from('swarms_cloud_chat')
+        .select('is_public')
+        .eq('id', input.id)
+        .eq('user_id', user_id)
+        .single();
+
+      if (error || !conversation) {
+        throw new Error('Conversation not found.');
+      }
+
+      const newStatus = !conversation.is_public;
+
+      const { error: updateError } = await ctx.supabase
+        .from('swarms_cloud_chat')
+        .update({ is_public: newStatus })
+        .eq('id', input.id)
+        .eq('user_id', user_id);
+
+      if (updateError) {
+        throw new Error('Failed to update agent status.');
+      }
+
+      return { success: true, is_public: newStatus };
+    }),
+
   deleteConversation: userProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {

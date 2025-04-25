@@ -10,6 +10,8 @@ import {
   Ellipsis,
   KeyRound,
   Loader2,
+  Lock,
+  LockOpen,
   Mic,
   Send,
   Shield,
@@ -36,6 +38,7 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import {
   extractContentAsString,
+  isConversationDefaultName,
   parseJSON,
   transformEditMessages,
   transformMessages,
@@ -77,6 +80,8 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   const isCreatingConversation = useRef(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [creationError, setCreationError] = useState<string | null>(null);
+  const [activeChatId, setActiveChatId] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const { isSharedConversation } = useChatQuery();
 
@@ -164,9 +169,14 @@ export default function SwarmsChat({}: SwarmsChatProps) {
     exportConversation,
     cloneSharedConversation,
     isClonePending,
+    togglePublicConversation,
+    isTogglePublicPending,
     openCloneModal,
     setOpenCloneModal,
     handleCloseCloneModal,
+    openTogglePublicModal,
+    setOpenTogglePublicModal,
+    handleCloseTogglePublicModal,
   } = useConversations();
   const {
     agents,
@@ -215,6 +225,22 @@ export default function SwarmsChat({}: SwarmsChatProps) {
 
     const file = e.dataTransfer.files[0];
     if (file) await uploadImage(file, activeConversationId);
+  };
+
+  const handleTogglePublicModal = (open: boolean) => {
+    const conversationName = activeConversation?.data?.name;
+
+    if (isConversationDefaultName(conversationName)) {
+      toast({
+        description: 'Please give your conversation a better name',
+        variant: 'destructive',
+      });
+      setActiveChatId(activeConversationId);
+      setIsEditModalOpen(true);
+      return;
+    }
+
+    setOpenTogglePublicModal(open);
   };
 
   useEffect(() => {
@@ -655,6 +681,10 @@ export default function SwarmsChat({}: SwarmsChatProps) {
           isClonePending={isClonePending}
           isUpdatePending={isUpdatePending}
           conversationRefetch={refetch}
+          activeChatId={activeChatId}
+          setActiveChatId={setActiveChatId}
+          isEditModalOpen={isEditModalOpen}
+          setIsEditModalOpen={setIsEditModalOpen}
           onUpdateConversation={updateConversation}
           onCreateConversation={createConversation}
           onDeleteConversation={deleteConversation}
@@ -662,12 +692,12 @@ export default function SwarmsChat({}: SwarmsChatProps) {
         />
         <div className="flex-1 flex">
           <div className="flex-1 flex flex-col">
-            <div className="max-lg:hidden bg-white/40 dark:bg-black/40 backdrop-blur-sm border-b border-[#f9f9f914] p-6 transition-colors duration-300">
+            <div className="bg-white/40 dark:bg-black/40 backdrop-blur-sm border-b border-[#f9f9f914] py-2 px-8 lg:p-6 transition-colors duration-300">
               <div className="max-w-screen-xl mx-auto">
                 <div className="flex justify-between items-start">
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2 lg:space-x-4">
                     <div className="relative">
-                      <Shield className="w-10 h-10 text-primary/50" />
+                      <Shield className="w-5 h-5 lg:w-10 lg:h-10 text-primary/50" />
                       <motion.div
                         animate={{ opacity: [0.5, 1, 0.5] }}
                         transition={{
@@ -676,34 +706,39 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                         }}
                         className="absolute inset-0 text-primary"
                       >
-                        <Shield className="w-10 h-10" />
+                        <Shield className="w-5 h-5 lg:w-10 lg:h-10" />
                       </motion.div>
                     </div>
                     <div>
-                      <h2 className="text-primary/70 font-semibold text-3xl tracking-wider flex items-center gap-2">
+                      <h2 className="text-primary/70 font-semibold text-xl lg:text-3xl tracking-wider flex items-center gap-2">
                         Swarms
                         <span className="text-xs text-primary font-normal opacity-50">
                           v1.0.1
                         </span>
                       </h2>
-                      <p className="text-red-500/50 text-sm tracking-wide">
+                      <p className="text-red-500/50 text-xs lg:text-sm tracking-wide">
                         Swarms Agent System
                       </p>
                     </div>
                   </div>
 
-                  {isSharedConversation && (
-                    <div>
+                  <div className="flex items-center gap-3">
+                    {isSharedConversation && (
                       <Dialog
                         open={openCloneModal}
                         onOpenChange={setOpenCloneModal}
                       >
                         <DialogTrigger asChild>
-                          <Button className="w-full bg-primary/40 hover:bg-primary/70 text-white">
+                          <Button
+                            aria-label="Clone conversation"
+                            className="w-full bg-transparent border border-[#40403F] hover:bg-[#1e1e1e] text-white"
+                          >
                             {!isClonePending && (
                               <CopyPlus className="h-4 w-4" />
                             )}
-                            <span className="ml-2">Clone conversation</span>
+                            <span className="ml-2 hidden lg:flex">
+                              Clone conversation
+                            </span>
                             {isClonePending && <LoadingSpinner size={18} />}
                           </Button>
                         </DialogTrigger>
@@ -743,8 +778,95 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                           </div>
                         </DialogContent>
                       </Dialog>
-                    </div>
-                  )}
+                    )}
+
+                    {user && user.id === activeConversation?.data?.user_id && (
+                      <Dialog
+                        open={openTogglePublicModal}
+                        onOpenChange={handleTogglePublicModal}
+                      >
+                        <DialogTrigger asChild>
+                          <Button
+                            aria-label="Toggle conversation public status"
+                            className={cn(
+                              'w-full bg-primary/40 hover:bg-primary/70 text-white',
+                              activeConversation?.data?.is_public &&
+                                'bg-transparent border border-[#40403F] hover:bg-[#1e1e1e]',
+                            )}
+                          >
+                            {!isTogglePublicPending &&
+                              (activeConversation?.data?.is_public ? (
+                                <Lock className="h-3 w-3 lg:h-4 lg:w-4" />
+                              ) : (
+                                <LockOpen className="h-3 w-3 lg:h-4 lg:w-4" />
+                              ))}
+                            <span className="ml-2 hidden lg:flex">
+                              Make Conversation{' '}
+                              {activeConversation?.data?.is_public
+                                ? 'Private'
+                                : 'Public'}
+                            </span>
+                            {isTogglePublicPending && (
+                              <LoadingSpinner size={18} />
+                            )}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-xl border border-[#40403F]">
+                          <DialogHeader>
+                            <DialogTitle></DialogTitle>
+                            <DialogDescription className="text-center text-white">
+                              <span className="block font-mono mb-4 font-semibold">
+                                Are you sure you&apos;d like to make this
+                                conversation public?
+                              </span>
+                              {!activeConversation?.data?.is_public ? (
+                                <span className="mt-2 text-sm font-mono text-center">
+                                  By making this conversation public, you agree
+                                  to add this conversation to the{' '}
+                                  <a
+                                    href="/"
+                                    target="_blank"
+                                    className="text-primary/70 font-medium hover:underline"
+                                  >
+                                    marketplace
+                                  </a>{' '}
+                                  in accordance with our terms of service and
+                                  privacy policy.
+                                </span>
+                              ) : (
+                                <span className="font-mono text-sm mt-2">
+                                  By making this conversation private, you will
+                                  remove it from the marketplace.
+                                </span>
+                              )}
+                            </DialogDescription>
+                          </DialogHeader>
+
+                          <div className="flex mt-4 justify-center gap-2">
+                            <Button
+                              variant="outline"
+                              disabled={isTogglePublicPending}
+                              onClick={handleCloseTogglePublicModal}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              disabled={isTogglePublicPending}
+                              onClick={togglePublicConversation}
+                            >
+                              Make{' '}
+                              {activeConversation?.data?.is_public
+                                ? 'private'
+                                : 'public'}
+                              {isTogglePublicPending && (
+                                <LoadingSpinner size={15} className="ml-2" />
+                              )}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

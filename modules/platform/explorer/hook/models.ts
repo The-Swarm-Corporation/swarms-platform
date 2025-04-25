@@ -24,7 +24,8 @@ export default function useModels() {
   const [searchValue, setSearchValue] = useState('');
   const [tagCategory, setTagCategory] = useState<string>('all');
 
-  const { data: categoryTags, isLoading: isCategoryLoading } = trpc.explorer.getAgentTags.useQuery();
+  const { data: categoryTags, isLoading: isCategoryLoading } =
+    trpc.explorer.getAgentTags.useQuery();
 
   const { data, isLoading, refetch } = trpc.explorer.getExplorerData.useQuery(
     {
@@ -38,6 +39,7 @@ export default function useModels() {
 
   const promptsQuery = trpc.explorer.getExplorerData.useQuery(
     {
+      includePublicChats: false,
       includeAgents: false,
       includeTools: false,
       limit: promptLimit,
@@ -51,6 +53,7 @@ export default function useModels() {
     {
       includePrompts: false,
       includeTools: false,
+      includePublicChats: true,
       search: searchQuery || searchValue,
       category: tagCategory,
     },
@@ -113,7 +116,6 @@ export default function useModels() {
 
   const debouncedSearch = useMemo(() => debounce(setSearch, 0), []);
 
-
   const searchClickHandler = () => {
     if (!search.trim()) {
       setSearchValue('');
@@ -123,7 +125,7 @@ export default function useModels() {
     setPromptOffset(0);
     setTrendingOffset(0);
     setSearchValue(search);
-  }
+  };
 
   const handleSearchChange = useCallback(
     (value: string) => {
@@ -143,6 +145,7 @@ export default function useModels() {
     ...(data?.prompts || []),
     ...(agentsQuery.data?.agents || []),
     ...(data?.tools || []),
+    ...(data?.publicChats || []),
     ...(trendingModels || []),
   ];
 
@@ -213,6 +216,12 @@ export default function useModels() {
     () => filterData(data?.tools, 'tools'),
     [data?.tools, filterData],
   );
+  const filteredPublicChats = useMemo(
+    () => filterData(data?.publicChats, 'publicChats'),
+    [data?.publicChats, filterData],
+  );
+
+  console.log({ filteredPublicChats });
 
   const handleOptionChange = useCallback(
     (value: string) => {
@@ -223,8 +232,6 @@ export default function useModels() {
     },
     [isLoading, promptsQuery.isLoading, trendingQuery.isLoading],
   );
-
-  console.log({ filteredAgents, tagCategory });
 
   const filteredAgentsByCategory = useMemo(() => {
     if (!filteredAgents || tagCategory === 'all') return filteredAgents;
@@ -259,6 +266,7 @@ export default function useModels() {
     filteredPrompts,
     filteredAgents: filteredAgentsByCategory,
     filteredTools,
+    filteredPublicChats,
     trendingModels,
     isTrendingLoading,
     search,

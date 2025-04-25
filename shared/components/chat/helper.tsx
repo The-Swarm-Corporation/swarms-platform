@@ -10,6 +10,19 @@ export interface MessageObj {
   timestamp?: string;
 }
 
+const DEFAULT_NAMES = ['new chat', 'new conversation', 'new'];
+const DEFAULT_PREFIXES = ['untitled', 'new chat', 'new'];
+
+export const isConversationDefaultName = (name: string | undefined | null): boolean => {
+  if (!name) return true;
+  const normalized = name.trim().toLowerCase();
+
+  return (
+    DEFAULT_NAMES.includes(normalized) ||
+    DEFAULT_PREFIXES.some((prefix) => normalized.startsWith(prefix))
+  );
+};
+
 export const getFileIcon = (file: FileWithPreview) => {
   switch (file.type) {
     case 'document':
