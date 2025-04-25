@@ -46,9 +46,7 @@ const explorerRouter = router({
           .order('created_at', { ascending: false });
 
         if (search) {
-          query = query
-            .ilike('name', `%${search}%`)
-            .or(`prompt.ilike.%${search}%`);
+          query = query.or(`name.ilike.%${search}%,prompt.ilike.%${search}%`);
         }
 
         const { data, error } = await query.range(offset, offset + limit - 1);
@@ -69,9 +67,9 @@ const explorerRouter = router({
         }
 
         if (search) {
-          query = query
-            .ilike('name', `%${search}%`)
-            .or(`description.ilike.%${search}%`);
+          query = query.or(
+            `name.ilike.%${search}%,description.ilike.%${search}%`,
+          );
         }
 
         const { data, error } = await query;
@@ -88,9 +86,9 @@ const explorerRouter = router({
           .order('created_at', { ascending: false });
 
         if (search) {
-          query = query
-            .ilike('name', `%${search}%`)
-            .or(`description.ilike.%${search}%`);
+          query = query.or(
+            `name.ilike.%${search}%,description.ilike.%${search}%`,
+          );
         }
 
         const { data, error } = await query;
@@ -108,12 +106,13 @@ const explorerRouter = router({
           .order('updated_at', { ascending: false });
 
         if (search) {
-          chatQuery = chatQuery
-            .ilike('name', `%${search}%`)
-            .or(`description.ilike.%${search}%`);
+          chatQuery = chatQuery.or(
+            `name.ilike.%${search}%,description.ilike.%${search}%`,
+          );
         }
 
         const { data: chats, error: chatError } = await chatQuery;
+
         if (chatError)
           throw new TRPCError({
             code: 'BAD_REQUEST',
