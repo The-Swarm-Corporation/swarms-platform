@@ -31,8 +31,8 @@ export default function Navlinks() {
         </div>
         <nav className="flex ml-2 md:ml-6 gap-3 max-md:hidden">
           {!isSwarmsPath && (
-            <Link href="/pricing" className={s.link}>
-              Pricing
+            <Link href="https://github.com/kyegomez/swarms" className={s.link}>
+              Github
             </Link>
           )}
           <Link href={SWARMS_GITHUB} className={cn(s.link, 'hidden md:inline')}>
