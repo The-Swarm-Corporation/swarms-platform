@@ -11,10 +11,14 @@ import {
 import { getAuthTypes } from '@/shared/utils/auth-helpers/settings';
 import { PLATFORM } from '@/shared/utils/constants';
 import { User } from '@supabase/supabase-js';
-import { createOrRetrieveStripeCustomer } from '../supabase/admin';
+import {
+  createOrRetrieveStripeCustomer,
+  supabaseAdmin,
+} from '../supabase/admin';
 import {
   syncUserEmail,
   updateFreeCreditsOnSignin,
+  updateReferralStatus,
 } from '../api/user';
 
 function isValidEmail(email: string) {
@@ -31,6 +35,7 @@ export async function afterSignin(user: User) {
     await Promise.all([
       syncUserEmail(user.id, user.email),
       updateFreeCreditsOnSignin(user.id),
+      updateReferralStatus(user),
     ]);
   }
   return PLATFORM.EXPLORER;
@@ -173,14 +178,14 @@ export async function signInWithPassword(formData: FormData) {
   let redirectPath: string | undefined;
 
   const supabase = await createClient();
-  
+
   const { error, data } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
-    console.log("Supabase Auth Error:", error.message);
+    console.log('Supabase Auth Error:', error.message);
     redirectPath = getErrorRedirect(
       '/signin/password_signin',
       'Sign in failed.',
@@ -205,6 +210,8 @@ export async function signUp(formData: FormData) {
 
   const email = String(formData.get('email')).trim();
   const password = String(formData.get('password')).trim();
+  const referralCode = String(formData.get('referralCode') || '').trim();
+
   let redirectPath: string;
 
   if (!isValidEmail(email)) {
@@ -213,14 +220,30 @@ export async function signUp(formData: FormData) {
       'Invalid email address.',
       'Please try again.',
     );
+    return redirectPath;
   }
 
   const supabase = await createClient();
+
+  let referrerId = null;
+  if (referralCode) {
+    const { data: referrerData } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('referral_code', referralCode)
+      .single();
+
+    referrerId = referrerData?.id;
+  }
+
   const { error, data } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: callbackURL,
+      data: {
+        referred_by: referralCode || null,
+      },
     },
   });
 
@@ -231,6 +254,19 @@ export async function signUp(formData: FormData) {
       error.message,
     );
   } else if (data.session) {
+    if (referrerId) {
+      await supabaseAdmin.from('swarms_cloud_users_referral').insert({
+        referrer_id: referrerId,
+        referred_id: data?.user?.id ?? '',
+        status: 'Pending',
+      });
+
+      await supabaseAdmin
+        .from('users')
+        .update({ referred_by: referralCode })
+        .eq('id', data?.user?.id ?? '');
+    }
+
     redirectPath = getStatusRedirect('/', 'Success!', 'You are now signed in.');
   } else if (
     data.user &&
@@ -243,6 +279,19 @@ export async function signUp(formData: FormData) {
       'There is already an account associated with this email address. Try resetting your password.',
     );
   } else if (data.user) {
+    if (referrerId) {
+      await supabaseAdmin.from('swarms_cloud_users_referral').insert({
+        referrer_id: referrerId,
+        referred_id: data.user.id,
+        status: 'Pending',
+      });
+
+      await supabaseAdmin
+        .from('users')
+        .update({ referred_by: referralCode })
+        .eq('id', data.user.id);
+    }
+
     redirectPath = getStatusRedirect(
       '/',
       'Success!',

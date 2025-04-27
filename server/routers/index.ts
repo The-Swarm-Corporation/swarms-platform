@@ -9,6 +9,7 @@ import dashboardRouter from './dashboard';
 import explorerOptionsRouter from './explorer-options';
 import { dndRouter } from './dnd';
 import { agentRouter, chatRouter, fileUploadRouter, swarmConfigRouter } from './chat';
+import referralRouter from './referral';
 
 export const appRouter = router({
   main: mainRouter,
@@ -24,5 +25,6 @@ export const appRouter = router({
   chat: chatRouter,
   fileUpload: fileUploadRouter,
   swarmConfig: swarmConfigRouter,
+  referral: referralRouter,
 });
 export type AppRouter = typeof appRouter;

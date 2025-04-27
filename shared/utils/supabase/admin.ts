@@ -463,6 +463,27 @@ const getStripeCustomerId = async (userId: string): Promise<string | null> => {
   return data ? data.stripe_customer_id : null;
 };
 
+const getUserReferralCode = async (userId: string, referralCode: string) => {
+  const { data: referrerData } = await supabaseAdmin
+    .from('users')
+    .select('id')
+    .eq('referral_code', referralCode)
+    .single();
+
+  if (referrerData?.id) {
+    await supabaseAdmin.from('swarms_cloud_users_referral').insert({
+      referrer_id: referrerData.id,
+      referred_id: userId,
+      status: 'Pending',
+    });
+
+    await supabaseAdmin
+      .from('users')
+      .update({ referred_by: referralCode })
+      .eq('id', userId);
+  }
+};
+
 export {
   getUserCredit,
   getUserCreditPlan,
@@ -477,4 +498,5 @@ export {
   upsertInvoiceRecord,
   getStripeCustomerId,
   retrieveUserIdFromCustomerId,
+  getUserReferralCode,
 };

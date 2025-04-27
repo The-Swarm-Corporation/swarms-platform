@@ -31,14 +31,20 @@ export async function handleRequest(
 }
 
 export async function signInWithOAuth(e: React.FormEvent<HTMLFormElement>) {
-  // Prevent default form submission refresh
   e.preventDefault();
   const formData = new FormData(e.currentTarget);
   const provider = String(formData.get('provider')).trim() as Provider;
-
-  // Create client-side supabase client and call signInWithOAuth
+  
+  const referralCode = String(formData.get('referralCode') || '').trim();
+  
   const supabase = createClient();
-  const redirectURL = getURL('/auth/callback');
+  const baseRedirectURL = getURL('/auth/callback');
+  
+  
+  const redirectURL = referralCode 
+    ? `${baseRedirectURL}?code_ref=${encodeURIComponent(referralCode)}` 
+    : baseRedirectURL;
+  
   await supabase.auth.signInWithOAuth({
     provider: provider,
     options: {
