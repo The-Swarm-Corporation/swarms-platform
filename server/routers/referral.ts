@@ -100,7 +100,8 @@ const referralRouter = router({
           referred:referred_id(
             id,
             email,
-            raw_user_meta_data
+            full_name,
+            username
           )
         `,
       )
@@ -115,9 +116,9 @@ const referralRouter = router({
     }
 
     return data.map((item: any) => ({
-      id: item.referred.id,
-      name: item.referred.raw_user_meta_data?.name || 'User',
-      email: item.referred.email,
+      id: item.referred?.id,
+      name: item.referred?.username || item.referred?.full_name || 'User',
+      email: item.referred?.email,
       date: new Date(item.created_at).toISOString().split('T')[0],
       status: item.status,
     }));
