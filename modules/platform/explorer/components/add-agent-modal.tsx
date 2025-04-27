@@ -13,8 +13,9 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { useMemo, useState } from 'react';
-import { languageOptions } from '@/shared/utils/constants';
+import { explorerCategories, languageOptions } from '@/shared/utils/constants';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import MultiSelect from '@/shared/components/ui/multi-select';
 
 interface Props {
   isOpen: boolean;
@@ -29,6 +30,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
   const [agent, setAgent] = useState('');
   const [tags, setTags] = useState('');
   const [language, setLanguage] = useState('python');
+  const [categories, setCategories] = useState<string[]>([]);
 
   const validateAgent = trpc.explorer.validateAgent.useMutation();
 
@@ -42,6 +44,10 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
   const toast = useToast();
 
   const addAgent = trpc.explorer.addAgent.useMutation();
+
+  const handleCategoriesChange = (selectedCategories: string[]) => {
+    setCategories(selectedCategories);
+  };
 
   const submit = () => {
     // Validate Agent
@@ -69,6 +75,14 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
       return;
     }
 
+    if (categories.length === 0) {
+      toast.toast({
+        title: 'Please select at least one category',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const trimTags = tags
       .split(',')
       .map((tag) => tag.trim())
@@ -81,6 +95,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         name: agentName,
         agent,
         description,
+        category: categories,
         useCases: [
           {
             title: '',
@@ -118,13 +133,16 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
     >
       <div className="flex flex-col gap-4 overflow-y-auto h-[70vh] relative">
         <div className="sticky top-0 z-10 bg-black/90 border-b border-red-500/30 px-6 py-4">
-          <h2 className="text-2xl font-bold text-red-500 mb-2">Submit Your Agent</h2>
+          <h2 className="text-2xl font-bold text-red-500 mb-2">
+            Submit Your Agent
+          </h2>
           <p className="text-gray-400 text-sm leading-relaxed">
-            Share your agent with the community by filling out the details below. Make sure to provide clear descriptions 
-            and appropriate tags to help others discover and use your agent effectively.
+            Share your agent with the community by filling out the details
+            below. Make sure to provide clear descriptions, categories and appropriate tags
+            to help others discover and use your agent effectively.
           </p>
         </div>
-        
+
         <div className="px-6 pb-4 flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <span className="font-medium text-sm text-gray-200 flex items-center gap-2">
@@ -139,7 +157,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
                 className="border border-red-500/30 focus:border-red-500 transition-colors bg-black/40"
               />
             </div>
-          </div> 
+          </div>
           <div className="flex flex-col gap-2">
             <span className="font-medium text-sm text-gray-200 flex items-center gap-2">
               Description
@@ -212,6 +230,23 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
               </SelectContent>
             </Select>
           </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="font-medium text-sm text-gray-200">
+              Categories
+            </span>
+            <MultiSelect
+              options={explorerCategories.map((category) => ({
+                id: category.value,
+                label: category.label,
+              }))}
+              selectedValues={categories}
+              onChange={handleCategoriesChange}
+              placeholder="Select categories"
+              className="border !border-red-500/30 !focus:border-red-500 transition-colors bg-black/40"
+            />
+          </div>
+
           <div className="flex flex-col gap-2">
             <span className="font-medium text-sm text-gray-200">Tags</span>
             <Input

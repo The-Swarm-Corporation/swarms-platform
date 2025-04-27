@@ -3,7 +3,9 @@ import Modal from '@/shared/components/modal';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { Button } from '@/shared/components/ui/button';
 import Input from '@/shared/components/ui/Input/Input';
+import MultiSelect from '@/shared/components/ui/multi-select';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { explorerCategories } from '@/shared/utils/constants';
 import { debounce, launchConfetti } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useMemo, useState } from 'react';
@@ -21,6 +23,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
   const [description, setDescription] = useState('');
   const [prompt, setPrompt] = useState('');
   const [tags, setTags] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
 
   const validatePrompt = trpc.explorer.validatePrompt.useMutation();
 
@@ -30,6 +33,10 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
     }, 400);
     return debouncedFn;
   }, []);
+
+  const handleCategoriesChange = (selectedCategories: string[]) => {
+    setCategories(selectedCategories);
+  };
 
   const toast = useToast();
 
@@ -69,6 +76,14 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
       return;
     }
 
+    if (categories.length === 0) {
+      toast.toast({
+        title: 'Please select at least one category',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const trimTags = tags
       .split(',')
       .map((tag) => tag.trim())
@@ -81,6 +96,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         name: promptName,
         prompt,
         description,
+        category: categories,
         useCases: [
           {
             title: '',
@@ -138,7 +154,7 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         </div>
         <div className="flex flex-col gap-1">
           <span>Prompt</span>
-          <div className="relatvie">
+          <div className="relative">
             <textarea
               value={prompt}
               onChange={(v) => {
@@ -178,7 +194,21 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
               </span>
             )}
         </div>
+
         <div className="flex flex-col gap-1">
+          <span>Categories</span>
+          <MultiSelect
+            options={explorerCategories.map((category) => ({
+              id: category.value,
+              label: category.label,
+            }))}
+            selectedValues={categories}
+            onChange={handleCategoriesChange}
+            placeholder="Select categories"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 mt-4">
           <span>Tags</span>
           <Input
             value={tags}

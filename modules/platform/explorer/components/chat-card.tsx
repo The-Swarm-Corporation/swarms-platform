@@ -48,10 +48,19 @@ const PublicChatCard = ({
 
   return (
     <div
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      aria-label={title}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          handleCardClick();
+        }
+      }}
       className={cn(
-        'relative flex gap-4 p-4 px-3 rounded-lg overflow-hidden',
+        'relative flex gap-4 p-4 px-3 rounded-lg overflow-hidden group cursor-pointer',
         'transition-all duration-200 ease-in-out',
-        'bg-[#141414] border border-[#40403F]',
+        'bg-black border border-red-600',
         'hover:shadow-lg hover:shadow-red-600/20',
         'hover:scale-[1.02] active:scale-[0.98] h-[220px]',
         className,
@@ -141,18 +150,7 @@ const PublicChatCard = ({
             className="fill-red-600 transition-colors hover:fill-red-500"
           />
         </svg>
-        <div
-          className="absolute right-0 bottom-0 text-white px-4 py-1"
-          onClick={handleCardClick}
-          role="button"
-          tabIndex={0}
-          aria-label={title}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleCardClick();
-            }
-          }}
-        >
+        <div className="absolute right-0 bottom-0 text-white px-4 py-1">
           <div className="relative flex items-center justify-center gap-2 w-[110px]">
             <span>Learn More</span>
             <svg

@@ -5,7 +5,6 @@ import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { ArrowLeft, Plus } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -14,8 +13,9 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { useMemo, useState } from 'react';
-import { languageOptions } from '@/shared/utils/constants';
+import { explorerCategories, languageOptions } from '@/shared/utils/constants';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import MultiSelect from '@/shared/components/ui/multi-select';
 
 interface Props {
   isOpen: boolean;
@@ -30,6 +30,7 @@ const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
   const [tool, setTool] = useState('');
   const [tags, setTags] = useState('');
   const [language, setLanguage] = useState('python');
+  const [categories, setCategories] = useState<string[]>([]);
 
   const validateTool = trpc.explorer.validateTool.useMutation();
 
@@ -39,6 +40,10 @@ const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
     }, 400);
     return debouncedFn;
   }, []);
+
+  const handleCategoriesChange = (selectedCategories: string[]) => {
+    setCategories(selectedCategories);
+  };
 
   const toast = useToast();
 
@@ -70,6 +75,14 @@ const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
       return;
     }
 
+    if (categories.length === 0) {
+      toast.toast({
+        title: 'Please select at least one category',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const trimTags = tags
       .split(',')
       .map((tag) => tag.trim())
@@ -84,6 +97,7 @@ const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         description,
         useCases: [{ title: '', description: '' }],
         language,
+        category: categories,
         requirements: [{ package: '', installation: '' }],
         tags: trimTags,
       })
@@ -186,6 +200,18 @@ const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="flex flex-col gap-1 my-4">
+          <span>Categories</span>
+          <MultiSelect
+            options={explorerCategories.map((category) => ({
+              id: category.value,
+              label: category.label,
+            }))}
+            selectedValues={categories}
+            onChange={handleCategoriesChange}
+            placeholder="Select categories"
+          />
         </div>
         <div className="flex flex-col gap-1">
           <span>Tags</span>

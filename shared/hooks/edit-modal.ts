@@ -15,6 +15,7 @@ type EditModal = {
   name: string;
   description?: string;
   tags?: string;
+  category: string[];
   useCases: { title: string; description: string }[];
 };
 
@@ -39,6 +40,7 @@ interface InputState {
   useCases: { title: string; description: string }[];
   uniqueField: string;
   language?: string;
+  category: string[];
   requirements?: { package: string; installation: string }[];
 }
 
@@ -57,6 +59,7 @@ export default function useEditModal({
     useCases: [{ title: '', description: '' }],
     uniqueField: '',
     language: 'python',
+    category: [],
     requirements: [{ package: '', installation: '' }],
   });
 
@@ -88,6 +91,7 @@ export default function useEditModal({
         name: entityData.name ?? '',
         description: entityData.description ?? '',
         tags: entityData.tags ?? '',
+        category: entityData.category ?? [],
         useCases: entityData.use_cases ?? [{ title: '', description: '' }],
         uniqueField:
           entityType === 'agent'
@@ -113,6 +117,13 @@ export default function useEditModal({
     }, 400);
     return debouncedFn;
   }, []);
+
+  const handleCategoriesChange = (selectedCategories: string[]) => {
+    setInputState((prev) => ({
+      ...prev,
+      category: selectedCategories,
+    }));
+  };
 
   const addUseCase = () => {
     setInputState((prev) => ({
@@ -185,18 +196,12 @@ export default function useEditModal({
       return;
     }
 
-    // Validate use cases
-    for (const useCase of inputState.useCases) {
-      if (
-        useCase.title.trim().length === 0 ||
-        useCase.description.trim().length === 0
-      ) {
-        toast.toast({
-          title: `Use case ${useCase.title.trim().length === 0 ? 'title' : 'description'} is required`,
-          variant: 'destructive',
-        });
-        return;
-      }
+    if (inputState.category.length === 0) {
+      toast.toast({
+        title: 'Please select at least one category',
+        variant: 'destructive',
+      });
+      return;
     }
 
     const trimTags = inputState.tags
@@ -233,6 +238,7 @@ export default function useEditModal({
             description: inputState.description,
             tags: trimTags,
             useCases: inputState.useCases,
+            category: inputState.category,
             agent: inputState.uniqueField,
             language: inputState.language!,
             requirements: inputState.requirements!,
@@ -244,6 +250,7 @@ export default function useEditModal({
               description: inputState.description,
               tags: trimTags,
               useCases: inputState.useCases,
+              category: inputState.category,
               tool: inputState.uniqueField,
               requirements: inputState.requirements!,
             }
@@ -253,6 +260,7 @@ export default function useEditModal({
               description: inputState.description,
               tags: trimTags,
               useCases: inputState.useCases,
+              category: inputState.category,
               prompt: inputState.uniqueField,
             };
 
@@ -273,6 +281,7 @@ export default function useEditModal({
     debouncedCheckUniqueField,
     validateMutation,
     isPending: editMutation.isPending,
+    handleCategoriesChange,
     addUseCase,
     removeUseCase,
     addRequirement,

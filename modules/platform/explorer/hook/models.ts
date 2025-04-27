@@ -3,8 +3,10 @@ import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { defaultOptions, explorerOptions } from '@/shared/utils/constants';
 import { useSearchParams } from 'next/navigation';
+
 const promptLimit = 6;
 const trendingLimit = 6;
+const agentLimit = 6;
 
 export default function useModels() {
   const searchParams = useSearchParams();
@@ -13,38 +15,38 @@ export default function useModels() {
 
   const [promptOffset, setPromptOffset] = useState(0);
   const [trendingOffset, setTrendingOffset] = useState(0);
+  const [agentOffset, setAgentOffset] = useState(0);
 
   const [prompts, setPrompts] = useState<any[]>([]);
   const [trendingModels, setTrendingModels] = useState<any[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
 
   const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
   const [isFetchingTrending, setIsFetchingTrending] = useState(false);
+  const [isFetchingAgents, setIsFetchingAgents] = useState(false);
 
   const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [tagCategory, setTagCategory] = useState<string>('all');
 
-  const { data: categoryTags, isLoading: isCategoryLoading } =
-    trpc.explorer.getAgentTags.useQuery();
-
   const { data, isLoading, refetch } = trpc.explorer.getExplorerData.useQuery(
     {
-      includeAgents: false,
       limit: 6,
       offset: 0,
       search: searchQuery || searchValue,
+      category: tagCategory,
     },
     { refetchOnWindowFocus: false },
   );
 
   const promptsQuery = trpc.explorer.getExplorerData.useQuery(
     {
-      includePublicChats: false,
       includeAgents: false,
       includeTools: false,
       limit: promptLimit,
       offset: promptOffset,
       search: searchQuery || searchValue,
+      category: tagCategory,
     },
     { enabled: promptOffset > 0 },
   );
@@ -53,11 +55,12 @@ export default function useModels() {
     {
       includePrompts: false,
       includeTools: false,
-      includePublicChats: true,
+      limit: agentLimit,
+      offset: agentOffset,
       search: searchQuery || searchValue,
       category: tagCategory,
     },
-    { refetchOnWindowFocus: false },
+    { enabled: agentOffset > 0 },
   );
 
   const trendingQuery = trpc.main.trending.useQuery(
@@ -86,25 +89,40 @@ export default function useModels() {
     if (data?.prompts) {
       setPrompts(data.prompts);
     }
-  }, [data?.prompts]);
+    if (data?.agents) {
+      setAgents(data.agents);
+    }
+  }, [data?.prompts, data?.agents]);
 
   useEffect(() => {
     if (promptsQuery.data?.prompts) {
       setPrompts((prev) => [...prev, ...promptsQuery.data.prompts]);
       setIsFetchingPrompts(false);
     }
-  }, [promptsQuery.data?.prompts]);
 
-  useEffect(() => {
+    if (agentsQuery.data?.agents) {
+      setAgents((prev) => [...prev, ...agentsQuery.data.agents]);
+      setIsFetchingAgents(false);
+    }
+
     if (trendingQuery.data?.data) {
       setTrendingModels((prev) => [...prev, ...trendingQuery.data.data]);
       setIsFetchingTrending(false);
     }
-  }, [trendingQuery.data?.data]);
+  }, [
+    promptsQuery.data?.prompts,
+    agentsQuery.data?.agents,
+    trendingQuery.data?.data,
+  ]);
 
   const loadMorePrompts = useCallback(() => {
     setPromptOffset((prevOffset) => prevOffset + promptLimit);
     setIsFetchingPrompts(true);
+  }, []);
+
+  const loadMoreAgents = useCallback(() => {
+    setAgentOffset((prevOffset) => prevOffset + agentLimit);
+    setIsFetchingAgents(true);
   }, []);
 
   const loadMoreTrending = useCallback(() => {
@@ -124,6 +142,7 @@ export default function useModels() {
 
     setPromptOffset(0);
     setTrendingOffset(0);
+    setAgentOffset(0);
     setSearchValue(search);
   };
 
@@ -139,13 +158,14 @@ export default function useModels() {
 
   const handleCategoryChange = (category: string) => {
     setTagCategory(category);
+    setAgentOffset(0);
+    setPromptOffset(0);
   };
 
   const allItems = [
     ...(data?.prompts || []),
-    ...(agentsQuery.data?.agents || []),
+    ...(data?.agents || []),
     ...(data?.tools || []),
-    ...(data?.publicChats || []),
     ...(trendingModels || []),
   ];
 
@@ -209,19 +229,13 @@ export default function useModels() {
     [prompts, filterData],
   );
   const filteredAgents = useMemo(
-    () => filterData(agentsQuery.data?.agents, 'agents'),
-    [agentsQuery.data?.agents, filterData],
+    () => filterData(agents, 'agents'),
+    [agents, filterData],
   );
   const filteredTools = useMemo(
     () => filterData(data?.tools, 'tools'),
     [data?.tools, filterData],
   );
-  const filteredPublicChats = useMemo(
-    () => filterData(data?.publicChats, 'publicChats'),
-    [data?.publicChats, filterData],
-  );
-
-  console.log({ filteredPublicChats });
 
   const handleOptionChange = useCallback(
     (value: string) => {
@@ -233,40 +247,11 @@ export default function useModels() {
     [isLoading, promptsQuery.isLoading, trendingQuery.isLoading],
   );
 
-  const filteredAgentsByCategory = useMemo(() => {
-    if (!filteredAgents || tagCategory === 'all') return filteredAgents;
-
-    return filteredAgents.filter((agent: any) => {
-      if (!agent?.tags) return false;
-
-      const tags = agent?.tags.split(',');
-      return tags.some((tag: string) => {
-        const trimmedTag = tag.trim();
-        // Check if tag contains the selected category
-        if (trimmedTag.toLowerCase().includes(tagCategory.toLowerCase())) {
-          return true;
-        }
-
-        // Check for tags like "Finance Agents" when category is "Finance"
-        const agentsMatch = trimmedTag.match(
-          /^(.*?)\s+(?:Agents?|agents?|Swarm|swarm)$/i,
-        );
-        if (agentsMatch && agentsMatch[1]) {
-          const category = agentsMatch[1].trim();
-          return category.toLowerCase() === tagCategory.toLowerCase();
-        }
-
-        return false;
-      });
-    });
-  }, [filteredAgents, tagCategory]);
-
   return {
     promptsQuery,
     filteredPrompts,
-    filteredAgents: filteredAgentsByCategory,
+    filteredAgents,
     filteredTools,
-    filteredPublicChats,
     trendingModels,
     isTrendingLoading,
     search,
@@ -278,7 +263,6 @@ export default function useModels() {
     hasMoreTrending: trendingModels.length < 12,
     filterOption,
     isLoading,
-    isAgentsLoading: agentsQuery.isLoading,
     isFetchingPrompts,
     isFetchingTrending,
     refetch,
@@ -288,8 +272,10 @@ export default function useModels() {
     handleSearchChange,
     handleOptionChange,
     handleCategoryChange,
-    categories: categoryTags?.categories || [],
     tagCategory,
-    isCategoryLoading,
+    loadMoreAgents,
+    isFetchingAgents,
+    hasMoreAgents: agents.length > agentOffset,
+    agentsQuery,
   };
 }

@@ -2,27 +2,36 @@ import React, { useState } from 'react';
 import { SkeletonTags } from './skeleton-tags';
 import { cn } from '@/shared/utils/cn';
 
+type Category = {
+  label: string;
+  value: string;
+};
+
 interface ModelCategoriesProps {
-  categories: string[];
+  categories: Category[];
   onCategoryClick: (category: string) => void;
   isLoading?: boolean;
+  isCategoryLoading?: boolean;
   activeCategory: string;
   categoryClass?: string;
 }
 
-const MAX_CATEGORY_LENGTH = 9;
+const MAX_CATEGORY_LENGTH = 13;
 
 export default function ModelCategories({
   categories = [],
   onCategoryClick,
   isLoading,
+  isCategoryLoading,
   activeCategory,
   categoryClass,
 }: ModelCategoriesProps) {
   const [showAllCategories, setShowAllCategories] = useState(false);
 
   const handleCategoryClick = (category: string) => {
-    onCategoryClick?.(category);
+    if (!isLoading) {
+      onCategoryClick?.(category);
+    }
   };
 
   const handleShowToggle = () => {
@@ -35,7 +44,7 @@ export default function ModelCategories({
       <div className="hidden xl:block">
         <div className="py-5 xl:pb-10">
           <div className="flex items-center w-full">
-            {isLoading ? (
+            {isCategoryLoading ? (
               <SkeletonTags desktopMb={0} />
             ) : (
               <div className="flex max-w-full items-center gap-2">
@@ -59,20 +68,22 @@ export default function ModelCategories({
                         .map((category, index) => {
                           const isActiveTag =
                             activeCategory?.toLowerCase() ===
-                            category?.toLowerCase();
+                            category?.value?.toLowerCase();
                           return (
                             <div
                               key={index}
                               className={cn(
                                 'shrink-0 cursor-pointer whitespace-nowrap font-semibold capitalize rounded-2xl px-4 py-2 text-xs text-red-500/70 border border-red-500/70 hover:bg-primary/50 hover:text-white maxlg:text-base',
-                                isActiveTag
+                                isActiveTag && !isLoading
                                   ? 'bg-primary/50 text-white'
                                   : 'bg-[#22201F] text-[#DDDBDA]',
                                 categoryClass,
                               )}
-                              onClick={() => handleCategoryClick(category)}
+                              onClick={() =>
+                                handleCategoryClick(category.value)
+                              }
                             >
-                              {category}
+                              {category.label}
                             </div>
                           );
                         })}
@@ -101,7 +112,7 @@ export default function ModelCategories({
   const MobileCategories = () => (
     <div className="w-full xl:hidden">
       <div className="py-5 xl:py-10">
-        {isLoading ? (
+        {isCategoryLoading ? (
           <SkeletonTags mobilePb="0px" isMobileMb={false} />
         ) : (
           <div className="flex flex-col space-y-4">
@@ -111,20 +122,21 @@ export default function ModelCategories({
                   .slice(0, showAllCategories ? categories.length : 5)
                   .map((category, index) => {
                     const isActiveTag =
-                      activeCategory?.toLowerCase() === category?.toLowerCase();
+                      activeCategory?.toLowerCase() ===
+                      category?.value?.toLowerCase();
                     return (
                       <div
                         key={index}
                         className={cn(
                           'cursor-pointer whitespace-nowrap rounded-2xl font-semibold px-4 py-2 text-xs',
-                          isActiveTag
+                          isActiveTag && !isLoading
                             ? 'bg-primary/50 text-white'
                             : 'text-red-500/70 border border-red-500/70',
                           categoryClass,
                         )}
-                        onClick={() => handleCategoryClick(category)}
+                        onClick={() => handleCategoryClick(category.value)}
                       >
-                        {category}
+                        {category.label}
                       </div>
                     );
                   })}

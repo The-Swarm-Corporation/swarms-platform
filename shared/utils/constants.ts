@@ -44,10 +44,22 @@ export const explorerOptions = [
   { label: 'Agents', value: 'agents' },
   { label: 'Prompts', value: 'prompts' },
   { label: 'Tools', value: 'tools' },
-  { label: 'Public Chats', value: 'chats' },
 ];
 
-export const defaultOptions = ['agents', 'prompts', 'tools', 'chats'];
+export const explorerCategories = [
+  { label: 'All', value: 'all' },
+  { label: 'Healthcare', value: 'healthcare' },
+  { label: 'Education', value: 'education' },
+  { label: 'Finance', value: 'finance' },
+  { label: 'Research', value: 'research' },
+  { label: 'Public Safety', value: 'public-safety' },
+  { label: 'Marketing', value: 'marketing' },
+  { label: 'Sales', value: 'sales' },
+  { label: 'Customer Support', value: 'customer-support' },
+  { label: 'Other', value: 'other' },
+];
+
+export const defaultOptions = ['agents', 'prompts', 'tools'];
 
 export const languageOptions = [
   'python',
@@ -111,7 +123,7 @@ export const NAVIGATION: { [key in keyof typeof NAV_LINKS]: NAV_LINKS } = {
 };
 
 export const SECURITY_LEVELS = {
-  LOW: "LEVEL 1 - STANDARD",
-  MEDIUM: "LEVEL 2 - ENCRYPTED",
-  HIGH: "LEVEL 3 - QUANTUM SECURED",
-}
+  LOW: 'LEVEL 1 - STANDARD',
+  MEDIUM: 'LEVEL 2 - ENCRYPTED',
+  HIGH: 'LEVEL 3 - QUANTUM SECURED',
+};

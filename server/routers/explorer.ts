@@ -15,7 +15,6 @@ const explorerRouter = router({
         includePrompts: z.boolean().default(true),
         includeAgents: z.boolean().default(true),
         includeTools: z.boolean().default(true),
-        includePublicChats: z.boolean().default(true),
         limit: z.number().default(6),
         offset: z.number().default(0),
         search: z.string().optional(),
@@ -27,43 +26,27 @@ const explorerRouter = router({
         includePrompts,
         includeAgents,
         includeTools,
-        includePublicChats,
         limit,
         offset,
         search,
         category,
       } = input;
 
-      let prompts: any[] = [];
-      let agents: any[] = [];
-      let tools: any[] = [];
-      let publicChats: any[] = [];
+      const prompts: any[] = [];
+      const agents: any[] = [];
+      const tools: any[] = [];
 
-      if (includePrompts) {
+      const buildQuery = (table: any, fields = '*') => {
         let query = ctx.supabase
-          .from('swarms_cloud_prompts')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (search) {
-          query = query.or(`name.ilike.%${search}%,prompt.ilike.%${search}%`);
-        }
-
-        const { data, error } = await query.range(offset, offset + limit - 1);
-        if (error) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
-        }
-        prompts = data ?? [];
-      }
-
-      if (includeAgents) {
-        let query = ctx.supabase
-          .from('swarms_cloud_agents')
-          .select('*')
+          .from(table)
+          .select(fields)
           .order('created_at', { ascending: false });
 
         if (category && category.toLowerCase() !== 'all') {
-          query = query.or(`tags.ilike.%${category}%`);
+          query = query.contains(
+            'category',
+            JSON.stringify([category.toLowerCase()]),
+          );
         }
 
         if (search) {
@@ -72,33 +55,40 @@ const explorerRouter = router({
           );
         }
 
-        const { data, error } = await query;
+        return query;
+      };
+
+      if (includePrompts) {
+        const { data, error } = await buildQuery('swarms_cloud_prompts').range(
+          offset,
+          offset + limit - 1,
+        );
         if (error) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
         }
-        agents = data ?? [];
+        prompts.push(...(data ?? []));
       }
 
-      if (includeTools) {
-        let query = ctx.supabase
-          .from('swarms_cloud_tools')
-          .select('*')
-          .order('created_at', { ascending: false });
+      if (includeAgents) {
+        const { data: agentData, error: agentError } = await buildQuery(
+          'swarms_cloud_agents',
+        ).order('created_at', { ascending: false });
 
-        if (search) {
-          query = query.or(
-            `name.ilike.%${search}%,description.ilike.%${search}%`,
-          );
+        if (agentError) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: agentError.message,
+          });
         }
 
-        const { data, error } = await query;
-        if (error) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
-        }
-        tools = data ?? [];
-      }
+        const agentsList = (
+          (agentData || []) as unknown as Record<string, any>[]
+        ).map((agent) => ({
+          ...agent,
+          statusType: 'agent',
+          created_at: agent.created_at ?? new Date().toISOString(),
+        }));
 
-      if (includePublicChats) {
         let chatQuery = ctx.supabase
           .from('swarms_cloud_chat')
           .select('id, name, user_id, share_id, description, updated_at')
@@ -112,40 +102,74 @@ const explorerRouter = router({
         }
 
         const { data: chats, error: chatError } = await chatQuery;
-
-        if (chatError)
+        if (chatError) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: chatError.message,
           });
+        }
 
-        const chatIds = chats.map((chat) => chat.id);
-        const { data: agentsData, error: agentError } = await ctx.supabase
-          .from('swarms_cloud_chat_agents')
-          .select('chat_id, name')
-          .in('chat_id', chatIds)
-          .eq('is_active', true);
+        const publicChatAgents: any[] = [];
+        if (chats && chats.length > 0) {
+          const chatIds = chats.map((chat) => chat.id);
+          const { data: agentsData, error: chatAgentError } = await ctx.supabase
+            .from('swarms_cloud_chat_agents')
+            .select('chat_id, name')
+            .in('chat_id', chatIds)
+            .eq('is_active', true);
 
-        if (agentError)
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: agentError.message,
-          });
+          if (chatAgentError) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: chatAgentError.message,
+            });
+          }
 
-        const agentMap =
-          agentsData?.reduce<Record<string, string[]>>((acc, item) => {
-            if (!acc[item.chat_id ?? '']) acc[item.chat_id ?? ''] = [];
-            acc[item.chat_id ?? ''].push(item.name);
-            return acc;
-          }, {}) || {};
+          const agentMap = (agentsData ?? []).reduce<Record<string, string[]>>(
+            (acc, item) => {
+              if (!acc[item.chat_id ?? '']) acc[item.chat_id ?? ''] = [];
+              acc[item.chat_id ?? ''].push(item.name);
+              return acc;
+            },
+            {},
+          );
 
-        publicChats = chats.map((chat) => ({
-          ...chat,
-          agents: agentMap[chat.id ?? ''] ?? [],
-        }));
+          let mappedChats = chats.map((chat) => ({
+            ...chat,
+            agents: agentMap[chat.id ?? ''] ?? [],
+            statusType: 'publicChat',
+            created_at: chat.updated_at ?? new Date().toISOString(),
+          }));
+
+          if (category && category.toLowerCase() !== 'all') {
+            mappedChats = mappedChats.filter((chat) =>
+              chat.agents.some((agentName) =>
+                agentName.toLowerCase().includes(category.toLowerCase()),
+              ),
+            );
+          }
+
+          publicChatAgents.push(...mappedChats);
+        }
+
+        const combinedAgents = [...agentsList, ...publicChatAgents].sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        );
+
+        agents.push(...combinedAgents.slice(offset, offset + limit));
       }
 
-      return { prompts, agents, tools, publicChats };
+      if (includeTools) {
+        const { data, error } =
+          await buildQuery('swarms_cloud_tools').select('*');
+        if (error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+        }
+        tools.push(...(data ?? []));
+      }
+
+      return { prompts, agents, tools };
     }),
 
   getAgentTags: publicProcedure.query(async ({ ctx }) => {
@@ -197,6 +221,7 @@ const explorerRouter = router({
         description: z.string().optional(),
         useCases: z.array(z.any()).optional(),
         tags: z.string().optional(),
+        category: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -236,6 +261,7 @@ const explorerRouter = router({
             user_id: user_id,
             tags: input.tags,
             status: 'pending',
+            category: input.category,
           } as Tables<'swarms_cloud_prompts'>,
         ]);
         if (prompts.error) {
@@ -258,6 +284,7 @@ const explorerRouter = router({
         description: z.string().optional(),
         useCases: z.array(z.any()).optional(),
         tags: z.string().optional(),
+        category: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -281,6 +308,7 @@ const explorerRouter = router({
             prompt: input.prompt,
             description: input.description,
             tags: input.tags,
+            category: input.category,
           } as Tables<'swarms_cloud_prompts'>)
           .eq('user_id', user_id)
           .eq('id', input.id)
@@ -385,6 +413,7 @@ const explorerRouter = router({
         requirements: z.array(z.any()).optional(),
         useCases: z.array(z.any()).optional(),
         tags: z.string().optional(),
+        category: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -429,6 +458,7 @@ const explorerRouter = router({
             tags: input.tags || null,
             language: input.language,
             status: 'pending',
+            category: input.category,
           } as Tables<'swarms_cloud_agents'>,
         ]);
         if (agents.error) {
@@ -452,6 +482,7 @@ const explorerRouter = router({
         requirements: z.array(z.any()).optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        category: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -477,6 +508,7 @@ const explorerRouter = router({
             requirements: input.requirements,
             tags: input.tags,
             language: input.language,
+            category: input.category,
           } as Tables<'swarms_cloud_agents'>)
           .eq('user_id', user_id)
           .eq('id', input.id)
@@ -559,6 +591,7 @@ const explorerRouter = router({
         requirements: z.array(z.any()),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        category: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -584,7 +617,7 @@ const explorerRouter = router({
         const lastSubmitTime = new Date(lastSubmit.created_at);
         const currentTime = new Date();
         const diff = currentTime.getTime() - lastSubmitTime.getTime();
-        const diffMinutes = diff / (1000 * 30); // 30 secs
+        const diffMinutes = diff / (1000 * 30);
         if (diffMinutes < 1) {
           throw 'You can only submit one tool per 30 secs';
         }
@@ -602,6 +635,7 @@ const explorerRouter = router({
             tags: input.tags || null,
             language: input.language,
             status: 'pending',
+            category: input.category,
           } as Tables<'swarms_cloud_tools'>,
         ]);
         if (tools.error) {
@@ -625,6 +659,7 @@ const explorerRouter = router({
         requirements: z.array(z.any()).optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        category: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -650,6 +685,7 @@ const explorerRouter = router({
             requirements: input.requirements,
             tags: input.tags,
             language: input.language,
+            category: input.category,
           } as Tables<'swarms_cloud_tools'>)
           .eq('user_id', user_id)
           .eq('id', input.id)

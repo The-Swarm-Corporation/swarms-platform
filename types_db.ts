@@ -1204,6 +1204,7 @@ export type Database = {
       swarms_cloud_agents: {
         Row: {
           agent: string | null
+          category: Json | null
           created_at: string
           description: string | null
           id: string
@@ -1219,6 +1220,7 @@ export type Database = {
         }
         Insert: {
           agent?: string | null
+          category?: Json | null
           created_at?: string
           description?: string | null
           id?: string
@@ -1234,6 +1236,7 @@ export type Database = {
         }
         Update: {
           agent?: string | null
+          category?: Json | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2215,6 +2218,7 @@ export type Database = {
       }
       swarms_cloud_prompts: {
         Row: {
+          category: Json | null
           created_at: string
           description: string | null
           id: string
@@ -2228,6 +2232,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: Json | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2241,6 +2246,7 @@ export type Database = {
           user_id?: string
         }
         Update: {
+          category?: Json | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2467,6 +2473,7 @@ export type Database = {
       }
       swarms_cloud_tools: {
         Row: {
+          category: Json | null
           created_at: string
           description: string | null
           id: string
@@ -2481,6 +2488,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          category?: Json | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2495,6 +2503,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          category?: Json | null
           created_at?: string
           description?: string | null
           id?: string

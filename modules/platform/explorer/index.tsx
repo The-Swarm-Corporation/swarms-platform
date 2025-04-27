@@ -10,7 +10,7 @@ import {
 } from '@/shared/components/ui/select';
 import { Input } from '@/shared/components/ui/input';
 import useModels from './hook/models';
-import { explorerOptions } from '@/shared/utils/constants';
+import { explorerCategories, explorerOptions } from '@/shared/utils/constants';
 import AddPromptModal from './components/add-prompt-modal';
 import { Activity, Search } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
@@ -18,6 +18,7 @@ import AddAgentModal from './components/add-agent-modal';
 import dynamic from 'next/dynamic';
 import Sticky from 'react-stickynode';
 import AddToolModal from './components/add-tool-modal';
+import ModelCategories from './components/content/categories';
 
 // Add the animation keyframes to your global styles or tailwind config
 const style = document.createElement('style');
@@ -31,9 +32,6 @@ style.textContent = `
 document.head.appendChild(style);
 
 const Trending = dynamic(() => import('./components/content/trending'), {
-  ssr: false,
-});
-const PublicChats = dynamic(() => import('./components/content/public-chats'), {
   ssr: false,
 });
 const Prompts = dynamic(() => import('./components/content/prompts'), {
@@ -68,7 +66,6 @@ const Explorer = () => {
     isFetchingTrending,
     isFetchingPrompts,
     isTrendingLoading,
-    isAgentsLoading,
     hasMoreTrending,
     hasMorePrompts,
     search,
@@ -85,21 +82,17 @@ const Explorer = () => {
     handleSearchChange,
     handleOptionChange,
     handleCategoryChange,
-    filteredPublicChats,
-    categories,
     tagCategory,
-    isCategoryLoading,
+    loadMoreAgents,
+    isFetchingAgents,
+    hasMoreAgents,
+    agentsQuery,
   } = useModels();
 
-  const isAllLoading = isLoading || promptsQuery.isLoading;
+  const isAllLoading =
+    isLoading || promptsQuery.isLoading || agentsQuery.isLoading;
 
   const elements = [
-    {
-      key: 'chats',
-      content: (
-        <PublicChats {...{ isLoading, filteredPublicChats, usersMap }} />
-      ),
-    },
     {
       key: 'prompts',
       content: (
@@ -127,11 +120,11 @@ const Explorer = () => {
             usersMap,
             reviewsMap,
             handleCategoryChange,
-            categories,
-            tagCategory,
-            isCategoryLoading,
+            loadMoreAgents,
+            isFetchingAgents,
+            hasMoreAgents,
           }}
-          isLoading={isAgentsLoading}
+          isLoading={isAllLoading}
         />
       ),
     },
@@ -270,6 +263,13 @@ const Explorer = () => {
           </div>
         </div>
 
+        <ModelCategories
+          categories={explorerCategories}
+          isLoading={isLoading}
+          onCategoryClick={handleCategoryChange}
+          activeCategory={tagCategory}
+        />
+
         <div
           className={cn(
             'flex flex-col h-full p-2',
@@ -278,7 +278,7 @@ const Explorer = () => {
               : 'translate-y-0',
           )}
         >
-          {filterOption === 'all' && !searchValue && (
+          {filterOption === 'all' && !searchValue && tagCategory === 'all' && (
             <Trending
               {...{
                 trendingModels,
