@@ -135,6 +135,7 @@ const AddAgentModal = ({
         agent,
         description,
         imageUrl: imageUrl || undefined,
+        filePath: imageUrl && filePath ? filePath : undefined,
         useCases: [
           {
             title: '',

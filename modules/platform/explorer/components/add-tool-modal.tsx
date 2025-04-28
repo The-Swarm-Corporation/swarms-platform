@@ -138,6 +138,7 @@ const AddToolModal = ({
         useCases: [{ title: '', description: '' }],
         language,
         imageUrl: imageUrl || undefined,
+        filePath: imageUrl && filePath ? filePath : undefined,
         requirements: [{ package: '', installation: '' }],
         tags: trimTags,
       })

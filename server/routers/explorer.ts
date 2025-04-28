@@ -151,6 +151,7 @@ const explorerRouter = router({
         description: z.string().optional(),
         useCases: z.array(z.any()).optional(),
         imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
         tags: z.string().optional(),
       }),
     )
@@ -191,6 +192,7 @@ const explorerRouter = router({
             user_id: user_id,
             image_url: input.imageUrl || null,
             tags: input.tags,
+            file_path: input.filePath || null,
             status: 'pending',
           } as Tables<'swarms_cloud_prompts'>,
         ]);
@@ -214,6 +216,7 @@ const explorerRouter = router({
         description: z.string().optional(),
         useCases: z.array(z.any()).optional(),
         imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
         tags: z.string().optional(),
       }),
     )
@@ -239,6 +242,7 @@ const explorerRouter = router({
             description: input.description,
             tags: input.tags,
             image_url: input.imageUrl || null,
+            file_path: input.filePath || null,
           } as Tables<'swarms_cloud_prompts'>)
           .eq('user_id', user_id)
           .eq('id', input.id)
@@ -343,6 +347,7 @@ const explorerRouter = router({
         requirements: z.array(z.any()).optional(),
         useCases: z.array(z.any()).optional(),
         imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
         tags: z.string().optional(),
       }),
     )
@@ -388,6 +393,7 @@ const explorerRouter = router({
             tags: input.tags || null,
             language: input.language,
             image_url: input.imageUrl || null,
+            file_path: input.filePath || null,
             status: 'pending',
           } as Tables<'swarms_cloud_agents'>,
         ]);
@@ -413,6 +419,7 @@ const explorerRouter = router({
         useCases: z.array(z.any()),
         tags: z.string().optional(),
         imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -439,6 +446,7 @@ const explorerRouter = router({
             tags: input.tags,
             language: input.language,
             image_url: input.imageUrl || null,
+            file_path: input.filePath || null,
           } as Tables<'swarms_cloud_agents'>)
           .eq('user_id', user_id)
           .eq('id', input.id)
@@ -522,6 +530,7 @@ const explorerRouter = router({
         useCases: z.array(z.any()),
         tags: z.string().optional(),
         imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -566,6 +575,7 @@ const explorerRouter = router({
             language: input.language,
             status: 'pending',
             image_url: input.imageUrl || null,
+            file_path: input.filePath || null,
           } as Tables<'swarms_cloud_tools'>,
         ]);
         if (tools.error) {
@@ -590,6 +600,7 @@ const explorerRouter = router({
         useCases: z.array(z.any()),
         tags: z.string().optional(),
         imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -616,6 +627,7 @@ const explorerRouter = router({
             tags: input.tags,
             language: input.language,
             image_url: input.imageUrl || null,
+            file_path: input.filePath || null,
           } as Tables<'swarms_cloud_tools'>)
           .eq('user_id', user_id)
           .eq('id', input.id)

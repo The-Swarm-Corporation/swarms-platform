@@ -231,30 +231,48 @@ export default function EntityComponent({
         <div className="max-md:text-center">
           {title && <h2>{title}</h2>}
 
-          <div className="flex gap-4 items-center my-10">
-            {imageUrl && (
-              <div className="w-[250px] h-[250px] rounded-md overflow-hidden relative">
-                <Image
-                  src={imageUrl}
-                  alt={name ?? ''}
-                  fill
-                  className="rounded-md object-cover"
+          <div className="relative group my-5">
+            <div className="absolute -inset-0.5 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x" />
+            <div
+              className={cn(
+                'relative w-full rounded-2xl overflow-hidden',
+                imageUrl && 'bg-gradient-to-r from-black to-red-950 p-8',
+              )}
+              style={{
+                backgroundImage: `
+        linear-gradient(180deg, rgba(9, 11, 10, 0) 38.11%, rgba(9, 11, 10, 0.8) 88.68%),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+        url(${imageUrl})
+      `,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }}
+            >
+              <div className="relative z-10 font-mono">
+                {name && (
+                  <h1 className="text-4xl md:text-6xl text-white">{name}</h1>
+                )}
+                {description && (
+                  <div
+                    style={{
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                    }}
+                    className="text-sm mt-2.5 font-medium md:text-base text-white/80 bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner w-fit"
+                  >
+                    <p className="text-xs italic">
+                      {description}
+                    </p>
+                  </div>
+                )}
+                <Avatar
+                  userId={userId ?? ''}
+                  showUsername
+                  showBorder
+                  className={cn('mt-4', imageUrl && 'mt-6')}
+                  title={`${title ?? ''} Author`}
                 />
               </div>
-            )}
-            <div>
-              {name && <h1 className="text-4xl md:text-6xl my-4">{name}</h1>}
-              <Avatar
-                userId={userId ?? ''}
-                showUsername
-                showBorder
-                title={`${title ?? ''} Author`}
-              />
-              {description && (
-                <div className="mt-4 text-sm md:text-base text-gray-400">
-                  {description}
-                </div>
-              )}
             </div>
           </div>
 

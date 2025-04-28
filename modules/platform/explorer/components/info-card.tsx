@@ -96,7 +96,7 @@ const InfoCard = ({
               src={imageUrl ?? ''}
               alt={title}
               fill
-              className="rounded-lg border border-primary/70"
+              className="rounded-lg border border-primary/30"
             />
           </div>
         ) : (

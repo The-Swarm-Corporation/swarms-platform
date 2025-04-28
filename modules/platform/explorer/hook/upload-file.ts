@@ -46,7 +46,8 @@ export function useModelFileUpload() {
     setUploadProgress(0);
     setUploadStatus('uploading');
 
-    const filePath = `public/models/${modelType}/${user?.id}/${file.name}`;
+    const imageId = crypto.randomUUID();
+    const filePath = `public/models/${modelType}/${user?.id}/${imageId}/${file.name}`;
     const supabase = createClient();
 
     try {
