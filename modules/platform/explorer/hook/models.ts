@@ -224,8 +224,6 @@ export default function useModels() {
     [isLoading, promptsQuery.isLoading, trendingQuery.isLoading],
   );
 
-  console.log({ filteredAgents, tagCategory });
-
   const filteredAgentsByCategory = useMemo(() => {
     if (!filteredAgents || tagCategory === 'all') return filteredAgents;
 
