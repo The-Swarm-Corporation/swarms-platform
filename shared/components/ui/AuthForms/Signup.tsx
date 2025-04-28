@@ -1,11 +1,11 @@
 'use client';
 
 import { Button } from '@/shared/components/ui/button';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { signUp } from '@/shared/utils/auth-helpers/server';
 import { handleRequest } from '@/shared/utils/auth-helpers/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
 // Define prop type with allowEmail boolean
@@ -16,17 +16,47 @@ interface SignUpProps {
 
 export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
   const router = redirectMethod === 'client' ? useRouter() : null;
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
+
+  useEffect(() => {
+    const ref = searchParams?.get('ref');
+    if (ref) {
+      setReferralCode(ref);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    setIsSubmitting(true); // Disable the button while the request is being handled
-    await handleRequest(e, signUp, router);
+    setIsSubmitting(true);
 
+    if (referralCode) {
+      const formElement = e.currentTarget;
+      const formData = new FormData(formElement);
+
+      if (!formElement.querySelector('input[name="referralCode"]')) {
+        const referralInput = document.createElement('input');
+        referralInput.type = 'hidden';
+        referralInput.name = 'referralCode';
+        referralInput.value = referralCode;
+        formElement.appendChild(referralInput);
+      }
+    }
+
+    await handleRequest(e, signUp, router);
     setIsSubmitting(false);
   };
 
   return (
-    <div className="my-8">
+    <div className="my-8 space-y-6">
+      {referralCode && (
+        <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+          <p className="text-sm text-green-700">
+            You&apos;ve been referred by a friend! Sign up for free credits.
+          </p>
+        </div>
+      )}
+
       <form
         noValidate={true}
         className="mb-4"
@@ -54,6 +84,9 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
               autoComplete="current-password"
               className="w-full p-3 rounded-md bg-zinc-800 text-white"
             />
+            {referralCode && (
+              <input type="hidden" name="referralCode" value={referralCode} />
+            )}
           </div>
           <Button
             variant="outline"

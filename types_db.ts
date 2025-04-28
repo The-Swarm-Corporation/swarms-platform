@@ -2570,6 +2570,7 @@ export type Database = {
           free_credit: number
           free_credit_expire_date: string | null
           id: string
+          referral_credits: number
           user_id: string | null
         }
         Insert: {
@@ -2581,6 +2582,7 @@ export type Database = {
           free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
+          referral_credits?: number
           user_id?: string | null
         }
         Update: {
@@ -2592,6 +2594,7 @@ export type Database = {
           free_credit?: number
           free_credit_expire_date?: string | null
           id?: string
+          referral_credits?: number
           user_id?: string | null
         }
         Relationships: [
@@ -2599,6 +2602,45 @@ export type Database = {
             foreignKeyName: "public_swarms_cloud_users_credits_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_cloud_users_referral: {
+        Row: {
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_cloud_users_referral_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_users_referral_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -3169,6 +3211,8 @@ export type Database = {
           job_title: string | null
           payment_method: Json | null
           referral: string | null
+          referral_code: string | null
+          referred_by: string | null
           signup_reason: string | null
           twenty_crm_id: string | null
           username: string | null
@@ -3190,6 +3234,8 @@ export type Database = {
           job_title?: string | null
           payment_method?: Json | null
           referral?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           signup_reason?: string | null
           twenty_crm_id?: string | null
           username?: string | null
@@ -3211,6 +3257,8 @@ export type Database = {
           job_title?: string | null
           payment_method?: Json | null
           referral?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           signup_reason?: string | null
           twenty_crm_id?: string | null
           username?: string | null
@@ -3222,6 +3270,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["referral_code"]
           },
         ]
       }
@@ -3548,6 +3603,13 @@ export type Database = {
       }
     }
     Functions: {
+      add_referral_credits: {
+        Args: {
+          p_user_id: string
+          p_amount: number
+        }
+        Returns: undefined
+      }
       cleanup_expired_nonces: {
         Args: Record<PropertyKey, never>
         Returns: undefined
