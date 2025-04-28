@@ -8,11 +8,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import { languageOptions } from '@/shared/utils/constants';
+import { explorerCategories, languageOptions } from '@/shared/utils/constants';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import useEditModal from '@/shared/hooks/edit-modal';
 import { Plus } from 'lucide-react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import MultiSelect from '@/shared/components/ui/multi-select';
 import { useModelFileUpload } from '../hook/upload-file';
 import { useRef } from 'react';
 import ModelFileUpload from './upload-image';
@@ -44,6 +45,7 @@ function EditExplorerModal({
     removeUseCase,
     addRequirement,
     removeRequirement,
+    handleCategoriesChange,
 
     //upload
 
@@ -190,6 +192,20 @@ function EditExplorerModal({
             placeholder="Tools, Search, etc."
           />
         </div>
+
+        <div className="flex flex-col gap-1">
+          <span>Categories</span>
+          <MultiSelect
+            options={explorerCategories.map((category) => ({
+              id: category.value,
+              label: category.label,
+            }))}
+            selectedValues={inputState.category}
+            onChange={handleCategoriesChange}
+            placeholder="Select categories"
+          />
+        </div>
+        
         {/* UseCases */}
         <div className="flex flex-col gap-1">
           <span>Use Cases</span>

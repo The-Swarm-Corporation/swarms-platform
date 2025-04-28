@@ -5,7 +5,6 @@ import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { ArrowLeft, Plus } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -13,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import { explorerCategories, languageOptions } from '@/shared/utils/constants';
+import MultiSelect from '@/shared/components/ui/multi-select';
 import { useMemo, useRef, useState } from 'react';
-import { languageOptions } from '@/shared/utils/constants';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useModelFileUpload } from '../hook/upload-file';
 import ModelFileUpload from './upload-image';
@@ -38,6 +38,7 @@ const AddToolModal = ({
   const [tool, setTool] = useState('');
   const [tags, setTags] = useState('');
   const [language, setLanguage] = useState('python');
+  const [categories, setCategories] = useState<string[]>([]);
 
   const {
     image,
@@ -60,6 +61,10 @@ const AddToolModal = ({
     }, 400);
     return debouncedFn;
   }, []);
+
+  const handleCategoriesChange = (selectedCategories: string[]) => {
+    setCategories(selectedCategories);
+  };
 
   const toast = useToast();
 
@@ -123,6 +128,14 @@ const AddToolModal = ({
       return;
     }
 
+    if (categories.length === 0) {
+      toast.toast({
+        title: 'Please select at least one category',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const trimTags = tags
       .split(',')
       .map((tag) => tag.trim())
@@ -137,6 +150,7 @@ const AddToolModal = ({
         description,
         useCases: [{ title: '', description: '' }],
         language,
+        category: categories,
         imageUrl: imageUrl || undefined,
         filePath: imageUrl && filePath ? filePath : undefined,
         requirements: [{ package: '', installation: '' }],
@@ -241,6 +255,18 @@ const AddToolModal = ({
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="flex flex-col gap-1 my-4">
+          <span>Categories</span>
+          <MultiSelect
+            options={explorerCategories.map((category) => ({
+              id: category.value,
+              label: category.label,
+            }))}
+            selectedValues={categories}
+            onChange={handleCategoriesChange}
+            placeholder="Select categories"
+          />
         </div>
         <ModelFileUpload
           image={image}

@@ -26,7 +26,7 @@ export default function Prompts({
   }
 
   return (
-    <div className="flex flex-col min-h-1/2 gap-2 py-8">
+    <div className="flex flex-col min-h-1/2 gap-2 pb-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold pb-2">Prompts</h1>
         <Button onClick={handlePromptModal} disabled={isLoading}>

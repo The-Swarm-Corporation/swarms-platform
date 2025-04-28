@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft,
@@ -42,6 +42,10 @@ interface ConversationSidebarProps {
   isUpdatePending: boolean;
   isDeletePending: boolean;
   onUpdateConversation: ({ id, name }: { id: string; name: string }) => void;
+  activeChatId: string;
+  setActiveChatId: Dispatch<SetStateAction<string>>;
+  isEditModalOpen: boolean;
+  setIsEditModalOpen: Dispatch<SetStateAction<boolean>>;
   onCreateConversation: (name: string) => void;
   onDeleteConversation: (id: string) => void;
   onExportConversation: (id: string) => void;
@@ -61,6 +65,10 @@ export function ConversationSidebar({
   onCreateConversation,
   onDeleteConversation,
   onExportConversation,
+  activeChatId,
+  setActiveChatId,
+  isEditModalOpen,
+  setIsEditModalOpen,
 }: ConversationSidebarProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -71,12 +79,10 @@ export function ConversationSidebar({
   const { toast } = useToast();
 
   const [isExpanded, setIsExpanded] = useState(true);
-  const [activeChatId, setActiveChatId] = useState('');
   const [currentId, setCurrentId] = useState('');
   const [newChatName, setNewChatName] = useState('');
   const [editChatName, setEditChatName] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const isMobile = useIsMobile();
 

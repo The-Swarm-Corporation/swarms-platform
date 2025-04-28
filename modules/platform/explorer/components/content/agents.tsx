@@ -4,11 +4,11 @@ import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { Bot } from 'lucide-react';
+import { Bot, MessagesSquare } from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
-import ModelCategories from './categories';
+import PublicChatCard from '../chat-card';
 
 // TODO: Add types
 export default function Agents({
@@ -17,10 +17,9 @@ export default function Agents({
   setAddAgentModalOpen,
   usersMap,
   reviewsMap,
-  handleCategoryChange,
-  categories,
-  tagCategory,
-  isCategoryLoading,
+  loadMoreAgents,
+  isFetchingAgents,
+  hasMoreAgents,
 }: any) {
   async function handleAgentModal() {
     await checkUserSession();
@@ -34,14 +33,8 @@ export default function Agents({
           Add Agent
         </Button>
       </div>
-      <ModelCategories
-        categories={categories}
-        isLoading={isCategoryLoading}
-        onCategoryClick={handleCategoryChange}
-        activeCategory={tagCategory}
-      />
       <div>
-        {isLoading ? (
+        {isLoading && !isFetchingAgents ? (
           <ExplorerSkeletonLoaders />
         ) : (
           <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
@@ -51,18 +44,29 @@ export default function Agents({
                   className="flex flex-col w-full h-[220px] sm:w-full mb-11"
                   key={`${agent?.id}-${index}`}
                 >
-                  <InfoCard
-                    id={agent.id || ''}
-                    title={agent.name || ''}
-                    usersMap={usersMap}
-                    reviewsMap={reviewsMap}
-                    imageUrl={agent.image_url || ''}
-                    description={agent.description || ''}
-                    icon={<Bot />}
-                    className="w-full h-full"
-                    link={makeUrl(PUBLIC.AGENT, { id: agent.id })}
-                    userId={agent.user_id}
-                  />
+                  {agent?.statusType === 'agent' ? (
+                    <InfoCard
+                      id={agent.id || ''}
+                      title={agent.name || ''}
+                      usersMap={usersMap}
+                      reviewsMap={reviewsMap}
+                      description={agent.description || ''}
+                      icon={<Bot />}
+                      className="w-full h-full"
+                      link={makeUrl(PUBLIC.AGENT, { id: agent.id })}
+                      userId={agent.user_id}
+                    />
+                  ) : (
+                    <PublicChatCard
+                      usersMap={usersMap}
+                      title={agent.name}
+                      description={agent.description}
+                      icon={<MessagesSquare />}
+                      link={`/platform/chat?conversationId=${agent?.id}&shareId=${agent?.share_id}`}
+                      agents={agent?.agents}
+                      userId={agent.user_id}
+                    />
+                  )}
                 </div>
               ))
             ) : (
@@ -70,6 +74,25 @@ export default function Agents({
                 No agents found
               </div>
             )}
+          </div>
+        )}
+
+        {isFetchingAgents && (
+          <div className="mt-4">
+            <ExplorerSkeletonLoaders />
+          </div>
+        )}
+
+        {(hasMoreAgents || isFetchingAgents) && (
+          <div className="flex justify-center mt-3 w-full">
+            <Button
+              variant="destructive"
+              className="w-36 md:w-40"
+              onClick={loadMoreAgents}
+              disabled={isFetchingAgents}
+            >
+              Get more
+            </Button>
           </div>
         )}
       </div>

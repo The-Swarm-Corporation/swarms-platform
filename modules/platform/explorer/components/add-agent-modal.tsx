@@ -12,9 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import { useMemo, useRef, useState } from 'react';
-import { languageOptions } from '@/shared/utils/constants';
+import { explorerCategories, languageOptions } from '@/shared/utils/constants';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import MultiSelect from '@/shared/components/ui/multi-select';
+import { useMemo, useRef, useState } from 'react';
 import { useModelFileUpload } from '../hook/upload-file';
 import ModelFileUpload from './upload-image';
 
@@ -37,6 +38,7 @@ const AddAgentModal = ({
   const [agent, setAgent] = useState('');
   const [tags, setTags] = useState('');
   const [language, setLanguage] = useState('python');
+  const [categories, setCategories] = useState<string[]>([]);
 
   const {
     image,
@@ -63,6 +65,10 @@ const AddAgentModal = ({
   const toast = useToast();
 
   const addAgent = trpc.explorer.addAgent.useMutation();
+
+  const handleCategoriesChange = (selectedCategories: string[]) => {
+    setCategories(selectedCategories);
+  };
 
   const handleImageUploadClick = () => {
     imageUploadRef.current?.click();
@@ -122,6 +128,14 @@ const AddAgentModal = ({
       return;
     }
 
+    if (categories.length === 0) {
+      toast.toast({
+        title: 'Please select at least one category',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const trimTags = tags
       .split(',')
       .map((tag) => tag.trim())
@@ -134,6 +148,7 @@ const AddAgentModal = ({
         name: agentName,
         agent,
         description,
+        category: categories,
         imageUrl: imageUrl || undefined,
         filePath: imageUrl && filePath ? filePath : undefined,
         useCases: [
@@ -178,6 +193,7 @@ const AddAgentModal = ({
           </h2>
           <p className="text-gray-400 text-sm leading-relaxed">
             Share your agent with the community by filling out the details
+            below. Make sure to provide clear descriptions, categories and appropriate tags
             below. Make sure to provide clear descriptions and appropriate tags
             to help others discover and use your agent effectively.
           </p>
@@ -270,6 +286,23 @@ const AddAgentModal = ({
               </SelectContent>
             </Select>
           </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="font-medium text-sm text-gray-200">
+              Categories
+            </span>
+            <MultiSelect
+              options={explorerCategories.map((category) => ({
+                id: category.value,
+                label: category.label,
+              }))}
+              selectedValues={categories}
+              onChange={handleCategoriesChange}
+              placeholder="Select categories"
+              className="border !border-red-500/30 !focus:border-red-500 transition-colors bg-black/40"
+            />
+          </div>
+
           <ModelFileUpload
             image={image}
             imageUrl={imageUrl || ''}
