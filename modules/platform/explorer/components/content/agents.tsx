@@ -56,6 +56,7 @@ export default function Agents({
                     title={agent.name || ''}
                     usersMap={usersMap}
                     reviewsMap={reviewsMap}
+                    imageUrl={agent.image_url || ''}
                     description={agent.description || ''}
                     icon={<Bot />}
                     className="w-full h-full"

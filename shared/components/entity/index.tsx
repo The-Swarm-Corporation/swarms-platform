@@ -30,6 +30,7 @@ import {
 import remarkGfm from 'remark-gfm';
 import { stripMarkdown } from './helper';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -44,6 +45,7 @@ interface Entity extends PropsWithChildren {
   description?: string;
   usecases?: UseCasesProps[];
   prompt?: string;
+  imageUrl?: string;
   requirements?: RequirementProps[];
   userId?: string | null;
 }
@@ -112,6 +114,7 @@ export default function EntityComponent({
   requirements,
   children,
   userId,
+  imageUrl,
 }: Entity) {
   const toast = useToast();
   const user = trpc.main.getUser.useQuery(undefined, {
@@ -227,18 +230,33 @@ export default function EntityComponent({
       <div className="flex flex-col py-8 md:py-16">
         <div className="max-md:text-center">
           {title && <h2>{title}</h2>}
-          {name && <h1 className="text-4xl md:text-6xl my-4">{name}</h1>}
-          <Avatar
-            userId={userId ?? ''}
-            showUsername
-            showBorder
-            title={`${title ?? ''} Author`}
-          />
-          {description && (
-            <div className="mt-4 text-sm md:text-base text-gray-400">
-              {description}
+
+          <div className="flex gap-4 items-center my-10">
+            {imageUrl && (
+              <div className="w-[250px] h-[250px] rounded-md overflow-hidden relative">
+                <Image
+                  src={imageUrl}
+                  alt={name ?? ''}
+                  fill
+                  className="rounded-md object-cover"
+                />
+              </div>
+            )}
+            <div>
+              {name && <h1 className="text-4xl md:text-6xl my-4">{name}</h1>}
+              <Avatar
+                userId={userId ?? ''}
+                showUsername
+                showBorder
+                title={`${title ?? ''} Author`}
+              />
+              {description && (
+                <div className="mt-4 text-sm md:text-base text-gray-400">
+                  {description}
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           <div className="flex gap-2 mt-4 select-none flex-wrap">
             {tags &&
@@ -333,7 +351,9 @@ export default function EntityComponent({
           key={id}
         />
       </div>
-      {usecases && usecases?.some((uc) => uc?.title?.trim() !== '') && <UseCases usecases={usecases} />}
+      {usecases && usecases?.some((uc) => uc?.title?.trim() !== '') && (
+        <UseCases usecases={usecases} />
+      )}
       {title.toLowerCase() === 'agent' ||
         (title.toLowerCase() === 'tool' && (
           <AgentRequirements

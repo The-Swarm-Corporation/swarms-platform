@@ -12,23 +12,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { languageOptions } from '@/shared/utils/constants';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import { useModelFileUpload } from '../hook/upload-file';
+import ModelFileUpload from './upload-image';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  modelType: string;
   onAddSuccessfully: () => void;
 }
 
-const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
+const AddAgentModal = ({
+  isOpen,
+  onClose,
+  onAddSuccessfully,
+  modelType,
+}: Props) => {
   const { user } = useAuthContext();
   const [agentName, setAgentName] = useState('');
   const [description, setDescription] = useState('');
   const [agent, setAgent] = useState('');
   const [tags, setTags] = useState('');
   const [language, setLanguage] = useState('python');
+
+  const {
+    image,
+    imageUrl,
+    filePath,
+    uploadProgress,
+    uploadStatus,
+    isDeleteFile,
+    uploadImage,
+    deleteImage,
+  } = useModelFileUpload();
+
+  const imageUploadRef = useRef<HTMLInputElement>(null);
 
   const validateAgent = trpc.explorer.validateAgent.useMutation();
 
@@ -42,6 +63,38 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
   const toast = useToast();
 
   const addAgent = trpc.explorer.addAgent.useMutation();
+
+  const handleImageUploadClick = () => {
+    imageUploadRef.current?.click();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploadStatus === 'uploading') return;
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (filePath && modelType) {
+      await deleteImage(filePath, modelType);
+    }
+
+    await uploadImage(file, modelType);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    if (uploadStatus === 'uploading') return;
+
+    e.preventDefault();
+
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    if (filePath && modelType) {
+      await deleteImage(filePath, modelType);
+    }
+
+    await uploadImage(file, modelType);
+  };
 
   const submit = () => {
     // Validate Agent
@@ -81,6 +134,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         name: agentName,
         agent,
         description,
+        imageUrl: imageUrl || undefined,
         useCases: [
           {
             title: '',
@@ -118,13 +172,16 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
     >
       <div className="flex flex-col gap-4 overflow-y-auto h-[70vh] relative">
         <div className="sticky top-0 z-10 bg-black/90 border-b border-red-500/30 px-6 py-4">
-          <h2 className="text-2xl font-bold text-red-500 mb-2">Submit Your Agent</h2>
+          <h2 className="text-2xl font-bold text-red-500 mb-2">
+            Submit Your Agent
+          </h2>
           <p className="text-gray-400 text-sm leading-relaxed">
-            Share your agent with the community by filling out the details below. Make sure to provide clear descriptions 
-            and appropriate tags to help others discover and use your agent effectively.
+            Share your agent with the community by filling out the details
+            below. Make sure to provide clear descriptions and appropriate tags
+            to help others discover and use your agent effectively.
           </p>
         </div>
-        
+
         <div className="px-6 pb-4 flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <span className="font-medium text-sm text-gray-200 flex items-center gap-2">
@@ -139,7 +196,7 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
                 className="border border-red-500/30 focus:border-red-500 transition-colors bg-black/40"
               />
             </div>
-          </div> 
+          </div>
           <div className="flex flex-col gap-2">
             <span className="font-medium text-sm text-gray-200 flex items-center gap-2">
               Description
@@ -212,6 +269,20 @@ const AddAgentModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
               </SelectContent>
             </Select>
           </div>
+          <ModelFileUpload
+            image={image}
+            imageUrl={imageUrl || ''}
+            filePath={filePath || ''}
+            isDeleteFile={isDeleteFile}
+            deleteImage={deleteImage}
+            modelType={modelType}
+            handleImageUpload={handleFileSelect}
+            handleDrop={handleDrop}
+            handleImageEditClick={handleImageUploadClick}
+            uploadRef={imageUploadRef}
+            uploadStatus={uploadStatus}
+            uploadProgress={uploadProgress}
+          />
           <div className="flex flex-col gap-2">
             <span className="font-medium text-sm text-gray-200">Tags</span>
             <Input

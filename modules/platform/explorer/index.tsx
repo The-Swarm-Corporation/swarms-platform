@@ -147,16 +147,19 @@ const Explorer = () => {
     <>
       <AddPromptModal
         onAddSuccessfully={() => promptsQuery.refetch()}
+        modelType="prompt"
         isOpen={addPromptModalOpen}
         onClose={() => setAddPromptModalOpen(false)}
       />
       <AddAgentModal
         onAddSuccessfully={refetch}
+        modelType="agent"
         isOpen={addAgentModalOpen}
         onClose={() => setAddAgentModalOpen(false)}
       />
       <AddToolModal
         onAddSuccessfully={refetch}
+        modelType="tool"
         isOpen={addToolModalOpen}
         onClose={() => setAddToolModalOpen(false)}
       />

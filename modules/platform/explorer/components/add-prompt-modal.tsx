@@ -29,8 +29,6 @@ const AddPromptModal = ({
   const [description, setDescription] = useState('');
   const [prompt, setPrompt] = useState('');
   const [tags, setTags] = useState('');
-  const [publicUrl, setPublicUrl] = useState<string | null>(null);
-  const [imageId, setImageId] = useState<string | null>(null);
 
   const {
     image,
@@ -41,8 +39,6 @@ const AddPromptModal = ({
     isDeleteFile,
     uploadImage,
     deleteImage,
-    setImage,
-    setImageUrl,
   } = useModelFileUpload();
 
   const imageUploadRef = useRef<HTMLInputElement>(null);
@@ -70,9 +66,11 @@ const AddPromptModal = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const data = await uploadImage(file, modelType);
-    setImageId(data?.imageId || "");
-    setPublicUrl(data?.url || "");
+    if (filePath && modelType) {
+      await deleteImage(filePath, modelType);
+    }
+
+    await uploadImage(file, modelType);
   };
 
   const handleDrop = async (e: React.DragEvent) => {
@@ -83,9 +81,11 @@ const AddPromptModal = ({
     const file = e.dataTransfer.files[0];
     if (!file) return;
 
-    const data = await uploadImage(file, modelType);
-    setImageId(data?.imageId || "");
-    setPublicUrl(data?.url || "");
+    if (filePath && modelType) {
+      await deleteImage(filePath, modelType);
+    }
+
+    await uploadImage(file, modelType);
   };
 
   const submit = () => {
@@ -134,6 +134,7 @@ const AddPromptModal = ({
         name: promptName,
         prompt,
         description,
+        imageUrl: imageUrl || undefined,
         useCases: [
           {
             title: '',
@@ -233,11 +234,17 @@ const AddPromptModal = ({
         </div>
         <ModelFileUpload
           image={image}
-          isUploading={uploadStatus === 'uploading'}
+          imageUrl={imageUrl || ''}
+          filePath={filePath || ''}
+          isDeleteFile={isDeleteFile}
+          deleteImage={deleteImage}
+          modelType={modelType}
           handleImageUpload={handleFileSelect}
           handleDrop={handleDrop}
           handleImageEditClick={handleImageUploadClick}
           uploadRef={imageUploadRef}
+          uploadStatus={uploadStatus}
+          uploadProgress={uploadProgress}
         />
         <div className="flex flex-col gap-1">
           <span>Tags</span>

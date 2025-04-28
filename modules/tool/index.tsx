@@ -32,6 +32,7 @@ const Tool = async ({ id }: { id: string }) => {
       usecases={usecases}
       description={tool.description ?? ''}
       name={tool.name ?? ''}
+      imageUrl={tool.image_url ?? ''}
       requirements={requirements}
       userId={tool.user_id ?? ''}
     >

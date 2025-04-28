@@ -478,3 +478,15 @@ export const extractCategories = (agents: any[]): string[] => {
 
   return Object.keys(tagGroups).sort();
 };
+
+export const extractFilePathFromImageUrl = (
+  imageUrl: string | null,
+): string | null => {
+  if (!imageUrl) return null;
+
+  const marker = '/object/public/images/';
+  const index = imageUrl.indexOf(marker);
+  if (index === -1) return null;
+
+  return imageUrl.substring(index + marker.length);
+};

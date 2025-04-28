@@ -4,6 +4,7 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { MAX_FILE_SIZE } from '@/shared/utils/constants';
 import { createClient } from '@/shared/utils/supabase/client';
 import { uploadFileWithProgress } from '@/shared/components/chat/helper';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 export type FileWithPreview = {
   file: File;
@@ -18,6 +19,7 @@ export type FileWithPreview = {
 };
 
 export function useModelFileUpload() {
+  const { user } = useAuthContext();
   const { toast } = useToast();
   const [image, setImage] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -38,12 +40,13 @@ export function useModelFileUpload() {
       return null;
     }
 
+    if (!modelType) return null;
+
     setImage(URL.createObjectURL(file));
     setUploadProgress(0);
     setUploadStatus('uploading');
 
-    const imageId = crypto.randomUUID();
-    const filePath = `public/models/${modelType}/${imageId}/${file.name}`;
+    const filePath = `public/models/${modelType}/${user?.id}/${file.name}`;
     const supabase = createClient();
 
     try {
@@ -64,7 +67,7 @@ export function useModelFileUpload() {
       setFilePath(filePath);
       setUploadStatus('success');
 
-      return { url: publicUrlData.publicUrl, imageId };
+      return publicUrlData.publicUrl;
     } catch (error) {
       setUploadStatus('error');
       toast({
@@ -73,23 +76,30 @@ export function useModelFileUpload() {
       });
       setImage(null);
       setImageUrl(null);
-      return { url: null, imageId: null };
+      return null;
     }
   }, []);
 
   const deleteImage = useCallback(
-    async (filePath: string, modelType: string, imageId: string) => {
+    async (filePath: string, modelType: string, successMessage = '') => {
+      if (deleteFileMutation.isPending) return;
+
+      if (!filePath || !modelType) return;
+
       try {
         await deleteFileMutation.mutateAsync({
           filePath,
           modelType,
-          imageId,
+          imageId: user?.id ?? '',
         });
         setImage(null);
         setImageUrl(null);
-        toast({
-          description: 'Image removed successfully',
-        });
+
+        if (successMessage) {
+          toast({
+            description: successMessage,
+          });
+        }
         setUploadStatus('idle');
       } catch (error) {
         toast({
@@ -112,5 +122,6 @@ export function useModelFileUpload() {
     deleteImage,
     setImage,
     setImageUrl,
+    setFilePath,
   };
 }
