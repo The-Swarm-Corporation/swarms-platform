@@ -13,23 +13,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { languageOptions } from '@/shared/utils/constants';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import { useModelFileUpload } from '../hook/upload-file';
+import ModelFileUpload from './upload-image';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onAddSuccessfully: () => void;
+  modelType: string;
 }
 
-const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
+const AddToolModal = ({
+  isOpen,
+  onClose,
+  onAddSuccessfully,
+  modelType,
+}: Props) => {
   const { user } = useAuthContext();
   const [toolName, setToolName] = useState('');
   const [description, setDescription] = useState('');
   const [tool, setTool] = useState('');
   const [tags, setTags] = useState('');
   const [language, setLanguage] = useState('python');
+
+  const {
+    image,
+    imageUrl,
+    filePath,
+    uploadProgress,
+    uploadStatus,
+    isDeleteFile,
+    uploadImage,
+    deleteImage,
+  } = useModelFileUpload();
+
+  const imageUploadRef = useRef<HTMLInputElement>(null);
 
   const validateTool = trpc.explorer.validateTool.useMutation();
 
@@ -43,6 +64,38 @@ const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
   const toast = useToast();
 
   const addTool = trpc.explorer.addTool.useMutation();
+
+  const handleImageUploadClick = () => {
+    imageUploadRef.current?.click();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploadStatus === 'uploading') return;
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (filePath && modelType) {
+      await deleteImage(filePath, modelType);
+    }
+
+    await uploadImage(file, modelType);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    if (uploadStatus === 'uploading') return;
+
+    e.preventDefault();
+
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    if (filePath && modelType) {
+      await deleteImage(filePath, modelType);
+    }
+
+    await uploadImage(file, modelType);
+  };
 
   const submit = () => {
     // Validate Tool
@@ -84,6 +137,8 @@ const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         description,
         useCases: [{ title: '', description: '' }],
         language,
+        imageUrl: imageUrl || undefined,
+        filePath: imageUrl && filePath ? filePath : undefined,
         requirements: [{ package: '', installation: '' }],
         tags: trimTags,
       })
@@ -187,6 +242,20 @@ const AddToolModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
             </SelectContent>
           </Select>
         </div>
+        <ModelFileUpload
+          image={image}
+          imageUrl={imageUrl || ''}
+          filePath={filePath || ''}
+          isDeleteFile={isDeleteFile}
+          deleteImage={deleteImage}
+          modelType={modelType}
+          handleImageUpload={handleFileSelect}
+          handleDrop={handleDrop}
+          handleImageEditClick={handleImageUploadClick}
+          uploadRef={imageUploadRef}
+          uploadStatus={uploadStatus}
+          uploadProgress={uploadProgress}
+        />
         <div className="flex flex-col gap-1">
           <span>Tags</span>
           <Input

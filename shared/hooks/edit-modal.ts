@@ -2,6 +2,7 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce } from '@/shared/utils/helpers';
 import { useEffect, useMemo, useState } from 'react';
 import { trpc } from '@/shared/utils/trpc/trpc';
+import { useModelFileUpload } from '@/modules/platform/explorer/hook/upload-file';
 
 interface EditExplorerModalProps {
   onClose: () => void;
@@ -16,6 +17,8 @@ type EditModal = {
   description?: string;
   tags?: string;
   useCases: { title: string; description: string }[];
+  imageUrl?: string;
+  filePath?: string;
 };
 
 interface AgentEditModal extends EditModal {
@@ -60,6 +63,19 @@ export default function useEditModal({
     requirements: [{ package: '', installation: '' }],
   });
 
+  const {
+    imageUrl,
+    setImageUrl,
+    setFilePath,
+    image,
+    filePath,
+    uploadProgress,
+    uploadStatus,
+    isDeleteFile,
+    uploadImage,
+    deleteImage,
+  } = useModelFileUpload();
+
   const validateMutation =
     entityType === 'agent'
       ? trpc.explorer.validateAgent.useMutation()
@@ -84,6 +100,8 @@ export default function useEditModal({
 
   useEffect(() => {
     if (entityData) {
+      setImageUrl(entityData.image_url ?? '');
+      setFilePath(entityData.file_path ?? '');
       setInputState({
         name: entityData.name ?? '',
         description: entityData.description ?? '',
@@ -235,6 +253,8 @@ export default function useEditModal({
             useCases: inputState.useCases,
             agent: inputState.uniqueField,
             language: inputState.language!,
+            imageUrl: imageUrl || undefined,
+            filePath: imageUrl && filePath ? filePath : undefined,
             requirements: inputState.requirements!,
           }
         : entityType === 'tool'
@@ -246,6 +266,8 @@ export default function useEditModal({
               useCases: inputState.useCases,
               tool: inputState.uniqueField,
               requirements: inputState.requirements!,
+              imageUrl: imageUrl || undefined,
+              filePath: imageUrl && filePath ? filePath : undefined,
             }
           : {
               id: entityId,
@@ -254,6 +276,8 @@ export default function useEditModal({
               tags: trimTags,
               useCases: inputState.useCases,
               prompt: inputState.uniqueField,
+              imageUrl: imageUrl || undefined,
+              filePath: imageUrl && filePath ? filePath : undefined,
             };
 
     // Edit entity
@@ -277,5 +301,13 @@ export default function useEditModal({
     removeUseCase,
     addRequirement,
     removeRequirement,
+    image,
+    imageUrl,
+    filePath,
+    uploadProgress,
+    uploadStatus,
+    isDeleteFile,
+    uploadImage,
+    deleteImage,
   };
 }

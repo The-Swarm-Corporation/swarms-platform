@@ -8,6 +8,8 @@ import { Tables } from '@/types_db';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
+const BUCKET_NAME = 'images';
+
 const explorerRouter = router({
   getExplorerData: publicProcedure
     .input(
@@ -148,6 +150,8 @@ const explorerRouter = router({
         prompt: z.string(),
         description: z.string().optional(),
         useCases: z.array(z.any()).optional(),
+        imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
         tags: z.string().optional(),
       }),
     )
@@ -186,7 +190,9 @@ const explorerRouter = router({
             prompt: input.prompt,
             description: input.description,
             user_id: user_id,
+            image_url: input.imageUrl || null,
             tags: input.tags,
+            file_path: input.filePath || null,
             status: 'pending',
           } as Tables<'swarms_cloud_prompts'>,
         ]);
@@ -209,6 +215,8 @@ const explorerRouter = router({
         prompt: z.string().optional(),
         description: z.string().optional(),
         useCases: z.array(z.any()).optional(),
+        imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
         tags: z.string().optional(),
       }),
     )
@@ -233,6 +241,8 @@ const explorerRouter = router({
             prompt: input.prompt,
             description: input.description,
             tags: input.tags,
+            image_url: input.imageUrl || null,
+            file_path: input.filePath || null,
           } as Tables<'swarms_cloud_prompts'>)
           .eq('user_id', user_id)
           .eq('id', input.id)
@@ -336,6 +346,8 @@ const explorerRouter = router({
         description: z.string().optional(),
         requirements: z.array(z.any()).optional(),
         useCases: z.array(z.any()).optional(),
+        imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
         tags: z.string().optional(),
       }),
     )
@@ -380,6 +392,8 @@ const explorerRouter = router({
             requirements: input.requirements,
             tags: input.tags || null,
             language: input.language,
+            image_url: input.imageUrl || null,
+            file_path: input.filePath || null,
             status: 'pending',
           } as Tables<'swarms_cloud_agents'>,
         ]);
@@ -404,6 +418,8 @@ const explorerRouter = router({
         requirements: z.array(z.any()).optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -429,6 +445,8 @@ const explorerRouter = router({
             requirements: input.requirements,
             tags: input.tags,
             language: input.language,
+            image_url: input.imageUrl || null,
+            file_path: input.filePath || null,
           } as Tables<'swarms_cloud_agents'>)
           .eq('user_id', user_id)
           .eq('id', input.id)
@@ -511,6 +529,8 @@ const explorerRouter = router({
         requirements: z.array(z.any()),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -554,6 +574,8 @@ const explorerRouter = router({
             tags: input.tags || null,
             language: input.language,
             status: 'pending',
+            image_url: input.imageUrl || null,
+            file_path: input.filePath || null,
           } as Tables<'swarms_cloud_tools'>,
         ]);
         if (tools.error) {
@@ -577,6 +599,8 @@ const explorerRouter = router({
         requirements: z.array(z.any()).optional(),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        imageUrl: z.string().optional(),
+        filePath: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -602,6 +626,8 @@ const explorerRouter = router({
             requirements: input.requirements,
             tags: input.tags,
             language: input.language,
+            image_url: input.imageUrl || null,
+            file_path: input.filePath || null,
           } as Tables<'swarms_cloud_tools'>)
           .eq('user_id', user_id)
           .eq('id', input.id)
@@ -638,6 +664,52 @@ const explorerRouter = router({
         .eq('id', input)
         .single();
       return tool.data;
+    }),
+  deleteFile: userProcedure
+    .input(
+      z.object({
+        filePath: z.string(),
+        modelType: z.string(),
+        imageId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.data.user?.id;
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
+
+      if (
+        !input.filePath.startsWith(
+          `public/models/${input.modelType}/${input.imageId}/`,
+        )
+      ) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Not authorized to delete this file',
+        });
+      }
+
+      try {
+        const { error } = await ctx.supabase.storage
+          .from(BUCKET_NAME)
+          .remove([input.filePath]);
+
+        if (error) {
+          throw error;
+        }
+
+        return { success: true };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete file',
+          cause: error,
+        });
+      }
     }),
   checkReview: userProcedure
     .input(

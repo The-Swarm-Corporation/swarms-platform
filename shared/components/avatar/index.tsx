@@ -10,6 +10,7 @@ interface AvatarProps {
   user?: User;
   explorerUser?: any;
   userId?: string;
+  className?: string;
   showUsername?: boolean;
   showBorder?: boolean;
   title?: string;
@@ -24,6 +25,7 @@ export default function Avatar({
   showBorder,
   profileName,
   showUsername,
+  className,
 }: AvatarProps) {
   const shouldFetchUser = !explorerUser && !user && Boolean(userId);
 
@@ -46,7 +48,7 @@ export default function Avatar({
     '';
 
   return (
-    <div title={title} className="flex items-center">
+    <div title={title} className={cn('flex items-center', className)}>
       {avatar ? (
         <div
           className={cn(

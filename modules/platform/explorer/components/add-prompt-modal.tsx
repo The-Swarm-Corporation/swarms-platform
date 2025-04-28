@@ -6,21 +6,42 @@ import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce, launchConfetti } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useModelFileUpload } from '../hook/upload-file';
+import ModelFileUpload from './upload-image';
 
 interface Props {
   isOpen: boolean;
+  modelType: string;
   onClose: () => void;
   onAddSuccessfully: () => void;
 }
 
-const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
+const AddPromptModal = ({
+  isOpen,
+  onClose,
+  modelType,
+  onAddSuccessfully,
+}: Props) => {
   const { user } = useAuthContext();
 
   const [promptName, setPromptName] = useState('');
   const [description, setDescription] = useState('');
   const [prompt, setPrompt] = useState('');
   const [tags, setTags] = useState('');
+
+  const {
+    image,
+    imageUrl,
+    filePath,
+    uploadProgress,
+    uploadStatus,
+    isDeleteFile,
+    uploadImage,
+    deleteImage,
+  } = useModelFileUpload();
+
+  const imageUploadRef = useRef<HTMLInputElement>(null);
 
   const validatePrompt = trpc.explorer.validatePrompt.useMutation();
 
@@ -34,6 +55,38 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
   const toast = useToast();
 
   const addPrompt = trpc.explorer.addPrompt.useMutation();
+
+  const handleImageUploadClick = () => {
+    imageUploadRef.current?.click();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploadStatus === 'uploading') return;
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (filePath && modelType) {
+      await deleteImage(filePath, modelType);
+    }
+
+    await uploadImage(file, modelType);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    if (uploadStatus === 'uploading') return;
+
+    e.preventDefault();
+
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    if (filePath && modelType) {
+      await deleteImage(filePath, modelType);
+    }
+
+    await uploadImage(file, modelType);
+  };
 
   const submit = () => {
     // Validate prompt
@@ -81,6 +134,8 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
         name: promptName,
         prompt,
         description,
+        imageUrl: imageUrl || undefined,
+        filePath: imageUrl && filePath ? filePath : undefined,
         useCases: [
           {
             title: '',
@@ -178,6 +233,20 @@ const AddPromptModal = ({ isOpen, onClose, onAddSuccessfully }: Props) => {
               </span>
             )}
         </div>
+        <ModelFileUpload
+          image={image}
+          imageUrl={imageUrl || ''}
+          filePath={filePath || ''}
+          isDeleteFile={isDeleteFile}
+          deleteImage={deleteImage}
+          modelType={modelType}
+          handleImageUpload={handleFileSelect}
+          handleDrop={handleDrop}
+          handleImageEditClick={handleImageUploadClick}
+          uploadRef={imageUploadRef}
+          uploadStatus={uploadStatus}
+          uploadProgress={uploadProgress}
+        />
         <div className="flex flex-col gap-1">
           <span>Tags</span>
           <Input

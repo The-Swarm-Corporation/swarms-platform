@@ -13,6 +13,9 @@ import LoadingSpinner from '@/shared/components/loading-spinner';
 import useEditModal from '@/shared/hooks/edit-modal';
 import { Plus } from 'lucide-react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import { useModelFileUpload } from '../hook/upload-file';
+import { useRef } from 'react';
+import ModelFileUpload from './upload-image';
 
 interface EditExplorerModalProps {
   isOpen: boolean;
@@ -41,7 +44,53 @@ function EditExplorerModal({
     removeUseCase,
     addRequirement,
     removeRequirement,
+
+    //upload
+
+    image,
+    imageUrl,
+    filePath,
+    uploadProgress,
+    uploadStatus,
+    isDeleteFile,
+    uploadImage,
+    deleteImage,
   } = useEditModal({ entityId, entityType, onClose, onEditSuccessfully });
+
+
+  const imageUploadRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUploadClick = () => {
+    imageUploadRef.current?.click();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploadStatus === 'uploading') return;
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (filePath && entityType) {
+      await deleteImage(filePath, entityType);
+    }
+
+    await uploadImage(file, entityType);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    if (uploadStatus === 'uploading') return;
+
+    e.preventDefault();
+
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    if (filePath && entityType) {
+      await deleteImage(filePath, entityType);
+    }
+
+    await uploadImage(file, entityType);
+  };
 
   if (!user) return null;
 
@@ -119,6 +168,20 @@ function EditExplorerModal({
               </span>
             )}
         </div>
+        <ModelFileUpload
+          image={image}
+          imageUrl={imageUrl || ''}
+          filePath={filePath || ''}
+          isDeleteFile={isDeleteFile}
+          deleteImage={deleteImage}
+          modelType={entityType}
+          handleImageUpload={handleFileSelect}
+          handleDrop={handleDrop}
+          handleImageEditClick={handleImageUploadClick}
+          uploadRef={imageUploadRef}
+          uploadStatus={uploadStatus}
+          uploadProgress={uploadProgress}
+        />
         <div className="flex flex-col gap-1">
           <span>Tags</span>
           <Input
