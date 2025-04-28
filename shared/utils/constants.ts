@@ -79,6 +79,7 @@ export const PLATFORM = {
   ORGANIZATION: '/platform/organization',
   CHAT: '/platform/chat',
   HISTORY: '/platform/history',
+  REFERRAL: '/platform/referral',
 };
 
 export const AUTH = {
