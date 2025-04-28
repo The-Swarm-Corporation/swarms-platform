@@ -29,6 +29,7 @@ const Agent = async ({ id }: { id: string }) => {
       tags={tags}
       id={id}
       usecases={usecases}
+      imageUrl={agent.image_url ?? ''}
       description={agent.description ?? ''}
       name={agent.name ?? ''}
       requirements={requirements}

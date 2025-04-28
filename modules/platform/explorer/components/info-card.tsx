@@ -7,6 +7,7 @@ import ShareModal from './share-modal';
 import ReactStars from 'react-rating-star-with-type';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface Props {
   title: string;
@@ -14,6 +15,7 @@ interface Props {
   icon: ReactNode;
   className?: string;
   btnLabel?: string;
+  imageUrl?: string;
   input?: number | null;
   output?: number | null;
   isRating?: boolean;
@@ -31,6 +33,7 @@ const InfoCard = ({
   icon,
   className,
   btnLabel,
+  imageUrl,
   input,
   output,
   userId,
@@ -87,9 +90,20 @@ const InfoCard = ({
       )}
     >
       <div>
-        <div className="flex items-center justify-center h-10 bg-red-600 text-white rounded-lg aspect-square transition-colors group-hover:bg-red-500">
-          {icon}
-        </div>
+        {imageUrl ? (
+          <div className="relative h-10 aspect-square">
+            <Image
+              src={imageUrl ?? ''}
+              alt={title}
+              fill
+              className="rounded-lg border border-primary/30"
+            />
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-10 bg-red-600 text-white rounded-lg aspect-square transition-colors group-hover:bg-red-500">
+            {icon}
+          </div>
+        )}
 
         {id && (
           <div className="mt-3 relative flex items-center justify-center gap-1 xl:hidden">

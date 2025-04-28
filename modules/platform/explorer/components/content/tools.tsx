@@ -45,6 +45,7 @@ export default function Tools({
                     title={tool.name || ''}
                     usersMap={usersMap}
                     reviewsMap={reviewsMap}
+                    imageUrl={tool.image_url || ''}
                     description={tool.description || ''}
                     icon={<Hammer />}
                     className="w-full h-full"

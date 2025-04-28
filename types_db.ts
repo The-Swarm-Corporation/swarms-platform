@@ -1207,6 +1207,7 @@ export type Database = {
           category: Json | null
           created_at: string
           description: string | null
+          file_path: string | null
           id: string
           image_url: string | null
           language: string | null
@@ -1223,6 +1224,7 @@ export type Database = {
           category?: Json | null
           created_at?: string
           description?: string | null
+          file_path?: string | null
           id?: string
           image_url?: string | null
           language?: string | null
@@ -1239,6 +1241,7 @@ export type Database = {
           category?: Json | null
           created_at?: string
           description?: string | null
+          file_path?: string | null
           id?: string
           image_url?: string | null
           language?: string | null
@@ -2221,6 +2224,7 @@ export type Database = {
           category: Json | null
           created_at: string
           description: string | null
+          file_path: string | null
           id: string
           image_url: string | null
           name: string | null
@@ -2235,6 +2239,7 @@ export type Database = {
           category?: Json | null
           created_at?: string
           description?: string | null
+          file_path?: string | null
           id?: string
           image_url?: string | null
           name?: string | null
@@ -2249,6 +2254,7 @@ export type Database = {
           category?: Json | null
           created_at?: string
           description?: string | null
+          file_path?: string | null
           id?: string
           image_url?: string | null
           name?: string | null
@@ -2476,6 +2482,7 @@ export type Database = {
           category: Json | null
           created_at: string
           description: string | null
+          file_path: string | null
           id: string
           image_url: string | null
           language: string | null
@@ -2491,6 +2498,7 @@ export type Database = {
           category?: Json | null
           created_at?: string
           description?: string | null
+          file_path?: string | null
           id?: string
           image_url?: string | null
           language?: string | null
@@ -2506,6 +2514,7 @@ export type Database = {
           category?: Json | null
           created_at?: string
           description?: string | null
+          file_path?: string | null
           id?: string
           image_url?: string | null
           language?: string | null

@@ -22,24 +22,27 @@ export interface CostEstimate {
   totalCost: number;
 }
 
-export const estimateTokensAndCost = (input: string, output: string = ''): CostEstimate => {
+export const estimateTokensAndCost = (
+  input: string,
+  output: string = '',
+): CostEstimate => {
   const inputCostPerThousand = 0.005; // $5 per million tokens
   const outputCostPerThousand = 0.01; // $10 per million tokens
-  
+
   const estimateTokens = (text: string) => Math.ceil(text.length / 4);
-  
+
   const inputTokens = estimateTokens(input);
   const outputTokens = estimateTokens(output);
-  
+
   const inputCost = (inputTokens / 1000) * inputCostPerThousand;
   const outputCost = (outputTokens / 1000) * outputCostPerThousand;
-  
+
   return {
     inputTokens,
     outputTokens,
     inputCost,
     outputCost,
-    totalCost: inputCost + outputCost
+    totalCost: inputCost + outputCost,
   };
 };
 
@@ -442,28 +445,37 @@ export const optimizePromptKeywords = (prompt: TPrompt) => {
 export const extractCategories = (agents: any[]): string[] => {
   if (!agents || agents.length === 0) return [];
 
-  const categoriesSet = new Set<string>();
-  
-  agents.forEach(agent => {
+  const allTags = new Set<string>();
+  agents.forEach((agent) => {
     if (!agent.tags) return;
-    
     const tags = agent.tags.split(',');
-    
     tags.forEach((tag: string) => {
       const trimmedTag = tag.trim();
-      
-      if (!trimmedTag) return;
-      
-      let category = trimmedTag;
-      
-      const agentsMatch = trimmedTag.match(/^(.*?)\s+(?:Agents?|agents?|Swarm|swarm)$/i);
-      if (agentsMatch && agentsMatch[1]) {
-        category = agentsMatch[1].trim();
-      }
-      
-      categoriesSet.add(category);
+      if (trimmedTag) allTags.add(trimmedTag);
     });
   });
-  
-  return Array.from(categoriesSet).sort();
+
+  const tagGroups: { [key: string]: string[] } = {};
+  const processedTags = new Set<string>();
+
+  Array.from(allTags).forEach((tag) => {
+    if (processedTags.has(tag)) return;
+
+    const words = tag.split(' ');
+    const baseWord = words[0].toLowerCase();
+
+    const relatedTags = Array.from(allTags).filter((otherTag) => {
+      if (processedTags.has(otherTag)) return false;
+
+      return otherTag.toLowerCase().startsWith(baseWord.toLowerCase());
+    });
+
+    if (relatedTags.length > 0) {
+      tagGroups[baseWord] = relatedTags;
+      relatedTags.forEach((t) => processedTags.add(t));
+    }
+  });
+
+  return Object.keys(tagGroups).sort();
 };
+

@@ -49,6 +49,7 @@ export default function Prompts({
                     title={prompt.name || ''}
                     usersMap={usersMap}
                     reviewsMap={reviewsMap}
+                    imageUrl={prompt.image_url || ''}
                     description={prompt.description || ''}
                     icon={<NotepadText />}
                     className="w-full h-full"

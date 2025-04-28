@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 import {
@@ -131,15 +130,18 @@ export const SIDE_BAR_MENU: NavMenuProps = {
           link: PLATFORM.ACCOUNT,
         },
         {
-          title: 'Organization',
-          link: PLATFORM.ORGANIZATION,
-        },
-        {
           title: 'History',
           link: PLATFORM.HISTORY,
+        },
+        {
+          title: 'Referral',
+          link: PLATFORM.REFERRAL,
+        },
+        {
+          title: 'Organization',
+          link: PLATFORM.ORGANIZATION,
         },
       ],
     },
   ],
 };
-
