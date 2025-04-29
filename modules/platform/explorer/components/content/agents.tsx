@@ -20,6 +20,7 @@ export default function Agents({
   loadMoreAgents,
   isFetchingAgents,
   hasMoreAgents,
+  isAgentLoading,
 }: any) {
   async function handleAgentModal() {
     await checkUserSession();
@@ -50,6 +51,7 @@ export default function Agents({
                       title={agent.name || ''}
                       usersMap={usersMap}
                       reviewsMap={reviewsMap}
+                      imageUrl={agent.image_url || ''}
                       description={agent.description || ''}
                       icon={<Bot />}
                       className="w-full h-full"
@@ -83,13 +85,13 @@ export default function Agents({
           </div>
         )}
 
-        {(hasMoreAgents || isFetchingAgents) && (
+        {(hasMoreAgents || isFetchingAgents) && !isLoading && (
           <div className="flex justify-center mt-3 w-full">
             <Button
               variant="destructive"
               className="w-36 md:w-40"
               onClick={loadMoreAgents}
-              disabled={isFetchingAgents}
+              disabled={isFetchingAgents || isAgentLoading}
             >
               Get more
             </Button>

@@ -18,7 +18,8 @@ export default function Prompts({
   hasMorePrompts,
   setAddPromptModalOpen,
   usersMap,
-  reviewsMap
+  reviewsMap,
+  isPromptLoading,
 }: any) {
   async function handlePromptModal() {
     await checkUserSession();
@@ -72,13 +73,13 @@ export default function Prompts({
           </div>
         )}
 
-        {(hasMorePrompts || isFetchingPrompts) && (
+        {(hasMorePrompts || isFetchingPrompts) && !isLoading && (
           <div className="flex justify-center mt-3 w-full">
             <Button
               variant="destructive"
               className="w-36 md:w-40"
               onClick={loadMorePrompts}
-              disabled={isFetchingPrompts}
+              disabled={isFetchingPrompts || isPromptLoading}
             >
               Get more
             </Button>

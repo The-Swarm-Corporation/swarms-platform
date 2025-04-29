@@ -75,7 +75,6 @@ const Explorer = () => {
     filterOption,
     isLoading,
     searchValue,
-    refetch,
     loadMorePrompts,
     loadMoreTrending,
     searchClickHandler,
@@ -85,6 +84,7 @@ const Explorer = () => {
     tagCategory,
     loadMoreAgents,
     isFetchingAgents,
+    handleReset,
     hasMoreAgents,
     agentsQuery,
   } = useModels();
@@ -105,8 +105,9 @@ const Explorer = () => {
             hasMorePrompts,
             usersMap,
             reviewsMap,
+            isLoading,
+            isPromptLoading: promptsQuery.isLoading,
           }}
-          isLoading={isAllLoading}
         />
       ),
     },
@@ -123,8 +124,9 @@ const Explorer = () => {
             loadMoreAgents,
             isFetchingAgents,
             hasMoreAgents,
+            isLoading,
+            isAgentLoading: agentsQuery.isLoading,
           }}
-          isLoading={isAllLoading}
         />
       ),
     },
@@ -132,8 +134,13 @@ const Explorer = () => {
       key: 'tools',
       content: (
         <Tools
-          {...{ filteredTools, setAddToolModalOpen, usersMap, reviewsMap }}
-          isLoading={isLoading}
+          {...{
+            filteredTools,
+            setAddToolModalOpen,
+            usersMap,
+            reviewsMap,
+            isLoading,
+          }}
         />
       ),
     },
@@ -149,19 +156,19 @@ const Explorer = () => {
   return (
     <>
       <AddPromptModal
-        onAddSuccessfully={() => promptsQuery.refetch()}
+        onAddSuccessfully={handleReset}
         modelType="prompt"
         isOpen={addPromptModalOpen}
         onClose={() => setAddPromptModalOpen(false)}
       />
       <AddAgentModal
-        onAddSuccessfully={refetch}
+        onAddSuccessfully={handleReset}
         modelType="agent"
         isOpen={addAgentModalOpen}
         onClose={() => setAddAgentModalOpen(false)}
       />
       <AddToolModal
-        onAddSuccessfully={refetch}
+        onAddSuccessfully={handleReset}
         modelType="tool"
         isOpen={addToolModalOpen}
         onClose={() => setAddToolModalOpen(false)}

@@ -8,6 +8,14 @@ const promptLimit = 6;
 const trendingLimit = 6;
 const agentLimit = 6;
 
+const updateList = (offset: number, setter: any, newData: any[]) => {
+  if (offset === 0) {
+    setter(newData);
+  } else {
+    setter((prev: any[]) => [...prev, ...newData]);
+  }
+};
+
 export default function useModels() {
   const searchParams = useSearchParams();
   const categoryQuery = searchParams?.get('category');
@@ -20,6 +28,8 @@ export default function useModels() {
   const [prompts, setPrompts] = useState<any[]>([]);
   const [trendingModels, setTrendingModels] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
+  const [hasMorePrompts, setHasMorePrompts] = useState(true);
+  const [hasMoreAgents, setHasMoreAgents] = useState(true);
 
   const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
   const [isFetchingTrending, setIsFetchingTrending] = useState(false);
@@ -88,31 +98,36 @@ export default function useModels() {
   useEffect(() => {
     if (data?.prompts) {
       setPrompts(data.prompts);
+      setHasMorePrompts(data.prompts.length === promptLimit);
     }
     if (data?.agents) {
       setAgents(data.agents);
+      setHasMoreAgents(data.agents.length === agentLimit);
     }
   }, [data?.prompts, data?.agents]);
 
   useEffect(() => {
     if (promptsQuery.data?.prompts) {
-      setPrompts((prev) => [...prev, ...promptsQuery.data.prompts]);
+      updateList(promptOffset, setPrompts, promptsQuery.data.prompts);
       setIsFetchingPrompts(false);
+      setHasMorePrompts(promptsQuery.data.prompts.length === promptLimit);
     }
-
     if (agentsQuery.data?.agents) {
-      setAgents((prev) => [...prev, ...agentsQuery.data.agents]);
+      updateList(agentOffset, setAgents, agentsQuery.data.agents);
       setIsFetchingAgents(false);
+      setHasMoreAgents(agentsQuery.data.agents.length === agentLimit);
     }
-
     if (trendingQuery.data?.data) {
-      setTrendingModels((prev) => [...prev, ...trendingQuery.data.data]);
+      updateList(trendingOffset, setTrendingModels, trendingQuery.data.data);
       setIsFetchingTrending(false);
     }
   }, [
     promptsQuery.data?.prompts,
     agentsQuery.data?.agents,
     trendingQuery.data?.data,
+    promptOffset,
+    agentOffset,
+    trendingOffset,
   ]);
 
   const loadMorePrompts = useCallback(() => {
@@ -134,15 +149,21 @@ export default function useModels() {
 
   const debouncedSearch = useMemo(() => debounce(setSearch, 0), []);
 
+  const resetExplorer = () => {
+    setPromptOffset(0);
+    setTrendingOffset(0);
+    setAgentOffset(0);
+    setHasMorePrompts(true);
+    setHasMoreAgents(true);
+  };
+
   const searchClickHandler = () => {
     if (!search.trim()) {
       setSearchValue('');
       return;
     }
 
-    setPromptOffset(0);
-    setTrendingOffset(0);
-    setAgentOffset(0);
+    resetExplorer();
     setSearchValue(search);
   };
 
@@ -158,8 +179,12 @@ export default function useModels() {
 
   const handleCategoryChange = (category: string) => {
     setTagCategory(category);
-    setAgentOffset(0);
-    setPromptOffset(0);
+    resetExplorer();
+  };
+
+  const handleReset = () => {
+    resetExplorer();
+    refetch();
   };
 
   const allItems = [
@@ -259,13 +284,12 @@ export default function useModels() {
     options,
     usersMap,
     reviewsMap,
-    hasMorePrompts: prompts.length > promptOffset,
+    hasMorePrompts,
     hasMoreTrending: trendingModels.length < 12,
     filterOption,
     isLoading,
     isFetchingPrompts,
     isFetchingTrending,
-    refetch,
     loadMorePrompts,
     loadMoreTrending,
     searchClickHandler,
@@ -274,8 +298,9 @@ export default function useModels() {
     handleCategoryChange,
     tagCategory,
     loadMoreAgents,
+    handleReset,
     isFetchingAgents,
-    hasMoreAgents: agents.length > agentOffset,
+    hasMoreAgents,
     agentsQuery,
   };
 }

@@ -39,6 +39,7 @@ export default function Trending({
                       title={trend.name || ''}
                       usersMap={usersMap}
                       reviewsMap={reviewsMap}
+                      imageUrl={trend.image_url || ''}
                       description={trend.description || ''}
                       icon={<NotepadText />}
                       className="w-full h-full"
