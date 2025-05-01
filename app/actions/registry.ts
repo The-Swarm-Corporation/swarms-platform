@@ -68,8 +68,8 @@ export async function validateUserCredits(
 
   const estimatedInputCost = (totalSystemTokens / 1000) * inputCostPerThousand;
 
-  const { credit, free_credit } = await getUserCredit(userId);
-  const totalCredit = credit + free_credit;
+  const { credit, free_credit, referral_credits } = await getUserCredit(userId);
+  const totalCredit = credit + free_credit + referral_credits;
 
   if (totalCredit < estimatedInputCost) {
     throw new Error('Insufficient credit');

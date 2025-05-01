@@ -28,11 +28,11 @@ export async function POST(req: Request) {
 
   const estimatedInputCost = (totalInputTokens / 1000) * inputCostPerThousand;
 
-  const [{ credit, free_credit }, pastMessages] = await Promise.all([
+  const [{ credit, free_credit, referral_credits }, pastMessages] = await Promise.all([
     getUserCredit(userId),
     getUserPromptChat(userId, promptId),
   ]);
-  const totalCredit = credit + free_credit;
+  const totalCredit = credit + free_credit + referral_credits;
 
   if (totalCredit < estimatedInputCost) {
     return new Response(JSON.stringify({ error: 'Insufficient credit' }), {
