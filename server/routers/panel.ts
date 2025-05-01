@@ -15,8 +15,10 @@ import { isEmpty } from '@/shared/utils/helpers';
 const panelRouter = router({
   getUserCredit: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.user as User;
-    const { credit, free_credit } = await getUserCredit(user.id);
-    return credit + free_credit;
+    const { credit, free_credit, referral_credits } = await getUserCredit(
+      user.id,
+    );
+    return credit + free_credit + referral_credits;
   }),
   getUserCreditPlan: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.user as User;
@@ -36,40 +38,40 @@ const panelRouter = router({
     return data;
   }),
   updateAgent: userProcedure
-  .input(
-    z.object({
-      agent_id: z.string().uuid(),
-      name: z.string(),
-      description: z.string(),
-      system_prompt: z.string(),
-      llm: z.string(),
+    .input(
+      z.object({
+        agent_id: z.string().uuid(),
+        name: z.string(),
+        description: z.string(),
+        system_prompt: z.string(),
+        llm: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user_id = ctx.session.data.user?.id || '';
+
+      const { data, error } = await ctx.supabase
+        .from('swarms_spreadsheet_session_agents')
+        .update({
+          name: input.name,
+          description: input.description,
+          system_prompt: input.system_prompt,
+          llm: input.llm,
+        })
+        .eq('id', input.agent_id)
+        .eq('user_id', user_id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error while updating agent',
+        });
+      }
+
+      return data;
     }),
-  )
-  .mutation(async ({ ctx, input }) => {
-    const user_id = ctx.session.data.user?.id || '';
-
-    const { data, error } = await ctx.supabase
-      .from('swarms_spreadsheet_session_agents')
-      .update({
-        name: input.name,
-        description: input.description,
-        system_prompt: input.system_prompt,
-        llm: input.llm,
-      })
-      .eq('id', input.agent_id)
-      .eq('user_id', user_id)
-      .select()
-      .single();
-
-    if (error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while updating agent',
-      });
-    }
-
-    return data;
-  }),
   getUserFreeCredits: userProcedure.query(async ({ ctx }) => {
     const user = ctx.session.data.user as User;
     const { data, error } = await ctx.supabase
@@ -92,7 +94,7 @@ const panelRouter = router({
 
     const { data: credits, error: creditError } = await ctx.supabase
       .from('swarms_cloud_users_credits')
-      .select('free_credit,credit_grant')
+      .select('free_credit,credit_grant,referral_credits')
       .eq('user_id', user.id)
       .single();
 
@@ -103,7 +105,11 @@ const panelRouter = router({
       });
     }
 
-    return { freeCredit: credits.free_credit, grant: credits.credit_grant };
+    return {
+      freeCredit: credits.free_credit,
+      grant: credits.credit_grant,
+      referralCredits: credits.referral_credits,
+    };
   }),
   updateUserCreditPlan: userProcedure
     .input(z.object({ credit_plan: z.string() }))

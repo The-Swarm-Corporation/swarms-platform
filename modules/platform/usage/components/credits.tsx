@@ -11,7 +11,9 @@ export default function CreditsUsage() {
     : null;
 
   const MAX_FREE_CREDITS =
-    (Number(userFreeCredits?.data?.grant) ?? 0) + FREE_CREDITS;
+    (Number(userFreeCredits?.data?.grant) ?? 0) +
+    FREE_CREDITS +
+    Number(userFreeCredits?.data?.referralCredits);
   const usedCredits =
     MAX_FREE_CREDITS - Number(userFreeCredits?.data?.freeCredit);
   const usedPercentage = (usedCredits / MAX_FREE_CREDITS) * 100;

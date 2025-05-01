@@ -61,7 +61,7 @@ const referralRouter = router({
     const activeReferrals = completedSignups;
     const retentionRate =
       totalSignups > 0 ? (activeReferrals / totalSignups) * 100 : 0;
-    const totalCredits = credits?.referral_credits || 0;
+    const totalCredits = credits?.referral_credits.toFixed(2) || 0;
     const conversionRate =
       totalSignups > 0 ? (completedSignups / totalSignups) * 100 : 0;
 

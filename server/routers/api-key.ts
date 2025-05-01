@@ -66,8 +66,8 @@ const apiKeyRouter = router({
         });
       }
 
-      const { credit, free_credit } = await getUserCredit(user.id);
-      const totalCredit = credit + free_credit;
+      const { credit, free_credit, referral_credits } = await getUserCredit(user.id);
+      const totalCredit = credit + free_credit + referral_credits;
 
       if (totalCredit <= 0) {
         const paymentMethods = await stripe.paymentMethods.list({
@@ -214,8 +214,8 @@ const apiKeyRouter = router({
         });
       }
 
-      const { credit, free_credit } = await getUserCredit(user.id);
-      const totalCredit = credit + free_credit;
+      const { credit, free_credit, referral_credits } = await getUserCredit(user.id);
+      const totalCredit = credit + free_credit + referral_credits;
 
       if (totalCredit <= 0) {
         const paymentMethods = await stripe.paymentMethods.list({
