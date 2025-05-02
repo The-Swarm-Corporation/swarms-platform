@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { trpc } from '@/shared/utils/trpc/trpc';
@@ -16,6 +16,7 @@ import { PLATFORM } from '@/shared/utils/constants';
 import { useAuthContext } from '../ui/auth.provider';
 import { Tables } from '@/types_db';
 import { optimizePrompt as getSystemOptimizedPrompt } from '@/app/actions/registry';
+import { SwarmsApiClient } from '@/shared/utils/api/swarms';
 
 export interface DraggedFile {
   name: string;
@@ -26,6 +27,10 @@ export interface DraggedFile {
 export interface Agent {
   id: string;
   name: string;
+  temperature: number;
+  maxTokens: number;
+  maxLoops: number;
+  role: string;
   description: string;
   systemPrompt: string;
   llm: string;
@@ -38,6 +43,9 @@ export interface Agent {
 export default function useSpreadsheet() {
   const { user, setIsAuthModalOpen } = useAuthContext();
 
+  const [models, setModels] = useState<string[]>([]);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [creationError, setCreationError] = useState<string | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string>('');
   const [isAddAgentOpen, setIsAddAgentOpen] = useState(false);
   const [newAgent, setNewAgent] = useState<Partial<Agent>>({});
@@ -119,6 +127,71 @@ export default function useSpreadsheet() {
   const allSessionsAgents = trpc.panel.getAllSessionsWithAgents.useQuery();
 
   const currentSession = sessionData?.data;
+
+  const isCreatingApiKey = useRef(false);
+
+  const apiKeyQuery = trpc.apiKey.getValidApiKey.useQuery(
+    { isShareId: false },
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const createApiKeyMutation = trpc.apiKey.createDefaultApiKey.useMutation({
+    onSuccess: () => {
+      apiKeyQuery.refetch();
+      isCreatingApiKey.current = false;
+      setCreationError(null);
+    },
+    onError: (error) => {
+      isCreatingApiKey.current = false;
+      setCreationError(error.message);
+      setIsInitializing(false);
+    },
+    onSettled: () => {
+      // Only update initialization state if we're no longer creating an API key
+      if (!isCreatingApiKey.current) {
+        setIsInitializing(false);
+      }
+    },
+  });
+
+  const swarmsApi = useRef<SwarmsApiClient | null>(null);
+
+  useEffect(() => {
+    if (!apiKeyQuery.isLoading) {
+      if (!apiKeyQuery.data && !isCreatingApiKey.current) {
+        isCreatingApiKey.current = true;
+        createApiKeyMutation.mutate();
+      }
+    }
+  }, [apiKeyQuery.isLoading, apiKeyQuery.data]);
+
+  useEffect(() => {
+    if (apiKeyQuery.data?.key && isInitializing) {
+      swarmsApi.current = new SwarmsApiClient(apiKeyQuery.data.key);
+
+      const fetchModels = async () => {
+        try {
+          const data = await swarmsApi.current!.getModels();
+          setModels(
+            data?.models || [
+              'gpt-4o',
+              'gpt-4o-mini',
+              'gpt-3.5-turbo',
+              'openai/gpt-4o',
+            ],
+          );
+        } catch (error) {
+          console.error('Error fetching models:', error);
+        } finally {
+          setIsInitializing(false);
+        }
+      };
+
+      fetchModels();
+    }
+  }, [apiKeyQuery.data, isInitializing]);
 
   useEffect(() => {
     if (allSessions?.data) {
@@ -245,6 +318,10 @@ export default function useSpreadsheet() {
         description: editingAgent.description,
         system_prompt: editingAgent.systemPrompt,
         llm: editingAgent.llm,
+        temperature: editingAgent.temperature || 0.7,
+        max_tokens: editingAgent.maxTokens || 2048,
+        max_loops: editingAgent.maxLoops || 1,
+        role: editingAgent.role || 'worker',
       });
 
       if (!isEditAgentLoader) {
@@ -289,30 +366,30 @@ export default function useSpreadsheet() {
   };
 
   const redirectStatus = () => {
-    if (!user) {
-      setIsAuthModalOpen(true);
-      return true;
-    }
+    // if (!user) {
+    //   setIsAuthModalOpen(true);
+    //   return true;
+    // }
 
-    if (isEmpty(cardManager?.data)) {
-      const params = createQueryString({
-        card_available: 'false',
-      });
-      router.push(PLATFORM.ACCOUNT + '?' + params);
-    }
+    // if (isEmpty(cardManager?.data)) {
+    //   const params = createQueryString({
+    //     card_available: 'false',
+    //   });
+    //   router.push(PLATFORM.ACCOUNT + '?' + params);
+    // }
 
-    if (getSubscription.data && getSubscription.data.status !== 'active') {
-      toast.toast({
-        description: 'Please subscribe to use this feature.',
-      });
+    // if (getSubscription.data && getSubscription.data.status !== 'active') {
+    //   toast.toast({
+    //     description: 'Please subscribe to use this feature.',
+    //   });
 
-      const params = createQueryString({
-        subscription_status: 'null',
-      });
+    //   const params = createQueryString({
+    //     subscription_status: 'null',
+    //   });
 
-      router.push(PLATFORM.ACCOUNT + '?' + params);
-      return true;
-    }
+    //   router.push(PLATFORM.ACCOUNT + '?' + params);
+    //   return true;
+    // }
 
     return false;
   };
@@ -339,6 +416,10 @@ export default function useSpreadsheet() {
         description: newAgent.description,
         system_prompt: newAgent.systemPrompt,
         llm: newAgent.llm,
+        temperature: newAgent.temperature || 0.7,
+        max_tokens: newAgent.maxTokens || 2048,
+        max_loops: newAgent.maxLoops || 1,
+        role: newAgent.role || 'worker',
       });
 
       setIsAddAgentOpen(false);
@@ -831,5 +912,10 @@ export default function useSpreadsheet() {
     downloadJSON,
     uploadJSON,
     downloadCSV,
+    models,
+    isInitializing,
+    creationError,
+    apiKeyQuery,
+    isCreatingApiKey,
   };
 }

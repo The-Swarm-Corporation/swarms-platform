@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import Input from '../ui/Input/Input';
+import { Input as TempInput } from '@/shared/components/ui/input';
 import { Label } from '../ui/label';
 import {
   Table,
@@ -48,6 +49,8 @@ import {
   Edit2,
   ChevronRight,
   ChevronLeft,
+  AlertTriangle,
+  KeyRound,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
@@ -63,6 +66,10 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ShareModal from '@/modules/platform/explorer/components/share-modal';
 import useSpreadsheet from './hook';
 import { cn } from '@/shared/utils/cn';
+import MessageScreen from '../chat/components/message-screen';
+import Link from 'next/link';
+import { AGENT_ROLES } from '../chat/helper';
+import AgentForm from './agent-form';
 
 const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
   <pre id="customPreTag" {...props} className="max-h-[600px]" />
@@ -122,7 +129,94 @@ export function SwarmManagement() {
     downloadJSON,
     uploadJSON,
     downloadCSV,
+    models,
+    isInitializing,
+    creationError,
+    apiKeyQuery,
+    isCreatingApiKey,
   } = useSpreadsheet();
+
+  if (apiKeyQuery.isLoading || isCreatingApiKey.current || isInitializing) {
+    return (
+      <MessageScreen
+        containerClass="h-full w-full"
+        borderClass="border border-zinc-700/50"
+        title="Swarms Agent System"
+      >
+        <div className="flex items-center gap-3">
+          <Loader2 className="animate-spin h-6 w-6 text-primary" />
+          <p className="text-zinc-300 text-xs font-semibold">
+            {apiKeyQuery.isLoading
+              ? 'Checking for existing API credentials...'
+              : isCreatingApiKey.current
+                ? 'Generating secure API key for you...'
+                : 'Initializing Swarms Chat...'}
+          </p>
+        </div>
+        <p className="text-xs text-zinc-400 text-center mt-2">
+          We&apos;re setting up your environment to interact with our AI agents.
+          This only takes a moment and ensures a seamless experience.
+        </p>
+      </MessageScreen>
+    );
+  }
+
+  if (creationError) {
+    return (
+      <MessageScreen
+        icon={AlertTriangle}
+        iconClass="h-10 w-10 text-primary mb-2"
+        title="API Key Creation Failed"
+        borderClass="border border-primary/50"
+      >
+        <p className="text-sm text-center text-zinc-300">
+          We encountered an issue creating your API key:
+        </p>
+        <p className="text-primary text-center font-mono text-sm p-3 bg-red-900/20 rounded-md border border-red-900/50">
+          {creationError}
+        </p>
+        <Link
+          href="https://swarms.world/platform/api-keys"
+          target="_blank"
+          className="mt-6"
+        >
+          <Button className="bg-primary hover:bg-primary/80">
+            <KeyRound size={20} className="mr-2" /> Manage API Keys
+          </Button>
+        </Link>
+      </MessageScreen>
+    );
+  }
+
+  if (
+    !apiKeyQuery.data?.key &&
+    !apiKeyQuery.isLoading &&
+    !isCreatingApiKey.current &&
+    !isInitializing
+  ) {
+    return (
+      <MessageScreen
+        icon={KeyRound}
+        iconClass="h-12 w-12 text-yellow-500 mb-2"
+        title="API Key Required"
+        borderClass="border border-zinc-700/50"
+      >
+        <p className="text-center text-sm text-zinc-300">
+          You&apos;ll need an API key to interact with our platform. We tried to
+          create one automatically but ran into an issue.
+        </p>
+        <Link
+          href="https://swarms.world/platform/api-keys"
+          target="_blank"
+          className="mt-6"
+        >
+          <Button className="bg-primary hover:bg-primary/80">
+            <KeyRound size={20} className="mr-2" /> Create API Key
+          </Button>
+        </Link>
+      </MessageScreen>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -143,7 +237,8 @@ export function SwarmManagement() {
           onClick={handleCheckExpand}
           className={cn(
             'flex flex-col fixed border-r dark:bg-[#141414] bg-[#c1c1c1] border-foreground border-[#40403F] left-auto lg:left-20 p-4 flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-150 translate-x-0 min-h-screen shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] z-[50]',
-            !isExpanded && 'max-w-[20px] lg:max-w-[10px] xl:max-w-[50px] cursor-pointer',
+            !isExpanded &&
+              'max-w-[20px] lg:max-w-[10px] xl:max-w-[50px] cursor-pointer',
           )}
         >
           <div
@@ -290,140 +385,20 @@ export function SwarmManagement() {
                     <DialogTitle>Add New Agent</DialogTitle>
                   </DialogHeader>
 
-                  <div className="grid gap-4 py-4 ">
-                    <div>
-                      <Label htmlFor="name" className="mb-2.5 block">
-                        Name
-                      </Label>
-                      <Input
-                        id="name"
-                        value={newAgent.name || ''}
-                        onChange={(name: any) =>
-                          setNewAgent({ ...newAgent, name })
-                        }
-                        className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-0 "
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="description" className="mb-2.5 block">
-                        Description
-                      </Label>
-                      <Input
-                        id="description"
-                        value={newAgent.description || ''}
-                        onChange={(description: any) =>
-                          setNewAgent({ ...newAgent, description })
-                        }
-                        className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-white dark:bg-black  ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-0 "
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="systemPrompt" className="mb-2.5 block">
-                        System Prompt
-                      </Label>
-                      <div className="relative">
-                        <Textarea
-                          id="systemPrompt"
-                          value={newAgent.systemPrompt || ''}
-                          onChange={(e) =>
-                            setNewAgent({
-                              ...newAgent,
-                              systemPrompt: e.target.value,
-                            })
-                          }
-                          className="pr-10 shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="absolute right-2 top-2"
-                          onClick={() => optimizePrompt(false)}
-                          disabled={isOptimizing}
-                        >
-                          {isOptimizing ? (
-                            <Loader2 className="size-4 animate-spin" />
-                          ) : (
-                            <Sparkles className="size-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="llm" className="mb-2.5 block">
-                        LLM
-                      </Label>
-                      <Select
-                        onValueChange={(value) =>
-                          setNewAgent({ ...newAgent, llm: value })
-                        }
-                      >
-                        <SelectTrigger className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]">
-                          <SelectValue placeholder="Select LLM" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="openai:gpt-4o">GPT-4o</SelectItem>
-                          <SelectItem value="anthropic:claude-3-opus-20240229">
-                            Claude 3 Opus
-                          </SelectItem>
-                          <SelectItem value="anthropic:claude-3-sonnet-20240229">
-                            Claude 3 Sonnet
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div
-                      className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={handleFileDrop}
-                    >
-                      <FileText className="mx-auto size-8 mb-2" />
-                      <p className="text-lg font-medium mb-1">
-                        Drag and drop files here
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Supports PDF, TXT, CSV
-                      </p>
-                    </div>
-
-                    {draggedFiles.length > 0 && (
-                      <div>
-                        {draggedFiles.map((file, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-2 bg-secondary rounded mb-2 last:mb-0"
-                          >
-                            <span className="flex items-center">
-                              <FileText className="size-4 mr-2" />
-                              {file.name}
-                            </span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() =>
-                                setDraggedFiles((files) =>
-                                  files.filter((_, i) => i !== index),
-                                )
-                              }
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <Button
-                      onClick={addAgent}
-                      disabled={isAddAgentLoader}
-                      className="flex items-center gap-2 shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.16),_0_3px_6px_rgba(0,0,0,0.23)] -mb-5"
-                    >
-                      <span>Add Agent</span>{' '}
-                      {isAddAgentLoader && <LoadingSpinner />}
-                    </Button>
-                  </div>
+                  <AgentForm
+                    mode="add"
+                    agent={newAgent}
+                    setAgent={setNewAgent}
+                    onSubmit={addAgent}
+                    models={models}
+                    roles={AGENT_ROLES}
+                    isSubmitting={isAddAgentLoader}
+                    isOptimizing={isOptimizing}
+                    onOptimizePrompt={() => optimizePrompt(false)}
+                    onFileDrop={handleFileDrop}
+                    files={draggedFiles}
+                    setFiles={setDraggedFiles}
+                  />
                 </DialogContent>
               </Dialog>
 
@@ -628,124 +603,20 @@ export function SwarmManagement() {
                                 <DialogTitle>Edit Agent</DialogTitle>
                               </DialogHeader>
 
-                              <div className="grid gap-4 py-4">
-                                <div>
-                                  <Label
-                                    htmlFor="edit-name"
-                                    className="mb-2.5 block"
-                                  >
-                                    Name
-                                  </Label>
-                                  <Input
-                                    id="edit-name"
-                                    value={editingAgent.name || ''}
-                                    onChange={(name: any) =>
-                                      setEditingAgent({
-                                        ...editingAgent,
-                                        name,
-                                      })
-                                    }
-                                    className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label
-                                    htmlFor="edit-description"
-                                    className="mb-2.5 block"
-                                  >
-                                    Description
-                                  </Label>
-                                  <Input
-                                    id="edit-description"
-                                    value={editingAgent.description || ''}
-                                    onChange={(description: any) =>
-                                      setEditingAgent({
-                                        ...editingAgent,
-                                        description,
-                                      })
-                                    }
-                                    className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label
-                                    htmlFor="edit-systemPrompt"
-                                    className="mb-2.5 block"
-                                  >
-                                    System Prompt
-                                  </Label>
-                                  <div className="relative">
-                                    <Textarea
-                                      id="edit-systemPrompt"
-                                      value={editingAgent.systemPrompt || ''}
-                                      onChange={(e) =>
-                                        setEditingAgent({
-                                          ...editingAgent,
-                                          systemPrompt: e.target.value,
-                                        })
-                                      }
-                                      className="pr-10 shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-                                    />
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="absolute right-2 top-2"
-                                      onClick={() => optimizePrompt(true)}
-                                      disabled={isOptimizing}
-                                    >
-                                      {isOptimizing ? (
-                                        <Loader2 className="size-4 animate-spin" />
-                                      ) : (
-                                        <Sparkles className="size-4" />
-                                      )}
-                                    </Button>
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <Label
-                                    htmlFor="edit-llm"
-                                    className="mb-2.5 block"
-                                  >
-                                    LLM
-                                  </Label>
-                                  <Select
-                                    value={editingAgent.llm}
-                                    onValueChange={(value) =>
-                                      setEditingAgent({
-                                        ...editingAgent,
-                                        llm: value,
-                                      })
-                                    }
-                                  >
-                                    <SelectTrigger className="w-full shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]">
-                                      <SelectValue placeholder="Select LLM" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="openai:gpt-4o-mini">
-                                        GPT-4o-Mini
-                                      </SelectItem>
-                                      <SelectItem value="anthropic:claude-3-opus-20240229">
-                                        Claude 3 Opus
-                                      </SelectItem>
-                                      <SelectItem value="anthropic:claude-3-sonnet-20240229">
-                                        Claude 3 Sonnet
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-
-                                <Button
-                                  onClick={saveEditedAgent}
-                                  disabled={isEditAgentLoader}
-                                  className="flex items-center gap-2 shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.16),_0_3px_6px_rgba(0,0,0,0.23)] -mb-5"
-                                >
-                                  <span>Save changes</span>{' '}
-                                  {isEditAgentLoader && <LoadingSpinner />}
-                                </Button>
-                              </div>
+                              <AgentForm
+                                mode="edit"
+                                agent={editingAgent}
+                                setAgent={setEditingAgent}
+                                onSubmit={saveEditedAgent}
+                                models={models}
+                                roles={AGENT_ROLES}
+                                isSubmitting={isEditAgentLoader}
+                                isOptimizing={isOptimizing}
+                                onOptimizePrompt={() => optimizePrompt(true)}
+                                onFileDrop={handleFileDrop}
+                                files={draggedFiles}
+                                setFiles={setDraggedFiles}
+                              />
                             </DialogContent>
                           </Dialog>
                         </TableRow>

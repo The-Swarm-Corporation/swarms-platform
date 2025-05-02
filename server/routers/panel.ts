@@ -45,6 +45,10 @@ const panelRouter = router({
         description: z.string(),
         system_prompt: z.string(),
         llm: z.string(),
+        temperature: z.number().optional(),
+        max_tokens: z.number().optional(),
+        max_loops: z.number().optional(),
+        role: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -57,6 +61,10 @@ const panelRouter = router({
           description: input.description,
           system_prompt: input.system_prompt,
           llm: input.llm,
+          temperature: input.temperature,
+          max_tokens: input.max_tokens,
+          max_loops: input.max_loops,
+          role: input.role,
         })
         .eq('id', input.agent_id)
         .eq('user_id', user_id)
@@ -370,6 +378,10 @@ const panelRouter = router({
         description: z.string(),
         system_prompt: z.string(),
         llm: z.string(),
+        temperature: z.number().optional(),
+        max_tokens: z.number().optional(),
+        max_loops: z.number().optional(),
+        role: z.string().optional(),
         original_agent_id: z.string().uuid().optional(),
       }),
     )
