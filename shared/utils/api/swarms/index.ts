@@ -141,7 +141,7 @@ export class SwarmsApiClient {
         agent_name: agent.name,
         description: agent.description || '',
         system_prompt: agent.system_prompt || '',
-        model_name: agent.model || 'gpt-4o',
+        model_name: agent.model || (agent as any).llm || 'gpt-4o',
         temperature:
           agent.temperature !== null ? Number(agent.temperature) : 0.5,
         max_tokens: agent.max_tokens || 2048,

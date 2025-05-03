@@ -6,17 +6,14 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
-import {
-  createQueryString,
-  isEmpty,
-  estimateTokensAndCost,
-  CostEstimate,
-} from '@/shared/utils/helpers';
-import { PLATFORM } from '@/shared/utils/constants';
+import { estimateTokensAndCost } from '@/shared/utils/helpers';
 import { useAuthContext } from '../ui/auth.provider';
 import { Tables } from '@/types_db';
 import { optimizePrompt as getSystemOptimizedPrompt } from '@/app/actions/registry';
 import { SwarmsApiClient } from '@/shared/utils/api/swarms';
+import { SwarmArchitecture } from '../chat/types';
+import { transformSpreadsheetSessionToMessages } from './helper';
+import { extractContentAsString } from '../chat/helper';
 
 export interface DraggedFile {
   name: string;
@@ -41,7 +38,7 @@ export interface Agent {
 }
 
 export default function useSpreadsheet() {
-  const { user, setIsAuthModalOpen } = useAuthContext();
+  const { user } = useAuthContext();
 
   const [models, setModels] = useState<string[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -58,6 +55,9 @@ export default function useSpreadsheet() {
   const [agentId, setAgentId] = useState('');
   const [isEditAgentOpen, setIsEditAgentOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Partial<Agent>>({});
+  const [agentStatuses, setAgentStatuses] = useState<
+    Record<string, 'idle' | 'running' | 'completed' | 'error'>
+  >({});
 
   const updateAgentMutation = trpc.panel.updateAgent.useMutation();
 
@@ -214,7 +214,7 @@ export default function useSpreadsheet() {
         });
         return true;
       } catch (error) {
-        console.log({ error });
+        console.error(error);
       }
     }
   };
@@ -302,22 +302,31 @@ export default function useSpreadsheet() {
 
   // Function to handle saving edited agent
   const saveEditedAgent = async () => {
-    if (
-      !editingAgent.id ||
-      !editingAgent.name ||
-      !editingAgent.description ||
-      !editingAgent.systemPrompt ||
-      !editingAgent.llm
-    )
+    if (!editingAgent.id) return;
+
+    const missingFields: string[] = [];
+
+    if (!editingAgent.name) missingFields.push('Name');
+    if (!editingAgent.description) missingFields.push('Description');
+    if (!editingAgent.systemPrompt) missingFields.push('System Prompt');
+    if (!editingAgent.llm) missingFields.push('LLM');
+
+    if (missingFields.length > 0) {
+      toast.toast({
+        title: 'Missing required fields:',
+        description: `Please provide: ${missingFields.join(', ')}`,
+        variant: 'destructive',
+      });
       return;
+    }
 
     try {
       await updateAgentMutation.mutateAsync({
         agent_id: editingAgent.id,
-        name: editingAgent.name,
-        description: editingAgent.description,
-        system_prompt: editingAgent.systemPrompt,
-        llm: editingAgent.llm,
+        name: editingAgent.name || '',
+        description: editingAgent.description || '',
+        system_prompt: editingAgent.systemPrompt || '',
+        llm: editingAgent.llm || '',
         temperature: editingAgent.temperature || 0.7,
         max_tokens: editingAgent.maxTokens || 2048,
         max_loops: editingAgent.maxLoops || 1,
@@ -397,13 +406,21 @@ export default function useSpreadsheet() {
   const addAgent = async () => {
     if (redirectStatus()) return;
 
-    if (
-      !newAgent.name ||
-      !newAgent.description ||
-      !newAgent.systemPrompt ||
-      !newAgent.llm
-    )
+    const missingFields: string[] = [];
+
+    if (!newAgent.name) missingFields.push('Name');
+    if (!newAgent.description) missingFields.push('Description');
+    if (!newAgent.systemPrompt) missingFields.push('System Prompt');
+    if (!newAgent.llm) missingFields.push('LLM');
+
+    if (missingFields.length > 0) {
+      toast.toast({
+        title: 'Missing required fields:',
+        description: `Please provide: ${missingFields.join(', ')}`,
+        variant: 'destructive',
+      });
       return;
+    }
 
     try {
       if (!currentSessionId) {
@@ -412,10 +429,10 @@ export default function useSpreadsheet() {
 
       await addAgentMutation.mutateAsync({
         session_id: currentSessionId,
-        name: newAgent.name,
-        description: newAgent.description,
-        system_prompt: newAgent.systemPrompt,
-        llm: newAgent.llm,
+        name: newAgent.name || '',
+        description: newAgent.description || '',
+        system_prompt: newAgent.systemPrompt || '',
+        llm: newAgent.llm || '',
         temperature: newAgent.temperature || 0.7,
         max_tokens: newAgent.maxTokens || 2048,
         max_loops: newAgent.maxLoops || 1,
@@ -433,6 +450,7 @@ export default function useSpreadsheet() {
       });
     }
   };
+
   useEffect(() => {
     const mainWrapperElements =
       document.getElementsByClassName('main-wrapper-all');
@@ -514,6 +532,10 @@ export default function useSpreadsheet() {
         name: `${agent.name} (Copy)`,
         description: agent.description || '',
         system_prompt: agent.system_prompt || '',
+        max_loops: agent.max_loops || 1,
+        max_tokens: agent.max_tokens || 2048,
+        temperature: agent.temperature || 0.7,
+        role: agent.role || 'worker',
         llm: agent.llm || '',
         original_agent_id: agent.original_agent_id || agent.id,
       });
@@ -612,33 +634,24 @@ export default function useSpreadsheet() {
       }),
     );
 
-    setDraggedFiles((prev) => [...prev, ...newFiles]);
+    setDraggedFiles((prev: any) => [...prev, ...newFiles]);
   };
 
   const runAgents = async () => {
-    if (redirectStatus()) return;
+    if (redirectStatus() || !currentSessionId || !task) return;
 
-    if (!currentSessionId) return;
-
-    if (!task) {
+    const agents = currentSession?.agents ?? [];
+    if (agents.length < 2) {
       toast.toast({
-        description: 'Please enter a task',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!currentSession?.agents || currentSession?.agents?.length === 0) {
-      toast.toast({
-        description: 'No agents available',
+        description: 'A session must have at least two active agents.',
         variant: 'destructive',
       });
       return;
     }
 
     try {
+      const startTime = Date.now();
       const isTaskHandled = await handleTaskChange(task);
-
       if (!isTaskHandled) {
         toast.toast({
           description: 'An error has occurred',
@@ -647,93 +660,90 @@ export default function useSpreadsheet() {
         return;
       }
 
-      const startTime = Date.now();
-      const agents = sessionData.data?.agents || [];
-      const outputs: Record<string, any> = {};
-      const costTracking: Record<string, CostEstimate> = {};
+      setIsRunning(true);
 
-      let totalEstimatedCost = 0;
+      const initialStatuses = Object.fromEntries(
+        agents.map((agent) => [agent.id, 'running' as const]),
+      );
+      setAgentStatuses(initialStatuses);
 
-      const estimates = agents.map((agent) => {
-        const uniquePrompt =
-          agent.status === 'completed'
-            ? `Task: ${task}\n\nAgent Name: ${agent.id}\n\nResponse:`
-            : `${agent.system_prompt}\n\nTask: ${task}\n\nAgent Name: ${agent.name}\nAgent Description: ${agent.description}\n\nResponse:`;
-
-        const estimate = estimateTokensAndCost(uniquePrompt);
-        totalEstimatedCost += estimate.inputCost;
-        return { agent, estimate, prompt: uniquePrompt };
-      });
-
-      const totalCredit = Number(userCredit.data) || 0;
-
-      if (totalCredit < totalEstimatedCost) {
-        toast.toast({
-          description: 'Insufficient credit to run all agents',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      await Promise.all(
-        estimates.map(async ({ agent, prompt }) => {
-          setIsRunning(true);
-          try {
-            await updateAgentStatusMutation.mutateAsync({
-              agent_id: agent.id,
-              status: 'running',
-            });
-
-            const text = await getSystemOptimizedPrompt(
-              prompt,
-              agent?.llm ?? '',
-              'Failed to run agents completely',
-            );
-
-            const finalCosts = estimateTokensAndCost(prompt, text);
-            costTracking[agent.id] = finalCosts;
-
-            if (finalCosts?.totalCost) {
-              deductCredit.mutateAsync({ amount: finalCosts.totalCost });
-            }
-
-            outputs[agent.id] = text;
-
-            await updateAgentStatusMutation.mutateAsync({
-              agent_id: agent.id,
-              status: 'completed',
-              output: text,
-            });
-          } catch (error: any) {
-            outputs[agent.id] = `Error: ${error.message || 'Unknown error'}`;
-            await updateAgentStatusMutation.mutateAsync({
-              agent_id: agent.id,
-              status: 'error',
-              output: outputs[agent.id],
-            });
-          } finally {
-            setIsRunning(false);
-          }
-        }),
+      const apiAgents = SwarmsApiClient.convertAgentsToApiFormat(
+        agents as any,
+        currentSession?.swarm_type as SwarmArchitecture,
+      );
+      const swarmType = SwarmsApiClient.getSwarmType(
+        currentSession?.swarm_type as SwarmArchitecture,
       );
 
-      const endTime = Date.now();
-      const timeSaved = Math.round((endTime - startTime) / 1000);
+      const messages = transformSpreadsheetSessionToMessages(currentSession);
+      const extractedTask = extractContentAsString(messages, task);
+
+      const response = await swarmsApi?.current?.executeSwarm({
+        name: currentSession?.id ?? 'Untitled Session',
+        description: 'Session description',
+        agents: apiAgents,
+        swarm_type: swarmType,
+        task: extractedTask || task,
+        max_loops: 1,
+      });
+
+      const outputs = response?.output ?? [];
+
+      const agentOutputMap = outputs.reduce(
+        (acc: Record<string, string>, output: any) => {
+          if (output.role) {
+            acc[output.role] = (acc[output.role] ?? '') + '\n' + output.content;
+          }
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
+
+      await Promise.all(
+        agents.map(async (agent) => {
+          const agentOutput = agentOutputMap[agent.name] || 'No response';
+          const status = agentOutput === 'No response' ? 'error' : 'completed';
+
+          setAgentStatuses((prev) => ({
+            ...prev,
+            [agent.id]: status,
+          }));
+
+          await updateAgentStatusMutation.mutateAsync({
+            agent_id: agent.id,
+            status,
+            output: agentOutput,
+          });
+        }),
+      );
 
       await updateSessionMetricsMutation.mutateAsync({
         session_id: currentSessionId,
         tasksExecuted: (sessionData.data?.tasks_executed || 0) + 1,
-        timeSaved: (sessionData.data?.time_saved || 0) + timeSaved,
+        timeSaved: Math.round((Date.now() - startTime) / 1000),
       });
 
       sessionData.refetch();
     } catch (error: any) {
       console.error('Failed to run agents:', error);
+
+      const errorStatuses = Object.fromEntries(
+        agents.map((agent) => [agent.id, 'error' as const]),
+      );
+      setAgentStatuses(
+        errorStatuses as Record<
+          string,
+          'idle' | 'running' | 'completed' | 'error'
+        >,
+      );
+
       toast.toast({
         title: 'Failed to run agents',
-        description: error || error?.message || '',
+        description: error.message || 'An unexpected error occurred',
         variant: 'destructive',
       });
+    } finally {
+      setIsRunning(false);
     }
   };
 
@@ -871,7 +881,7 @@ export default function useSpreadsheet() {
     agentId,
     isEditAgentOpen,
     editingAgent,
-    isLoading,
+    isLoading: isLoading || sessionData.isLoading,
     isAddAgentLoader,
     isRunAgentLoader,
     isDuplicateLoader,
@@ -913,6 +923,7 @@ export default function useSpreadsheet() {
     uploadJSON,
     downloadCSV,
     models,
+    agentStatuses,
     isInitializing,
     creationError,
     apiKeyQuery,

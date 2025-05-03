@@ -19,8 +19,6 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import Input from '../ui/Input/Input';
-import { Input as TempInput } from '@/shared/components/ui/input';
-import { Label } from '../ui/label';
 import {
   Table,
   TableBody,
@@ -29,7 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table';
-import { Textarea } from '../ui/textarea';
 
 // Icons
 import {
@@ -43,9 +40,7 @@ import {
   RefreshCw,
   MoreHorizontal,
   Copy,
-  Sparkles,
   Loader2,
-  FileText,
   Edit2,
   ChevronRight,
   ChevronLeft,
@@ -53,16 +48,6 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
-import LoadingSpinner from '../loading-spinner';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ShareModal from '@/modules/platform/explorer/components/share-modal';
 import useSpreadsheet from './hook';
 import { cn } from '@/shared/utils/cn';
@@ -70,10 +55,8 @@ import MessageScreen from '../chat/components/message-screen';
 import Link from 'next/link';
 import { AGENT_ROLES } from '../chat/helper';
 import AgentForm from './agent-form';
-
-const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
-  <pre id="customPreTag" {...props} className="max-h-[600px]" />
-);
+import LoadingSpinner from '../loading-spinner';
+import MarkdownComponent from '../markdown';
 
 export function SwarmManagement() {
   const {
@@ -126,6 +109,7 @@ export function SwarmManagement() {
     optimizePrompt,
     handleFileDrop,
     runAgents,
+    agentStatuses,
     downloadJSON,
     uploadJSON,
     downloadCSV,
@@ -139,7 +123,7 @@ export function SwarmManagement() {
   if (apiKeyQuery.isLoading || isCreatingApiKey.current || isInitializing) {
     return (
       <MessageScreen
-        containerClass="h-full w-full"
+        containerClass="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         borderClass="border border-zinc-700/50"
         title="Swarms Agent System"
       >
@@ -150,7 +134,7 @@ export function SwarmManagement() {
               ? 'Checking for existing API credentials...'
               : isCreatingApiKey.current
                 ? 'Generating secure API key for you...'
-                : 'Initializing Swarms Chat...'}
+                : 'Initializing spreadsheet swarm...'}
           </p>
         </div>
         <p className="text-xs text-zinc-400 text-center mt-2">
@@ -168,6 +152,7 @@ export function SwarmManagement() {
         iconClass="h-10 w-10 text-primary mb-2"
         title="API Key Creation Failed"
         borderClass="border border-primary/50"
+        containerClass="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
       >
         <p className="text-sm text-center text-zinc-300">
           We encountered an issue creating your API key:
@@ -200,6 +185,7 @@ export function SwarmManagement() {
         iconClass="h-12 w-12 text-yellow-500 mb-2"
         title="API Key Required"
         borderClass="border border-zinc-700/50"
+        containerClass="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
       >
         <p className="text-center text-sm text-zinc-300">
           You&apos;ll need an API key to interact with our platform. We tried to
@@ -485,142 +471,145 @@ export function SwarmManagement() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {currentSession?.agents?.map((agent) => (
-                        <TableRow
-                          key={agent?.id}
-                          onClick={() => setAgentId(agent?.id)}
-                        >
-                          <TableCell className="min-w-[100px]">
-                            <div className="max-h-[100px] overflow-y-auto">
-                              {agent?.name}
-                            </div>
-                          </TableCell>
-                          <TableCell className="min-w-[150px]">
-                            <div className="max-h-[100px] overflow-y-auto">
-                              {agent?.description}
-                            </div>
-                          </TableCell>
-                          <TableCell className="min-w-[280px]">
-                            <div className="max-h-[100px] overflow-y-auto">
-                              {agent?.system_prompt}
-                            </div>
-                          </TableCell>
-                          <TableCell className="min-w-[80px]">
-                            {agent?.llm}
-                          </TableCell>
-                          <TableCell className="min-w-[100px]">
-                            <div className="flex items-center">
-                              {agent?.status === 'running' ? (
-                                <Loader2 className="size-4 mr-2 animate-spin" />
-                              ) : null}
-                              {isRunning ? 'running...' : agent?.status}
-                            </div>
-                          </TableCell>
-                          <TableCell className="min-w-[320px]">
-                            <Dialog
-                              open={isAgentOutput && agent?.id === agentId}
-                              onOpenChange={setIsAgentOutput}
-                            >
-                              <DialogTrigger asChild>
-                                <div className="max-h-[100px] overflow-y-auto cursor-pointer hover:text-gray-200">
-                                  {agent?.output}
-                                </div>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-3xl p-6">
-                                <DialogHeader>
-                                  <DialogTitle>Output</DialogTitle>
-                                </DialogHeader>
-                                <Copy
-                                  size={30}
-                                  className="p-1 text-primary cursor-pointer absolute right-12 top-2 focus:outline-none"
-                                  onClick={() =>
-                                    copyToClipboard(agent?.output ?? '')
-                                  }
-                                />
-                                <SyntaxHighlighter
-                                  PreTag={CustomPre}
-                                  style={dracula}
-                                  language="markdown"
-                                  wrapLongLines
+                      {currentSession?.agents?.map((agent) => {
+                        const status =
+                          agentStatuses[agent?.id] || agent?.status;
+                        return (
+                          <TableRow
+                            key={agent?.id}
+                            onClick={() => setAgentId(agent?.id)}
+                          >
+                            <TableCell className="min-w-[100px]">
+                              <div className="max-h-[100px] overflow-y-auto">
+                                {agent?.name}
+                              </div>
+                            </TableCell>
+                            <TableCell className="min-w-[150px]">
+                              <div className="max-h-[100px] overflow-y-auto">
+                                {agent?.description}
+                              </div>
+                            </TableCell>
+                            <TableCell className="min-w-[280px]">
+                              <div className="max-h-[100px] overflow-y-auto">
+                                {agent?.system_prompt}
+                              </div>
+                            </TableCell>
+                            <TableCell className="min-w-[80px]">
+                              {agent?.llm}
+                            </TableCell>
+                            <TableCell className="min-w-[100px]">
+                              <div className="flex items-center">
+                                {status === 'running' ? (
+                                  <Loader2 className="size-4 mr-2 animate-spin" />
+                                ) : null}
+                                {isRunning ? 'running...' : status}
+                              </div>
+                            </TableCell>
+                            <TableCell className="min-w-[320px]">
+                              <Dialog
+                                open={isAgentOutput && agent?.id === agentId}
+                                onOpenChange={setIsAgentOutput}
+                              >
+                                <DialogTrigger asChild>
+                                  <div className="max-h-[100px] overflow-y-auto cursor-pointer hover:text-gray-200">
+                                    <MarkdownComponent
+                                      text={agent?.output || ''}
+                                    />
+                                  </div>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-3xl p-6 border border-[#40403F]">
+                                  <DialogHeader>
+                                    <DialogTitle>Output</DialogTitle>
+                                  </DialogHeader>
+                                  <Copy
+                                    size={30}
+                                    className="p-1 text-primary cursor-pointer absolute right-12 top-2 focus:outline-none"
+                                    onClick={() =>
+                                      copyToClipboard(agent?.output ?? '')
+                                    }
+                                  />
+                                  <div className="max-h-[550px] md:max-h-[600px] overflow-y-auto">
+                                    <MarkdownComponent
+                                      text={agent?.output || ''}
+                                    />
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </TableCell>
+                            <TableCell className="min-w-[120px]">
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
+                                  onClick={() => handleEditClick(agent)}
                                 >
-                                  {agent?.output ?? ''}
-                                </SyntaxHighlighter>
+                                  {updateAgentMutation.isPending &&
+                                  agent?.id === editingAgent?.id ? (
+                                    <LoadingSpinner />
+                                  ) : (
+                                    <Edit2 className="size-4" />
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDuplicateClick(agent)}
+                                  className="shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
+                                >
+                                  {isDuplicateLoader ? (
+                                    <LoadingSpinner />
+                                  ) : (
+                                    <Copy className="size-4" />
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => deleteAgent(agent)}
+                                  className="shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
+                                >
+                                  {deleteAgentMutation.isPending &&
+                                  agent?.id === selectedAgent?.id ? (
+                                    <LoadingSpinner />
+                                  ) : (
+                                    <Trash2 className="size-4" />
+                                  )}
+                                </Button>
+                              </div>
+                            </TableCell>
+
+                            {/* Add Edit Agent Dialog */}
+                            <Dialog
+                              open={isEditAgentOpen}
+                              onOpenChange={() =>
+                                setIsEditAgentOpen(!isEditAgentOpen)
+                              }
+                            >
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader className="-mb-3">
+                                  <DialogTitle>Edit Agent</DialogTitle>
+                                </DialogHeader>
+
+                                <AgentForm
+                                  mode="edit"
+                                  agent={editingAgent}
+                                  setAgent={setEditingAgent}
+                                  onSubmit={saveEditedAgent}
+                                  models={models}
+                                  roles={AGENT_ROLES}
+                                  isSubmitting={isEditAgentLoader}
+                                  isOptimizing={isOptimizing}
+                                  onOptimizePrompt={() => optimizePrompt(true)}
+                                  onFileDrop={handleFileDrop}
+                                  files={draggedFiles}
+                                  setFiles={setDraggedFiles}
+                                />
                               </DialogContent>
                             </Dialog>
-                          </TableCell>
-                          <TableCell className="min-w-[120px]">
-                            <div className="flex space-x-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-                                onClick={() => handleEditClick(agent)}
-                              >
-                                {updateAgentMutation.isPending &&
-                                agent?.id === editingAgent?.id ? (
-                                  <LoadingSpinner />
-                                ) : (
-                                  <Edit2 className="size-4" />
-                                )}
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDuplicateClick(agent)}
-                                className="shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-                              >
-                                {isDuplicateLoader ? (
-                                  <LoadingSpinner />
-                                ) : (
-                                  <Copy className="size-4" />
-                                )}
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => deleteAgent(agent)}
-                                className="shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]"
-                              >
-                                {deleteAgentMutation.isPending &&
-                                agent?.id === selectedAgent?.id ? (
-                                  <LoadingSpinner />
-                                ) : (
-                                  <Trash2 className="size-4" />
-                                )}
-                              </Button>
-                            </div>
-                          </TableCell>
-
-                          {/* Add Edit Agent Dialog */}
-                          <Dialog
-                            open={isEditAgentOpen}
-                            onOpenChange={() =>
-                              setIsEditAgentOpen(!isEditAgentOpen)
-                            }
-                          >
-                            <DialogContent className="max-w-2xl">
-                              <DialogHeader className="-mb-3">
-                                <DialogTitle>Edit Agent</DialogTitle>
-                              </DialogHeader>
-
-                              <AgentForm
-                                mode="edit"
-                                agent={editingAgent}
-                                setAgent={setEditingAgent}
-                                onSubmit={saveEditedAgent}
-                                models={models}
-                                roles={AGENT_ROLES}
-                                isSubmitting={isEditAgentLoader}
-                                isOptimizing={isOptimizing}
-                                onOptimizePrompt={() => optimizePrompt(true)}
-                                onFileDrop={handleFileDrop}
-                                files={draggedFiles}
-                                setFiles={setDraggedFiles}
-                              />
-                            </DialogContent>
-                          </Dialog>
-                        </TableRow>
-                      ))}
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>

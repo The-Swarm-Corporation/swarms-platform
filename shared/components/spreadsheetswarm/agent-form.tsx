@@ -104,7 +104,7 @@ const AgentForm = ({
       <SelectField
         id="llm"
         label="LLM"
-        value={agent.llm ?? ''}
+        value={agent.llm ?? 'gpt-4o'}
         options={models}
         onChange={(val) => handleChange('llm', val)}
         placeholder="Select LLM"
