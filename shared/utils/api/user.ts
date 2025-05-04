@@ -2,6 +2,8 @@ import { createClient } from '@/shared/utils/supabase/server';
 import { supabaseAdmin } from '../supabase/admin';
 import axios from 'axios';
 import { User } from '@supabase/supabase-js';
+import { isReferralLimitReached } from '../auth-helpers/server';
+import { isDisposableEmail } from '../auth-helpers/fingerprinting';
 
 interface TwentyCrmUser {
   name: string;
@@ -68,28 +70,42 @@ export const getUserById = async (id: string) => {
 };
 
 export const updateReferralStatus = async (user: User) => {
-  const { data: referralData } = await supabaseAdmin
-  .from('swarms_cloud_users_referral')
-  .select('referrer_id, status')
-  .eq('referred_id', user.id)
-  .eq('status', 'Pending')
-  .single();
+  if (user.email && isDisposableEmail(user.email)) {
+    console.warn(
+      `Blocked referral credits for disposable email: ${user.email}`,
+    );
+    return;
+  }
 
-if (referralData) {
-  await supabaseAdmin
+  const { data: referralData } = await supabaseAdmin
     .from('swarms_cloud_users_referral')
-    .update({ status: 'Completed' })
+    .select('referrer_id, status')
     .eq('referred_id', user.id)
-    .eq('referrer_id', referralData.referrer_id);
-  
-  const referralAmount = 20;
-  
-  await supabaseAdmin.rpc('add_referral_credits', {
-    p_user_id: referralData.referrer_id,
-    p_amount: referralAmount
-  });
-}
-}
+    .eq('status', 'Pending')
+    .single();
+
+  if (referralData) {
+    if (await isReferralLimitReached(referralData.referrer_id)) {
+      console.warn(
+        `Referral limit reached for referrer: ${referralData.referrer_id}`,
+      );
+      return;
+    }
+
+    await supabaseAdmin
+      .from('swarms_cloud_users_referral')
+      .update({ status: 'Completed' })
+      .eq('referred_id', user.id)
+      .eq('referrer_id', referralData.referrer_id);
+
+    const referralAmount = 20;
+
+    await supabaseAdmin.rpc('add_referral_credits', {
+      p_user_id: referralData.referrer_id,
+      p_amount: referralAmount,
+    });
+  }
+};
 
 export async function updateTwentyCrmUser(id: string, data: any) {
   if (!id) return;
@@ -121,8 +137,8 @@ export async function updateTwentyCrmUser(id: string, data: any) {
 }
 
 export const updateFreeCreditsOnSignin = async (id: string): Promise<void> => {
-  "use server";
-  
+  'use server';
+
   if (!id) {
     return; // Early return for invalid input
   }
@@ -133,7 +149,7 @@ export const updateFreeCreditsOnSignin = async (id: string): Promise<void> => {
       .from('users')
       .select('had_free_credits')
       .eq('id', id)
-      .single(); 
+      .single();
 
     if (user?.had_free_credits) {
       return; // User already has free credits

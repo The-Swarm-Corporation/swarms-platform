@@ -20,6 +20,7 @@ import {
   updateFreeCreditsOnSignin,
   updateReferralStatus,
 } from '../api/user';
+import { isDisposableEmail } from './fingerprinting';
 
 function isValidEmail(email: string) {
   var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -205,12 +206,18 @@ export async function signInWithPassword(formData: FormData) {
   return redirectPath;
 }
 
-export async function signUp(formData: FormData) {
+export async function signUp(formData: FormData, req?: Request) {
   const callbackURL = getURL('/auth/callback');
 
   const email = String(formData.get('email')).trim();
   const password = String(formData.get('password')).trim();
   const referralCode = String(formData.get('referralCode') || '').trim();
+  
+  const cookies = req?.headers.get('cookie') || '';
+  const fingerprint = cookies.split(';')
+    .map(cookie => cookie.trim())
+    .find(cookie => cookie.startsWith('browser_fingerprint='))
+    ?.split('=')[1];
 
   let redirectPath: string;
 
@@ -223,8 +230,17 @@ export async function signUp(formData: FormData) {
     return redirectPath;
   }
 
-  const supabase = await createClient();
+  if (isDisposableEmail(email)) {
+    redirectPath = getErrorRedirect(
+      '/signin/signup',
+      'Invalid email provider.',
+      'Please use a valid, non-temporary email provider.',
+    );
+    return redirectPath;
+  }
 
+  const supabase = await createClient();
+  
   let referrerId = null;
   if (referralCode) {
     const { data: referrerData } = await supabaseAdmin
@@ -234,6 +250,33 @@ export async function signUp(formData: FormData) {
       .single();
 
     referrerId = referrerData?.id;
+    
+    if (!referrerId) {
+      redirectPath = getErrorRedirect(
+        '/signin/signup',
+        'Invalid referral code.',
+        'Please try again with a valid code.',
+      );
+      return redirectPath;
+    }
+    
+    if (await isReferralLimitReached(referrerId)) {
+      redirectPath = getErrorRedirect(
+        '/signin/signup',
+        'Referral limit reached.',
+        'This referral code has reached its daily limit. Please try again tomorrow.',
+      );
+      return redirectPath;
+    }
+  }
+
+  if (fingerprint && await checkRecentFingerprint(fingerprint)) {
+    redirectPath = getErrorRedirect(
+      '/signin/signup',
+      'Sign-up limit reached.',
+      'Please wait 24 hours before creating another account.',
+    );
+    return redirectPath;
   }
 
   const { error, data } = await supabase.auth.signUp({
@@ -266,6 +309,10 @@ export async function signUp(formData: FormData) {
         .update({ referred_by: referralCode })
         .eq('id', data?.user?.id ?? '');
     }
+    
+    if (fingerprint && data?.user?.id) {
+      await trackSignupFingerprint(data.user.id, fingerprint);
+    }
 
     redirectPath = getStatusRedirect('/', 'Success!', 'You are now signed in.');
   } else if (
@@ -291,6 +338,10 @@ export async function signUp(formData: FormData) {
         .update({ referred_by: referralCode })
         .eq('id', data.user.id);
     }
+    
+    if (fingerprint && data.user.id) {
+      await trackSignupFingerprint(data.user.id, fingerprint);
+    }
 
     redirectPath = getStatusRedirect(
       '/',
@@ -307,7 +358,6 @@ export async function signUp(formData: FormData) {
 
   return redirectPath;
 }
-
 export async function updatePassword(formData: FormData) {
   const password = String(formData.get('password')).trim();
   const passwordConfirm = String(formData.get('passwordConfirm')).trim();
@@ -423,4 +473,69 @@ export async function updateName(formData: FormData) {
       'Your name could not be updated.',
     );
   }
+}
+
+export async function trackSignupFingerprint(
+  userId: string,
+  fingerprint: string,
+) {
+  const { data, error } = await supabaseAdmin.from('user_fingerprints').insert({
+    user_id: userId,
+    fingerprint,
+    created_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error('Error tracking user fingerprint:', error);
+  }
+
+  return !error;
+}
+export async function checkRecentFingerprint(
+  fingerprint: string,
+): Promise<boolean> {
+  const oneDayAgo = new Date();
+  oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+  const { data, error } = await supabaseAdmin
+    .from('user_fingerprints')
+    .select('created_at')
+    .eq('fingerprint', fingerprint)
+    .gte('created_at', oneDayAgo.toISOString())
+    .limit(1);
+
+  if (error) {
+    console.error('Error checking recent fingerprint:', error);
+    return false;
+  }
+
+  return data && data.length > 0;
+}
+
+export async function countRecentReferrals(
+  referrerId: string,
+): Promise<number> {
+  const oneDayAgo = new Date();
+  oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+  const { data, error } = await supabaseAdmin
+    .from('swarms_cloud_users_referral')
+    .select('id')
+    .eq('referrer_id', referrerId)
+    .gte('created_at', oneDayAgo.toISOString());
+
+  if (error) {
+    console.error('Error counting recent referrals:', error);
+    return 0;
+  }
+
+  return data?.length || 0;
+}
+
+export async function isReferralLimitReached(
+  referrerId: string,
+): Promise<boolean> {
+  const MAX_REFERRALS_PER_DAY = 5;
+  const recentReferrals = await countRecentReferrals(referrerId);
+  return recentReferrals >= MAX_REFERRALS_PER_DAY;
 }

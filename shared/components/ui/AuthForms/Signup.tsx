@@ -30,17 +30,17 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setIsSubmitting(true);
 
-    if (referralCode) {
-      const formElement = e.currentTarget;
-      const formData = new FormData(formElement);
+    const formElement = e.currentTarget;
 
-      if (!formElement.querySelector('input[name="referralCode"]')) {
-        const referralInput = document.createElement('input');
-        referralInput.type = 'hidden';
-        referralInput.name = 'referralCode';
-        referralInput.value = referralCode;
-        formElement.appendChild(referralInput);
-      }
+    if (
+      referralCode &&
+      !formElement.querySelector('input[name="referralCode"]')
+    ) {
+      const referralInput = document.createElement('input');
+      referralInput.type = 'hidden';
+      referralInput.name = 'referralCode';
+      referralInput.value = referralCode;
+      formElement.appendChild(referralInput);
     }
 
     await handleRequest(e, signUp, router);
