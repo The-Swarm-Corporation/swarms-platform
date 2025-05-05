@@ -133,10 +133,10 @@ export const SIDE_BAR_MENU: NavMenuProps = {
           title: 'History',
           link: PLATFORM.HISTORY,
         },
-        {
-          title: 'Referral',
-          link: PLATFORM.REFERRAL,
-        },
+        // {
+        //   title: 'Referral',
+        //   link: PLATFORM.REFERRAL,
+        // },
         {
           title: 'Organization',
           link: PLATFORM.ORGANIZATION,

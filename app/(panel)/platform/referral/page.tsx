@@ -1,3 +1,5 @@
-import ReferralDashboard from "@/modules/platform/settings/referral";
+import { redirect } from 'next/navigation';
 
-export default ReferralDashboard;
+export default function ReferralPage() {
+  redirect('/');
+}
