@@ -2835,13 +2835,18 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          is_active: boolean
           llm: string | null
+          max_loops: number
+          max_tokens: number | null
           name: string
           original_agent_id: string | null
           output: string | null
+          role: string
           session_id: string | null
           status: string | null
           system_prompt: string | null
+          temperature: number | null
           updated_at: string | null
           user_id: string
         }
@@ -2849,13 +2854,18 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          is_active?: boolean
           llm?: string | null
+          max_loops?: number
+          max_tokens?: number | null
           name: string
           original_agent_id?: string | null
           output?: string | null
+          role?: string
           session_id?: string | null
           status?: string | null
           system_prompt?: string | null
+          temperature?: number | null
           updated_at?: string | null
           user_id: string
         }
@@ -2863,13 +2873,18 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          is_active?: boolean
           llm?: string | null
+          max_loops?: number
+          max_tokens?: number | null
           name?: string
           original_agent_id?: string | null
           output?: string | null
+          role?: string
           session_id?: string | null
           status?: string | null
           system_prompt?: string | null
+          temperature?: number | null
           updated_at?: string | null
           user_id?: string
         }
@@ -2903,6 +2918,7 @@ export type Database = {
           current: boolean | null
           id: string
           output: Json | null
+          swarm_type: string
           task: string | null
           tasks_executed: number | null
           time_saved: number | null
@@ -2915,6 +2931,7 @@ export type Database = {
           current?: boolean | null
           id?: string
           output?: Json | null
+          swarm_type?: string
           task?: string | null
           tasks_executed?: number | null
           time_saved?: number | null
@@ -2927,6 +2944,7 @@ export type Database = {
           current?: boolean | null
           id?: string
           output?: Json | null
+          swarm_type?: string
           task?: string | null
           tasks_executed?: number | null
           time_saved?: number | null
