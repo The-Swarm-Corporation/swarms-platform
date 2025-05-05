@@ -19,11 +19,21 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [referralCode, setReferralCode] = useState('');
+  const [fingerprint, setFingerprint] = useState('');
 
   useEffect(() => {
     const ref = searchParams?.get('ref');
     if (ref) {
       setReferralCode(ref);
+    }
+
+    const fingerprintCookie = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('browser_fingerprint='))
+      ?.split('=')[1];
+
+    if (fingerprintCookie) {
+      setFingerprint(fingerprintCookie);
     }
   }, [searchParams]);
 
@@ -41,6 +51,17 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
       referralInput.name = 'referralCode';
       referralInput.value = referralCode;
       formElement.appendChild(referralInput);
+    }
+
+    if (
+      fingerprint &&
+      !formElement.querySelector('input[name="fingerprint"]')
+    ) {
+      const fingerprintInput = document.createElement('input');
+      fingerprintInput.type = 'hidden';
+      fingerprintInput.name = 'fingerprint';
+      fingerprintInput.value = fingerprint;
+      formElement.appendChild(fingerprintInput);
     }
 
     await handleRequest(e, signUp, router);
@@ -86,6 +107,9 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
             />
             {referralCode && (
               <input type="hidden" name="referralCode" value={referralCode} />
+            )}
+            {fingerprint && (
+              <input type="hidden" name="fingerprint" value={fingerprint} />
             )}
           </div>
           <Button

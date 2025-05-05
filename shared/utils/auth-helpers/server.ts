@@ -212,12 +212,7 @@ export async function signUp(formData: FormData, req?: Request) {
   const email = String(formData.get('email')).trim();
   const password = String(formData.get('password')).trim();
   const referralCode = String(formData.get('referralCode') || '').trim();
-  
-  const cookies = req?.headers.get('cookie') || '';
-  const fingerprint = cookies.split(';')
-    .map(cookie => cookie.trim())
-    .find(cookie => cookie.startsWith('browser_fingerprint='))
-    ?.split('=')[1];
+  const fingerprint = String(formData.get('fingerprint') || '').trim();
 
   let redirectPath: string;
 
@@ -240,7 +235,7 @@ export async function signUp(formData: FormData, req?: Request) {
   }
 
   const supabase = await createClient();
-  
+
   let referrerId = null;
   if (referralCode) {
     const { data: referrerData } = await supabaseAdmin
@@ -250,7 +245,7 @@ export async function signUp(formData: FormData, req?: Request) {
       .single();
 
     referrerId = referrerData?.id;
-    
+
     if (!referrerId) {
       redirectPath = getErrorRedirect(
         '/signin/signup',
@@ -259,7 +254,7 @@ export async function signUp(formData: FormData, req?: Request) {
       );
       return redirectPath;
     }
-    
+
     if (await isReferralLimitReached(referrerId)) {
       redirectPath = getErrorRedirect(
         '/signin/signup',
@@ -270,7 +265,7 @@ export async function signUp(formData: FormData, req?: Request) {
     }
   }
 
-  if (fingerprint && await checkRecentFingerprint(fingerprint)) {
+  if (fingerprint && (await checkRecentFingerprint(fingerprint))) {
     redirectPath = getErrorRedirect(
       '/signin/signup',
       'Sign-up limit reached.',
@@ -309,7 +304,7 @@ export async function signUp(formData: FormData, req?: Request) {
         .update({ referred_by: referralCode })
         .eq('id', data?.user?.id ?? '');
     }
-    
+
     if (fingerprint && data?.user?.id) {
       await trackSignupFingerprint(data.user.id, fingerprint);
     }
@@ -338,7 +333,7 @@ export async function signUp(formData: FormData, req?: Request) {
         .update({ referred_by: referralCode })
         .eq('id', data.user.id);
     }
-    
+
     if (fingerprint && data.user.id) {
       await trackSignupFingerprint(data.user.id, fingerprint);
     }
@@ -497,19 +492,18 @@ export async function checkRecentFingerprint(
   const oneDayAgo = new Date();
   oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
-  const { data, error } = await supabaseAdmin
+  const { count, error } = await supabaseAdmin
     .from('user_fingerprints')
-    .select('created_at')
+    .select('created_at', { count: 'exact', head: true })
     .eq('fingerprint', fingerprint)
-    .gte('created_at', oneDayAgo.toISOString())
-    .limit(1);
+    .gte('created_at', oneDayAgo.toISOString());
 
   if (error) {
     console.error('Error checking recent fingerprint:', error);
     return false;
   }
 
-  return data && data.length > 0;
+  return (count ?? 0) > 2;
 }
 
 export async function countRecentReferrals(
