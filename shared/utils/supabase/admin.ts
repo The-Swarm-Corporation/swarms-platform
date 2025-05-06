@@ -1,8 +1,10 @@
-import { toDateTime } from '@/shared/utils/helpers';
+import { getErrorRedirect, toDateTime } from '@/shared/utils/helpers';
 import { stripe } from '@/shared/utils/stripe/config';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import type { Database, Tables, TablesInsert } from 'types_db';
+import { isReferralLimitReached } from '../auth-helpers/server';
+import { NextResponse } from 'next/server';
 
 type Product = Tables<'products'>;
 type Price = Tables<'prices'>;
@@ -472,8 +474,20 @@ const getUserReferralCode = async (userId: string, referralCode: string) => {
     .single();
 
   if (referrerData?.id) {
+    const referrerId = referrerData.id;
+
+    if (await isReferralLimitReached(referrerId)) {
+      return NextResponse.redirect(
+        getErrorRedirect(
+          `${origin}/signin`,
+          'Referral limit reached',
+          'This referral code has reached its daily limit.',
+        ),
+      );
+    }
+
     await supabaseAdmin.from('swarms_cloud_users_referral').insert({
-      referrer_id: referrerData.id,
+      referrer_id: referrerId,
       referred_id: userId,
       status: 'Pending',
     });

@@ -3,6 +3,7 @@ import { MiddlewareFactory } from './types';
 import { updateSession } from '@/shared/utils/supabase/middleware';
 import { Ratelimit } from '@upstash/ratelimit';
 import { kv } from '@vercel/kv';
+import { generateFingerprint } from '../auth-helpers/fingerprinting';
 
 /**
  * Rate limiting configuration for API routes
@@ -18,7 +19,7 @@ const ratelimit = new Ratelimit({
 const getIpAddress = (request: NextRequest): string => {
   const forwarded = request.headers.get('x-forwarded-for');
   const realIp = request.headers.get('x-real-ip');
-  
+
   if (forwarded) {
     // Get the first IP if there are multiple (proxy chains)
     const forwardedIp = forwarded.split(',')[0].trim();
@@ -28,7 +29,7 @@ const getIpAddress = (request: NextRequest): string => {
     }
     return forwardedIp;
   }
-  
+
   if (realIp) {
     // Convert localhost IPv6 to IPv4 for consistency
     if (realIp === '::1') {
@@ -58,7 +59,7 @@ const withRateLimit: MiddlewareFactory = (next) => {
       if (!success) {
         return NextResponse.json(
           { error: 'Too many requests' },
-          { status: 429 }
+          { status: 429 },
         );
       }
     }
@@ -67,19 +68,18 @@ const withRateLimit: MiddlewareFactory = (next) => {
   };
 };
 
-
 const SECURITY_CONFIG = {
-  MAX_PAYLOAD_SIZE: 500000, 
+  MAX_PAYLOAD_SIZE: 500000,
   MAX_FIELD_LENGTH: 1000,
   MAX_FORM_FIELDS: 10,
-  REQUEST_TIMEOUT: 5000, 
-  MAX_NESTING_DEPTH: 3
+  REQUEST_TIMEOUT: 5000,
+  MAX_NESTING_DEPTH: 3,
 } as const;
 
 function checkNestingDepth(obj: any, depth = 0, visited = new Set()): boolean {
   if (depth > SECURITY_CONFIG.MAX_NESTING_DEPTH) return true;
   if (typeof obj !== 'object' || obj === null) return false;
-  if (visited.has(obj)) return true; 
+  if (visited.has(obj)) return true;
 
   visited.add(obj);
   for (const key in obj) {
@@ -95,34 +95,39 @@ function checkNestingDepth(obj: any, depth = 0, visited = new Set()): boolean {
 
 const withSecurityChecks: MiddlewareFactory = (next) => {
   return async (request: NextRequest, event: NextFetchEvent) => {
-
     if (request.nextUrl.pathname === '/signin/password_signin') {
       if (request.method === 'POST') {
-
         const contentType = request.headers.get('content-type') || '';
-        if (!contentType.includes('application/json') && 
-            !contentType.includes('application/x-www-form-urlencoded') && 
-            !contentType.includes('multipart/form-data')) {
+        if (
+          !contentType.includes('application/json') &&
+          !contentType.includes('application/x-www-form-urlencoded') &&
+          !contentType.includes('multipart/form-data')
+        ) {
           return new NextResponse(
-            JSON.stringify({ error: 'Unsupported content type' }), 
+            JSON.stringify({ error: 'Unsupported content type' }),
             {
               status: 415,
               headers: {
                 'Content-Type': 'application/json',
-              }
-            }
+              },
+            },
           );
         }
 
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Request timeout')), SECURITY_CONFIG.REQUEST_TIMEOUT);
+          setTimeout(
+            () => reject(new Error('Request timeout')),
+            SECURITY_CONFIG.REQUEST_TIMEOUT,
+          );
         });
 
         try {
           await Promise.race([
             (async () => {
-
-              const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
+              const contentLength = parseInt(
+                request.headers.get('content-length') || '0',
+                10,
+              );
               if (contentLength > SECURITY_CONFIG.MAX_PAYLOAD_SIZE) {
                 throw new Error('Payload too large');
               }
@@ -146,9 +151,12 @@ const withSecurityChecks: MiddlewareFactory = (next) => {
                   throw new Error('Payload structure too complex');
                 }
 
-                if (!body.email || !body.password || 
-                    typeof body.email !== 'string' || 
-                    typeof body.password !== 'string') {
+                if (
+                  !body.email ||
+                  !body.password ||
+                  typeof body.email !== 'string' ||
+                  typeof body.password !== 'string'
+                ) {
                   throw new Error('Invalid credentials format');
                 }
 
@@ -160,28 +168,34 @@ const withSecurityChecks: MiddlewareFactory = (next) => {
                 if (body.password.length < 8 || body.password.length > 100) {
                   throw new Error('Invalid password length');
                 }
-              }
-              else if (contentType.includes('application/x-www-form-urlencoded') || 
-                       contentType.includes('multipart/form-data')) {
+              } else if (
+                contentType.includes('application/x-www-form-urlencoded') ||
+                contentType.includes('multipart/form-data')
+              ) {
                 try {
                   const formData = await request.formData();
 
                   const fieldCount = Array.from(formData.entries()).length;
-                  if (fieldCount > SECURITY_CONFIG.MAX_FORM_FIELDS) { 
+                  if (fieldCount > SECURITY_CONFIG.MAX_FORM_FIELDS) {
                     throw new Error('Too many form fields');
                   }
 
                   for (const [key, value] of Array.from(formData.entries())) {
-                    if (typeof value === 'string' && value.length > SECURITY_CONFIG.MAX_FIELD_LENGTH) { 
+                    if (
+                      typeof value === 'string' &&
+                      value.length > SECURITY_CONFIG.MAX_FIELD_LENGTH
+                    ) {
                       throw new Error('Form field too large');
                     }
 
-                    if (typeof value === 'string' && 
-                        (value.includes('script') || 
-                         value.includes('<') || 
-                         value.includes('>') ||
-                         value.includes('${') ||
-                         value.includes('eval('))) {
+                    if (
+                      typeof value === 'string' &&
+                      (value.includes('script') ||
+                        value.includes('<') ||
+                        value.includes('>') ||
+                        value.includes('${') ||
+                        value.includes('eval('))
+                    ) {
                       throw new Error('Invalid form data content');
                     }
                   }
@@ -190,19 +204,17 @@ const withSecurityChecks: MiddlewareFactory = (next) => {
                 }
               }
             })(),
-            timeoutPromise
+            timeoutPromise,
           ]);
         } catch (error) {
-          const errorMessage = (error as Error).message || 'Request processing failed';
-          return new NextResponse(
-            JSON.stringify({ error: errorMessage }), 
-            {
-              status: errorMessage === 'Payload too large' ? 413 : 400,
-              headers: {
-                'Content-Type': 'application/json',
-              }
-            }
-          );
+          const errorMessage =
+            (error as Error).message || 'Request processing failed';
+          return new NextResponse(JSON.stringify({ error: errorMessage }), {
+            status: errorMessage === 'Payload too large' ? 413 : 400,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
         }
       }
     }
@@ -218,4 +230,43 @@ const withUpdateSession: MiddlewareFactory = (next) => {
   };
 };
 
-export const middlewares = [withRateLimit, withSecurityChecks, withUpdateSession];
+export const withFingerPrinting: MiddlewareFactory = (next) => {
+  return async (req: NextRequest, _next: NextFetchEvent) => {
+    const res = await next(req, _next);
+
+    const isSignupOrCallback =
+      req.nextUrl.pathname.startsWith('/signin/signup') ||
+      req.nextUrl.pathname.startsWith('/auth/callback');
+
+    if (isSignupOrCallback) {
+      const ip =
+        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+      const userAgent = req.headers.get('user-agent') || 'unknown';
+      const acceptLanguage = req.headers.get('accept-language') || undefined;
+
+      const fingerprint = generateFingerprint({
+        ip,
+        userAgent,
+        language: acceptLanguage,
+      });
+
+      if (res instanceof NextResponse) {
+        res.cookies.set('sf_rsint', fingerprint, {
+          httpOnly: false,
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 30,
+          path: '/',
+        });
+      }
+
+      return res;
+    }
+  };
+};
+
+export const middlewares = [
+  withRateLimit,
+  withSecurityChecks,
+  withUpdateSession,
+  withFingerPrinting,
+];

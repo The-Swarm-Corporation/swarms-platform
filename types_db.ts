@@ -3232,6 +3232,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_fingerprints: {
+        Row: {
+          created_at: string | null
+          fingerprint: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          fingerprint: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          fingerprint?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_fingerprints_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           about_company: string | null
@@ -3243,11 +3278,13 @@ export type Database = {
           credit_fraction: number | null
           credit_limit: number
           credit_plan: Database["public"]["Enums"]["credit_plan"]
+          daily_referral_count: number | null
           email: string | null
           full_name: string | null
           had_free_credits: boolean
           id: string
           job_title: string | null
+          last_referral_reset: string | null
           payment_method: Json | null
           referral: string | null
           referral_code: string | null
@@ -3266,11 +3303,13 @@ export type Database = {
           credit_fraction?: number | null
           credit_limit?: number
           credit_plan?: Database["public"]["Enums"]["credit_plan"]
+          daily_referral_count?: number | null
           email?: string | null
           full_name?: string | null
           had_free_credits?: boolean
           id: string
           job_title?: string | null
+          last_referral_reset?: string | null
           payment_method?: Json | null
           referral?: string | null
           referral_code?: string | null
@@ -3289,11 +3328,13 @@ export type Database = {
           credit_fraction?: number | null
           credit_limit?: number
           credit_plan?: Database["public"]["Enums"]["credit_plan"]
+          daily_referral_count?: number | null
           email?: string | null
           full_name?: string | null
           had_free_credits?: boolean
           id?: string
           job_title?: string | null
+          last_referral_reset?: string | null
           payment_method?: Json | null
           referral?: string | null
           referral_code?: string | null

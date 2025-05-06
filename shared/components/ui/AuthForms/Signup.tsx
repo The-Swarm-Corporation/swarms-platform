@@ -19,28 +19,49 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [referralCode, setReferralCode] = useState('');
+  const [fingerprint, setFingerprint] = useState('');
 
   useEffect(() => {
     const ref = searchParams?.get('ref');
     if (ref) {
       setReferralCode(ref);
     }
+
+    const fingerprintCookie = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('sf_rsint='))
+      ?.split('=')[1];
+
+    if (fingerprintCookie) {
+      setFingerprint(fingerprintCookie);
+    }
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setIsSubmitting(true);
 
-    if (referralCode) {
-      const formElement = e.currentTarget;
-      const formData = new FormData(formElement);
+    const formElement = e.currentTarget;
 
-      if (!formElement.querySelector('input[name="referralCode"]')) {
-        const referralInput = document.createElement('input');
-        referralInput.type = 'hidden';
-        referralInput.name = 'referralCode';
-        referralInput.value = referralCode;
-        formElement.appendChild(referralInput);
-      }
+    if (
+      referralCode &&
+      !formElement.querySelector('input[name="referralCode"]')
+    ) {
+      const referralInput = document.createElement('input');
+      referralInput.type = 'hidden';
+      referralInput.name = 'referralCode';
+      referralInput.value = referralCode;
+      formElement.appendChild(referralInput);
+    }
+
+    if (
+      fingerprint &&
+      !formElement.querySelector('input[name="fingerprint"]')
+    ) {
+      const fingerprintInput = document.createElement('input');
+      fingerprintInput.type = 'hidden';
+      fingerprintInput.name = 'fingerprint';
+      fingerprintInput.value = fingerprint;
+      formElement.appendChild(fingerprintInput);
     }
 
     await handleRequest(e, signUp, router);
@@ -86,6 +107,9 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
             />
             {referralCode && (
               <input type="hidden" name="referralCode" value={referralCode} />
+            )}
+            {fingerprint && (
+              <input type="hidden" name="fingerprint" value={fingerprint} />
             )}
           </div>
           <Button
