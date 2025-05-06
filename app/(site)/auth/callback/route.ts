@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code');
   const referralCode = requestUrl.searchParams.get('code_ref');
 
-  const fingerprint = request.cookies.get('browser_fingerprint')?.value;
+  const fingerprint = request.cookies.get('sf_rsint')?.value;
 
   if (code) {
     const supabase = await createClient();

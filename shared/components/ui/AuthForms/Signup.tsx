@@ -29,7 +29,7 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
 
     const fingerprintCookie = document.cookie
       .split('; ')
-      .find((row) => row.startsWith('browser_fingerprint='))
+      .find((row) => row.startsWith('sf_rsint='))
       ?.split('=')[1];
 
     if (fingerprintCookie) {

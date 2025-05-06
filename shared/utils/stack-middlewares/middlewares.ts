@@ -251,7 +251,7 @@ export const withFingerPrinting: MiddlewareFactory = (next) => {
       });
 
       if (res instanceof NextResponse) {
-        res.cookies.set('browser_fingerprint', fingerprint, {
+        res.cookies.set('sf_rsint', fingerprint, {
           httpOnly: false,
           sameSite: 'lax',
           maxAge: 60 * 60 * 24 * 30,
