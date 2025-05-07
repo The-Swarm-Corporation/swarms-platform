@@ -5,6 +5,7 @@ module.exports = {
     './shared/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './modules/**/*.{ts,tsx}',
+    '*.{js,ts,jsx,tsx,mdx}',
   ],
   prefix: '',
   theme: {
