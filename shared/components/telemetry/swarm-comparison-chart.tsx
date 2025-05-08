@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
+import { useAPIKeyContext } from "../ui/apikey.provider"
 
 interface ProcessedSwarmData {
   id: string
@@ -40,14 +41,14 @@ interface SwarmComparisonProps {
 }
 
 const COLORS = [
-  "#ef4444", // Red
-  "#f97316", // Orange
-  "#eab308", // Yellow
-  "#22c55e", // Green
-  "#3b82f6", // Blue
-  "#a855f7", // Purple
-  "#ec4899", // Pink
-  "#14b8a6", // Teal
+  "#ef4444",
+  "#f97316",
+  "#eab308",
+  "#22c55e",
+  "#3b82f6",
+  "#a855f7",
+  "#ec4899",
+  "#14b8a6",
 ]
 
 export function SwarmComparison({ limit, className }: SwarmComparisonProps) {
@@ -60,10 +61,11 @@ export function SwarmComparison({ limit, className }: SwarmComparisonProps) {
   )
   const [chartType, setChartType] = useState<"bar" | "comparison">("bar")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  const { apiKey } = useAPIKeyContext();
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [apiKey])
 
   useEffect(() => {
     if (logs.length > 0) {
@@ -73,17 +75,18 @@ export function SwarmComparison({ limit, className }: SwarmComparisonProps) {
   }, [logs, metric, sortOrder])
 
   const fetchData = async () => {
+    if(!apiKey) return;
+
     try {
       setIsLoading(true)
       setError(null)
 
-      const response = await fetchSwarmLogs()
+      const response = await fetchSwarmLogs(apiKey)
 
       if (!response.logs || !Array.isArray(response.logs)) {
         throw new Error("Invalid logs data received")
       }
 
-      // Filter out invalid logs
       const validLogs = response.logs.filter((log) => {
         return (
           log &&
@@ -109,7 +112,6 @@ export function SwarmComparison({ limit, className }: SwarmComparisonProps) {
   const processData = (logs: SwarmLog[]): ProcessedSwarmData[] => {
     if (!logs || logs.length === 0) return []
 
-    // Group logs by swarm name
     const swarmMap = new Map<string, SwarmLog[]>()
 
     logs.forEach((log) => {
@@ -120,7 +122,6 @@ export function SwarmComparison({ limit, className }: SwarmComparisonProps) {
       swarmMap.get(swarmName)?.push(log)
     })
 
-    // Process each swarm's data
     let processedData: ProcessedSwarmData[] = []
     let colorIndex = 0
 
@@ -129,7 +130,6 @@ export function SwarmComparison({ limit, className }: SwarmComparisonProps) {
       const successfulRuns = swarmLogs.filter((log) => log.data.status === "success").length
       const successRate = totalRuns > 0 ? (successfulRuns / totalRuns) * 100 : 0
 
-      // Calculate averages
       let totalExecutionTime = 0
       let totalTokens = 0
       let totalCost = 0
@@ -143,7 +143,6 @@ export function SwarmComparison({ limit, className }: SwarmComparisonProps) {
         totalCost += log.data.metadata.billing_info.total_cost || 0
         totalAgents += log.data.metadata.num_agents || 0
 
-        // Get the swarm type from the most recent log
         if (new Date(log.created_at) > new Date(lastRun)) {
           lastRun = log.created_at
           swarmType = log.data.swarm_type || "Unknown"
@@ -166,12 +165,10 @@ export function SwarmComparison({ limit, className }: SwarmComparisonProps) {
       colorIndex++
     })
 
-    // Sort data based on selected metric and order
     processedData.sort((a, b) => {
       return sortOrder === "asc" ? a[metric] - b[metric] : b[metric] - a[metric]
     })
 
-    // Limit the number of swarms if specified
     if (limit && processedData.length > limit) {
       processedData = processedData.slice(0, limit)
     }

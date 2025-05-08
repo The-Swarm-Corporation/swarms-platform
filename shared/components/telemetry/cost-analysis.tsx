@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
 import { AlertOctagon, Loader2 } from "lucide-react"
 import { fetchSwarmLogs } from "@/shared/utils/api/telemetry/api"
+import { useAPIKeyContext } from "../ui/apikey.provider"
 
 interface ChartData {
   date: string
@@ -56,20 +57,22 @@ export function CostAnalysis() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const { apiKey } = useAPIKeyContext();
+
   useEffect(() => {
+    if(!apiKey) return;
+
     setIsLoading(true)
     setError(null)
 
     const loadData = async () => {
       try {
-        // Fetch real data from the logs endpoint
-        const response = await fetchSwarmLogs()
+        const response = await fetchSwarmLogs(apiKey)
 
         if (!response?.logs || !Array.isArray(response.logs)) {
           throw new Error("Invalid logs data received")
         }
 
-        // Process logs into daily data
         const dailyDataMap = new Map()
 
         response.logs.forEach((log) => {
@@ -85,7 +88,6 @@ export function CostAnalysis() {
 
           const dayData = dailyDataMap.get(date)
 
-          // Add token and cost data if available
           if (log.data?.metadata?.billing_info) {
             const billingInfo = log.data.metadata.billing_info
             dayData.tokens += billingInfo.cost_breakdown?.token_counts?.total_tokens || 0
@@ -93,14 +95,13 @@ export function CostAnalysis() {
           }
         })
 
-        // Calculate tokens per credit and convert to array
         const chartData = Array.from(dailyDataMap.values())
           .map((day) => {
             day.tokensPerCredit = day.credits > 0 ? day.tokens / day.credits : 0
             return day
           })
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-          .slice(-7) // Get last 7 days
+          .slice(-7)
 
         setData(chartData)
       } catch (error) {
@@ -112,7 +113,7 @@ export function CostAnalysis() {
     }
 
     loadData()
-  }, [])
+  }, [apiKey])
 
   if (isLoading) {
     return (

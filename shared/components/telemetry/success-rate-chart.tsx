@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
 import { AlertOctagon, Loader2 } from "lucide-react"
 import { fetchSwarmLogs } from "@/shared/utils/api/telemetry/api"
+import { useAPIKeyContext } from "../ui/apikey.provider"
 
 interface ChartData {
   date: string
@@ -55,21 +56,22 @@ export function SuccessRateChart() {
   const [data, setData] = useState<ChartData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { apiKey } = useAPIKeyContext();
 
   useEffect(() => {
+    if(!apiKey) return;
+
     setIsLoading(true)
     setError(null)
 
     const loadData = async () => {
       try {
-        // Fetch real data from the logs endpoint
-        const response = await fetchSwarmLogs()
+        const response = await fetchSwarmLogs(apiKey)
 
         if (!response?.logs || !Array.isArray(response.logs)) {
           throw new Error("Invalid logs data received")
         }
 
-        // Process logs into daily data
         const dailyDataMap = new Map()
 
         response.logs.forEach((log) => {
@@ -86,13 +88,11 @@ export function SuccessRateChart() {
           const dayData = dailyDataMap.get(date)
           dayData.totalSwarms++
 
-          // Track success rate
           if (log.data?.status === "success") {
             dayData.successCount++
           }
         })
 
-        // Calculate success rates and convert to array
         const chartData = Array.from(dailyDataMap.values())
           .map((day) => {
             day.successRate = day.totalSwarms > 0 ? (day.successCount / day.totalSwarms) * 100 : 0
@@ -110,7 +110,7 @@ export function SuccessRateChart() {
     }
 
     loadData()
-  }, [])
+  }, [apiKey])
 
   if (isLoading) {
     return (

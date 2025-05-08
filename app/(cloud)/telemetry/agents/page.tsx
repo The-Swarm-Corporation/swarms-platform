@@ -85,7 +85,7 @@ export default function AgentsPage() {
       </div>
 
       <div className="flex items-center justify-end">
-        <Link href="/agents/new">
+        <Link href="/telemetry/agents/new">
           <Button className="bg-red-600 hover:bg-red-700 text-white">
             <Plus className="mr-2 h-4 w-4" />
             Create New Agent

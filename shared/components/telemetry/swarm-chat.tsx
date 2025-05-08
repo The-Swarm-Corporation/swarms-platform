@@ -11,6 +11,7 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import { SendHorizontal, Bot, UserIcon, Loader2 } from "lucide-react"
 import { useStorageManager } from "@/shared/utils/api/telemetry/storage"
 import { toast } from "sonner"
+import { useAPIKeyContext } from "../ui/apikey.provider"
 
 interface Message {
   id: string
@@ -37,6 +38,7 @@ export function SwarmChat({ swarmId, swarmName = "Swarm Assistant" }: SwarmChatP
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const storageManager = useStorageManager()
+  const { apiKey } = useAPIKeyContext();
 
   useEffect(() => {
     scrollToBottom()
@@ -63,8 +65,6 @@ export function SwarmChat({ swarmId, swarmName = "Swarm Assistant" }: SwarmChatP
     setIsLoading(true)
 
     try {
-      // Check if API key is configured
-      const apiKey = localStorage.getItem("swarms_api_key")
       if (!apiKey) {
         throw new Error("API key not configured")
       }

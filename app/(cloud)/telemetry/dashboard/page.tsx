@@ -9,16 +9,16 @@ import { Box, User, History } from "lucide-react"
 export default function DashboardPage() {
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-red-600 dark:text-red-600">Dashboard</h1>
           <p className="text-zinc-900 dark:text-white">
             Monitor your swarm executions, agent usage, and cost analytics
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 mt-8 md:mt-0">
           <Button asChild className="bg-red-600 hover:bg-red-700 text-white">
-            <Link href="/swarms/new">
+            <Link href="/telemetry/swarms/new">
               <Box className="mr-2 h-4 w-4" />
               Create Swarm
             </Link>
@@ -28,7 +28,7 @@ export default function DashboardPage() {
             variant="outline"
             className="border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-red-600"
           >
-            <Link href="/agents/new">
+            <Link href="/telemetry/agents/new">
               <User className="mr-2 h-4 w-4" />
               Create Agent
             </Link>

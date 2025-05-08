@@ -16,7 +16,7 @@ export function AgentSearch({ onSelect }: AgentSearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [agents, setAgents] = useState<StoredAgent[]>([]);
   const [filteredAgents, setFilteredAgents] = useState<StoredAgent[]>([]);
-  const storageManager = useStorageManager(); // Moved hook outside useEffect
+  const storageManager = useStorageManager();
 
   useEffect(() => {
     const storedAgents = storageManager?.getAgents() || [];

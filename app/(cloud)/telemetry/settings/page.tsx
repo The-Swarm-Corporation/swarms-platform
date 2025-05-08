@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 import { useTheme } from "next-themes"
 import { Input } from "@/shared/components/ui/input"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/shared/components/ui/table"
+import { useAPIKeyContext } from "@/shared/components/ui/apikey.provider"
 
 export default function SettingsPage() {
   const [models, setModels] = useState<string[]>([])
@@ -22,18 +23,18 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const [modelSearchQuery, setModelSearchQuery] = useState("")
   const [swarmTypeSearchQuery, setSwarmTypeSearchQuery] = useState("")
+  const { apiKey } = useAPIKeyContext();
 
   // Check if API key exists on component mount
   useEffect(() => {
-    const apiKey = localStorage.getItem("swarms_api_key")
     setHasApiKey(!!apiKey)
-  }, [])
+  }, [apiKey])
 
   const fetchModels = async () => {
     setIsLoadingModels(true)
     setModelsError(null)
     try {
-      const data = await fetchAvailableModels()
+      const data = await fetchAvailableModels(apiKey)
       setModels(data)
     } catch (error) {
       console.error("Error in fetchModels:", error)
@@ -48,7 +49,7 @@ export default function SettingsPage() {
     setIsLoadingSwarmTypes(true)
     setSwarmTypesError(null)
     try {
-      const data = await fetchAvailableSwarmTypes()
+      const data = await fetchAvailableSwarmTypes(apiKey)
       setSwarmTypes(data)
     } catch (error) {
       console.error("Error in fetchSwarmTypes:", error)

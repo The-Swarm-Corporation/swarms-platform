@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { fetchSwarmLogs } from "@/shared/utils/api/telemetry/api"
 import { Activity, DollarSign, Timer, Zap, Users, Box, Brain, Award } from "lucide-react"
 import Link from "next/link"
+import { useAPIKeyContext } from "../ui/apikey.provider"
 
 interface MonitoringStats {
   totalSwarms: number
@@ -33,13 +34,14 @@ export function MonitoringStats() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const loadStats = async () => {
-      if (typeof window === "undefined") return
+  const { apiKey } = useAPIKeyContext();
 
+  useEffect(() => {
+    if (!apiKey) return;
+
+    const loadStats = async () => {
       try {
-        // Fetch API stats
-        const response = await fetchSwarmLogs()
+        const response = await fetchSwarmLogs(apiKey)
 
         if (!response?.logs || !Array.isArray(response.logs)) {
           throw new Error("Invalid API response format")
@@ -71,29 +73,25 @@ export function MonitoringStats() {
               successfulSwarms++
             }
 
-            // Track model usage if available
             if (log?.data?.agents && Array.isArray(log.data.agents)) {
               for (const agent of log.data.agents) {
                 if (agent.model_name) {
                   modelUsage[agent.model_name] = (modelUsage[agent.model_name] || 0) + 1
                 }
 
-                // Count unique agents
                 const agentId = agent.model_name || "unknown"
                 agentCount[agentId] = (agentCount[agentId] || 0) + 1
               }
             }
 
-            // Count unique swarms
             if (log.data?.swarm_name) {
               swarmCount[log.data.swarm_name] = (swarmCount[log.data.swarm_name] || 0) + 1
             }
           } catch (err) {
-            console.warn("Error processing log entry:", err)
+            console.error("Error processing log entry:", err)
           }
         }
 
-        // Find most used model
         let mostUsedModel = "N/A"
         let maxUsage = 0
         for (const [model, count] of Object.entries(modelUsage)) {
@@ -124,7 +122,7 @@ export function MonitoringStats() {
     }
 
     loadStats()
-  }, [])
+  }, [apiKey])
 
   if (isLoading) {
     return (

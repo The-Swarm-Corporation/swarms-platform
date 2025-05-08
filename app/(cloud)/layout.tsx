@@ -3,6 +3,7 @@ import '@/shared/styles/main.css';
 import { Header } from '@/shared/components/telemetry/header';
 import { PlatformTabs } from '@/shared/components/telemetry/platform-tabs';
 import { APIkeyProvider } from '@/shared/components/ui/apikey.provider';
+import TelemetryLayout from '@/shared/components/telemetry-layout';
 
 export default function RootLayout({
   children,
@@ -12,11 +13,13 @@ export default function RootLayout({
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      
+
       <APIkeyProvider>
-        <main className="flex-1 container mx-auto px-4 py-6">
-          <PlatformTabs />
-          {children}
+        <main className="flex-1 container mx-auto px-4 py-6 mt-20">
+          <TelemetryLayout>
+            <PlatformTabs />
+            {children}
+          </TelemetryLayout>
         </main>
       </APIkeyProvider>
     </div>

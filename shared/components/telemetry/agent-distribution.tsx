@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Legend } from "recharts"
 import { AlertOctagon, Loader2 } from "lucide-react"
 import { fetchSwarmLogs } from "@/shared/utils/api/telemetry/api"
+import { useAPIKeyContext } from "../ui/apikey.provider"
 
 interface ChartData {
   name: string
@@ -12,11 +13,11 @@ interface ChartData {
 }
 
 const COLORS = {
-  worker: "#ef4444", // Red
-  supervisor: "#eab308", // Yellow
-  specialist: "#22c55e", // Green
-  analyst: "#3b82f6", // Blue
-  other: "#a855f7", // Purple
+  worker: "#ef4444",
+  supervisor: "#eab308",
+  specialist: "#22c55e",
+  analyst: "#3b82f6",
+  other: "#a855f7",
 }
 
 const CustomTooltip = ({ active, payload }: any) => {
@@ -73,21 +74,22 @@ export function AgentDistribution() {
   const [data, setData] = useState<ChartData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { apiKey } = useAPIKeyContext();
 
   useEffect(() => {
+    if(!apiKey) return;
+
     setIsLoading(true)
     setError(null)
 
     const loadData = async () => {
       try {
-        // Fetch real data from the logs endpoint
-        const response = await fetchSwarmLogs()
+        const response = await fetchSwarmLogs(apiKey)
 
         if (!response?.logs || !Array.isArray(response.logs)) {
           throw new Error("Invalid logs data received")
         }
 
-        // Count agents by role
         const distribution: { [key: string]: number } = {}
         let total = 0
 
@@ -103,7 +105,6 @@ export function AgentDistribution() {
           }
         })
 
-        // If no agent data found, use default categories
         if (total === 0) {
           distribution.worker = 0
           distribution.supervisor = 0
@@ -112,13 +113,12 @@ export function AgentDistribution() {
           distribution.other = 0
         }
 
-        // Transform to chart data
         const chartData = Object.entries(distribution).map(([name, value]) => ({
           name: name.charAt(0).toUpperCase() + name.slice(1),
           value,
           color: COLORS[name as keyof typeof COLORS] || COLORS.other,
           percentage: total > 0 ? ((value / total) * 100).toFixed(1) : "0.0",
-          total, // Add total for percentage calculation in tooltip
+          total,
         }))
 
         setData(chartData)
@@ -131,7 +131,7 @@ export function AgentDistribution() {
     }
 
     loadData()
-  }, [])
+  }, [apiKey])
 
   if (isLoading) {
     return (

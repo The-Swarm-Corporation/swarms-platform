@@ -17,6 +17,7 @@ import { Switch } from "@/shared/components/ui/switch"
 import { AgentSearch } from "@/shared/components/telemetry/agent-search"
 import { SwarmChat } from "@/shared/components/telemetry/swarm-chat"
 import { Badge } from "@/shared/components/ui/badge" 
+import { useAPIKeyContext } from "@/shared/components/ui/apikey.provider"
 
 interface Agent {
   agent_name: string
@@ -64,6 +65,7 @@ export default function CreateSwarm() {
   const [creationMode, setCreationMode] = useState<"form" | "chat" | "templates">("form")
   const [apiError, setApiError] = useState<string | null>(null)
   const [debugLog, setDebugLog] = useState<string[]>([])
+  const { apiKey } = useAPIKeyContext();
 
   // Use a ref to track if component is mounted to prevent state updates during SSR
   const isMounted = useRef(false)
@@ -338,10 +340,7 @@ async fn run_swarm() -> Result<String, Box<dyn std::error::Error>> {
       return
     }
 
-    // Check for API key in client-side only
-    let apiKey = null
     if (typeof window !== "undefined") {
-      apiKey = localStorage.getItem("swarms_api_key")
       if (!apiKey) {
         toast.error("Please configure your API key first")
         setApiError("API key not configured. Please set your API key in the dashboard.")

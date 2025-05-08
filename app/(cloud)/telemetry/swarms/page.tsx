@@ -44,9 +44,7 @@ export default function SwarmsPage() {
 
     try {
       const searchLower = search.toLowerCase()
-      console.log("Filtering swarm:", swarm.id, swarm.name)
 
-      // Add null checks before calling toLowerCase()
       return (
         (swarm.name ? swarm.name.toLowerCase().includes(searchLower) : false) ||
         (swarm.description ? swarm.description.toLowerCase().includes(searchLower) : false) ||
@@ -93,7 +91,7 @@ export default function SwarmsPage() {
           </TabsList>
         </Tabs>
 
-        <Link href="/swarms/new">
+        <Link href="/telemetry/swarms/new">
           <Button className="bg-red-600 hover:bg-red-700 text-white">
             {activeTab === "chat" ? (
               <>
@@ -141,7 +139,7 @@ export default function SwarmsPage() {
                   : "No swarms match your search criteria"}
               </p>
               {swarms.length === 0 && (
-                <Link href="/swarms/new">
+                <Link href="/telemetry/swarms/new">
                   <Button className="bg-red-600 hover:bg-red-700 text-white">
                     <Plus className="mr-2 h-4 w-4" />
                     Create First Swarm

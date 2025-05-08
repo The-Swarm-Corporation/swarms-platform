@@ -54,7 +54,6 @@ export const APIkeyProvider = ({
       setIsInitializing(false);
     },
     onSettled: () => {
-      // Only update initialization state if we're no longer creating an API key
       if (!isCreatingApiKey.current) {
         setIsInitializing(false);
       }
@@ -84,7 +83,7 @@ export const APIkeyProvider = ({
     </APIContext.Provider>
   );
 };
-export const useAPIContext = () => {
+export const useAPIKeyContext = () => {
   const context = useContext(APIContext);
   if (!context) {
     throw new Error('setup must be used within a APIkeyProvider');

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
 import { AlertOctagon, Loader2 } from "lucide-react"
 import { fetchSwarmLogs } from "@/shared/utils/api/telemetry/api"
+import { useAPIKeyContext } from "../ui/apikey.provider"
 
 interface ChartData {
   date: string
@@ -60,20 +61,21 @@ export function UsageOverview() {
   const [data, setData] = useState<ChartData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { apiKey } = useAPIKeyContext();
 
   useEffect(() => {
+    if (!apiKey) return;
+
     const loadData = async () => {
       setIsLoading(true)
       setError(null)
       try {
-        // Fetch real data from the logs endpoint
-        const response = await fetchSwarmLogs()
+        const response = await fetchSwarmLogs(apiKey)
 
         if (!response?.logs || !Array.isArray(response.logs)) {
           throw new Error("Invalid logs data received")
         }
 
-        // Process logs into daily data
         const dailyDataMap = new Map()
 
         response.logs.forEach((log) => {
@@ -90,7 +92,6 @@ export function UsageOverview() {
           const dayData = dailyDataMap.get(date)
           dayData.swarms++
 
-          // Add token and cost data if available
           if (log.data?.metadata?.billing_info) {
             const billingInfo = log.data.metadata.billing_info
             dayData.tokens += billingInfo.cost_breakdown?.token_counts?.total_tokens || 0
@@ -98,7 +99,6 @@ export function UsageOverview() {
           }
         })
 
-        // Convert to array and sort by date
         const chartData = Array.from(dailyDataMap.values()).sort(
           (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
         )
@@ -113,7 +113,7 @@ export function UsageOverview() {
     }
 
     loadData()
-  }, [])
+  }, [apiKey])
 
   if (isLoading) {
     return (

@@ -7,6 +7,7 @@ import { fetchSwarmLogs, type SwarmLog } from "@/shared/utils/api/telemetry/api"
 import { Card } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import Link from "next/link"
+import { useAPIKeyContext } from "../ui/apikey.provider"
 
 interface SwarmHistoryProps {
   limit?: number
@@ -17,16 +18,17 @@ export function SwarmHistory({ limit }: SwarmHistoryProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
+  const { apiKey } = useAPIKeyContext();
 
   useEffect(() => {
+    if(!apiKey) return;
+
     const loadLogs = async () => {
       try {
         setIsLoading(true)
         setError(null)
-        console.log("Fetching logs...")
 
-        const response = await fetchSwarmLogs()
-        console.log("Received logs:", response)
+        const response = await fetchSwarmLogs(apiKey)
 
         if (!response.logs || !Array.isArray(response.logs)) {
           throw new Error("Invalid logs data received")
@@ -34,9 +36,7 @@ export function SwarmHistory({ limit }: SwarmHistoryProps) {
 
         const sortedLogs = response.logs
           .filter((log) => {
-            // Validate required nested properties
             if (!log.data?.metadata?.billing_info?.total_cost || !log.data?.metadata?.execution_time_seconds) {
-              console.warn("Skipping invalid log entry:", log)
               return false
             }
             return true
@@ -51,7 +51,6 @@ export function SwarmHistory({ limit }: SwarmHistoryProps) {
         setError(errorMessage)
         setLogs([])
 
-        // Special handling for API key related errors
         if (errorMessage.includes("API key")) {
           setError(
             "Please configure your API key in the dashboard to view execution history. " +
@@ -64,7 +63,7 @@ export function SwarmHistory({ limit }: SwarmHistoryProps) {
     }
 
     loadLogs()
-  }, [limit])
+  }, [limit, apiKey])
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1)

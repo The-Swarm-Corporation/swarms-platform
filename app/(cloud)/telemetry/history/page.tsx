@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/shared/components/ui/badge"
 import { RefreshCcw, Search, Download } from "lucide-react"
 import { fetchSwarmLogs, type SwarmLog } from "@/shared/utils/api/telemetry/api"
+import { useAPIKeyContext } from "@/shared/components/ui/apikey.provider"
 
 export default function HistoryPage() {
   const [search, setSearch] = useState("")
@@ -16,31 +17,30 @@ export default function HistoryPage() {
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
 
+  const { apiKey } = useAPIKeyContext();
+
   useEffect(() => {
+    if(!apiKey) return;
+
     const loadLogs = async () => {
       try {
         setIsLoading(true)
         setError(null)
-        console.log("Fetching logs...")
 
-        const response = await fetchSwarmLogs()
-        console.log("Received logs:", response)
+        const response = await fetchSwarmLogs(apiKey)
 
         if (!response.logs || !Array.isArray(response.logs)) {
           throw new Error("Invalid logs data received")
         }
 
-        // Sort logs by creation date (newest first)
         const sortedLogs = response.logs
           .filter((log) => {
-            // Validate required nested properties
             if (
               !log.data?.metadata?.billing_info?.total_cost ||
               !log.data?.metadata?.execution_time_seconds ||
               !log.data?.status ||
               !log.created_at
             ) {
-              console.warn("Skipping invalid log entry:", log)
               return false
             }
             return true
@@ -59,7 +59,7 @@ export default function HistoryPage() {
     }
 
     loadLogs()
-  }, [])
+  }, [apiKey])
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1)
@@ -73,7 +73,6 @@ export default function HistoryPage() {
 
   const exportToCSV = () => {
     try {
-      // Create CSV content
       const headers = [
         "Swarm Name",
         "Status",
@@ -102,7 +101,6 @@ export default function HistoryPage() {
         }),
       ].join("\n")
 
-      // Create and trigger download
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
       const link = document.createElement("a")
       if (link.download !== undefined) {
