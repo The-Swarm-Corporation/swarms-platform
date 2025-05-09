@@ -120,7 +120,7 @@ export default function HistoryPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-zinc-800 rounded w-1/4" />
           <div className="h-[400px] bg-zinc-800 rounded" />
@@ -162,7 +162,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-red-600">Execution History</h1>
         <p className="text-zinc-900 dark:text-zinc-400">View and analyze past swarm executions</p>

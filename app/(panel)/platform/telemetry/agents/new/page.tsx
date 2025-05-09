@@ -96,7 +96,7 @@ export default function CreateAgentPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Create New Agent</h1>
         <p className="text-zinc-400">Configure your AI agent</p>

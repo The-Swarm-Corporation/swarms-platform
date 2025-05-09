@@ -11,6 +11,7 @@ import { AlertCircle, Loader2, MoreVertical, Plus, Search, User } from "lucide-r
 import Link from "next/link"
 import { useStorageManager } from "@/shared/utils/api/telemetry/storage"
 import type { StoredAgent } from "@/shared/utils/api/telemetry/storage"
+import { PLATFORM } from "@/shared/utils/constants"
 
 export default function AgentsPage() {
   const [search, setSearch] = useState("")
@@ -71,7 +72,7 @@ export default function AgentsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-red-600">Agents</h1>
         <div className="mt-1 space-y-2 text-zinc-900 dark:text-white">
@@ -85,7 +86,7 @@ export default function AgentsPage() {
       </div>
 
       <div className="flex items-center justify-end">
-        <Link href="/telemetry/agents/new">
+        <Link href={PLATFORM.TELEMETRY_AGENTS_NEW}>
           <Button className="bg-red-600 hover:bg-red-700 text-white">
             <Plus className="mr-2 h-4 w-4" />
             Create New Agent
@@ -120,7 +121,7 @@ export default function AgentsPage() {
                 : "No agents match your search criteria"}
             </p>
             {agents.length === 0 && (
-              <Link href="/agents/new">
+              <Link href={PLATFORM.TELEMETRY_AGENTS_NEW}>
                 <Button className="bg-red-600 hover:bg-red-700 text-white">
                   <Plus className="mr-2 h-4 w-4" />
                   Create First Agent

@@ -3,14 +3,15 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { cn } from '@/shared/utils/cn';
+import { PLATFORM } from '@/shared/utils/constants';
 
 const routes = [
-  { value: '/telemetry/dashboard', label: 'Dashboard' },
-  { value: '/telemetry/swarms', label: 'Swarms' },
-  { value: '/telemetry/agents', label: 'Agents' },
-  { value: '/telemetry/history', label: 'History' },
-  { value: '/telemetry/settings', label: 'Settings' },
-  { value: '/telemetry/pricing', label: 'Pricing' },
+  { value: PLATFORM.TELEMETRY_DASHBOARD, label: 'Dashboard' },
+  { value: PLATFORM.TELEMETRY_SWARMS, label: 'Swarms' },
+  { value: PLATFORM.TELEMETRY_AGENTS, label: 'Agents' },
+  { value: PLATFORM.TELEMETRY_HISTORY, label: 'History' },
+  { value: PLATFORM.TELEMETRY_SETTINGS, label: 'Settings' },
+  { value: PLATFORM.TELEMETRY_PRICING, label: 'Pricing' },
 ];
 
 export function PlatformTabs() {

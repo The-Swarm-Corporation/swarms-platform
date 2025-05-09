@@ -15,6 +15,7 @@ import {
   FileSpreadsheet,
   GripVertical,
   MessageSquareMore,
+  Atom,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -114,6 +115,11 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <LockKeyhole size={24} />,
       title: 'API Keys',
       link: PLATFORM.API_KEYS,
+    },
+    {
+      icon: <Atom size={24} />,
+      title: 'Telemetry',
+      link: PLATFORM.TELEMETRY,
     },
     {
       icon: <CircleGauge size={24} />,
