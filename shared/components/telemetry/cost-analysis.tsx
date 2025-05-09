@@ -175,7 +175,7 @@ export function CostAnalysis() {
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(value) => Math.round(value)}
+            tickFormatter={(value) => `$${Math.round(value)}`}
             tick={{ fontFamily: "monospace" }}
           />
           <Tooltip content={<CustomTooltip />} />
