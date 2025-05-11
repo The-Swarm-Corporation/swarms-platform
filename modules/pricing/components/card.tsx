@@ -3,8 +3,7 @@
 import { cn } from '@/shared/utils/cn';
 import Link from 'next/link';
 import { Bolt, CheckCircle, Gem, PackageOpen, Sparkles } from 'lucide-react';
-import React, { useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useMemo } from 'react';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import useSubscription from '@/shared/hooks/subscription';
 import LoadingSpinner from '@/shared/components/loading-spinner';
@@ -73,7 +72,7 @@ export default function PricingCard({
         : process.env.NEXT_PUBLIC_STRIPE_MONTHLY_SUBSCRIPTION_PRODUCT_ID;
 
     const productType = isLifetime ? 'one_time' : 'recurring';
-    const cancelPath = page === 'account' ? PLATFORM.ACCOUNT : '/pricing';
+    const cancelPath = page === 'account' ? `${PLATFORM.ACCOUNT}?payment_type=billing` : '/pricing';
 
     subscription.createSubscriptionPortal(
       productId ?? '',

@@ -24,10 +24,20 @@ import ThemeToggle from '@/shared/components/theme-toggle';
 import CryptoWallet from './components/crypto-wallet';
 import { UserCircle, CreditCard, Wallet } from 'lucide-react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function Account() {
   const { user } = useAuthContext();
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState('profile');
 
+  useEffect(() => {
+    const type = searchParams?.get('payment_type');
+    if (type === 'billing') {
+      setActiveTab('billing');
+    }
+  }, [searchParams]);
   return (
     <div className="container mx-auto py-10 max-md:px-0">
       <div className="flex items-center justify-between mb-8">
@@ -42,7 +52,7 @@ export default function Account() {
         </div>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <UserCircle className="h-4 w-4" />
@@ -60,7 +70,7 @@ export default function Account() {
 
         <TabsContent value="profile" className="space-y-4">
           <Card>
-            <CardHeader className='max-md:px-0'>
+            <CardHeader className="max-md:px-0">
               <CardTitle>Profile Information</CardTitle>
               <CardDescription>
                 View and manage your profile details
@@ -81,7 +91,7 @@ export default function Account() {
 
         <TabsContent value="billing" className="space-y-4">
           <Card>
-            <CardHeader className='max-md:px-0'>
+            <CardHeader className="max-md:px-0">
               <CardTitle>Payment Methods</CardTitle>
               <CardDescription>
                 Manage your payment methods and view subscription details
@@ -107,7 +117,9 @@ export default function Account() {
                 Manage your cryptocurrency wallet and transactions
               </CardDescription>
             </CardHeader>
-            <CardContent className='max-md:px-0'>{user && <CryptoWallet user={user} />}</CardContent>
+            <CardContent className="max-md:px-0">
+              {user && <CryptoWallet user={user} />}
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
