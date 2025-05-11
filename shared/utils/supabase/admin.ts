@@ -315,8 +315,13 @@ const manageSubscriptionStatusChange = async (
   const { id: uuid } = customerData!;
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-    expand: ['default_payment_method'],
+    expand: ['default_payment_method', 'items.data.price'],
   });
+
+  const price = subscription.items.data[0].price;
+  const interval =
+    price.type === 'recurring' ? price.recurring?.interval : 'lifetime';
+
   // Upsert the latest status of the subscription object.
   const subscriptionData: TablesInsert<'subscriptions'> = {
     id: subscription.id,
@@ -324,6 +329,7 @@ const manageSubscriptionStatusChange = async (
     metadata: subscription.metadata,
     status: subscription.status,
     price_id: subscription.items.data[0].price.id,
+    interval,
     //TODO check quantity on subscription
     // @ts-ignore
     quantity: subscription.quantity,

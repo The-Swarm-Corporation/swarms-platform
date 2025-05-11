@@ -276,7 +276,7 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
 
   return (
     <div className=" bg-black text-red-500">
-      <div className="max-w-3xl mx-auto p-6">
+      <div className="max-w-3xl mx-auto md:p-6">
         <div className="bg-black/50 backdrop-blur-xl border-2 border-red-500/50 rounded-xl p-8 shadow-2xl">
           {/* Header */}
           <div className="mb-8">
