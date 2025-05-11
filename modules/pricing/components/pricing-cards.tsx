@@ -45,7 +45,7 @@ export default function PricingCards({
         >
           Annually{' '}
           <span className="ml-2 bg-black p-1 px-2 text-xs text-white rounded-sm shadow-sm">
-            -1%
+            -15%
           </span>
         </Button>
         <Button
