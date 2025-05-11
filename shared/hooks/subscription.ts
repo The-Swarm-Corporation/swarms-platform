@@ -25,11 +25,17 @@ const useSubscription = () => {
   const makeSubsctiptionSession =
     trpc.payment.createSubscriptionCheckoutSession.useMutation();
 
-  const createSubscriptionPortal = () => {
-    makeSubsctiptionSession.mutateAsync().then(async (sessionId: string) => {
-      const stripe = await getStripe();
-      if (stripe) stripe.redirectToCheckout({ sessionId });
-    });
+  const createSubscriptionPortal = (
+    stripeProductId: string,
+    productType: string,
+    cancelPath?: string,
+  ) => {
+    makeSubsctiptionSession
+      .mutateAsync({ stripeProductId, productType, cancelPath })
+      .then(async (sessionId: string) => {
+        const stripe = await getStripe();
+        if (stripe) stripe.redirectToCheckout({ sessionId });
+      });
   };
   const openCustomerPortal = () => {
     makeCustomerPortal.mutateAsync().then((url: string) => {
@@ -47,6 +53,7 @@ const useSubscription = () => {
     refetchCredit,
     data: getSubscription,
     statusLoading: getSubscription.isLoading,
+    interval: getSubscription.data?.interval,
     status: getSubscription.data?.status,
     isLoading: getSubscription.isLoading,
     isSubscribed: getSubscription.data?.status === 'active' || false,
