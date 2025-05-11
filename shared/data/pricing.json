@@ -16,15 +16,15 @@
   },
   {
     "title": "Premium",
-    "description": "Subscribe annually and save 1.5%, with a reduced rate of $1020/year.",
+    "description": "Subscribe annually and save 1%, with a reduced rate of $1020/year.",
     "lifetime_description": "A lifetime subscription and one-time payment for the next 60 years.",
     "link": "platform/account",
     "subtitle": "Everything in Free, plus",
     "price": {
       "monthly": "100",
       "annually": "1200",
-      "discount": "1182",
-      "lifetime": "71000"
+      "discount": "1188",
+      "lifetime": "71250"
     },
     "features": [
       "Access to the best Multi-Modal models",
