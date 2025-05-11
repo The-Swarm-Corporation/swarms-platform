@@ -3,18 +3,18 @@ import LoadingSpinner from '@/shared/components/loading-spinner';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { Button } from '@/shared/components/ui/button';
 import { DISCORD, PLATFORM, SWARM_CALENDLY } from '@/shared/utils/constants';
-import useSubscription from '@/shared/hooks/subscription';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { commaSeparated, formatSpentTime } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { Check, Code, Github } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 
 const TIME_IN_MIN = 10;
 const Dashboard = () => {
-  const subscription = useSubscription();
   const { user } = useAuthContext();
+  const router = useRouter();
 
   const agentsRequests = user
     ? trpc.explorer.getAgentsByUserId.useQuery(user?.id)
@@ -30,14 +30,12 @@ const Dashboard = () => {
     const timeInSecs = TIME_IN_MIN * 60;
     const estimatedTimeSaved = requestCount * timeInSecs;
 
-    return formatSpentTime(
-      estimatedTimeSaved,
-    ).split(' ');
+    return formatSpentTime(estimatedTimeSaved).split(' ');
   }, [userRequests?.data]);
 
   async function subscribe() {
     await checkUserSession();
-    subscription.createSubscriptionPortal();
+    router.push('/pricing');
   }
 
   const agentsGoal = agentsLength ? agentsLength * 5 : 0;
@@ -57,7 +55,11 @@ const Dashboard = () => {
           <span className="text-bold text-2xl">Tasks Automated</span>
         </div>
         <div className="w-1/3 flex flex-col gap-4 p-4 border rounded-md max-md:w-full">
-        <span className="text-bold text-md"> Next Goal: ⭐ {commaSeparated(agentsGoal)} {/* Display the goal with a star emoji */}</span>
+          <span className="text-bold text-md">
+            {' '}
+            Next Goal: ⭐ {commaSeparated(agentsGoal)}{' '}
+            {/* Display the goal with a star emoji */}
+          </span>
           {agentsRequests?.isLoading ? (
             <LoadingSpinner />
           ) : (
@@ -88,7 +90,9 @@ const Dashboard = () => {
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex items-center gap-2">
               <Check size={24} />
-              <span>Spreadsheet Swarm - Advanced spreadsheet automation and analysis</span>
+              <span>
+                Spreadsheet Swarm - Advanced spreadsheet automation and analysis
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Check size={24} />
@@ -119,7 +123,6 @@ const Dashboard = () => {
             <Button
               className="hover:bg-red-900"
               variant="default"
-              disabled={subscription.createSubscriptionPortalLoading}
               onClick={subscribe}
             >
               Subscribe Now
@@ -134,16 +137,17 @@ const Dashboard = () => {
             <h2 className="text-2xl font-bold">Swarms SDK</h2>
           </div>
           <span className="text-muted-foreground block mt-2">
-            Get started with our open-source SDK and build powerful AI applications
+            Get started with our open-source SDK and build powerful AI
+            applications
           </span>
-          
+
           <div className="mt-6 bg-zinc-900 p-4 rounded-md">
             <div className="flex items-center justify-between">
               <code className="text-green-400">pip3 install -U swarms</code>
               <Code size={20} className="text-zinc-400" />
             </div>
           </div>
-          
+
           <div className="flex gap-4 mt-6">
             <Link href="https://github.com/kyegomez/swarms" target="_blank">
               <Button className="hover:bg-red-900" variant="default">
@@ -158,7 +162,8 @@ const Dashboard = () => {
           <div className="sm:w-1/2 flex flex-col gap-2 border rounded-md p-4">
             <h2 className="text-2xl font-bold">Spreadsheet Swarm</h2>
             <span className="text-muted-foreground">
-              Transform your spreadsheet workflows with AI-powered automation and analysis.
+              Transform your spreadsheet workflows with AI-powered automation
+              and analysis.
             </span>
             <Link href="https://swarms.world/spreadsheetswarm">
               <Button className="mt-4 hover:bg-red-900" variant="default">
@@ -169,7 +174,8 @@ const Dashboard = () => {
           <div className="sm:w-1/2 flex flex-col gap-2 border rounded-md p-4">
             <h2 className="text-2xl font-bold">Drag & Drop Swarm</h2>
             <span className="text-muted-foreground">
-              Build custom AI workflows with our intuitive drag & drop interface.
+              Build custom AI workflows with our intuitive drag & drop
+              interface.
             </span>
             <Link href="https://swarms.world/dragndrop">
               <Button className="mt-4 hover:bg-red-900" variant="default">
@@ -206,7 +212,8 @@ const Dashboard = () => {
           <div className="w-full flex flex-col gap-2">
             <h2 className="text-2xl font-bold">Join Our Community</h2>
             <span className="text-muted-foreground">
-              Connect with other users, get support, and stay updated on the latest features!
+              Connect with other users, get support, and stay updated on the
+              latest features!
             </span>
             <div className="flex gap-4 mt-4">
               <Link href={DISCORD}>
@@ -221,7 +228,8 @@ const Dashboard = () => {
           <div className="w-full flex flex-col gap-2">
             <h2 className="text-2xl font-bold">Schedule a Demo</h2>
             <span className="text-muted-foreground">
-              See how Swarms can transform your workflow with a personalized demo.
+              See how Swarms can transform your workflow with a personalized
+              demo.
             </span>
             <div className="flex gap-4 mt-4">
               <Link href={SWARM_CALENDLY}>
