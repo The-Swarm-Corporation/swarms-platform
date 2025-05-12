@@ -6,6 +6,7 @@ import { fetchSwarmLogs } from "@/shared/utils/api/telemetry/api"
 import { Activity, DollarSign, Timer, Zap, Users, Box, Brain, Award } from "lucide-react"
 import Link from "next/link"
 import { useAPIKeyContext } from "../ui/apikey.provider"
+import { PLATFORM } from "@/shared/utils/constants"
 
 interface MonitoringStats {
   totalSwarms: number
@@ -214,7 +215,7 @@ export function MonitoringStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold font-mono text-red-600">{stats.totalAgentsBuilt}</div>
-          <Link href="/agents" className="text-xs text-red-500 hover:text-red-400 font-mono">
+          <Link href={PLATFORM.TELEMETRY_AGENTS} className="text-xs text-red-500 hover:text-red-400 font-mono">
             View all agents →
           </Link>
         </CardContent>
@@ -227,7 +228,7 @@ export function MonitoringStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold font-mono text-red-600">{stats.totalSwarmsBuilt}</div>
-          <Link href="/swarms" className="text-xs text-red-500 hover:text-red-400 font-mono">
+          <Link href={PLATFORM.TELEMETRY_SWARMS} className="text-xs text-red-500 hover:text-red-400 font-mono">
             View all swarms →
           </Link>
         </CardContent>

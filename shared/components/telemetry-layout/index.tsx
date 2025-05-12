@@ -15,10 +15,10 @@ export default function TelemetryLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {user && isApiKeyLoading && <LayoutLoader />}
+      {isApiKeyLoading && <LayoutLoader />}
       {showMessage && (
         <>
-          {user && !apiKey && !isApiKeyLoading && (
+          {!user && !apiKey && !isApiKeyLoading && (
             <MessageComponent handleCloseMessage={handleCloseMessage} />
           )}
         </>

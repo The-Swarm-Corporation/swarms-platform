@@ -12,13 +12,21 @@ import {
   CardTitle,
 } from '@/shared/components/ui/card';
 import { KeyRound } from 'lucide-react';
-import { toast } from 'sonner';
 import { useAPIKeyContext } from '../ui/apikey.provider';
+import { trpc } from '@/shared/utils/trpc/trpc';
+import { useToast } from '../ui/Toasts/use-toast';
+import confetti from 'canvas-confetti';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
+import GenerateKeyComponent from '@/modules/platform/api-keys/components/generate-key';
 
 export function ApiKeyForm() {
-  const [apiKey, setApiKey] = useState('');
-  const { apiKey: existingApiKey } = useAPIKeyContext();
+  const { toast } = useToast();
+  const [apiKey, setApiKey] = useState<string | null>('');
 
+  const { apiKey: existingApiKey, refetch } = useAPIKeyContext();
+  const addApiKey = trpc.apiKey.addApiKey.useMutation();
+
+  const [keyName, setKeyName] = useState<string>('');
   const [isValidating, setIsValidating] = useState(false);
 
   useEffect(() => {
@@ -27,9 +35,73 @@ export function ApiKeyForm() {
     }
   }, [existingApiKey]);
 
+  const handleCopy = () => {
+    navigator.clipboard
+      .writeText(apiKey ?? '')
+      .then(() => {
+        toast({
+          description: 'Copied to clipboard',
+          style: { backgroundColor: '#10B981', color: 'white' },
+        });
+      })
+      .catch((e) => console.error(e));
+  };
+
+  const generate = async () => {
+    if (addApiKey.isPending) {
+      return;
+    }
+
+    try {
+      const user = await checkUserSession();
+
+      if (!user) {
+        toast({
+          description: 'You need to be logged in to generate an API key',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const data = await addApiKey.mutateAsync({ name: keyName });
+
+      setKeyName('');
+      setApiKey(data?.key ?? '');
+      refetch();
+
+      toast({
+        description: 'API key created',
+        style: { backgroundColor: '#10B981', color: 'white' },
+      });
+
+      confetti({
+        particleCount: 150,
+        spread: 90,
+        origin: { y: 0.6 },
+      });
+    } catch (error: any) {
+      toast({
+        description:
+          error.message || 'An error occurred while creating API key',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const apiKeyHandler = async () => {
+    if (apiKey) {
+      handleCopy();
+    } else {
+      await generate();
+    }
+  };
+
   const validateAndSaveKey = async () => {
     if (!apiKey) {
-      toast.error('Please enter an API key');
+      toast({
+        description: 'Please enter an API key',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -45,12 +117,21 @@ export function ApiKeyForm() {
       );
 
       if (response.ok) {
-        toast.success('API key validated and saved successfully');
+        toast({
+          description: 'API key validated and saved successfully',
+          style: { backgroundColor: '#10B981', color: 'white' },
+        });
       } else {
-        toast.error('Invalid API key');
+        toast({
+          description: 'Invalid API key',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
-      toast.error('Failed to validate API key');
+      toast({
+        description: 'Failed to validate API key',
+        variant: 'destructive',
+      });
     } finally {
       setIsValidating(false);
     }
@@ -64,8 +145,9 @@ export function ApiKeyForm() {
           API Key Configuration
         </CardTitle>
         <CardDescription>
-          Enter your Swarms API key to get started. You can find your API key in
-          the Swarms Cloud dashboard.
+          {apiKey
+            ? 'The Swarms API key is automatically enabled. You can view your usage data in the Swarms Cloud dashboard.'
+            : 'Create a new Swarms API key to get started. You can find your API key in the Swarms Cloud dashboard.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -74,19 +156,34 @@ export function ApiKeyForm() {
           <Input
             id="api-key"
             type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
+            readOnly
+            value={'.................................'}
+            onChange={(e) => e.preventDefault()}
             placeholder="Enter your API key"
             className="bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
           />
         </div>
-        <Button
-          onClick={validateAndSaveKey}
-          className="bg-red-600 hover:bg-red-700 text-white"
-          disabled={isValidating}
-        >
-          {isValidating ? 'Validating...' : 'Save API Key'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <GenerateKeyComponent
+            {...{
+              apiKey,
+              page: 'telemetry',
+              addApiKey,
+              generate: apiKeyHandler,
+              setKeyName,
+              keyName,
+              generatedKey: apiKey,
+              setGeneratedKey: setApiKey,
+            }}
+          />
+          <Button
+            onClick={validateAndSaveKey}
+            className="bg-red-600 hover:bg-red-700 text-white"
+            disabled={isValidating}
+          >
+            {isValidating ? 'Validating...' : 'Validate API Key'}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

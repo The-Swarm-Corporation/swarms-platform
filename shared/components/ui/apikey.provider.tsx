@@ -13,7 +13,7 @@ import {
 
 interface APIkeyProviderProps extends PropsWithChildren {
   isShareId?: boolean;
-  isCreateAutoKey?: boolean
+  isCreateAutoKey?: boolean;
 }
 interface APIContextType {
   isInitializing: boolean;
@@ -21,6 +21,7 @@ interface APIContextType {
   isCreatingApiKey: RefObject<boolean>;
   apiKey: string;
   isApiKeyLoading: boolean;
+  refetch: () => void;
 }
 
 const APIContext = createContext<APIContextType | undefined>(undefined);
@@ -28,7 +29,7 @@ const APIContext = createContext<APIContextType | undefined>(undefined);
 export const APIkeyProvider = ({
   children,
   isShareId = false,
-  isCreateAutoKey = false
+  isCreateAutoKey = false,
 }: APIkeyProviderProps) => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [creationError, setCreationError] = useState<string | null>(null);
@@ -77,6 +78,9 @@ export const APIkeyProvider = ({
         creationError,
         apiKey: apiKeyQuery.data?.key || '',
         isApiKeyLoading: apiKeyQuery.isLoading,
+        refetch: () => {
+          apiKeyQuery.refetch();
+        },
       }}
     >
       {children}

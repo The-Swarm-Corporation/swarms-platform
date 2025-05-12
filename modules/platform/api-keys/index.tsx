@@ -1,16 +1,7 @@
 'use client';
 
 import { Button } from '@/shared/components/ui/button';
-import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/shared/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -31,12 +22,11 @@ import {
 } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
-import Link from 'next/link';
 import { PLATFORM } from '@/shared/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
-import LoadingSpinner from '@/shared/components/loading-spinner';
+import GenerateKeyComponent from './components/generate-key';
 
 const ApiKeys = () => {
   const { user } = useAuthContext();
@@ -222,85 +212,17 @@ const ApiKeys = () => {
           </Table>
         </div>
         {user && (
-          <div className="mt-4">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  onClick={() => {
-                    setGeneratedKey(null);
-                  }}
-                  variant="outline"
-                  className="shadow-none"
-                >
-                  Create new API key
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>
-                    {generatedKey ? 'Generated key' : 'Create new API key'}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="gap-2 py-4">
-                  {generatedKey ? (
-                    <div>
-                      <p className="text-muted-foreground">
-                        Please copy the key below. You will not be able to see
-                        it again.
-                      </p>
-                      <Input
-                        value={generatedKey}
-                        className="my-2 w-full"
-                        readOnly
-                      />
-                      <Link href={PLATFORM.EXPLORER} target="_blank">
-                        <Button
-                          className="mt-4 hover:bg-red-900"
-                          variant={'default'}
-                        >
-                          Explore Models and Swarms
-                        </Button>
-                      </Link>
-                    </div>
-                  ) : (
-                    <div>
-                      <label htmlFor="name" className="text-right">
-                        Name
-                      </label>
-                      <Input
-                        id="name"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            generate();
-                          }
-                        }}
-                        value={keyName}
-                        className="my-2 w-full"
-                        onChange={(value) => {
-                          setKeyName(value);
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {!generatedKey && (
-                  <DialogFooter>
-                    <Button
-                      disabled={addApiKey.isPending}
-                      type="button"
-                      onClick={generate}
-                    >
-                      Generate key{' '}
-                      {addApiKey?.isPending && (
-                        <LoadingSpinner size={19} className="ml-2" />
-                      )}
-                    </Button>
-                  </DialogFooter>
-                )}
-              </DialogContent>
-            </Dialog>
-          </div>
+          <GenerateKeyComponent
+            {...{
+              page: 'api-key',
+              addApiKey,
+              generate,
+              generatedKey,
+              setGeneratedKey,
+              setKeyName,
+              keyName,
+            }}
+          />
         )}
         <div className="py-8" />
       </div>
