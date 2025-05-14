@@ -31,52 +31,58 @@ const paymentRouter = router({
     const stripeSession = await createPaymentSession(user.id);
     return stripeSession.url;
   }),
-  createSubscriptionCheckoutSession: userProcedure.mutation(async ({ ctx }) => {
-    const user = ctx.session.data.user as User;
-    const stripe_product_id = process.env
-      .NEXT_PUBLIC_STRIPE_SUBSCRIPTION_PRODUCT_ID as string;
+  createSubscriptionCheckoutSession: userProcedure
+    .input(
+      z.object({
+        stripeProductId: z.string(),
+        cancelPath: z.string().optional(),
+        productType: z.string().default('recurring'),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { stripeProductId, productType } = input;
+      if (!stripeProductId) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Stripe product id not found',
+        });
+      }
 
-    if (!stripe_product_id) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Stripe product id not found',
-      });
-    }
+      const res = await ctx.supabase
+        .from('prices')
+        .select('*')
+        .eq('id', stripeProductId)
+        .eq('type', productType as 'one_time' | 'recurring')
+        .single();
 
-    const res = await ctx.supabase
-      .from('prices')
-      .select('*')
-      .eq('id', stripe_product_id)
-      .eq('type', 'recurring')
-      .single();
+      if (res.error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error while getting stripe price',
+        });
+      }
+      const productRow = res.data;
+      if (!productRow) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Stripe price not found',
+        });
+      }
 
-    if (res.error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error while getting stripe price',
-      });
-    }
-    const productRow = res.data;
-    if (!productRow) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Stripe price not found',
-      });
-    }
-
-    const { errorRedirect, sessionId } = await checkoutWithStripe(
-      productRow,
-      PLATFORM.ACCOUNT,
-    );
-    if (errorRedirect) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: errorRedirect,
-      });
-    } else {
-      return sessionId as string;
-    }
-  }),
+      const { errorRedirect, sessionId } = await checkoutWithStripe(
+        productRow,
+        PLATFORM.ACCOUNT,
+        input.cancelPath,
+      );
+      if (errorRedirect) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: errorRedirect,
+        });
+      } else {
+        return sessionId as string;
+      }
+    }),
   createStripePortalLink: userProcedure.mutation(async ({ ctx }) => {
     const user = ctx.session.data.user as User;
     const url = await createStripePortal(

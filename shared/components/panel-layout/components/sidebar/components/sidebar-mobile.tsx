@@ -65,58 +65,62 @@ const SidebarMobile = () => {
               </div>
               <h2 className="font-bold text-primary">SWARMS</h2>
             </div>
+
             <DrawerClose className="absolute top-4 right-4">
               <X />
             </DrawerClose>
-            {Object.keys(SIDE_BAR_MENU).map((menuKey) => {
-              const menu = menuKey as NavMenuPropsKeys;
-              return (
-                <Collapsible
-                  key={menu}
-                  className="flex-col"
-                  open={openMenu === menu}
-                  onOpenChange={() => handleMenuClick(menu)}
-                >
-                  <CollapsibleTrigger className="justify-between p-2 py-3 my-1 hover:bg-destructive rounded-md hover:text-white outline-none">
-                    <span className="capitalize text-base font-semibold">
-                      {menu}
-                    </span>
-                    {openMenu === menu ? <ChevronDown /> : <ChevronRight />}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="flex flex-col">
-                    {getSideBarMenu(menu)?.map((item, index) => (
-                      <div className="flex flex-col gap-2" key={index}>
-                        <NavItem
-                          {...item}
-                          isIcon
-                          className={cn(
-                            'p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md',
-                            item.link === path && 'bg-primary text-white',
+
+            <div className="flex-1 overflow-y-auto pr-2 no-scrollbar">
+              {Object.keys(SIDE_BAR_MENU).map((menuKey) => {
+                const menu = menuKey as NavMenuPropsKeys;
+                return (
+                  <Collapsible
+                    key={menu}
+                    className="flex-col"
+                    open={openMenu === menu}
+                    onOpenChange={() => handleMenuClick(menu)}
+                  >
+                    <CollapsibleTrigger className="justify-between p-2 py-3 my-1 hover:bg-destructive rounded-md hover:text-white outline-none">
+                      <span className="capitalize text-base font-semibold">
+                        {menu}
+                      </span>
+                      {openMenu === menu ? <ChevronDown /> : <ChevronRight />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="flex flex-col">
+                      {getSideBarMenu(menu)?.map((item, index) => (
+                        <div className="flex flex-col gap-2" key={index}>
+                          <NavItem
+                            {...item}
+                            isIcon
+                            className={cn(
+                              'p-2 py-3 my-1 hover:bg-primary hover:text-white rounded-md',
+                              item.link === path && 'bg-primary text-white',
+                            )}
+                            showTitle
+                          />
+                          {item.link === path && item.items?.length && (
+                            <div className="flex flex-col gap-2">
+                              {item.items?.map((subItem) => (
+                                <NavItem
+                                  {...subItem}
+                                  key={subItem.title}
+                                  className={cn(
+                                    'pl-10 py-1 hover:bg-primary hover:text-white rounded-md',
+                                    subItem.link === path &&
+                                      'border border-gray-400 dark:text-white',
+                                  )}
+                                  showTitle
+                                />
+                              ))}
+                            </div>
                           )}
-                          showTitle
-                        />
-                        {item.link === path && item.items?.length && (
-                          <div className="flex flex-col gap-2">
-                            {item.items?.map((subItem) => (
-                              <NavItem
-                                {...subItem}
-                                key={subItem.title}
-                                className={cn(
-                                  'pl-10  py-1  hover:bg-primary hover:text-white rounded-md',
-                                  subItem.link === path &&
-                                    'border border-gray-400 dark:text-white',
-                                )}
-                                showTitle
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            })}
+                        </div>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
+            </div>
           </div>
         </DrawerContent>
       </Drawer>

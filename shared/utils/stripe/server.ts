@@ -39,6 +39,7 @@ export async function getSubscriptionStatus(user: User) {
     }).format((subscription?.prices?.unit_amount || 0) / 100);
   return {
     status: subscription?.status,
+    interval: subscription?.interval,
     subscriptionPrice,
     isCanceled: subscription?.cancel_at_period_end,
     renewAt: subscription?.current_period_end,
@@ -56,6 +57,7 @@ export async function getUserStripeCustomerId(user: User) {
 export async function checkoutWithStripe(
   price: ProductPrice,
   redirectPath: string = PLATFORM.ACCOUNT,
+  cancelPath?: string,
 ): Promise<CheckoutResponse> {
   try {
     // Get the user from Supabase auth
@@ -86,21 +88,32 @@ export async function checkoutWithStripe(
           quantity: 1,
         },
       ],
-      cancel_url: getURL(),
+      cancel_url: getURL(cancelPath),
       success_url: getURL(redirectPath),
     };
 
-    console.log(
-      'Trial end:',
-      calculateTrialEndUnixTimestamp(price.trial_period_days),
-    );
+    const TRIAL_PRICE_IDS = [process.env.STRIPE_YEARLY_SUBSCRIPTION_PRODUCT_ID];
+    const TRIAL_PERIOD_DAYS = 10;
+
+    const shouldApplyTrial = TRIAL_PRICE_IDS.includes(price.id);
+    const trialPeriodDays = shouldApplyTrial ? TRIAL_PERIOD_DAYS : 0;
+
     if (price.type === 'recurring') {
+      const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData =
+        {};
+
+      if (trialPeriodDays > 0) {
+        console.log(
+          `Applying ${trialPeriodDays}-day trial for price: ${price.id}`,
+        );
+        subscriptionData.trial_end =
+          calculateTrialEndUnixTimestamp(trialPeriodDays);
+      }
+
       params = {
         ...params,
         mode: 'subscription',
-        subscription_data: {
-          trial_end: calculateTrialEndUnixTimestamp(price.trial_period_days),
-        },
+        subscription_data: subscriptionData,
       };
     } else if (price.type === 'one_time') {
       params = {
