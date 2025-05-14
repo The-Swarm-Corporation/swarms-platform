@@ -7,8 +7,6 @@ import { PLATFORM } from '@/shared/utils/constants';
 
 const routes = [
   { value: PLATFORM.TELEMETRY_DASHBOARD, label: 'Dashboard' },
-  { value: PLATFORM.TELEMETRY_SWARMS, label: 'Swarms' },
-  { value: PLATFORM.TELEMETRY_AGENTS, label: 'Agents' },
   { value: PLATFORM.TELEMETRY_HISTORY, label: 'History' },
   { value: PLATFORM.TELEMETRY_SETTINGS, label: 'Settings' },
   { value: PLATFORM.TELEMETRY_PRICING, label: 'Pricing' },

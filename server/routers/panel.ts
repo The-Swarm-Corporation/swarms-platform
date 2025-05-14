@@ -9,8 +9,6 @@ import {
 import { stripe } from '@/shared/utils/stripe/config';
 import Stripe from 'stripe';
 import { Tables } from '@/types_db';
-import { getOrganizationUsage, userAPICluster } from '@/shared/utils/api/usage';
-import { isEmpty } from '@/shared/utils/helpers';
 
 const panelRouter = router({
   getUserCredit: userProcedure.query(async ({ ctx }) => {
@@ -231,49 +229,6 @@ const panelRouter = router({
       }
       return true;
     }),
-  getUsageAPICluster: userProcedure
-    .input(
-      z.object({
-        month: z.date(),
-      }),
-    )
-    .mutation(async ({ ctx, input: { month } }) => {
-      const user = ctx.session.data.user as User;
-
-      const cluster = await userAPICluster(user.id, month);
-
-      if (cluster.status !== 200) {
-        throw new Error(cluster.message);
-      }
-
-      if (isEmpty(cluster.user)) {
-        return null;
-      }
-
-      return cluster.user;
-    }),
-  getOrganizationUsage: userProcedure
-    .input(
-      z.object({
-        month: z.date(),
-      }),
-    )
-    .mutation(async ({ ctx, input: { month } }) => {
-      const user = ctx.session.data.user as User;
-
-      const usage = await getOrganizationUsage(user.id, month);
-
-      if (usage.status !== 200) {
-        throw new Error(usage.message);
-      }
-
-      if (isEmpty(usage.organization)) {
-        return null;
-      }
-
-      return usage.organization;
-    }),
-
   // SPREADSHEET SWARMS
 
   createSession: userProcedure

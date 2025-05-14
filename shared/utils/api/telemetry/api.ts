@@ -171,11 +171,11 @@ export async function fetchAvailableModels(apiKey: string): Promise<string[]> {
 
     const data = await response.json()
 
-    if (!Array.isArray(data)) {
+    if (!data?.models || !Array.isArray(data?.models)) {
       return ["gpt-4o", "gpt-4", "gpt-3.5-turbo"]
     }
 
-    return data
+    return data?.models;
   } catch (error) {
     console.error("Error fetching available models:", {
       error,
@@ -231,7 +231,7 @@ export async function fetchAvailableSwarmTypes(apiKey: string): Promise<string[]
 
     const data = await response.json()
 
-    if (!Array.isArray(data)) {
+    if (!data?.swarm_types || !Array.isArray(data?.swarm_types)) {
       return [
         "SequentialWorkflow",
         "ConcurrentWorkflow",
@@ -242,7 +242,7 @@ export async function fetchAvailableSwarmTypes(apiKey: string): Promise<string[]
       ]
     }
 
-    return data
+    return data?.swarm_types
   } catch (error) {
     console.error("Error fetching available swarm types:", {
       error,

@@ -215,9 +215,6 @@ export function MonitoringStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold font-mono text-red-600">{stats.totalAgentsBuilt}</div>
-          <Link href={PLATFORM.TELEMETRY_AGENTS} className="text-xs text-red-500 hover:text-red-400 font-mono">
-            View all agents →
-          </Link>
         </CardContent>
       </Card>
 
@@ -228,9 +225,6 @@ export function MonitoringStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold font-mono text-red-600">{stats.totalSwarmsBuilt}</div>
-          <Link href={PLATFORM.TELEMETRY_SWARMS} className="text-xs text-red-500 hover:text-red-400 font-mono">
-            View all swarms →
-          </Link>
         </CardContent>
       </Card>
 

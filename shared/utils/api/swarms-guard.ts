@@ -2,8 +2,6 @@ import { Tables } from '@/types_db';
 import { supabaseAdmin } from '../supabase/admin';
 import { getUserOrganizationRole } from './organization';
 import { checkRateLimit } from './rate-limit';
-import { getBillingLimit } from './usage';
-import { currentMonth } from '@/shared/utils/constants';
 
 type Options = {
   apiKey: string | null;
@@ -109,14 +107,6 @@ export class SwarmsApiGuard {
           message: 'Too Many Requests. Please try again later.',
         };
       }
-    }
-
-    const isBillingAllowed = await getBillingLimit(this.userId, currentMonth);
-    if (isBillingAllowed.status !== 200) {
-      return {
-        status: isBillingAllowed.status,
-        message: isBillingAllowed.message,
-      };
     }
 
     // check user is not banned: SOON

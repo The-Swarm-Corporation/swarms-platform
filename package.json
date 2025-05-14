@@ -102,7 +102,7 @@
     "react-ace": "^11.0.1",
     "react-awesome-stars-rating": "^0.16.2",
     "react-canvas-confetti": "^2.0.7",
-    "react-day-picker": "^9.6.7",
+    "react-day-picker": "^9.7.0",
     "react-dom": "latest",
     "react-dropzone": "^14.2.10",
     "react-hot-toast": "^2.4.1",

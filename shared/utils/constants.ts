@@ -96,10 +96,6 @@ export const PLATFORM = {
   TELEMETRY: '/platform/telemetry',
   TELEMETRY_PRICING: '/platform/telemetry/pricing',
   TELEMETRY_DASHBOARD: '/platform/telemetry/dashboard',
-  TELEMETRY_SWARMS: '/platform/telemetry/swarms',
-  TELEMETRY_SWARMS_NEW: '/platform/telemetry/swarms/new',
-  TELEMETRY_AGENTS: '/platform/telemetry/agents',
-  TELEMETRY_AGENTS_NEW: '/platform/telemetry/agents/new',
   TELEMETRY_HISTORY: '/platform/telemetry/history',
   TELEMETRY_SETTINGS: '/platform/telemetry/settings',
 };

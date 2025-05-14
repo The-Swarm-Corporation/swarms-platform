@@ -1,72 +1,107 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Button } from "@/shared/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { fetchAvailableModels, fetchAvailableSwarmTypes } from "@/shared/utils/api/telemetry/api"
-import { AlertCircle, Database, Loader2, RefreshCcw, Search, Settings2, Zap } from "lucide-react"
-import { Badge } from "@/shared/components/ui/badge"
-import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-import { useTheme } from "next-themes"
-import { Input } from "@/shared/components/ui/input"
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/shared/components/ui/table"
-import { useAPIKeyContext } from "@/shared/components/ui/apikey.provider"
+import { useState, useEffect } from 'react';
+import { Button } from '@/shared/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/shared/components/ui/card';
+import {
+  fetchAvailableModels,
+  fetchAvailableSwarmTypes,
+} from '@/shared/utils/api/telemetry/api';
+import {
+  AlertCircle,
+  Database,
+  Loader2,
+  RefreshCcw,
+  Search,
+  Settings2,
+  Zap,
+} from 'lucide-react';
+import { Badge } from '@/shared/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { useTheme } from 'next-themes';
+import { Input } from '@/shared/components/ui/input';
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@/shared/components/ui/table';
+import { useAPIKeyContext } from '@/shared/components/ui/apikey.provider';
+import { getTruncatedString } from '@/shared/utils/helpers';
 
 export default function SettingsPage() {
-  const [models, setModels] = useState<string[]>([])
-  const [swarmTypes, setSwarmTypes] = useState<string[]>([])
-  const [isLoadingModels, setIsLoadingModels] = useState(false)
-  const [isLoadingSwarmTypes, setIsLoadingSwarmTypes] = useState(false)
-  const [modelsError, setModelsError] = useState<string | null>(null)
-  const [swarmTypesError, setSwarmTypesError] = useState<string | null>(null)
-  const [hasApiKey, setHasApiKey] = useState(false)
-  const { theme, setTheme } = useTheme()
-  const [modelSearchQuery, setModelSearchQuery] = useState("")
-  const [swarmTypeSearchQuery, setSwarmTypeSearchQuery] = useState("")
+  const [models, setModels] = useState<string[]>([]);
+  const [swarmTypes, setSwarmTypes] = useState<string[]>([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [isLoadingSwarmTypes, setIsLoadingSwarmTypes] = useState(false);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+  const [swarmTypesError, setSwarmTypesError] = useState<string | null>(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [modelSearchQuery, setModelSearchQuery] = useState('');
+  const [swarmTypeSearchQuery, setSwarmTypeSearchQuery] = useState('');
   const { apiKey } = useAPIKeyContext();
 
   // Check if API key exists on component mount
   useEffect(() => {
-    setHasApiKey(!!apiKey)
-  }, [apiKey])
+    setHasApiKey(!!apiKey);
+  }, [apiKey]);
 
   const fetchModels = async () => {
-    setIsLoadingModels(true)
-    setModelsError(null)
+    setIsLoadingModels(true);
+    setModelsError(null);
     try {
-      const data = await fetchAvailableModels(apiKey)
-      setModels(data)
+      const data = await fetchAvailableModels(apiKey);
+      setModels(data);
     } catch (error) {
-      console.error("Error in fetchModels:", error)
-      setModelsError(error instanceof Error ? error.message : "Failed to fetch available models")
+      console.error('Error in fetchModels:', error);
+      setModelsError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch available models',
+      );
       // Don't set models here - the API function will return fallback data
     } finally {
-      setIsLoadingModels(false)
+      setIsLoadingModels(false);
     }
-  }
+  };
 
   const fetchSwarmTypes = async () => {
-    setIsLoadingSwarmTypes(true)
-    setSwarmTypesError(null)
+    setIsLoadingSwarmTypes(true);
+    setSwarmTypesError(null);
     try {
-      const data = await fetchAvailableSwarmTypes(apiKey)
-      setSwarmTypes(data)
+      const data = await fetchAvailableSwarmTypes(apiKey);
+      setSwarmTypes(data);
     } catch (error) {
-      console.error("Error in fetchSwarmTypes:", error)
-      setSwarmTypesError(error instanceof Error ? error.message : "Failed to fetch available swarm types")
+      console.error('Error in fetchSwarmTypes:', error);
+      setSwarmTypesError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch available swarm types',
+      );
       // Don't set swarm types here - the API function will return fallback data
     } finally {
-      setIsLoadingSwarmTypes(false)
+      setIsLoadingSwarmTypes(false);
     }
-  }
+  };
 
   // Filter models based on search query
-  const filteredModels = models.filter((model) => model.toLowerCase().includes(modelSearchQuery.toLowerCase()))
+  const filteredModels = models.filter((model) =>
+    model.toLowerCase().includes(modelSearchQuery.toLowerCase()),
+  );
 
   // Filter swarm types based on search query
   const filteredSwarmTypes = swarmTypes.filter((type) =>
     type.toLowerCase().includes(swarmTypeSearchQuery.toLowerCase()),
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -84,7 +119,9 @@ export default function SettingsPage() {
               <Database className="h-5 w-5 text-red-500" />
               Available Models
             </CardTitle>
-            <CardDescription>View all available language models for your swarms</CardDescription>
+            <CardDescription>
+              View all available language models for your swarms
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between">
@@ -133,45 +170,59 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {models.length > 0 ? (
-              <div className="border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                      <TableHead className="text-red-500/70">Model Name</TableHead>
-                      <TableHead className="text-red-500/70 text-right">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredModels.length > 0 ? (
-                      filteredModels.map((model, index) => (
-                        <TableRow
-                          key={index}
-                          className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                        >
-                          <TableCell className="font-medium">{model}</TableCell>
-                          <TableCell className="text-right">
-                            <Badge variant="outline" className="border-green-500 text-green-500">
-                              Available
-                            </Badge>
+            <div className="h-[250px] overflow-y-auto">
+              {models.length > 0 ? (
+                <div className="border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                        <TableHead className="text-red-500/70">
+                          Model Name
+                        </TableHead>
+                        <TableHead className="text-red-500/70 text-right">
+                          Status
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredModels.length > 0 ? (
+                        filteredModels.map((model, index) => (
+                          <TableRow
+                            key={index}
+                            className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                          >
+                            <TableCell className="font-medium">
+                              {getTruncatedString(model, 60)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Badge
+                                variant="outline"
+                                className="border-green-500 text-green-500"
+                              >
+                                Available
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={2}
+                            className="text-center py-4 text-zinc-500"
+                          >
+                            No models match your search query
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={2} className="text-center py-4 text-zinc-500">
-                          No models match your search query
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : !isLoadingModels && !modelsError ? (
-              <p className="text-center text-zinc-500 dark:text-zinc-400 py-4">
-                Click the button above to fetch available models
-              </p>
-            ) : null}
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : !isLoadingModels && !modelsError ? (
+                <p className="text-center text-zinc-500 dark:text-zinc-400 py-4">
+                  Click the button above to fetch available models
+                </p>
+              ) : null}
+            </div>
           </CardContent>
         </Card>
 
@@ -181,7 +232,9 @@ export default function SettingsPage() {
               <Zap className="h-5 w-5 text-red-500" />
               Available Swarm Types
             </CardTitle>
-            <CardDescription>View all available swarm types for your workflows</CardDescription>
+            <CardDescription>
+              View all available swarm types for your workflows
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between">
@@ -230,45 +283,59 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {swarmTypes.length > 0 ? (
-              <div className="border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                      <TableHead className="text-red-500/70">Swarm Type</TableHead>
-                      <TableHead className="text-red-500/70 text-right">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredSwarmTypes.length > 0 ? (
-                      filteredSwarmTypes.map((type, index) => (
-                        <TableRow
-                          key={index}
-                          className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                        >
-                          <TableCell className="font-medium">{type}</TableCell>
-                          <TableCell className="text-right">
-                            <Badge variant="outline" className="border-green-500 text-green-500">
-                              Available
-                            </Badge>
+            <div className="h-[250px] overflow-y-auto">
+              {swarmTypes.length > 0 ? (
+                <div className="border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                        <TableHead className="text-red-500/70">
+                          Swarm Type
+                        </TableHead>
+                        <TableHead className="text-red-500/70 text-right">
+                          Status
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSwarmTypes.length > 0 ? (
+                        filteredSwarmTypes.map((type, index) => (
+                          <TableRow
+                            key={index}
+                            className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                          >
+                            <TableCell className="font-medium">
+                              {getTruncatedString(type, 60)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Badge
+                                variant="outline"
+                                className="border-green-500 text-green-500"
+                              >
+                                Available
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={2}
+                            className="text-center py-4 text-zinc-500"
+                          >
+                            No swarm types match your search query
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={2} className="text-center py-4 text-zinc-500">
-                          No swarm types match your search query
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : !isLoadingSwarmTypes && !swarmTypesError ? (
-              <p className="text-center text-zinc-500 dark:text-zinc-400 py-4">
-                Click the button above to fetch available swarm types
-              </p>
-            ) : null}
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : !isLoadingSwarmTypes && !swarmTypesError ? (
+                <p className="text-center text-zinc-500 dark:text-zinc-400 py-4">
+                  Click the button above to fetch available swarm types
+                </p>
+              ) : null}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -279,14 +346,18 @@ export default function SettingsPage() {
             <Settings2 className="h-5 w-5 text-red-500" />
             Platform Settings
           </CardTitle>
-          <CardDescription>Configure your Swarms platform settings</CardDescription>
+          <CardDescription>
+            Configure your Swarms platform settings
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium">Theme</h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">Choose your preferred theme</p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Choose your preferred theme
+                </p>
               </div>
               <Tabs defaultValue={theme} onValueChange={setTheme}>
                 <TabsList>
@@ -300,6 +371,5 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

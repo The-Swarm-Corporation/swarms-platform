@@ -71,11 +71,6 @@ export const NAV_LINKS: NavMenuProps = {
       link: DISCORD,
     },
     {
-      icon: <CircleGauge size={20} />,
-      title: 'Billing & Usage',
-      link: PLATFORM.USAGE,
-    },
-    {
       icon: <LogOut size={20} />,
       title: 'Sign out',
       link: '',
@@ -122,11 +117,6 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       link: PLATFORM.TELEMETRY,
     },
     {
-      icon: <CircleGauge size={24} />,
-      title: 'Usage',
-      link: PLATFORM.USAGE,
-    },
-    {
       icon: <Settings size={24} />,
       title: 'Settings',
       link: PLATFORM.ACCOUNT,
@@ -139,10 +129,6 @@ export const SIDE_BAR_MENU: NavMenuProps = {
           title: 'History',
           link: PLATFORM.HISTORY,
         },
-        // {
-        //   title: 'Referral',
-        //   link: PLATFORM.REFERRAL,
-        // },
         {
           title: 'Organization',
           link: PLATFORM.ORGANIZATION,
