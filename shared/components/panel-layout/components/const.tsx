@@ -112,7 +112,7 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       link: PLATFORM.API_KEYS,
     },
     {
-      icon: <Atom size={24} />,
+      icon: <CircleGauge size={24} />,
       title: 'Telemetry',
       link: PLATFORM.TELEMETRY,
     },
