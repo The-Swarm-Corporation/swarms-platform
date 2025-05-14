@@ -15,6 +15,7 @@ import {
   FileSpreadsheet,
   GripVertical,
   MessageSquareMore,
+  Atom,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -70,11 +71,6 @@ export const NAV_LINKS: NavMenuProps = {
       link: DISCORD,
     },
     {
-      icon: <CircleGauge size={20} />,
-      title: 'Billing & Usage',
-      link: PLATFORM.USAGE,
-    },
-    {
       icon: <LogOut size={20} />,
       title: 'Sign out',
       link: '',
@@ -117,8 +113,8 @@ export const SIDE_BAR_MENU: NavMenuProps = {
     },
     {
       icon: <CircleGauge size={24} />,
-      title: 'Usage',
-      link: PLATFORM.USAGE,
+      title: 'Telemetry',
+      link: PLATFORM.TELEMETRY,
     },
     {
       icon: <Settings size={24} />,

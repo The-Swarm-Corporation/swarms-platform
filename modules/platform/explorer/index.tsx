@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -19,17 +19,6 @@ import dynamic from 'next/dynamic';
 import Sticky from 'react-stickynode';
 import AddToolModal from './components/add-tool-modal';
 import ModelCategories from './components/content/categories';
-
-// Add the animation keyframes to your global styles or tailwind config
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes gradient-x {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-`;
-document.head.appendChild(style);
 
 const Trending = dynamic(() => import('./components/content/trending'), {
   ssr: false,
@@ -152,6 +141,19 @@ const Explorer = () => {
     if (b.key === filterOption) return 1;
     return 0;
   });
+
+  useEffect(() => {
+    // Add the animation keyframes to your global styles or tailwind config
+    const style = document.createElement('style');
+    style.textContent = `
+  @keyframes gradient-x {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+`;
+    document.head.appendChild(style);
+  }, []);
 
   return (
     <>

@@ -93,6 +93,11 @@ export const PLATFORM = {
   CHAT: '/platform/chat',
   HISTORY: '/platform/history',
   REFERRAL: '/platform/referral',
+  TELEMETRY: '/platform/telemetry',
+  TELEMETRY_PRICING: '/platform/telemetry/pricing',
+  TELEMETRY_DASHBOARD: '/platform/telemetry/dashboard',
+  TELEMETRY_HISTORY: '/platform/telemetry/history',
+  TELEMETRY_SETTINGS: '/platform/telemetry/settings',
 };
 
 export const AUTH = {
