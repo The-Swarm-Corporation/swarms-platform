@@ -1,7 +1,7 @@
-import React, { forwardRef, useState } from 'react';
+import React, { Dispatch, forwardRef, SetStateAction, useState } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/shared/utils/cn';
-import { Edit, Hexagon, Save, Trash } from 'lucide-react';
+import { Edit, Hexagon, Trash } from 'lucide-react';
 import { Tables } from '@/types_db';
 import { MessageObj, parseJSON } from '../helper';
 import MarkdownComponent from '../../markdown';
@@ -13,14 +13,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
-import { useConversations } from '../hooks/useConversations';
 import { Button } from '../../ui/button';
 import LoadingSpinner from '../../loading-spinner';
-import useChatQuery from '../hooks/useChatQuery';
 
 interface ChatMessageProps {
   message: Omit<Tables<'swarms_cloud_chat_messages'>, 'is_deleted'>;
   isEditLoading: boolean;
+  editingMessageId: string | null;
+  replaceMode: 'replaceAll' | 'replaceOriginal';
+  isDeleteMessage: boolean;
+  setReplaceMode: Dispatch<SetStateAction<'replaceAll' | 'replaceOriginal'>>;
+  startEditingMessage: (messageId: string) => void;
+  isSharedConversation: string;
+  cancelEditingMessage: () => void;
+  editMessage: (
+    messageId: string,
+    newContent: string,
+    replaceAll: boolean,
+  ) => Promise<Tables<'swarms_cloud_chat_messages'> | null>;
+  deleteMessage: (messageId: string | null) => void;
   onEdit: (
     updatedMessage: Tables<'swarms_cloud_chat_messages'>,
     replaceAll: boolean,
@@ -28,7 +39,23 @@ interface ChatMessageProps {
 }
 
 const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
-  ({ message, isEditLoading, onEdit }, ref) => {
+  (
+    {
+      message,
+      isEditLoading,
+      editingMessageId,
+      replaceMode,
+      isDeleteMessage,
+      isSharedConversation,
+      setReplaceMode,
+      startEditingMessage,
+      cancelEditingMessage,
+      editMessage,
+      deleteMessage,
+      onEdit,
+    },
+    ref,
+  ) => {
     const structuredContent = parseJSON(message?.structured_content ?? '');
     const content = parseJSON(message?.content ?? '');
 
@@ -36,18 +63,6 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
     if (!Array.isArray(displayContent)) {
       displayContent = [displayContent];
     }
-
-    const { isSharedConversation } = useChatQuery();
-    const {
-      editingMessageId,
-      replaceMode,
-      isDeleteMessage,
-      setReplaceMode,
-      startEditingMessage,
-      cancelEditingMessage,
-      editMessage,
-      deleteMessage,
-    } = useConversations();
     const [editContent, setEditContent] = useState('');
     const [openDeleteModal, setOpenDeleteModal] = useState(false);
 

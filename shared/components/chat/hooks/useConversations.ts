@@ -7,6 +7,7 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import useChatQuery from './useChatQuery';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '../../ui/auth.provider';
+import { Tables } from '@/types_db';
 
 export function useConversations() {
   const {
@@ -272,13 +273,13 @@ export function useConversations() {
     messageId: string,
     newContent: string,
     replaceAll: boolean = true,
-  ) => {
+  ): Promise<Tables<'swarms_cloud_chat_messages'> | null> => {
     if (!activeConversationId) {
       toast({
         description: 'No active conversation',
         variant: 'destructive',
       });
-      return;
+      return null;
     }
 
     try {
