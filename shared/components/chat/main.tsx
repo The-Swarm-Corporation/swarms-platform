@@ -666,7 +666,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 lg:ml-[80px] max-lg:mt-16 transition-colors duration-300',
+        'fixed inset-0 z-[9999] lg:ml-[80px] max-lg:mt-16 transition-colors duration-300',
         'bg-zinc-50 dark:bg-[#000000]',
       )}
     >
