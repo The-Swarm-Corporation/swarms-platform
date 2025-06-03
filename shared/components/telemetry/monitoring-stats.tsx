@@ -51,6 +51,8 @@ export function MonitoringStats() {
         const logs = response.logs
         const totalSwarms = logs.length
 
+        console.log({ logs });
+
         let totalCost = 0
         let totalExecutionTime = 0
         let totalTokens = 0
