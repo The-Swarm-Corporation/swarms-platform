@@ -27,7 +27,6 @@ export default function PlatformNavBar() {
   const { isOn, setOn, setOff } = useToggle();
 
   const isChatInterface = path?.includes('/platform/chat');
-  console.log({ path });
 
   const getUser = trpc.main.getUser.useQuery(undefined, {
     enabled: !!user,
