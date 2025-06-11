@@ -55,8 +55,6 @@ export function SwarmHistory({ limit }: { limit?: number }) {
               new Date(a.created_at).getTime(),
           );
 
-        console.log({ sortedLogs, logs: response?.logs });
-
         setLogs(limit ? sortedLogs.slice(0, limit) : sortedLogs);
       } catch (err) {
         const message =
