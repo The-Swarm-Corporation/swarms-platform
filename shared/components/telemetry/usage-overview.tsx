@@ -1,16 +1,26 @@
-"use client"
+'use client';
 
-import { useEffect, useState } from "react"
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
-import { AlertOctagon, Loader2 } from "lucide-react"
-import { fetchSwarmLogs } from "@/shared/utils/api/telemetry/api"
-import { useAPIKeyContext } from "../ui/apikey.provider"
+import { useEffect, useState } from 'react';
+import {
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+} from 'recharts';
+import { AlertOctagon, Loader2 } from 'lucide-react';
+import { useAPIKeyContext } from '../ui/apikey.provider';
+import { estimateTokenCost } from '@/shared/utils/helpers';
+import { ITelemetry } from './helper';
 
 interface ChartData {
-  date: string
-  tokens: number
-  credits: number
-  swarms: number
+  date: string;
+  tokens: number;
+  credits: number;
+  swarms: number;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -18,30 +28,44 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="rounded border border-red-500/20 bg-black/90 p-3 shadow-lg shadow-red-500/10 backdrop-blur-sm">
         <div className="mb-2 border-b border-red-500/20 pb-1">
-          <span className="font-mono text-xs text-red-500">{new Date(label).toLocaleDateString()}</span>
+          <span className="font-mono text-xs text-red-500">
+            {new Date(label).toLocaleDateString()}
+          </span>
         </div>
         <div className="grid gap-2">
           <div className="flex items-center justify-between gap-8">
-            <span className="font-mono text-[0.70rem] uppercase text-zinc-500">Tokens</span>
-            <span className="font-mono text-sm text-red-500">{payload[0].value?.toLocaleString()}</span>
+            <span className="font-mono text-[0.70rem] uppercase text-zinc-500">
+              Tokens
+            </span>
+            <span className="font-mono text-sm text-red-500">
+              {payload[0].value?.toLocaleString()}
+            </span>
           </div>
           <div className="flex items-center justify-between gap-8">
-            <span className="font-mono text-[0.70rem] uppercase text-zinc-500">Credits</span>
-            <span className="font-mono text-sm text-yellow-500">${payload[1].value?.toFixed(4)}</span>
+            <span className="font-mono text-[0.70rem] uppercase text-zinc-500">
+              Credits
+            </span>
+            <span className="font-mono text-sm text-yellow-500">
+              ${payload[1].value?.toFixed(4)}
+            </span>
           </div>
           <div className="flex items-center justify-between gap-8">
-            <span className="font-mono text-[0.70rem] uppercase text-zinc-500">Swarms</span>
-            <span className="font-mono text-sm text-blue-500">{payload[2].value}</span>
+            <span className="font-mono text-[0.70rem] uppercase text-zinc-500">
+              Swarms
+            </span>
+            <span className="font-mono text-sm text-blue-500">
+              {payload[2].value}
+            </span>
           </div>
         </div>
       </div>
-    )
+    );
   }
-  return null
-}
+  return null;
+};
 
 const CustomLegend = ({ payload }: any) => {
-  if (!payload) return null
+  if (!payload) return null;
   return (
     <div className="mt-4 flex justify-center gap-6">
       {payload.map((entry: any, index: number) => (
@@ -54,66 +78,54 @@ const CustomLegend = ({ payload }: any) => {
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export function UsageOverview() {
-  const [data, setData] = useState<ChartData[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export function UsageOverview({ logs, isLoading, error }: ITelemetry) {
+  const [data, setData] = useState<ChartData[]>([]);
   const { apiKey } = useAPIKeyContext();
 
   useEffect(() => {
     if (!apiKey) return;
 
-    const loadData = async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const response = await fetchSwarmLogs(apiKey)
+    const loadData = () => {
+      const dailyDataMap = new Map<string, ChartData>();
 
-        if (!response?.logs || !Array.isArray(response.logs)) {
-          throw new Error("Invalid logs data received")
+      logs.forEach((log) => {
+        const date = new Date(log.created_at).toISOString().split('T')[0];
+
+        if (!dailyDataMap.has(date)) {
+          dailyDataMap.set(date, {
+            date,
+            tokens: 0,
+            credits: 0,
+            swarms: 0,
+          });
         }
 
-        const dailyDataMap = new Map()
+        const usage = log?.data?.usage;
+        const dayData = dailyDataMap.get(date)!;
 
-        response.logs.forEach((log) => {
-          const date = new Date(log.created_at).toISOString().split("T")[0]
-          if (!dailyDataMap.has(date)) {
-            dailyDataMap.set(date, {
-              date,
-              tokens: 0,
-              credits: 0,
-              swarms: 0,
-            })
-          }
+        dayData.swarms++;
 
-          const dayData = dailyDataMap.get(date)
-          dayData.swarms++
+        if (usage) {
+          const { input_tokens, output_tokens, total_tokens } = usage;
+          const { totalCost } = estimateTokenCost(input_tokens, output_tokens);
 
-          if (log.data?.metadata?.billing_info) {
-            const billingInfo = log.data.metadata.billing_info
-            dayData.tokens += billingInfo.cost_breakdown?.token_counts?.total_tokens || 0
-            dayData.credits += billingInfo.total_cost || 0
-          }
-        })
+          dayData.tokens += total_tokens;
+          dayData.credits += totalCost;
+        }
+      });
 
-        const chartData = Array.from(dailyDataMap.values()).sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-        )
+      const chartData = Array.from(dailyDataMap.values()).sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
 
-        setData(chartData)
-      } catch (error) {
-        console.error("Error loading usage data:", error)
-        setError(error instanceof Error ? error.message : "Failed to load usage data")
-      } finally {
-        setIsLoading(false)
-      }
-    }
+      setData(chartData);
+    };
 
-    loadData()
-  }, [apiKey])
+    loadData();
+  }, [apiKey, logs]);
 
   if (isLoading) {
     return (
@@ -123,7 +135,7 @@ export function UsageOverview() {
           <span className="font-mono text-xs">Loading data...</span>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -134,22 +146,30 @@ export function UsageOverview() {
           <span className="font-mono text-xs">{error}</span>
         </div>
       </div>
-    )
+    );
   }
 
   if (data.length === 0) {
     return (
       <div className="flex h-[300px] w-full items-center justify-center rounded-lg border border-dashed border-red-500/20 bg-black/50">
-        <span className="font-mono text-xs text-zinc-500 dark:text-white">No usage data available</span>
+        <span className="font-mono text-xs text-zinc-500 dark:text-white">
+          No usage data available
+        </span>
       </div>
-    )
+    );
   }
 
   return (
     <div className="h-[300px] w-full rounded-lg border border-red-500/20 bg-black/50 p-4">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(239, 68, 68, 0.1)" />
+        <LineChart
+          data={data}
+          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="rgba(239, 68, 68, 0.1)"
+          />
           <XAxis
             dataKey="date"
             stroke="#525252"
@@ -157,7 +177,7 @@ export function UsageOverview() {
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => new Date(value).toLocaleDateString()}
-            tick={{ fontFamily: "monospace" }}
+            tick={{ fontFamily: 'monospace' }}
           />
           <YAxis
             yAxisId="left"
@@ -166,7 +186,7 @@ export function UsageOverview() {
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => `${value.toLocaleString()}`}
-            tick={{ fontFamily: "monospace" }}
+            tick={{ fontFamily: 'monospace' }}
           />
           <YAxis
             yAxisId="right"
@@ -176,7 +196,7 @@ export function UsageOverview() {
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => `$${value.toFixed(2)}`}
-            tick={{ fontFamily: "monospace" }}
+            tick={{ fontFamily: 'monospace' }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend content={<CustomLegend />} />
@@ -188,7 +208,12 @@ export function UsageOverview() {
             stroke="#ef4444"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, strokeWidth: 2, fill: "#ef4444", stroke: "#ef4444" }}
+            activeDot={{
+              r: 4,
+              strokeWidth: 2,
+              fill: '#ef4444',
+              stroke: '#ef4444',
+            }}
           />
           <Line
             yAxisId="right"
@@ -198,7 +223,12 @@ export function UsageOverview() {
             stroke="#eab308"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, strokeWidth: 2, fill: "#eab308", stroke: "#eab308" }}
+            activeDot={{
+              r: 4,
+              strokeWidth: 2,
+              fill: '#eab308',
+              stroke: '#eab308',
+            }}
           />
           <Line
             yAxisId="left"
@@ -208,11 +238,15 @@ export function UsageOverview() {
             stroke="#3b82f6"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, strokeWidth: 2, fill: "#3b82f6", stroke: "#3b82f6" }}
+            activeDot={{
+              r: 4,
+              strokeWidth: 2,
+              fill: '#3b82f6',
+              stroke: '#3b82f6',
+            }}
           />
         </LineChart>
       </ResponsiveContainer>
     </div>
-  )
+  );
 }
-

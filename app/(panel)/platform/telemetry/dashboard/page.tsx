@@ -1,11 +1,8 @@
-import { MonitoringStats } from '@/shared/components/telemetry/monitoring-stats';
-import { ApiKeyForm } from '@/shared/components/telemetry/api-key-form';
 import { Button } from '@/shared/components/ui/button';
-import { SwarmComparison } from '@/shared/components/telemetry/swarm-comparison-chart';
-import { UsageOverview } from '@/shared/components/telemetry/usage-overview';
 import Link from 'next/link';
-import { Box, User, History } from 'lucide-react';
+import { History } from 'lucide-react';
 import { PLATFORM } from '@/shared/utils/constants';
+import DashboardMetrics from './client-component';
 
 export default function DashboardPage() {
   return (
@@ -33,16 +30,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <ApiKeyForm />
-
-      <MonitoringStats />
-
-      <UsageOverview />
-
-      <SwarmComparison
-        limit={5}
-        className="border-red-500/50 hover:border-red-600 hover:shadow-lg transition-all duration-200"
-      />
+      <DashboardMetrics />
     </div>
   );
 }

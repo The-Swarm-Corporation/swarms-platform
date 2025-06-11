@@ -5,8 +5,10 @@ export interface SwarmLog {
   created_at: string;
   data: {
     task: string;
-    output: string;
+    output: string[];
     status: string;
+    execution_time: number;
+    number_of_agents: number;
     metadata: {
       max_loops: number;
       num_agents: number;
@@ -36,12 +38,18 @@ export interface SwarmLog {
       execution_time_seconds: number;
     };
     swarm_name: string;
+    service_tier: string;
     description: string;
     agents?: Array<{
       model_name?: string;
       role?: string;
     }>;
     swarm_type?: string;
+    usage: {
+      input_tokens: number;
+      total_tokens: number;
+      output_tokens: number;
+    };
   };
 }
 
@@ -87,7 +95,9 @@ async function fetchFromAPI<T>(endpoint: string, apiKey: string): Promise<T> {
         case 403:
           throw new Error('Invalid or expired API key. Please reconfigure it.');
         case 404:
-          throw new Error('Requested endpoint not available. Check your configuration.');
+          throw new Error(
+            'Requested endpoint not available. Check your configuration.',
+          );
         default:
           throw new Error(`${baseMessage}${extraInfo}`);
       }
@@ -137,7 +147,9 @@ export async function fetchAvailableModels(apiKey: string): Promise<string[]> {
 }
 
 // --- SWARM TYPES
-export async function fetchAvailableSwarmTypes(apiKey: string): Promise<string[]> {
+export async function fetchAvailableSwarmTypes(
+  apiKey: string,
+): Promise<string[]> {
   try {
     const data = await fetchFromAPI<{ swarm_types?: string[] }>(
       '/v1/swarms/available',
