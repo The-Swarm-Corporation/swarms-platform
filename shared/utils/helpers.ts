@@ -46,6 +46,23 @@ export const estimateTokensAndCost = (
   };
 };
 
+export function estimateTokenCost(
+  inputTokens: number,
+  outputTokens: number,
+): Omit<CostEstimate, 'inputTokens' | 'outputTokens'> {
+  const inputCostPerThousand = 0.005; // $5 per million
+  const outputCostPerThousand = 0.01; // $10 per million
+
+  const inputCost = (inputTokens / 1000) * inputCostPerThousand;
+  const outputCost = (outputTokens / 1000) * outputCostPerThousand;
+
+  return {
+    inputCost,
+    outputCost,
+    totalCost: inputCost + outputCost,
+  };
+}
+
 export const getURL = (path: string = '') => {
   // Check if NEXT_PUBLIC_SITE_URL is set and non-empty. Set this to your site URL in production env.
   let url =
@@ -478,4 +495,3 @@ export const extractCategories = (agents: any[]): string[] => {
 
   return Object.keys(tagGroups).sort();
 };
-

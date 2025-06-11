@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/components/ui/card';
-import { fetchSwarmLogs } from '@/shared/utils/api/telemetry/api';
 import {
   Activity,
   DollarSign,
@@ -18,11 +17,11 @@ import {
   Brain,
   Award,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useAPIKeyContext } from '../ui/apikey.provider';
-import { PLATFORM } from '@/shared/utils/constants';
+import { estimateTokenCost } from '@/shared/utils/helpers';
+import { ITelemetry } from './helper';
 
-interface MonitoringStats {
+type MonitoringStats = {
   totalSwarms: number;
   totalCost: number;
   averageExecutionTime: number;
@@ -31,7 +30,7 @@ interface MonitoringStats {
   totalAgentsBuilt: number;
   totalSwarmsBuilt: number;
   mostUsedModel: string;
-}
+};
 
 const initialStats: MonitoringStats = {
   totalSwarms: 0,
@@ -44,25 +43,13 @@ const initialStats: MonitoringStats = {
   mostUsedModel: 'N/A',
 };
 
-export function MonitoringStats() {
+export function MonitoringStats({ logs, isLoading, error }: ITelemetry) {
   const [stats, setStats] = useState<MonitoringStats>(initialStats);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const { apiKey } = useAPIKeyContext();
 
   useEffect(() => {
-    if (!apiKey) return;
-
     const loadStats = async () => {
       try {
-        const response = await fetchSwarmLogs(apiKey);
-
-        if (!response?.logs || !Array.isArray(response.logs)) {
-          throw new Error('Invalid API response format');
-        }
-
-        const logs = response.logs;
         const totalSwarms = logs.length;
 
         let totalCost = 0;
@@ -74,51 +61,38 @@ export function MonitoringStats() {
         const swarmCount: Record<string, number> = {};
 
         for (const log of logs) {
-          try {
-            const metadata = log?.data?.metadata;
-            const billingInfo = metadata?.billing_info;
+          const usage = log?.data?.usage;
+          const status = log?.data?.status || 'success';
+          const executionTime = log?.data?.execution_time || 0;
+          const agents = log?.data?.number_of_agents || 0;
+          const swarmName = log?.data?.swarm_name || 'unknown';
 
-            if (!metadata || !billingInfo) continue;
+          if (!usage) continue;
 
-            totalCost += Number(billingInfo.total_cost || 0);
-            totalExecutionTime += Number(metadata.execution_time_seconds || 0);
-            totalTokens += Number(
-              billingInfo.cost_breakdown?.token_counts?.total_tokens || 0,
-            );
+          const { input_tokens, output_tokens, total_tokens } = usage;
+          const cost = estimateTokenCost(input_tokens, output_tokens);
+          totalCost += cost.totalCost;
+          totalTokens += total_tokens;
+          totalExecutionTime += executionTime;
 
-            if (log?.data?.status === 'success') {
-              successfulSwarms++;
-            }
-
-            if (log?.data?.agents && Array.isArray(log.data.agents)) {
-              for (const agent of log.data.agents) {
-                if (agent.model_name) {
-                  modelUsage[agent.model_name] =
-                    (modelUsage[agent.model_name] || 0) + 1;
-                }
-
-                const agentId = agent.model_name || 'unknown';
-                agentCount[agentId] = (agentCount[agentId] || 0) + 1;
-              }
-            }
-
-            if (log.data?.swarm_name) {
-              swarmCount[log.data.swarm_name] =
-                (swarmCount[log.data.swarm_name] || 0) + 1;
-            }
-          } catch (err) {
-            console.error('Error processing log entry:', err);
+          if (status === 'success') {
+            successfulSwarms++;
           }
+
+          agentCount[log.id] = agents;
+          swarmCount[swarmName] = (swarmCount[swarmName] || 0) + 1;
+
+          // If models are tracked per agent, add logic here
+          // Example:
+          // for (const agent of log?.data?.agents || []) {
+          //   const model = agent?.model_name || 'unknown';
+          //   modelUsage[model] = (modelUsage[model] || 0) + 1;
+          // }
         }
 
-        let mostUsedModel = 'N/A';
-        let maxUsage = 0;
-        for (const [model, count] of Object.entries(modelUsage)) {
-          if (count > maxUsage) {
-            maxUsage = count;
-            mostUsedModel = model;
-          }
-        }
+        const mostUsedModel =
+          Object.entries(modelUsage).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+          'N/A';
 
         setStats({
           totalSwarms,
@@ -128,24 +102,21 @@ export function MonitoringStats() {
             : 0,
           totalTokens,
           successRate: totalSwarms ? (successfulSwarms / totalSwarms) * 100 : 0,
-          totalAgentsBuilt: Object.keys(agentCount).length,
+          totalAgentsBuilt: Object.values(agentCount).reduce(
+            (a, b) => a + b,
+            0,
+          ),
           totalSwarmsBuilt: Object.keys(swarmCount).length,
           mostUsedModel,
         });
-        setError(null);
-      } catch (error) {
-        console.error('Failed to load monitoring stats:', error);
-        setError(
-          error instanceof Error ? error.message : 'Failed to load stats',
-        );
+      } catch (err) {
+        console.error('Failed to load monitoring stats:', err);
         setStats(initialStats);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     loadStats();
-  }, [apiKey]);
+  }, [apiKey, logs]);
 
   if (isLoading) {
     return (
@@ -179,146 +150,77 @@ export function MonitoringStats() {
     );
   }
 
+  const metricCard = (
+    title: string,
+    icon: React.ReactNode,
+    value: string | number,
+    subtitle?: string,
+  ) => (
+    <Card className="bg-white dark:bg-zinc-900 border-zinc-800 hover:border-red-900/50 transition-colors">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium text-red-500/70 dark:text-red-600">
+          {title}
+        </CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold font-mono text-red-600">{value}</div>
+        {subtitle && (
+          <p className="text-xs text-zinc-500 dark:text-white font-mono">
+            {subtitle}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <Card className="bg-white dark:bg-zinc-900 border-zinc-800 hover:border-red-900/50 transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-red-600 dark:text-red-600">
-            Total Swarms Run
-          </CardTitle>
-          <Activity className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold font-mono text-zinc-900 dark:text-white">
-            {stats.totalSwarms}
-          </div>
-          <p className="text-xs text-zinc-700 dark:text-white font-mono">
-            {stats.successRate.toFixed(1)}% success rate
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white dark:bg-zinc-900 border-zinc-800 hover:border-red-900/50 transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-red-500/70 dark:text-red-600">
-            Total Cost
-          </CardTitle>
-          <DollarSign className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold font-mono text-red-600">
-            ${stats.totalCost.toFixed(2)}
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-white font-mono">
-            $
-            {(stats.totalSwarms
-              ? stats.totalCost / stats.totalSwarms
-              : 0
-            ).toFixed(4)}{' '}
-            per swarm
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white dark:bg-zinc-900 border-zinc-800 hover:border-red-900/50 transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-red-500/70 dark:text-red-600">
-            Avg. Execution Time
-          </CardTitle>
-          <Timer className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold font-mono text-red-600">
-            {stats.averageExecutionTime.toFixed(2)}s
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-white font-mono">
-            Average per swarm
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white dark:bg-zinc-900 border-zinc-800 hover:border-red-900/50 transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-red-500/70 dark:text-red-600">
-            Total Tokens
-          </CardTitle>
-          <Zap className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold font-mono text-red-600">
-            {stats.totalTokens.toLocaleString()}
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-white font-mono">
-            {Math.round(
-              stats.totalSwarms ? stats.totalTokens / stats.totalSwarms : 0,
-            ).toLocaleString()}{' '}
-            per swarm
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* New metrics */}
-      <Card className="bg-white dark:bg-zinc-900 border-zinc-800 hover:border-red-900/50 transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-red-500/70 dark:text-red-600">
-            Total Agents Built
-          </CardTitle>
-          <Users className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold font-mono text-red-600">
-            {stats.totalAgentsBuilt}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white dark:bg-zinc-900 border-zinc-800 hover:border-red-900/50 transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-red-500/70 dark:text-red-600">
-            Total Swarms Built
-          </CardTitle>
-          <Box className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold font-mono text-red-600">
-            {stats.totalSwarmsBuilt}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white dark:bg-zinc-900 border-zinc-800 hover:border-red-900/50 transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-red-500/70 dark:text-red-600">
-            Success Rate
-          </CardTitle>
-          <Award className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold font-mono text-red-600">
-            {stats.successRate.toFixed(1)}%
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-white font-mono">
-            Overall success rate
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white dark:bg-zinc-900 border-zinc-800 hover:border-red-900/50 transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-red-500/70 dark:text-red-600">
-            Most Used Model
-          </CardTitle>
-          <Brain className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold font-mono text-red-600">
-            {stats.mostUsedModel}
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-white font-mono">
-            Preferred model for agents
-          </p>
-        </CardContent>
-      </Card>
+      {metricCard(
+        'Total Swarms Run',
+        <Activity className="h-4 w-4 text-red-500" />,
+        stats.totalSwarms,
+        `${stats.successRate.toFixed(1)}% success rate`,
+      )}
+      {metricCard(
+        'Total Cost',
+        <DollarSign className="h-4 w-4 text-red-500" />,
+        `$${stats.totalCost.toFixed(2)}`,
+        `$${(stats.totalCost / stats.totalSwarms).toFixed(4)} per swarm`,
+      )}
+      {metricCard(
+        'Avg. Execution Time',
+        <Timer className="h-4 w-4 text-red-500" />,
+        `${stats.averageExecutionTime.toFixed(2)}s`,
+        'Average per swarm',
+      )}
+      {metricCard(
+        'Total Tokens',
+        <Zap className="h-4 w-4 text-red-500" />,
+        stats.totalTokens.toLocaleString(),
+        `${Math.round(stats.totalTokens / stats.totalSwarms).toLocaleString()} per swarm`,
+      )}
+      {metricCard(
+        'Total Agents Built',
+        <Users className="h-4 w-4 text-red-500" />,
+        stats.totalAgentsBuilt,
+      )}
+      {metricCard(
+        'Total Swarms Built',
+        <Box className="h-4 w-4 text-red-500" />,
+        stats.totalSwarmsBuilt,
+      )}
+      {metricCard(
+        'Success Rate',
+        <Award className="h-4 w-4 text-red-500" />,
+        `${stats.successRate.toFixed(1)}%`,
+        'Overall success rate',
+      )}
+      {metricCard(
+        'Most Used Model',
+        <Brain className="h-4 w-4 text-red-500" />,
+        stats.mostUsedModel,
+      )}
     </div>
   );
 }
