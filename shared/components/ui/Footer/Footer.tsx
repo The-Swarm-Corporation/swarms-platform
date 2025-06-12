@@ -73,7 +73,7 @@ export default function Footer() {
             </li>
             <li className="py-3 md:py-0 md:pb-4">
               <Link
-                href="https://discord.gg/swarms"
+                href="https://discord.gg/jM3Z6M9uMq"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
                 Swarms Community
