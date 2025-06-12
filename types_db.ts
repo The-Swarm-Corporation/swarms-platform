@@ -1178,18 +1178,21 @@ export type Database = {
       swarms_api_logs: {
         Row: {
           api_key: string | null
+          category: string | null
           created_at: string
           data: Json | null
           id: number
         }
         Insert: {
           api_key?: string | null
+          category?: string | null
           created_at?: string
           data?: Json | null
           id?: number
         }
         Update: {
           api_key?: string | null
+          category?: string | null
           created_at?: string
           data?: Json | null
           id?: number
@@ -1213,6 +1216,7 @@ export type Database = {
           file_path: string | null
           id: string
           image_url: string | null
+          is_free: boolean
           language: string | null
           name: string | null
           requirements: Json | null
@@ -1230,6 +1234,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           language?: string | null
           name?: string | null
           requirements?: Json | null
@@ -1247,6 +1252,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           language?: string | null
           name?: string | null
           requirements?: Json | null
@@ -2230,6 +2236,7 @@ export type Database = {
           file_path: string | null
           id: string
           image_url: string | null
+          is_free: boolean
           name: string | null
           prompt: string | null
           search_type: string
@@ -2245,6 +2252,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           name?: string | null
           prompt?: string | null
           search_type?: string
@@ -2260,6 +2268,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           name?: string | null
           prompt?: string | null
           search_type?: string
@@ -2488,6 +2497,7 @@ export type Database = {
           file_path: string | null
           id: string
           image_url: string | null
+          is_free: boolean
           language: string | null
           name: string | null
           requirements: Json | null
@@ -2504,6 +2514,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           language?: string | null
           name?: string | null
           requirements?: Json | null
@@ -2520,6 +2531,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           language?: string | null
           name?: string | null
           requirements?: Json | null
@@ -3703,6 +3715,10 @@ export type Database = {
         Returns: {
           id: string
         }[]
+      }
+      update_referral_status: {
+        Args: { referral_id: string; new_status: string }
+        Returns: undefined
       }
     }
     Enums: {

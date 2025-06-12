@@ -163,8 +163,10 @@ const explorerRouter = router({
       }
 
       if (includeTools) {
-        const { data, error } =
-          await buildQuery('swarms_cloud_tools').select('*');
+        const { data, error } = await buildQuery('swarms_cloud_tools').range(
+          offset,
+          offset + limit - 1,
+        );
         if (error) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
         }

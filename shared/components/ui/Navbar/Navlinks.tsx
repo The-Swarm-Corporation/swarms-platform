@@ -31,19 +31,39 @@ export default function Navlinks() {
         </div>
         <nav className="flex ml-2 md:ml-6 gap-3 max-md:hidden">
           {!isSwarmsPath && (
-            <Link href="https://github.com/kyegomez/swarms" className={s.link}>
+            <Link
+              href="https://github.com/kyegomez/swarms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={s.link}
+            >
               Github
             </Link>
           )}
-          <Link href={SWARMS_GITHUB} className={cn(s.link, 'hidden md:inline')}>
+          <Link
+            href={SWARMS_GITHUB}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(s.link, 'hidden md:inline')}
+          >
             GitHub
           </Link>
           {!isSwarmsPath && (
-            <Link href={DISCORD} className={cn(s.link, 'hidden md:inline')}>
+            <Link
+              href={DISCORD}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(s.link, 'hidden md:inline')}
+            >
               Community
             </Link>
           )}
-          <Link href="https://docs.swarms.world/en/latest/" className={s.link}>
+          <Link
+            href="https://docs.swarms.world/en/latest/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={s.link}
+          >
             Docs
           </Link>
           {user && (
@@ -73,19 +93,36 @@ export default function Navlinks() {
                   <X />
                 </DrawerClose>
                 {!isSwarmsPath && (
-                  <Link href="/pricing" className={s.link}>
+                  <Link
+                    href="/pricing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={s.link}
+                  >
                     Pricing
                   </Link>
                 )}
-                <Link href={SWARMS_GITHUB} className={s.link}>
+                <Link
+                  href={SWARMS_GITHUB}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.link}
+                >
                   GitHub
                 </Link>
-                <Link href={DISCORD} className={s.link}>
+                <Link
+                  href={DISCORD}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.link}
+                >
                   Community
                 </Link>
                 {!isSwarmsPath && (
                   <Link
                     href="https://docs.swarms.world/en/latest/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className={s.link}
                   >
                     Docs
@@ -124,7 +161,12 @@ export default function Navlinks() {
             Sign Up
           </Link>
         )}
-        <Link href="https://calendly.com/swarm-corp/30min" className={s.link}>
+        <Link
+          href="https://calendly.com/swarm-corp/30min"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={s.link}
+        >
           Customer Support
         </Link>
       </div>

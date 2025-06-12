@@ -1,4 +1,5 @@
 import { OptionRoles } from '@/modules/platform/settings/organization/types';
+import { Zap, Shield, Database } from "lucide-react"
 
 export enum THEMES {
   LIGHT = 'light',
@@ -47,19 +48,19 @@ export const explorerOptions = [
 ];
 
 export const explorerCategories = [
-  { label: 'All', value: 'all' },
-  { label: 'Healthcare', value: 'healthcare' },
-  { label: 'Education', value: 'education' },
-  { label: 'Finance', value: 'finance' },
-  { label: 'Research', value: 'research' },
-  { label: 'Public Safety', value: 'public-safety' },
-  { label: 'Marketing', value: 'marketing' },
-  { label: 'Sales', value: 'sales' },
-  { label: 'Customer Support', value: 'customer-support' },
-  { label: 'Other', value: 'other' },
-];
+  { value: "all", label: "All", icon: <Database className="w-4 h-4" /> },
+  { value: "healthcare", label: "Healthcare", icon: <Shield className="w-4 h-4" /> },
+  { value: "education", label: "Education", icon: <Database className="w-4 h-4" /> },
+  { value: "finance", label: "Finance", icon: <Zap className="w-4 h-4" /> },
+  { value: "research", label: "Research", icon: <Database className="w-4 h-4" /> },
+  { value: "public-safety", label: "Public Safety", icon: <Shield className="w-4 h-4" /> },
+  { value: "marketing", label: "Marketing", icon: <Zap className="w-4 h-4" /> },
+  { value: "sales", label: "Sales", icon: <Database className="w-4 h-4" /> },
+  { value: "customer-support", label: "Customer Support", icon: <Shield className="w-4 h-4" /> },
+  { value: "other", label: "Other", icon: <Database className="w-4 h-4" /> },
+]
 
-export const defaultOptions = ['agents', 'prompts', 'tools'];
+export const defaultOptions = ['prompts', 'agents', 'tools'];
 
 export const languageOptions = [
   'python',
