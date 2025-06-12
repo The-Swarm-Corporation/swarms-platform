@@ -61,18 +61,20 @@ export default function Trending({
               </div>
             )}
 
-            {(hasMoreTrending || isFetchingTrending) && (
-              <div className="flex justify-center mt-3 w-full">
-                <Button
-                  variant="destructive"
-                  className="w-36 md:w-40"
-                  onClick={loadMoreTrending}
-                  disabled={isFetchingTrending}
-                >
-                  Get more
-                </Button>
-              </div>
-            )}
+            {(hasMoreTrending || isFetchingTrending) &&
+              !isLoading &&
+              trendingModels?.length > 0 && (
+                <div className="flex justify-center mt-3 w-full">
+                  <Button
+                    variant="destructive"
+                    className="w-36 md:w-40"
+                    onClick={loadMoreTrending}
+                    disabled={isFetchingTrending}
+                  >
+                    Get more
+                  </Button>
+                </div>
+              )}
           </>
         )}
       </div>
