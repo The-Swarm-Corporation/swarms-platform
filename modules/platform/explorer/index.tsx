@@ -228,7 +228,7 @@ const Explorer = () => {
             })}
           </ul>
           <div className="flex items-center gap-3">
-            <div className="relative w-full">
+            <div className="relative w-full border border-gray-700 rounded-md">
               <Input
                 placeholder="Search..."
                 onChange={(e) => handleSearchChange(e.target.value)}

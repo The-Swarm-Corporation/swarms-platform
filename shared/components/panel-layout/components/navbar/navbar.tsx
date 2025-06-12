@@ -86,7 +86,7 @@ export default function PlatformNavBar() {
   return (
     <header
       className={cn(
-        'fixed max-sm:flex max-sm:items-center w-full top-0 backdrop-blur-sm bg-black shadow-md transition-all duration-150 px-4 py-2 h-16 md:h-20',
+        'fixed max-sm:flex max-sm:items-center w-full top-0 backdrop-blur-sm border-b border-gray-800 bg-black shadow-md transition-all duration-150 px-4 py-2 h-16 md:h-20',
         isChatInterface ? 'z-50' : 'z-[9999]',
       )}
     >
