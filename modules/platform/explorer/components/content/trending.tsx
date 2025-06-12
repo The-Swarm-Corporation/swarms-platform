@@ -41,8 +41,6 @@ export default function Trending({
     }
   };
 
-  console.log({ trendingModels });
-
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">

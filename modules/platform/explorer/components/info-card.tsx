@@ -54,16 +54,14 @@ const PublicChatsCard = memo(
 
     const handleCardClick = async () => {
       await checkUserSession();
-
       router.push(link);
     };
 
     return (
       <div
-        className="relative group cursor-pointer"
+        className="relative group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={handleCardClick}
       >
         <div
           className="relative w-full h-[500px] bg-gradient-to-br from-red-900/20 via-black to-red-950/30 
@@ -165,6 +163,8 @@ const PublicChatsCard = memo(
                 className="bg-gradient-to-r from-red-600 to-red-500 text-white px-4 py-2 rounded-lg
                              hover:from-red-500 hover:to-red-400 transition-all duration-300
                              flex items-center gap-2 font-mono text-sm"
+                aria-label="Review chat"
+                onClick={handleCardClick}
               >
                 {btnLabel || 'REVIEW'}
                 <ChevronRight className="w-4 h-4" />
@@ -175,7 +175,6 @@ const PublicChatsCard = memo(
           <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-red-400 rounded-tr-lg"></div>
           <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-red-400 rounded-bl-lg"></div>
         </div>
-
         <ShareModal
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
@@ -210,16 +209,14 @@ const PromptsCard = memo(
 
     const handleCardClick = async () => {
       await checkUserSession();
-
       router.push(link);
     };
 
     return (
       <div
-        className="relative group cursor-pointer"
+        className="relative group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={handleCardClick}
       >
         <div
           className="bg-black border-2 h-[500px] border-red-600/70 relative overflow-hidden rounded-xl
@@ -326,6 +323,8 @@ const PromptsCard = memo(
                 SHARE
               </button>
               <button
+                aria-label="View Prompt"
+                onClick={handleCardClick}
                 className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 font-mono text-sm rounded
                              border border-red-400 transition-all duration-300
                              hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]"
@@ -340,7 +339,6 @@ const PromptsCard = memo(
                         ${isHovered ? 'top-full' : 'top-0'} shadow-[0_0_10px_rgba(239,68,68,0.8)]`}
           ></div>
         </div>
-
         <ShareModal
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
@@ -374,12 +372,11 @@ const AgentsCard = memo(
 
     const handleCardClick = async () => {
       await checkUserSession();
-
       router.push(link);
     };
 
     return (
-      <div className="relative group cursor-pointer" onClick={handleCardClick}>
+      <div className="relative group">
         <div
           className="relative bg-gradient-to-br h-[500px] from-black via-red-950/20 to-black rounded-2xl
                       border-2 border-red-500 overflow-hidden
@@ -510,6 +507,8 @@ const AgentsCard = memo(
                 SHARE
               </button>
               <button
+                aria-label="Deploy Agent"
+                onClick={handleCardClick}
                 className="bg-gradient-to-r from-red-700 to-red-600 text-white px-6 py-2 rounded-xl
                              hover:from-red-600 hover:to-red-500 transition-all duration-300
                              font-mono text-sm font-bold tracking-wider
@@ -530,7 +529,6 @@ const AgentsCard = memo(
             <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
           </div>
         </div>
-
         <ShareModal
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
@@ -564,12 +562,11 @@ const ToolsCard = memo(
 
     const handleCardClick = async () => {
       await checkUserSession();
-
       router.push(link);
     };
 
     return (
-      <div className="relative group cursor-pointer" onClick={handleCardClick}>
+      <div className="relative group">
         <div
           className="relative h-[500px] bg-gradient-to-b from-gray-900 to-black rounded-xl
                       border-l-4 border-r-4 border-red-600 border-t border-b
@@ -696,6 +693,8 @@ const ToolsCard = memo(
                 SHARE
               </button>
               <button
+                aria-label="Learn more"
+                onClick={handleCardClick}
                 className="bg-black border-2 border-red-600 text-white px-8 py-2 rounded-lg
                              hover:bg-red-600 hover:border-red-400 transition-all duration-300
                              font-mono text-sm font-bold tracking-wider uppercase
@@ -712,7 +711,6 @@ const ToolsCard = memo(
           <div className="absolute left-0 top-12 bottom-12 w-1 bg-gradient-to-b from-red-600 via-red-400 to-red-600 rounded-full"></div>
           <div className="absolute right-0 top-12 bottom-12 w-1 bg-gradient-to-b from-red-600 via-red-400 to-red-600 rounded-full"></div>
         </div>
-
         <ShareModal
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
