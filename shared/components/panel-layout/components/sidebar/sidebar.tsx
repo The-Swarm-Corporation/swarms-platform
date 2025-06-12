@@ -53,7 +53,7 @@ const PanelLayoutSidebar = () => {
       />
       <div
         className={cn(
-          'flex flex-col fixed flex-shrink-0 max-w-[250px] w-full transition-all ease-out duration-150 translate-x-0 min-h-screen max-lg:hidden shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] z-[9999] bg-white dark:bg-black',
+          'flex flex-col fixed flex-shrink-0 max-w-[250px] border-r border-gray-800 w-full transition-all ease-out duration-150 translate-x-0 min-h-screen max-lg:hidden shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] z-[9999] bg-white dark:bg-black',
           !showTitle && 'max-w-[90px]',
         )}
       >

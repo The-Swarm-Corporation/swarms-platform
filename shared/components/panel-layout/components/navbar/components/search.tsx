@@ -118,7 +118,7 @@ export default function NavbarSearch() {
       <label hidden htmlFor="search">
         Search
       </label>
-      <div className="relative">
+      <div className="relative border border-gray-700 rounded-md">
         <Input
           placeholder="Search swarms and more..."
           id="search"
