@@ -85,7 +85,7 @@ export default function Agents({
           </div>
         )}
 
-        {(hasMoreAgents || isFetchingAgents) && !isLoading && (
+        {(hasMoreAgents || isFetchingAgents) && !isLoading && filteredAgents?.length > 0 && (
           <div className="flex justify-center mt-3 w-full">
             <Button
               variant="destructive"
