@@ -2,6 +2,7 @@ import React, {
   Dispatch,
   FormEvent,
   memo,
+  RefObject,
   SetStateAction,
   useRef,
   useState,
@@ -46,7 +47,7 @@ function OrganizationListItem({
 
   const formRef = useRef<HTMLFormElement>(null);
   const { isOn, setOff, setOn } = useToggle();
-  const popupRef = useRef(null);
+  const popupRef = useRef<HTMLElement>(null);
   const [organizationName, setOrganizationName] = useState('');
   const orgName = getTruncatedString(name, 20);
 
@@ -79,7 +80,7 @@ function OrganizationListItem({
           </Button>
 
           <div
-            ref={popupRef}
+            ref={popupRef as RefObject<HTMLDivElement>}
             className={cn(
               'absolute list-none border dark:border-white/[0.2] bg-secondary max-w-28 w-full flex flex-col items-center rounded-md bottom-8 left-0 transition-all invisible',
               isOn && 'visible',
