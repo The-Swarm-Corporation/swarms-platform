@@ -19,47 +19,76 @@ export interface CostEstimate {
   outputTokens: number;
   inputCost: number;
   outputCost: number;
+  agentCost: number;
   totalCost: number;
+  isNightTime: boolean;
+  discountApplied: boolean;
 }
+
+// Helper function to check if a given time (or current time) is night time (8PM-6AM PST)
+export const isNightTime = (createdAt?: string): boolean => {
+  const targetTime = createdAt ? new Date(createdAt) : new Date();
+
+  // Convert to PST (UTC-8) - using Supabase UTC time
+  const pstOffset = -8; // PST is UTC-8
+  const utc = targetTime.getTime() + (targetTime.getTimezoneOffset() * 60000);
+  const pstTime = new Date(utc + (pstOffset * 3600000));
+
+  const hour = pstTime.getHours();
+  // Night time is 8PM (20:00) to 6AM (06:00)
+  return hour >= 20 || hour < 6;
+};
 
 export const estimateTokensAndCost = (
   input: string,
   output: string = '',
+  numberOfAgents: number = 1,
+  createdAt?: string,
 ): CostEstimate => {
-  const inputCostPerThousand = 0.005; // $5 per million tokens
-  const outputCostPerThousand = 0.01; // $10 per million tokens
-
   const estimateTokens = (text: string) => Math.ceil(text.length / 4);
 
   const inputTokens = estimateTokens(input);
   const outputTokens = estimateTokens(output);
 
-  const inputCost = (inputTokens / 1000) * inputCostPerThousand;
-  const outputCost = (outputTokens / 1000) * outputCostPerThousand;
+  // Use the new pricing formula
+  return estimateTokenCost(inputTokens, outputTokens, numberOfAgents, createdAt);
+};
+
+export function estimateTokenCost(
+  inputTokens: number,
+  outputTokens: number,
+  numberOfAgents: number = 1,
+  createdAt?: string,
+): CostEstimate {
+  const nightTime = isNightTime(createdAt);
+  const discountMultiplier = nightTime ? 0.25 : 1.0; // 75% discount at night
+
+  // Base costs per million tokens
+  const inputCostPerMillion = 2.00; // $2.00 per million input tokens
+  const outputCostPerMillion = 4.50; // $4.50 per million output tokens
+  const agentBaseCost = 0.01; // $0.01 per agent
+
+  const agentCost = numberOfAgents * agentBaseCost;
+
+  let inputCost = (inputTokens / 1000000) * inputCostPerMillion * numberOfAgents;
+  let outputCost = (outputTokens / 1000000) * outputCostPerMillion * numberOfAgents;
+
+  if (nightTime) {
+    inputCost *= discountMultiplier;
+    outputCost *= discountMultiplier;
+  }
+
+  const totalCost = agentCost + inputCost + outputCost;
 
   return {
     inputTokens,
     outputTokens,
     inputCost,
     outputCost,
-    totalCost: inputCost + outputCost,
-  };
-};
-
-export function estimateTokenCost(
-  inputTokens: number,
-  outputTokens: number,
-): Omit<CostEstimate, 'inputTokens' | 'outputTokens'> {
-  const inputCostPerThousand = 0.005; // $5 per million
-  const outputCostPerThousand = 0.01; // $10 per million
-
-  const inputCost = (inputTokens / 1000) * inputCostPerThousand;
-  const outputCost = (outputTokens / 1000) * outputCostPerThousand;
-
-  return {
-    inputCost,
-    outputCost,
-    totalCost: inputCost + outputCost,
+    agentCost,
+    totalCost,
+    isNightTime: nightTime,
+    discountApplied: nightTime,
   };
 }
 

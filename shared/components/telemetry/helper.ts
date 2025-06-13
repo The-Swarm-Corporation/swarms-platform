@@ -1,6 +1,66 @@
 import { SwarmLog } from '@/shared/utils/api/telemetry/api';
 import { estimateTokenCost } from '@/shared/utils/helpers';
 
+const DEFAULT_BILLING_INFO = {
+  cost_breakdown: {
+    agent_cost: 0,
+    input_token_cost: 0,
+    output_token_cost: 0,
+    token_counts: {
+      total_input_tokens: 0,
+      total_output_tokens: 0,
+      total_tokens: 0,
+    },
+    num_agents: 0,
+    service_tier: 'standard',
+    night_time_discount_applied: false,
+  },
+  total_cost: 0,
+  discount_active: false,
+  discount_type: 'none',
+  discount_percentage: 0,
+};
+
+// Helper function to get cost from billing_info or fallback to manual calculation
+export const getCostFromLog = (log: SwarmLog): number => {
+  const usage = log?.data?.usage;
+
+  if (usage?.billing_info?.total_cost !== undefined) {
+    return usage.billing_info.total_cost;
+  }
+
+  if (usage?.input_tokens && usage?.output_tokens) {
+    const numberOfAgents = log?.data?.number_of_agents || 1;
+    const createdAt = log?.created_at;
+    const cost = estimateTokenCost(usage.input_tokens, usage.output_tokens, numberOfAgents, createdAt);
+    return cost.totalCost;
+  }
+
+  return 0;
+};
+
+// Helper function to get billing info with defaults
+export const getBillingInfo = (log: SwarmLog) => {
+  const usage = log?.data?.usage;
+
+  if (usage?.billing_info) {
+    return usage.billing_info;
+  }
+
+  return {
+    ...DEFAULT_BILLING_INFO,
+    total_cost: getCostFromLog(log),
+    cost_breakdown: {
+      ...DEFAULT_BILLING_INFO.cost_breakdown,
+      token_counts: {
+        total_input_tokens: usage?.input_tokens || 0,
+        total_output_tokens: usage?.output_tokens || 0,
+        total_tokens: usage?.total_tokens || 0,
+      },
+    },
+  };
+};
+
 export interface ITelemetry {
   logs: SwarmLog[];
   isLoading: boolean;
@@ -83,11 +143,7 @@ export const getProcessedData = (
       totalInputTokens += usage?.input_tokens || 0;
       totalOutputTokens += usage?.output_tokens || 0;
 
-      const costEstimate = estimateTokenCost(
-        usage?.input_tokens || 0,
-        usage?.output_tokens || 0,
-      );
-      totalCost += costEstimate.totalCost;
+      totalCost += getCostFromLog(log);
 
       totalAgents += number_of_agents || 0;
 

@@ -18,8 +18,7 @@ import {
   Award,
 } from 'lucide-react';
 import { useAPIKeyContext } from '../ui/apikey.provider';
-import { estimateTokenCost } from '@/shared/utils/helpers';
-import { ITelemetry } from './helper';
+import { ITelemetry, getCostFromLog } from './helper';
 
 type MonitoringStats = {
   totalSwarms: number;
@@ -69,9 +68,9 @@ export function MonitoringStats({ logs, isLoading, error }: ITelemetry) {
 
           if (!usage) continue;
 
-          const { input_tokens, output_tokens, total_tokens } = usage;
-          const cost = estimateTokenCost(input_tokens, output_tokens);
-          totalCost += cost.totalCost;
+          const { total_tokens } = usage;
+
+          totalCost += getCostFromLog(log);
           totalTokens += total_tokens;
           totalExecutionTime += executionTime;
 
