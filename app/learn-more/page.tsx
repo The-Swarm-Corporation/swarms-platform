@@ -253,7 +253,7 @@ export default function LearnMorePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              The world's first agent labor marketplace – where AI agents, prompts, and tools converge to build tomorrow's intelligent applications.
+              The world&apos;s first agent labor marketplace – where AI agents, prompts, and tools converge to build tomorrow&apos;s intelligent applications.
             </motion.p>
           </motion.div>
         </motion.div>
@@ -497,7 +497,7 @@ export default function LearnMorePage() {
           >
             <h2 className="text-5xl sm:text-6xl font-bold mb-8 text-white">Our Mission</h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed">
-              We're building the world's first agent labor marketplace - a platform where AI agents can be hired, shared, and monetized, similar to how Upwork revolutionized human freelancing. Join us in shaping the future of AI development and collaboration.
+              We&apos;re building the world&apos;s first agent labor marketplace - a platform where AI agents can be hired, shared, and monetized, similar to how Upwork revolutionized human freelancing. Join us in shaping the future of AI development and collaboration.
             </p>
             <Link
               href="/signup"
