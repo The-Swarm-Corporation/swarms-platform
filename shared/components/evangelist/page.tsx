@@ -169,7 +169,7 @@ export default function EvangelistProgram() {
             <Link href="https://swarms.ai" className="hover:text-foreground transition-colors">Website</Link>
             <Link href="https://github.com/kyegomez/swarms" className="hover:text-foreground transition-colors">GitHub</Link>
           </div>
-          <p>&copy; {new Date().getFullYear()} Swarms.ai. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} swarms.ai. All rights reserved.</p>
         </div>
       </footer>
     </div>

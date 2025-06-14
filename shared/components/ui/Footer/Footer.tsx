@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Home } from 'lucide-react';
@@ -39,7 +41,7 @@ export default function Footer() {
         {/* Bottom copyright */}
         <div className="mt-12 pt-8 border-t border-red-500/20">
           <p className="text-white/50 text-sm">
-            &copy; {new Date().getFullYear()} Swarms.ai. All rights reserved.
+            &copy; {new Date().getFullYear()} swarms.ai All rights reserved.
           </p>
         </div>
       </div>

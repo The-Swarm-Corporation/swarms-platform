@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { Code, MessageSquare, Wrench, Share2, Twitter, Linkedin, Globe, Sparkles, Zap, Rocket, Trophy, Star, Award, Crown, Target, Flame, Heart, Shield, Brain } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -15,6 +16,7 @@ import {
 } from "@/shared/components/ui/dropdown-menu";
 import { motion } from 'framer-motion';
 import Head from 'next/head';
+import Footer from '@/shared/components/ui/Footer/Footer';
 
 // Cache duration in milliseconds (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -371,7 +373,8 @@ export default function UserProfile() {
                   src={userData.avatar_url}
                   alt={`${userData.username}'s profile picture`}
                   className="object-cover w-full h-full rounded-md max-w-[8rem] max-h-[8rem] border border-gray-800"
-                  style={{ maxWidth: '8rem', maxHeight: '8rem' }}
+                  width={128}
+                  height={128}
                 />
               ) : (
                 <span className="text-4xl font-bold text-white uppercase flex items-center justify-center w-full h-full border border-gray-800 bg-black/90">
@@ -657,6 +660,7 @@ export default function UserProfile() {
             </div>
           </motion.section>
         </div>
+        <Footer />
       </main>
     </>
   );
