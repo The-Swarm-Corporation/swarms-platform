@@ -334,7 +334,7 @@ export default function UserProfile() {
           />
         )}
       </Head>
-      <main className="min-h-screen bg-black pb-24">
+      <main className="min-h-screen bg-black pb-24 w-full">
         <div className="max-w-6xl mx-auto px-4 pt-10">
           <motion.button
             initial={{ x: -20, opacity: 0 }}
