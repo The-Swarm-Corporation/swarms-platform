@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { Code, MessageSquare, Wrench, Share2, Twitter, Linkedin, Globe, Sparkles, Zap, Rocket, Trophy, Star, Award, Crown, Target, Flame, Heart, Shield, Brain } from 'lucide-react';
+import { Code, MessageSquare, Wrench, Share2, Twitter, Linkedin, Globe, Sparkles, Zap, Rocket, Trophy, Star, Award, Crown, Target, Flame, Heart, Shield, Brain, Copy, Check } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import ErrorMessage from './ErrorMessage';
@@ -169,6 +169,7 @@ export default function UserProfile() {
   const username = params?.username as string;
   const [selectedTab, setSelectedTab] = useState('all');
   const [hydrated, setHydrated] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Memoize the cache key
   const cacheKey = useMemo(() => `user_${username}`, [username]);
@@ -253,6 +254,13 @@ export default function UserProfile() {
 
     window.open(shareUrl, '_blank', 'noopener,noreferrer');
   }, [shareMessage]);
+
+  // Add copy URL handler
+  const handleCopyUrl = useCallback(() => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, []);
 
   useEffect(() => {
     setHydrated(true);
@@ -451,6 +459,25 @@ export default function UserProfile() {
                 transition={{ duration: 0.2 }}
                 className="flex gap-4 justify-center md:justify-start mt-4"
               >
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleCopyUrl}
+                  className="flex items-center gap-2 px-6 py-3 rounded-md bg-black/90 text-blue-400 border border-blue-500/50 hover:border-blue-400 hover:bg-blue-950/30 transition-all duration-300 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] group"
+                  aria-label="Copy profile URL"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-5 w-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
+                      <span className="text-sm font-medium tracking-wide">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-5 w-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
+                      <span className="text-sm font-medium tracking-wide">Copy Profile URL</span>
+                    </>
+                  )}
+                </motion.button>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-2 px-6 py-3 rounded-md bg-black/90 text-emerald-400 border border-emerald-500/50 hover:border-emerald-400 hover:bg-emerald-950/30 transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] group" aria-label="Share profile">
                     <Share2 className="h-5 w-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
