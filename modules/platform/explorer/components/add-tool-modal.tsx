@@ -165,11 +165,6 @@ const AddToolModal = ({
           title: 'Tool added successfully 🎉',
         });
 
-        await Promise.all([
-          utils.explorer.getExplorerData.invalidate(),
-          utils.main.trending.invalidate(),
-        ]);
-
         onClose();
         onAddSuccessfully();
         // Reset form
@@ -257,7 +252,7 @@ const AddToolModal = ({
               <Input
                 value={toolName}
                 onChange={setToolName}
-                placeholder="Enter tool identifier..."
+                placeholder=""
                 className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -277,7 +272,7 @@ const AddToolModal = ({
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Define tool capabilities and operational parameters..."
+                placeholder=""
                 className="w-full rounded-lg h-16 sm:h-20 p-3 sm:p-4 bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/80 outline-none"
               />
               <div className="absolute bottom-3 right-3 flex gap-1">
@@ -315,17 +310,7 @@ const AddToolModal = ({
                   debouncedCheckPrompt(e.target.value);
                 }}
                 required
-                placeholder={`def utility_function(param: str) -> dict:
-    """
-    Comprehensive utility function with type hints
-    
-    Args:
-        param (str): Input parameter description
-        
-    Returns:
-        dict: Processed result data
-    """
-    return {"status": "success", "data": param}`}
+                placeholder=""
                 className="w-full h-40 sm:h-48 md:h-56 p-3 sm:p-4 pl-8 sm:pl-12 bg-background/80 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/90 outline-none leading-relaxed"
               />
 

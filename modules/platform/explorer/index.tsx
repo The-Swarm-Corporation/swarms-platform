@@ -211,42 +211,6 @@ const Explorer = () => {
                       MARKETPLACE
                     </span>
                   </h1>
-
-                  <div className="relative">
-                    <div className="bg-background/70 border border-red-600/50 p-4 rounded-lg backdrop-blur-sm">
-                      <div className="text-red-400 text-xs  uppercase tracking-wider mb-1">
-                        MISSION DIRECTIVE:
-                      </div>
-                      <p className="text-muted-foreground text-base md:text-lg  leading-relaxed">
-                        Search and discover tools, agents, and prompts.
-                      </p>
-                    </div>
-                    <div
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-600"
-                      style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-6 mb-8">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-green-400 text-xs md:text-sm ">
-                      SYSTEMS ONLINE
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                    <span className="text-red-400 text-xs md:text-sm ">
-                      SECURITY ACTIVE
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
-                    <span className="text-yellow-400 text-xs md:text-sm ">
-                      SWARMS READY
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>

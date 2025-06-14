@@ -188,7 +188,7 @@ function EditExplorerModal({
                 onChange={(value) =>
                   setInputState({ ...inputState, name: value })
                 }
-                placeholder="Enter entity designation..."
+                placeholder=""
                 className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-12 px-4 font-mono transition-all duration-300 hover:bg-background/80"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -210,7 +210,7 @@ function EditExplorerModal({
                 onChange={(e) =>
                   setInputState({ ...inputState, description: e.target.value })
                 }
-                placeholder="Define entity capabilities and operational parameters..."
+                placeholder=""
                 className="w-full h-20 p-4 rounded-md bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-sm transition-all duration-300 hover:bg-background/80 outline-none"
               />
               <div className="absolute bottom-3 right-3 flex gap-1">
