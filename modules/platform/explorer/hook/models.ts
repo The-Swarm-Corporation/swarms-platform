@@ -3,6 +3,7 @@ import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { defaultOptions, explorerOptions } from '@/shared/utils/constants';
 import { useSearchParams } from 'next/navigation';
+import { QUERY_OPTIONS } from '../constants/cache';
 
 const promptLimit = 6;
 const trendingLimit = 6;
@@ -21,6 +22,7 @@ export default function useModels() {
   const searchParams = useSearchParams();
   const categoryQuery = searchParams?.get('category');
   const searchQuery = searchParams?.get('search');
+  const utils = trpc.useUtils(); // Add tRPC utils for cache invalidation
 
   const [promptOffset, setPromptOffset] = useState(0);
   const [trendingOffset, setTrendingOffset] = useState(0);
@@ -52,7 +54,7 @@ export default function useModels() {
       search: searchQuery || searchValue,
       category: tagCategory,
     },
-    { refetchOnWindowFocus: false },
+    QUERY_OPTIONS.explorerData,
   );
 
   const promptsQuery = trpc.explorer.getExplorerData.useQuery(
@@ -64,7 +66,10 @@ export default function useModels() {
       search: searchQuery || searchValue,
       category: tagCategory,
     },
-    { enabled: promptOffset > 0 },
+    {
+      enabled: promptOffset > 0,
+      ...QUERY_OPTIONS.explorerData,
+    },
   );
 
   const agentsQuery = trpc.explorer.getExplorerData.useQuery(
@@ -76,7 +81,10 @@ export default function useModels() {
       search: searchQuery || searchValue,
       category: tagCategory,
     },
-    { enabled: agentOffset > 0 },
+    {
+      enabled: agentOffset > 0,
+      ...QUERY_OPTIONS.explorerData,
+    },
   );
 
   const toolsQuery = trpc.explorer.getExplorerData.useQuery(
@@ -88,7 +96,10 @@ export default function useModels() {
       search: searchQuery || searchValue,
       category: tagCategory,
     },
-    { enabled: toolOffset > 0 },
+    {
+      enabled: toolOffset > 0,
+      ...QUERY_OPTIONS.explorerData,
+    },
   );
 
   const trendingQuery = trpc.main.trending.useQuery(
@@ -97,7 +108,10 @@ export default function useModels() {
       offset: trendingOffset,
       search: '',
     },
-    { enabled: trendingOffset < 12 },
+    {
+      enabled: trendingOffset < 12,
+      ...QUERY_OPTIONS.trending,
+    },
   );
 
   const isTrendingLoading = trendingQuery.isLoading;
@@ -218,9 +232,14 @@ export default function useModels() {
     resetExplorer();
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     resetExplorer();
-    refetch();
+
+    // Only invalidate first page queries since offsets are reset to 0
+    await utils.explorer.getExplorerData.invalidate({
+      limit: 6,
+      offset: 0,
+    });
   };
 
   const allItems = [
@@ -235,12 +254,18 @@ export default function useModels() {
 
   const { data: users } = trpc.main.getUsersByIds.useQuery(
     { userIds },
-    { enabled: userIds.length > 0 },
+    {
+      enabled: userIds.length > 0,
+      ...QUERY_OPTIONS.users,
+    },
   );
 
   const { data: reviews } = trpc.explorer.getReviewsByIds.useQuery(
     { modelIds },
-    { enabled: modelIds.length > 0 },
+    {
+      enabled: modelIds.length > 0,
+      ...QUERY_OPTIONS.reviews,
+    },
   );
 
   const usersMap = useMemo(() => {

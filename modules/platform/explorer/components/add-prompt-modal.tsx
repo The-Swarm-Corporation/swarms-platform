@@ -60,6 +60,7 @@ const AddPromptModal = ({
   };
 
   const toast = useToast();
+  const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addPrompt = trpc.explorer.addPrompt.useMutation();
 
@@ -160,10 +161,16 @@ const AddPromptModal = ({
         ],
         tags: trimTags,
       })
-      .then(() => {
+      .then(async () => {
         toast.toast({
           title: 'Prompt added successfully 🎉',
         });
+
+        await Promise.all([
+          utils.explorer.getExplorerData.invalidate(),
+          utils.main.trending.invalidate(),
+        ]);
+
         onClose();
 
         //celeberate the confetti

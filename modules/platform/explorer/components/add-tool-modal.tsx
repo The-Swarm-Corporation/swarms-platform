@@ -67,6 +67,7 @@ const AddToolModal = ({
   };
 
   const toast = useToast();
+  const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addTool = trpc.explorer.addTool.useMutation();
 
@@ -156,10 +157,16 @@ const AddToolModal = ({
         requirements: [{ package: '', installation: '' }],
         tags: trimTags,
       })
-      .then(() => {
+      .then(async () => {
         toast.toast({
           title: 'Tool added successfully 🎉',
         });
+
+        await Promise.all([
+          utils.explorer.getExplorerData.invalidate(),
+          utils.main.trending.invalidate(),
+        ]);
+
         onClose();
         onAddSuccessfully();
         // Reset form

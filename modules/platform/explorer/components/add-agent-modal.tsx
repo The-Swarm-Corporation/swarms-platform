@@ -63,6 +63,7 @@ const AddAgentModal = ({
   }, []);
 
   const toast = useToast();
+  const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addAgent = trpc.explorer.addAgent.useMutation();
 
@@ -163,10 +164,16 @@ const AddAgentModal = ({
         ],
         tags: trimTags,
       })
-      .then(() => {
+      .then(async () => {
         toast.toast({
           title: 'Agent added successfully 🎉',
         });
+
+        await Promise.all([
+          utils.explorer.getExplorerData.invalidate(),
+          utils.main.trending.invalidate(),
+        ]);
+
         onClose();
         onAddSuccessfully();
         // Reset form

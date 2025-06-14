@@ -168,19 +168,19 @@ const Explorer = () => {
   return (
     <>
       <AddPromptModal
-        onAddSuccessfully={handleReset}
+        onAddSuccessfully={() => {}}
         modelType="prompt"
         isOpen={addPromptModalOpen}
         onClose={() => setAddPromptModalOpen(false)}
       />
       <AddAgentModal
-        onAddSuccessfully={handleReset}
+        onAddSuccessfully={() => {}}
         modelType="agent"
         isOpen={addAgentModalOpen}
         onClose={() => setAddAgentModalOpen(false)}
       />
       <AddToolModal
-        onAddSuccessfully={handleReset}
+        onAddSuccessfully={() => {}}
         modelType="tool"
         isOpen={addToolModalOpen}
         onClose={() => setAddToolModalOpen(false)}
