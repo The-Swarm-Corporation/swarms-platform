@@ -172,11 +172,6 @@ const AddAgentModal = ({
           title: 'Agent added successfully 🎉',
         });
 
-        await Promise.all([
-          utils.explorer.getExplorerData.invalidate(),
-          utils.main.trending.invalidate(),
-        ]);
-
         onClose();
         onAddSuccessfully();
         // Reset form
@@ -265,7 +260,7 @@ const AddAgentModal = ({
               <Input
                 value={agentName}
                 onChange={setAgentName}
-                placeholder="Enter unique agent designation..."
+                placeholder=""
                 className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -285,7 +280,7 @@ const AddAgentModal = ({
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Define agent capabilities and operational parameters..."
+                placeholder=""
                 className="w-full rounded-xl h-20 sm:h-24 p-3 sm:p-4 bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/80 outline-none"
               />
               <div className="absolute bottom-3 right-3 flex gap-1">
@@ -318,7 +313,7 @@ const AddAgentModal = ({
                   debouncedCheckPrompt(e.target.value);
                 }}
                 required
-                placeholder="// Initialize agent code..."
+                placeholder=""
                 className="w-full rounded-xl h-32 sm:h-40 md:h-48 p-3 sm:p-4 bg-background/80 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/90 outline-none"
               />
 
@@ -368,7 +363,7 @@ const AddAgentModal = ({
               </label>
               <Select onValueChange={setLanguage} value={language}>
                 <SelectTrigger className="h-10 sm:h-12 bg-background/60 border border-red-500/30 focus:border-red-500 text-foreground font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80">
-                  <SelectValue placeholder="Select protocol..." />
+                  <SelectValue placeholder="Select syntax..." />
                 </SelectTrigger>
                 <SelectContent className="bg-background border z-[9999] border-red-500/50 text-foreground">
                   {languageOptions?.map((option) => (

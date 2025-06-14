@@ -169,11 +169,6 @@ const AddPromptModal = ({
           title: 'Prompt added successfully 🎉',
         });
 
-        await Promise.all([
-          utils.explorer.getExplorerData.invalidate(),
-          utils.main.trending.invalidate(),
-        ]);
-
         onClose();
 
         //celeberate the confetti
@@ -265,7 +260,7 @@ const AddPromptModal = ({
               <Input
                 value={promptName}
                 onChange={setPromptName}
-                placeholder="Enter cognitive pattern identifier..."
+                placeholder=""
                 className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -285,7 +280,7 @@ const AddPromptModal = ({
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Define behavioral patterns and parameters..."
+                placeholder=""
                 className="w-full h-16 sm:h-20 rounded-lg p-3 sm:p-4 bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/80 outline-none"
               />
               <div className="absolute bottom-3 right-3 flex gap-1">
@@ -318,7 +313,7 @@ const AddPromptModal = ({
                   debouncedCheckPrompt(e.target.value);
                 }}
                 required
-                placeholder="You are an advanced AI assistant with specialized capabilities..."
+                placeholder=""
                 className="w-full h-24 sm:h-28 md:h-32 p-3 sm:p-4 bg-background/80 rounded-lg border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/90 outline-none leading-relaxed"
               />
 
