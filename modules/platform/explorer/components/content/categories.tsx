@@ -73,7 +73,7 @@ export default function ModelCategories({
                             <div
                               key={index}
                               className={cn(
-                                'shrink-0 cursor-pointer whitespace-nowrap font-semibold capitalize rounded-2xl px-4 py-2 text-xs text-red-500/70 border border-red-500/70 hover:bg-primary/50 hover:text-white maxlg:text-base',
+                                'shrink-0 cursor-pointer whitespace-nowrap font-semibold capitalize rounded-md px-4 py-2 text-xs text-red-500/70 border border-red-500/70 hover:bg-primary/50 hover:text-white maxlg:text-base',
                                 isActiveTag && !isLoading
                                   ? 'bg-primary/50 text-white'
                                   : 'bg-[#22201F] text-[#DDDBDA]',
