@@ -13,8 +13,7 @@ import {
 } from 'recharts';
 import { AlertOctagon, Loader2 } from 'lucide-react';
 import { useAPIKeyContext } from '../ui/apikey.provider';
-import { estimateTokenCost } from '@/shared/utils/helpers';
-import { ITelemetry } from './helper';
+import { ITelemetry, getCostFromLog } from './helper';
 
 interface ChartData {
   date: string;
@@ -109,8 +108,8 @@ export function UsageOverview({ logs, isLoading, error }: ITelemetry) {
         dayData.swarms++;
 
         if (usage) {
-          const { input_tokens, output_tokens, total_tokens } = usage;
-          const { totalCost } = estimateTokenCost(input_tokens, output_tokens);
+          const { total_tokens } = usage;
+          const totalCost = getCostFromLog(log);
 
           dayData.tokens += total_tokens;
           dayData.credits += totalCost;

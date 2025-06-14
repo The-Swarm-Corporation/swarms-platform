@@ -83,9 +83,9 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
         className="mb-4"
         onSubmit={(e) => handleSubmit(e)}
       >
-        <div className="grid gap-2">
-          <div className="grid gap-1">
-            <label htmlFor="email">Email</label>
+        <div className="grid gap-4">
+          <div className="grid gap-3">
+            <label htmlFor="email" className="text-sm font-medium">Email</label>
             <input
               id="email"
               placeholder="name@example.com"
@@ -94,16 +94,16 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
-              className="w-full p-3 rounded-md bg-zinc-800 text-white"
+              className="w-full p-3 rounded-md bg-zinc-800 text-white border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
             />
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password" className="text-sm font-medium">Password</label>
             <input
               id="password"
               placeholder="Password"
               type="password"
               name="password"
               autoComplete="current-password"
-              className="w-full p-3 rounded-md bg-zinc-800 text-white"
+              className="w-full p-3 rounded-md bg-zinc-800 text-white border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
             />
             {referralCode && (
               <input type="hidden" name="referralCode" value={referralCode} />
@@ -115,26 +115,49 @@ export default function SignUp({ allowEmail, redirectMethod }: SignUpProps) {
           <Button
             variant="outline"
             type="submit"
-            className="mt-1"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-md transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
             loading={isSubmitting}
           >
             Sign up
           </Button>
         </div>
       </form>
-      <p>Already have an account?</p>
-      <p>
-        <Link href="/signin/password_signin" className="font-light text-sm">
-          Sign in with email and password
-        </Link>
-      </p>
-      {allowEmail && (
-        <p>
-          <Link href="/signin/email_signin" className="font-light text-sm">
-            Sign in via magic link
+
+      <div className="space-y-4">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-zinc-700"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-zinc-900 text-zinc-400">Or continue with</span>
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          <Link 
+            href="/signin/password_signin"
+            className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-700 rounded-md shadow-sm text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Sign in with password
           </Link>
-        </p>
-      )}
+
+          {allowEmail && (
+            <Link 
+              href="/signin/email_signin"
+              className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-700 rounded-md shadow-sm text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Sign in with magic link
+            </Link>
+          )}
+
+          <Link 
+            href="/forgot-password"
+            className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-700 rounded-md shadow-sm text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Forgot your password?
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

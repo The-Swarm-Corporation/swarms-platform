@@ -1129,6 +1129,81 @@ const explorerRouter = router({
       ),
     };
   }),
+  getUserExplorerItemsByUsername: publicProcedure
+    .input(z.object({ username: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const { username } = input;
+
+      // First get the user ID from username
+      const { data: user, error: userError } = await ctx.supabase
+        .from('users')
+        .select('id, username, full_name, avatar_url')
+        .eq('username', username)
+        .single();
+
+      if (userError || !user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      // Get user's prompts
+      const { data: prompts, error: promptsError } = await ctx.supabase
+        .from('swarms_cloud_prompts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (promptsError) throw promptsError;
+
+      // Get user's agents
+      const { data: agents, error: agentsError } = await ctx.supabase
+        .from('swarms_cloud_agents')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (agentsError) throw agentsError;
+
+      // Get user's tools
+      const { data: tools, error: toolsError } = await ctx.supabase
+        .from('swarms_cloud_tools')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (toolsError) throw toolsError;
+
+      const userPrompts = prompts.map((item) => ({
+        ...item,
+        itemType: 'prompt' as const,
+      }));
+
+      const userAgents = agents.map((agent) => ({
+        ...agent,
+        itemType: 'agent' as const,
+      }));
+
+      const userTools = tools.map((tool) => ({
+        ...tool,
+        itemType: 'tool' as const,
+      }));
+
+      return {
+        id: user.id,
+        username: user.username,
+        full_name: user.full_name,
+        avatar_url: user.avatar_url,
+        prompts: userPrompts || [],
+        agents: userAgents || [],
+        tools: userTools || [],
+        combinedItems: [...userPrompts, ...userAgents, ...userTools].sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        ),
+      };
+    }),
 });
 
 export default explorerRouter;

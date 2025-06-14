@@ -4,6 +4,6 @@ import { EnhancedAgentSwarmManagementComponent } from '@/shared/components/drag_
  * Page component for the drag and drop platform interface.
  * Renders the EnhancedAgentSwarmManagement component.
  */
-export default function DragNDropPage(): JSX.Element {
+export default function DragNDropPage() {
   return <EnhancedAgentSwarmManagementComponent />;
 }

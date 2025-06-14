@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Modal from '@/shared/components/modal';
 import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
@@ -12,7 +12,21 @@ interface ShareModalProps {
 }
 
 export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
+  const [isVisible, setIsVisible] = useState(false);
   const toast = useToast();
+  
+  useEffect(() => {
+    if (isOpen) {
+      // Add a small delay for the animation
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
+    }
+  }, [isOpen]);
+
   const shareDetails: ShareDetails = {
     message: 'Check out this cool model/prompt/swarm on the swarms platform!',
     link: `https://swarms.world${link}`,
@@ -72,23 +86,25 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       title="Share"
-      className="flex flex-col items-start justify-center max-sm:max-w-[320px]"
+      className={`flex flex-col items-start justify-center max-sm:max-w-[320px] transition-all duration-300 ease-in-out ${
+        isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+      } border-2 border-red-500 rounded-lg`}
     >
       <div className="relative flex items-center pt-0.5 w-full">
         <div className="grow border-t border-gray-300 dark:border-zinc-800" />
       </div>
-      <div className="w-full">
+      <div className="w-full px-4">
         <span className="mb-2 text-sm text-gray-400">Share the link via</span>
-        <ul className="flex flex-wrap gap-6 md:gap-10 justify-start w-full my-4 p-0">
+        <ul className="flex flex-wrap gap-4 md:gap-6 lg:gap-10 justify-start w-full my-4 p-0">
           {data.map((item, index) => (
             <li
               key={index}
-              className="flex flex-col items-center justify-center cursor-pointer"
+              className="flex flex-col items-center justify-center cursor-pointer transform transition-transform hover:scale-110"
               onClick={item.func}
             >
               <div
                 style={{ backgroundColor: item.bgColor }}
-                className="rounded-full p-1.5 h-[41px] md:h-[61px] w-[41px] md:w-[61px] flex items-center justify-center"
+                className="rounded-full p-1.5 h-[41px] md:h-[51px] lg:h-[61px] w-[41px] md:w-[51px] lg:w-[61px] flex items-center justify-center transition-all duration-200 hover:shadow-lg"
               >
                 <Image src={item.icon} alt={item.text} width={25} height={25} />
               </div>
@@ -100,16 +116,21 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
       <div className="relative flex items-center pt-0.5 w-full">
         <div className="grow border-t border-gray-300 dark:border-zinc-800" />
       </div>
-      <div className="flex items-start justify-start w-full flex-col">
+      <div className="flex items-start justify-start w-full flex-col px-4 pb-4">
         <span className="text-sm text-gray-400">Or copy link</span>
-        <div className="flex items-center w-full sm:w-[95%] border-[1px] rounded-lg p-2 mt-2">
+        <div className="flex items-center w-full border-[1px] rounded-lg p-2 mt-2">
           <input
             type="text"
             readOnly
-            className="bg-transparent w-full px-2"
+            className="bg-transparent w-full px-2 text-sm md:text-base"
             value={`https://swarms.world${link}`}
           />
-          <Button onClick={handleCopy}>Copy</Button>
+          <Button 
+            onClick={handleCopy}
+            className="ml-2 transition-all duration-200 hover:bg-red-600"
+          >
+            Copy
+          </Button>
         </div>
       </div>
     </Modal>

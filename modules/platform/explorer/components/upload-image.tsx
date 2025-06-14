@@ -12,7 +12,7 @@ type Props = {
   handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleDrop?: (e: React.DragEvent) => void;
   handleImageEditClick: () => void;
-  uploadRef: RefObject<HTMLInputElement>;
+  uploadRef: RefObject<HTMLInputElement | null>;
   error?: string;
   filePath: string;
   modelType: string;
@@ -111,7 +111,7 @@ export default function ModelFileUpload({
           accept="image/png, image/jpeg, image/jpg, image/webp, image/gif, image/bmp, image/tiff"
           className="hidden"
           onChange={handleImageUpload}
-          ref={uploadRef}
+          ref={uploadRef as RefObject<HTMLInputElement>}
         />
       </div>
 

@@ -11,8 +11,7 @@ import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import Link from 'next/link';
 import { useAPIKeyContext } from '../ui/apikey.provider';
-import { estimateTokenCost } from '@/shared/utils/helpers';
-import { getDisplaySwarmName } from './helper';
+import { getDisplaySwarmName, getCostFromLog } from './helper';
 
 interface SwarmHistoryProps {
   limit?: number;
@@ -129,9 +128,9 @@ export function SwarmHistory({ limit }: { limit?: number }) {
 
   return (
     <div className="space-y-4">
-      {logs.map((log) => {
-        const { input_tokens, output_tokens } = log.data.usage;
-        const { totalCost } = estimateTokenCost(input_tokens, output_tokens);
+      {(logs || []).map((log) => {
+
+        const totalCost = getCostFromLog(log);
         const swarmName = getDisplaySwarmName(
           log.data.swarm_name,
           log.data.description,

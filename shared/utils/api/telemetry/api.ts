@@ -49,6 +49,25 @@ export interface SwarmLog {
       input_tokens: number;
       total_tokens: number;
       output_tokens: number;
+      billing_info?: {
+        cost_breakdown: {
+          agent_cost: number;
+          input_token_cost: number;
+          output_token_cost: number;
+          token_counts: {
+            total_input_tokens: number;
+            total_output_tokens: number;
+            total_tokens: number;
+          };
+          num_agents: number;
+          service_tier: string;
+          night_time_discount_applied: boolean;
+        };
+        total_cost: number;
+        discount_active: boolean;
+        discount_type: string;
+        discount_percentage: number;
+      };
     };
   };
 }

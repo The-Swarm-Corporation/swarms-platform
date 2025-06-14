@@ -11,6 +11,33 @@ import { useOnClickOutside } from '@/shared/hooks/onclick-outside';
 import { createQueryString } from '@/shared/utils/helpers';
 import { useRouter } from 'next/navigation';
 import { PLATFORM } from '@/shared/utils/constants';
+import { MessageSquare, Code, Wrench } from 'lucide-react';
+
+const ITEM_TYPE_META = {
+  prompt: {
+    icon: MessageSquare,
+    color: 'text-[#FF6B6B]',
+    bg: 'bg-[#FF6B6B]/10',
+    hover: 'hover:bg-[#FF6B6B]/20',
+  },
+  agent: {
+    icon: Code,
+    color: 'text-[#4ECDC4]',
+    bg: 'bg-[#4ECDC4]/10',
+    hover: 'hover:bg-[#4ECDC4]/20',
+  },
+  tool: {
+    icon: Wrench,
+    color: 'text-[#FFD93D]',
+    bg: 'bg-[#FFD93D]/10',
+    hover: 'hover:bg-[#FFD93D]/20',
+  },
+} as const;
+
+type ItemType = keyof typeof ITEM_TYPE_META;
+function isItemType(type: string): type is ItemType {
+  return ['prompt', 'agent', 'tool'].includes(type);
+}
 
 export default function NavbarSearch() {
   const searchRef = useRef(null);
@@ -89,16 +116,27 @@ export default function NavbarSearch() {
             </h2>
           )}
           <ul>
-            {displayItems.map((item) => (
-              <li
-                key={item.title}
-                className="transition-custom mb-2 text-sm cursor-pointer overflow-hidden shadow-4xl rounded-md hover:shadow-5xl hover:bg-red-500 hover:text-white flex items-center hover:scale-[1.02]"
-              >
-                <Link href={item.link} className="p-2 py-3 w-full">
-                  {item.title}
-                </Link>
-              </li>
-            ))}
+            {displayItems.map((item) => {
+              const meta = isItemType(item.type) ? ITEM_TYPE_META[item.type] : {
+                icon: null,
+                color: 'text-gray-400',
+                bg: 'bg-gray-800',
+                hover: '',
+              };
+              const Icon = meta.icon;
+              return (
+                <li
+                  key={item.title}
+                  className={`transition-custom mb-2 text-sm cursor-pointer overflow-hidden shadow-4xl rounded-md flex items-center hover:scale-[1.03] ${meta.bg} ${meta.hover}`}
+                >
+                  <Link href={item.link} className="flex items-center gap-3 p-2 py-3 w-full group">
+                    {Icon && <Icon className={`w-5 h-5 ${meta.color} group-hover:scale-110 transition-transform`} />}
+                    <span className="font-medium text-white truncate">{item.title}</span>
+                    <span className={`ml-auto text-xs px-2 py-0.5 rounded ${meta.color} bg-black/30`}>{item.type.charAt(0).toUpperCase() + item.type.slice(1)}</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
           {search && remainingItems > 0 && (
             <p
@@ -118,7 +156,7 @@ export default function NavbarSearch() {
       <label hidden htmlFor="search">
         Search
       </label>
-      <div className="relative border border-gray-700 rounded-md">
+      <div className="relative border border-gray-700 rounded-lg shadow-lg bg-black/80 focus-within:border-[#FF6B6B] transition-all">
         <Input
           placeholder="Search swarms and more..."
           id="search"
@@ -126,7 +164,7 @@ export default function NavbarSearch() {
           onFocus={setOn}
           onChange={handleSearchChange}
           value={search}
-          className="w-full disabled:cursor-not-allowed disabled:opacity-50 text-white max-sm:text-xs pr-11"
+          className="w-full disabled:cursor-not-allowed disabled:opacity-50 text-white max-sm:text-xs pr-11 bg-transparent focus:outline-none focus:ring-0 placeholder:text-gray-400"
         />
         <div
           className={cn(
@@ -140,16 +178,16 @@ export default function NavbarSearch() {
 
       <div
         className={cn(
-          'absolute z-40 w-full h-[calc(100vh - 100px)] invisible',
+          'absolute z-40 w-full h-[calc(100vh-100px)] invisible',
           isOn && 'visible',
           globalMutation.isPending && 'invisible',
         )}
       >
-        <ul className="py-2 px-3 mt-1 h-[60vh] md:h-[65vh] no-scrollbar w-full overflow-y-auto bg-secondary text-foreground border dark:bg-black dark:text-white rounded-md shadow-lg">
+        <ul className="py-2 px-3 pl-10 mt-1 h-[60vh] md:h-[65vh] no-scrollbar w-full overflow-y-auto bg-black/95 text-foreground border border-gray-800 rounded-xl shadow-2xl backdrop-blur-xl">
           {Object.values(filteredData).flat().length > 0 ? (
             renderSearchResults()
           ) : (
-            <p className="text-center py-4">No search result found</p>
+            <p className="text-center py-4 text-gray-400">No search result found</p>
           )}
         </ul>
       </div>

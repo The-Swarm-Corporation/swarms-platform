@@ -88,7 +88,7 @@ export default function Tools({
               </div>
             )}
 
-            {(hasMoreTools || isFetchingTools) && !isLoading && (
+            {(hasMoreTools || isFetchingTools) && !isLoading && filteredTools?.length > 0 && (
               <div className="w-full flex justify-center mt-4 md:mt-6">
                 <button
                   onClick={loadMoreTools}
