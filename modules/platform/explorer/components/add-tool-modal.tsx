@@ -191,30 +191,30 @@ const AddToolModal = ({
 
   return (
     <Modal
-      className="w-full max-w-md md:max-w-4xl overflow-hidden border-2 border-red-500/50 rounded-none bg-black backdrop-blur-sm shadow-2xl shadow-red-500/20"
-      overlayClassName="backdrop-blur-md bg-black/60"
+      className="w-full max-w-md md:max-w-4xl overflow-hidden border-2 border-red-500/50 rounded-none bg-background backdrop-blur-sm shadow-2xl shadow-red-500/20"
+      overlayClassName="backdrop-blur-md bg-background/60"
       isOpen={isOpen}
       onClose={onClose}
       title=""
       showHeader={false}
       showClose={false}
     >
-      <div className="absolute inset-0 bg-black">
+      <div className="absolute inset-0 bg-background">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px]" />
       </div>
 
       <div className="relative z-10 flex flex-col h-[85vh] sm:h-[80vh] md:h-[75vh]">
-        <div className="relative bg-black/95 border-b-2 border-red-500/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
+        <div className="relative bg-background/95 border-b-2 border-red-500/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
           <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-red-500" />
           <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-red-500" />
 
           <div className="flex items-center justify-end mb-4">
             <button
               onClick={onClose}
-              className="group relative p-2 border border-red-500/30 hover:border-red-500 transition-all duration-300 bg-black/50 hover:bg-red-500/10"
+              className="group relative p-2 border border-red-500/30 hover:border-red-500 transition-all duration-300 bg-background/50 hover:bg-red-500/10"
             >
               <svg
-                className="w-5 h-5 text-gray-400 group-hover:text-red-400 transition-colors"
+                className="w-5 h-5 text-muted-foreground group-hover:text-red-400 transition-colors"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -232,11 +232,11 @@ const AddToolModal = ({
 
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 tracking-wider">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 tracking-wider">
                 TOOL DEPLOYMENT
                 <div className="h-1 w-24 sm:w-28 md:w-36 bg-gradient-to-r from-red-500 to-transparent mt-1" />
               </h2>
-              <p className="text-gray-400 text-xs sm:text-sm font-mono leading-relaxed max-w-2xl">
+              <p className="text-muted-foreground text-xs sm:text-sm font-mono leading-relaxed max-w-2xl">
                 Share a tool you&apos;d like others to explore, filling out the
                 details below. Make it clear, useful, and well-tagged so others
                 can easily find and use it.
@@ -249,7 +249,7 @@ const AddToolModal = ({
           <div className="group">
             <label className="flex items-center gap-3 mb-3">
               <span className="text-red-400 font-mono text-xs">[01]</span>
-              <span className="font-medium text-white">NAME</span>
+              <span className="font-medium text-foreground">NAME</span>
               <span className="text-red-500 text-xs">*REQUIRED</span>
               <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
             </label>
@@ -258,7 +258,7 @@ const AddToolModal = ({
                 value={toolName}
                 onChange={setToolName}
                 placeholder="Enter tool identifier..."
-                className="bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white placeholder-gray-500 h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-black/80"
+                className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 <div className="w-2 h-2 bg-red-500/50 rounded-full" />
@@ -269,7 +269,7 @@ const AddToolModal = ({
           <div className="group">
             <label className="flex items-center gap-3 mb-3">
               <span className="text-red-400 font-mono text-xs">[02]</span>
-              <span className="font-medium text-white">DESCRIPTION</span>
+              <span className="font-medium text-foreground">DESCRIPTION</span>
               <span className="text-red-500 text-xs">*REQUIRED</span>
               <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
             </label>
@@ -278,7 +278,7 @@ const AddToolModal = ({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Define tool capabilities and operational parameters..."
-                className="w-full rounded-lg h-16 sm:h-20 p-3 sm:p-4 bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white placeholder-gray-500 resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-black/80 outline-none"
+                className="w-full rounded-lg h-16 sm:h-20 p-3 sm:p-4 bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/80 outline-none"
               />
               <div className="absolute bottom-3 right-3 flex gap-1">
                 {[...Array(3)].map((_, i) => (
@@ -298,11 +298,11 @@ const AddToolModal = ({
           <div className="group overflow-hidden">
             <label className="flex items-center gap-3 mb-3">
               <span className="text-red-400 font-mono text-xs">[03]</span>
-              <span className="font-medium text-white">CODE</span>
+              <span className="font-medium text-foreground">CODE</span>
               <span className="text-red-500 text-xs">*REQUIRED</span>
               <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
             </label>
-            <div className="text-gray-400 font-mono text-xs mb-2 flex items-center gap-2">
+            <div className="text-muted-foreground font-mono text-xs mb-2 flex items-center gap-2">
               <span className="text-yellow-400">[INFO]</span>
               Include type definitions and comprehensive docstrings for optimal
               compilation
@@ -326,7 +326,7 @@ const AddToolModal = ({
         dict: Processed result data
     """
     return {"status": "success", "data": param}`}
-                className="w-full h-40 sm:h-48 md:h-56 p-3 sm:p-4 pl-8 sm:pl-12 bg-black/80 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-gray-500 resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-black/90 outline-none leading-relaxed"
+                className="w-full h-40 sm:h-48 md:h-56 p-3 sm:p-4 pl-8 sm:pl-12 bg-background/80 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/90 outline-none leading-relaxed"
               />
 
               <div className="absolute top-3 right-3 flex items-center gap-2">
@@ -354,7 +354,7 @@ const AddToolModal = ({
                 )}
               </div>
 
-              <div className="absolute left-1 sm:left-2 top-3 sm:top-4 text-gray-600 font-mono text-xs leading-relaxed select-none">
+              <div className="absolute left-1 sm:left-2 top-3 sm:top-4 text-muted-foreground font-mono text-xs leading-relaxed select-none">
                 {Array.from({ length: 16 }, (_, i) => (
                   <div key={i}>{String(i + 1).padStart(2, '0')}</div>
                 ))}
@@ -380,14 +380,14 @@ const AddToolModal = ({
             <div className="group">
               <label className="flex items-center gap-3 mb-3">
                 <span className="text-red-400 font-mono text-xs">[04]</span>
-                <span className="font-medium text-white">SYNTAX</span>
+                <span className="font-medium text-foreground">SYNTAX</span>
                 <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
               </label>
               <Select onValueChange={setLanguage} value={language}>
-                <SelectTrigger className="h-10 sm:h-12 bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white font-mono text-sm sm:text-base transition-all duration-300 hover:bg-black/80">
+                <SelectTrigger className="h-10 sm:h-12 bg-background/60 border border-red-500/30 focus:border-red-500 text-foreground font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80">
                   <SelectValue placeholder="Select runtime..." />
                 </SelectTrigger>
-                <SelectContent className="bg-black border-2 border-red-500/50 text-white">
+                <SelectContent className="bg-background border z-[9999] border-red-500/50 text-foreground">
                   {languageOptions?.map((option) => (
                     <SelectItem
                       key={option}
@@ -404,7 +404,7 @@ const AddToolModal = ({
             <div className="group">
               <label className="flex items-center gap-3 mb-3">
                 <span className="text-red-400 font-mono text-xs">[05]</span>
-                <span className="font-medium text-white">CLASSIFICATION</span>
+                <span className="font-medium text-foreground">CLASSIFICATION</span>
                 <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
               </label>
               <MultiSelect
@@ -415,7 +415,7 @@ const AddToolModal = ({
                 selectedValues={categories}
                 onChange={handleCategoriesChange}
                 placeholder="Select categories..."
-                className="h-10 sm:h-12 bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white font-mono text-sm sm:text-base transition-all duration-300 hover:bg-black/80"
+                className="h-10 sm:h-12 bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
               />
             </div>
           </div>
@@ -440,19 +440,19 @@ const AddToolModal = ({
           <div className="group">
             <label className="flex items-center gap-3 mb-3">
               <span className="text-red-400 font-mono text-xs">[07]</span>
-              <span className="font-medium text-white">TAGS</span>
+              <span className="font-medium text-foreground">TAGS</span>
               <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
             </label>
             <Input
               value={tags}
               onChange={setTags}
               placeholder="utility, automation, api, data-processing, integration..."
-              className="bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white placeholder-gray-500 h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-black/80"
+              className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
             />
           </div>
         </div>
 
-        <div className="relative bg-black/95 border-t-2 border-red-500/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
+        <div className="relative bg-background/95 border-t-2 border-red-500/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
           <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-red-500" />
           <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-red-500" />
 
@@ -460,7 +460,7 @@ const AddToolModal = ({
             <Button
               disabled={addTool.isPending || isLoading}
               onClick={submit}
-              className="relative group px-4 sm:px-6 md:px-8 py-2 sm:py-3 bg-black border-2 border-red-500 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 font-mono font-bold tracking-wider overflow-hidden text-sm sm:text-base"
+              className="relative group px-4 sm:px-6 md:px-8 py-2 sm:py-3 bg-background border-2 border-red-500 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 font-mono font-bold tracking-wider overflow-hidden text-sm sm:text-base"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
               <span className="relative z-10">

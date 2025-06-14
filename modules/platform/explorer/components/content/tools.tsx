@@ -28,7 +28,7 @@ export default function Tools({
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl md:text-3xl font-bold text-white flex items-center gap-3">
+        <h2 className="text-xl md:text-3xl font-bold text-foreground flex items-center gap-3">
           <Wrench className="text-red-500" />
           Tools
         </h2>

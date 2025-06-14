@@ -29,7 +29,7 @@ export default function Prompts({
   return (
     <div className="flex flex-col min-h-1/2 gap-2 pb-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl md:text-3xl font-bold text-white flex items-center gap-3">
+        <h2 className="text-xl md:text-3xl font-bold text-foreground flex items-center gap-3">
           <Brain className="text-red-500" />
           Prompts
         </h2>

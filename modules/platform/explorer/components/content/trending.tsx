@@ -43,7 +43,7 @@ export default function Trending({
 
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
-      <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+      <h2 className="text-3xl font-bold text-foreground mb-6 flex items-center gap-3">
         <Zap className="text-red-500" />
         Trending
       </h2>
@@ -86,7 +86,7 @@ export default function Trending({
             ) : (
               <div className="w-full flex justify-center">
                 <div
-                  className="bg-gradient-to-r from-red-700/30 to-red-600/10 flex justify-center p-4 font-mono relative overflow-hidden transition-all duration-300 shadow-[0_0_20px_rgba(239,68,68,0.4)] max-w-sm w-full"
+                  className="bg-gradient-to-r from-red-700/30 to-red-600/10 flex justify-center p-4 font-mono relative overflow-hidden transition-all duration-300 shadow-[0_0_20px_rgba(239,68,68,0.4)] max-w-sm w-full text-foreground"
                   style={{
                     clipPath:
                       'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)',
@@ -108,7 +108,7 @@ export default function Trending({
                 <button
                   onClick={loadMoreTrending}
                   disabled={isFetchingTrending || isLoading}
-                  className="uppercase bg-gradient-to-r from-red-700/50 to-red-600/30 hover:from-red-700/80 hover:to-red-600/60 flex justify-center p-4 font-mono relative overflow-hidden transition-all duration-300 shadow-[0_0_20px_rgba(239,68,68,0.4)] max-w-sm w-full disabled:pointer-events-none disabled:opacity-50"
+                  className="uppercase bg-gradient-to-r from-red-700/50 to-red-600/30 hover:from-red-700/80 hover:to-red-600/60 flex justify-center p-4 font-mono relative overflow-hidden transition-all duration-300 shadow-[0_0_20px_rgba(239,68,68,0.4)] max-w-sm w-full disabled:pointer-events-none disabled:opacity-50 text-primary-foreground"
                   style={{
                     clipPath:
                       'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)',

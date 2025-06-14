@@ -189,7 +189,7 @@ const Explorer = () => {
         <div className="w-full mb-8 relative z-10">
           <div className="relative">
             <div
-              className="bg-gradient-to-br from-red-900/30 via-black to-red-950/20 border-b-2 border-red-600/50 relative overflow-hidden"
+              className="bg-gradient-to-br from-red-900/30 via-background to-red-950/20 border-b-2 border-red-600/50 relative overflow-hidden"
               style={{
                 clipPath:
                   'polygon(0 0, 100% 0, 100% calc(100% - 40px), calc(100% - 40px) 100%, 0 100%)',
@@ -213,11 +213,11 @@ const Explorer = () => {
                   </h1>
 
                   <div className="relative">
-                    <div className="bg-black/70 border border-red-600/50 p-4 rounded-lg backdrop-blur-sm">
+                    <div className="bg-background/70 border border-red-600/50 p-4 rounded-lg backdrop-blur-sm">
                       <div className="text-red-400 text-xs  uppercase tracking-wider mb-1">
                         MISSION DIRECTIVE:
                       </div>
-                      <p className="text-gray-300 text-base md:text-lg  leading-relaxed">
+                      <p className="text-muted-foreground text-base md:text-lg  leading-relaxed">
                         Search and discover tools, agents, and prompts.
                       </p>
                     </div>
@@ -256,16 +256,16 @@ const Explorer = () => {
             <Sticky onStateChange={handleStateChange} top={50} innerZ={50}>
               <div
                 className={cn(
-                  'relative bg-gradient-to-b from-black to-[#121212] border-b border-red-600/30 py-8 transition-all duration-300',
+                  'relative bg-gradient-to-b from-background to-muted border-b border-red-600/30 py-8 transition-all duration-300',
                   isFixed &&
-                    'shadow-lg shadow-red-900/20 backdrop-blur-sm bg-black/95',
+                    'shadow-lg shadow-primary/20 backdrop-blur-sm bg-background/95',
                 )}
               >
                 <div className="container mx-auto px-8">
                   <div className="mb-8">
                     <div className="relative max-w-4xl mx-auto">
                       <div className="relative">
-                        <div className="relative bg-black border-2 border-red-600/70 rounded-lg group hover:border-red-500 transition-colors">
+                        <div className="relative bg-background border-2 border-red-600/70 rounded-lg group hover:border-red-500 transition-colors">
                           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-red-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                           <div className="flex items-center flex-wrap">
@@ -290,7 +290,7 @@ const Explorer = () => {
                                 }
                               }}
                               disabled={isAllLoading}
-                              className="flex-1 bg-transparent text-white placeholder-gray-500 p-4  focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                              className="flex-1 bg-transparent text-foreground placeholder-muted-foreground p-4  focus:outline-none disabled:pointer-events-none disabled:opacity-50"
                             />
 
                             <div className="relative">
@@ -308,7 +308,7 @@ const Explorer = () => {
                               </button>
 
                               {isDropdownOpen && (
-                                <div className="absolute z-[9999] top-full right-0 mt-2 w-64 bg-black border-2 border-red-600/70 rounded-lg overflow-hidden">
+                                <div className="absolute z-[9999] top-full right-0 mt-2 w-64 bg-background border-2 border-red-600/70 rounded-lg overflow-hidden">
                                   <div className="bg-gradient-to-r from-red-900 to-red-800 p-3 border-b border-red-600/50">
                                     <div className="text-red-200 text-xs  uppercase tracking-wider">
                                       Filter Categories
@@ -325,7 +325,7 @@ const Explorer = () => {
                                         className={`w-full flex items-center gap-3 p-3 text-left  text-sm transition-colors border-b border-red-600/20 last:border-b-0 ${
                                           filterOption === option.value
                                             ? 'bg-red-900/50 text-red-300'
-                                            : 'text-gray-300 hover:bg-red-900/30 hover:text-red-400'
+                                            : 'text-foreground hover:bg-red-900/30 hover:text-red-400'
                                         }`}
                                       >
                                         <Activity className="w-4 h-4 text-primary" />
@@ -355,8 +355,8 @@ const Explorer = () => {
                           onClick={() => handleCategoryChange(category.value)}
                           className={`group relative overflow-hidden transition-all duration-300 ${
                             tagCategory === category.value
-                              ? 'bg-gradient-to-r from-red-700 to-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
-                              : 'bg-black border border-red-600/50 text-red-400 hover:border-red-500 hover:text-red-300'
+                              ? 'bg-gradient-to-r from-red-700 to-red-600 text-primary-foreground shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                              : 'bg-background border border-red-600/50 text-red-400 hover:border-red-500 hover:text-red-300'
                           }`}
                           style={{
                             clipPath:
@@ -380,12 +380,12 @@ const Explorer = () => {
               </div>
             </Sticky>
           ) : (
-            <div className="relative bg-gradient-to-b from-black to-[#121212] border-b border-red-600/30 py-8">
+            <div className="relative bg-gradient-to-b from-background to-muted border-b border-red-600/30 py-8">
               <div className="container mx-auto px-8">
                 <div className="mb-8">
                   <div className="relative max-w-4xl mx-auto">
                     <div className="relative">
-                      <div className="relative bg-black border-2 border-red-600/70 rounded-lg group hover:border-red-500 transition-colors">
+                      <div className="relative bg-background border-2 border-red-600/70 rounded-lg group hover:border-red-500 transition-colors">
                         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-red-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                         <div className="flex items-center flex-wrap">
@@ -410,7 +410,7 @@ const Explorer = () => {
                               }
                             }}
                             disabled={isAllLoading}
-                            className="flex-1 bg-transparent text-white placeholder-gray-500 p-4  focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                            className="flex-1 bg-transparent text-foreground placeholder-muted-foreground p-4  focus:outline-none disabled:pointer-events-none disabled:opacity-50"
                           />
 
                           <div className="relative">
@@ -426,7 +426,7 @@ const Explorer = () => {
                             </button>
 
                             {isDropdownOpen && (
-                              <div className="absolute z-[9999] top-full right-0 mt-2 w-64 bg-black border-2 border-red-600/70 rounded-lg overflow-hidden">
+                              <div className="absolute z-[9999] top-full right-0 mt-2 w-64 bg-background border-2 border-red-600/70 rounded-lg overflow-hidden">
                                 <div className="bg-gradient-to-r from-red-900 to-red-800 p-3 border-b border-red-600/50">
                                   <div className="text-red-200 text-xs  uppercase tracking-wider">
                                     Filter Categories
@@ -443,7 +443,7 @@ const Explorer = () => {
                                       className={`w-full flex items-center gap-3 p-3 text-left  text-sm transition-colors border-b border-red-600/20 last:border-b-0 ${
                                         filterOption === option.value
                                           ? 'bg-red-900/50 text-red-300'
-                                          : 'text-gray-300 hover:bg-red-900/30 hover:text-red-400'
+                                          : 'text-foreground hover:bg-red-900/30 hover:text-red-400'
                                       }`}
                                     >
                                       <Activity className="w-4 h-4 text-primary" />
@@ -473,8 +473,8 @@ const Explorer = () => {
                         onClick={() => handleCategoryChange(category.value)}
                         className={`group relative overflow-hidden transition-all duration-300 ${
                           tagCategory === category.value
-                            ? 'bg-gradient-to-r from-red-700 to-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
-                            : 'bg-black border border-red-600/50 text-red-400 hover:border-red-500 hover:text-red-300'
+                            ? 'bg-gradient-to-r from-red-700 to-red-600 text-primary-foreground shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                            : 'bg-background border border-red-600/50 text-red-400 hover:border-red-500 hover:text-red-300'
                         }`}
                         style={{
                           clipPath:

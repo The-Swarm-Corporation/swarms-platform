@@ -90,7 +90,7 @@ export default function CardDetailsModal({
       >
         <button
           onClick={handleCloseButtonClick}
-          className="absolute top-4 right-4 w-8 h-8 border border-[#40403F] rounded-md bg-black/20 hover:bg-red-400/50 flex items-center justify-center text-white/70 hover:text-white transition-all z-10"
+          className="absolute top-4 right-4 w-8 h-8 border border-[#40403F] rounded-md bg-background/20 hover:bg-red-400/50 flex items-center justify-center text-foreground/70 hover:text-foreground transition-all z-10"
         >
           <X className="w-5 h-5" />
         </button>
@@ -98,7 +98,7 @@ export default function CardDetailsModal({
           <div
             className={cn(
               'relative w-full rounded-2xl overflow-hidden',
-              'bg-gradient-to-r from-black to-red-950 p-4 md:p-8',
+              'bg-gradient-to-r from-background to-red-950 p-4 md:p-8',
             )}
             style={{
               backgroundImage: `
@@ -122,7 +122,7 @@ export default function CardDetailsModal({
               <div className="relative flex-shrink-0">
                 <div
                   className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-gray-700 to-gray-900 rounded-xl
-                              border-2 border-red-500 flex items-center justify-center text-white
+                              border-2 border-red-500 flex items-center justify-center text-foreground
                               shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"
                 >
                   {getTypeIcon()}
@@ -152,7 +152,7 @@ export default function CardDetailsModal({
                     </Badge>
                   )}
                 </div>
-                <h1 className="text-xl md:text-3xl font-bold text-white mb-3 leading-tight break-words">
+                <h1 className="text-xl md:text-3xl font-bold text-foreground mb-3 leading-tight break-words">
                   {cardData.title}
                 </h1>
 
@@ -164,7 +164,7 @@ export default function CardDetailsModal({
                       explorerUser={cardData.user}
                       showUsername
                       showBorder
-                      className="text-white/90"
+                      className="text-foreground/90"
                     />
                   </div>
                 )}
@@ -180,7 +180,7 @@ export default function CardDetailsModal({
                       size={16}
                     />
                   </div>
-                  <span className="text-white/70 text-sm">
+                  <span className="text-foreground/70 text-sm">
                     {cardData.review.rating}/5
                   </span>
                 </div>
@@ -190,7 +190,7 @@ export default function CardDetailsModal({
 
           <div className="p-4 md:p-8">
             <div className="mb-6 md:mb-8">
-              <h3 className="text-lg md:text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
                 <FileText className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
                 Description
               </h3>
@@ -198,7 +198,7 @@ export default function CardDetailsModal({
                 style={{
                   textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                 }}
-                className="text-sm font-mono mt-2.5 font-medium md:text-base text-white/80 bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner w-full"
+                className="text-sm font-mono mt-2.5 font-medium md:text-base text-foreground/80 bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner w-full"
               >
                 <MarkdownComponent text={cardData?.description} />
               </div>
@@ -206,7 +206,7 @@ export default function CardDetailsModal({
 
             {cardData?.tags && cardData.tags.length > 0 && cardData?.tags[0] && (
               <div className="mb-6 md:mb-8">
-                <h3 className="text-lg md:text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Tag className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
                   Tags
                 </h3>
@@ -215,7 +215,7 @@ export default function CardDetailsModal({
                     <Badge
                       key={index}
                       variant="outline"
-                      className="bg-gradient-to-r rounded-[4000px] max-md:line-clamp-3 from-red-500/10 to-red-500/20 border-red-400/30 text-white/80 py-2 px-4 text-xs md:text-sm"
+                      className="bg-gradient-to-r rounded-[4000px] max-md:line-clamp-3 from-red-500/10 to-red-500/20 border-red-400/30 text-foreground/80 py-2 px-4 text-xs md:text-sm"
                     >
                       {tag}
                     </Badge>
@@ -226,7 +226,7 @@ export default function CardDetailsModal({
 
             {cardData?.usecases && cardData?.usecases.length > 0 && (
               <div className="mb-6 md:mb-8">
-                <h3 className="text-lg md:text-xl font-semibold text-white mb-4">
+                <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4">
                   Use Cases
                 </h3>
                 <div className="grid gap-3 md:gap-4 md:grid-cols-2">
@@ -235,10 +235,10 @@ export default function CardDetailsModal({
                       key={index}
                       className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-3 md:p-4"
                     >
-                      <h4 className="font-semibold text-white mb-2 text-sm md:text-base">
+                      <h4 className="font-semibold text-foreground mb-2 text-sm md:text-base">
                         {usecase.title}
                       </h4>
-                      <p className="text-gray-400 text-xs md:text-sm">
+                      <p className="text-muted-foreground text-xs md:text-sm">
                         {usecase.description}
                       </p>
                     </div>
@@ -254,21 +254,21 @@ export default function CardDetailsModal({
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4 w-full md:w-auto">
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
+                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-red-600 hover:bg-red-500 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
               >
                 <Share2 className="w-4 h-4" />
                 Share
               </button>
               <button
                 onClick={cardData.handleRoute}
-                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
+                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
               >
                 <Plus className="w-4 h-4" />
                 Learn More
               </button>
             </div>
 
-            <div className="text-xs text-gray-400 capitalize font-mono italic hidden md:block">
+            <div className="text-xs text-muted-foreground capitalize font-mono italic hidden md:block">
               {cardData.is_free ? 'Free' : 'Premium'} • {cardData.type}
             </div>
           </div>
