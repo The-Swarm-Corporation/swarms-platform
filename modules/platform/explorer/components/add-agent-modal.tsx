@@ -39,6 +39,7 @@ const AddAgentModal = ({
   const [tags, setTags] = useState('');
   const [language, setLanguage] = useState('python');
   const [categories, setCategories] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     image,
@@ -63,6 +64,7 @@ const AddAgentModal = ({
   }, []);
 
   const toast = useToast();
+  const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addAgent = trpc.explorer.addAgent.useMutation();
 
@@ -142,6 +144,8 @@ const AddAgentModal = ({
       .filter(Boolean)
       .join(',');
 
+    setIsLoading(true);
+
     // Add Agent
     addAgent
       .mutateAsync({
@@ -163,10 +167,16 @@ const AddAgentModal = ({
         ],
         tags: trimTags,
       })
-      .then(() => {
+      .then(async () => {
         toast.toast({
           title: 'Agent added successfully 🎉',
         });
+
+        await Promise.all([
+          utils.explorer.getExplorerData.invalidate(),
+          utils.main.trending.invalidate(),
+        ]);
+
         onClose();
         onAddSuccessfully();
         // Reset form
@@ -174,6 +184,13 @@ const AddAgentModal = ({
         setAgent('');
         setDescription('');
         setTags('');
+      })
+      .catch((error) => {
+        console.log({ error });
+        toast.toast({
+          title: 'An error has occurred',
+        });
+        setIsLoading(false);
       });
   };
 
@@ -181,126 +198,209 @@ const AddAgentModal = ({
 
   return (
     <Modal
-      className="max-w-2xl overflow-y-auto border-2 border-red-500 rounded-lg bg-black/80 backdrop-blur-sm"
+      className="w-full max-w-md md:max-w-4xl overflow-hidden border-2 border-red-500/50 rounded-none bg-background backdrop-blur-sm shadow-2xl shadow-red-500/20"
+      overlayClassName="backdrop-blur-md bg-background/60"
       isOpen={isOpen}
       onClose={onClose}
       title=""
+      showHeader={false}
+      showClose={false}
     >
-      <div className="flex flex-col gap-4 overflow-y-auto h-[70vh] relative">
-        <div className="sticky top-0 z-10 bg-black/90 border-b border-red-500/30 px-6 py-4">
-          <h2 className="text-2xl font-bold text-red-500 mb-2">
-            Submit Your Agent
-          </h2>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            Share your agent with the community by filling out the details
-            below. Make sure to provide clear descriptions, categories and appropriate tags
-            below. Make sure to provide clear descriptions and appropriate tags
-            to help others discover and use your agent effectively.
-          </p>
+      <div className="absolute inset-0 bg-background">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,0,0,0.02)_1px,transparent_1px)] bg-[size:30px_30px]" />
+      </div>
+
+      <div className="relative z-10 flex flex-col h-[85vh] sm:h-[80vh] md:h-[75vh]">
+        <div className="relative bg-background/95 border-b-2 border-red-500/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
+          <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-red-500" />
+          <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-red-500" />
+
+          <div className="flex items-center justify-between mb-4">
+            <div />
+            <button
+              onClick={onClose}
+              className="group relative p-2 border border-red-500/30 hover:border-red-500 transition-all duration-300 bg-background/50 hover:bg-red-500/10"
+            >
+              <svg
+                className="w-5 h-5 text-muted-foreground group-hover:text-red-400 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+              <div className="absolute inset-0 bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </button>
+          </div>
+
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 tracking-wider">
+                AGENT SUBMISSION
+                <div className="h-1 w-20 sm:w-24 md:w-32 bg-gradient-to-r from-red-500 to-transparent mt-1" />
+              </h2>
+              <p className="text-muted-foreground text-xs sm:text-sm font-mono leading-relaxed max-w-2xl">
+                Share your agent with the community by filling out the details
+                below. Make sure to provide clear descriptions, categories and
+                appropriate tags below.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="px-6 pb-4 flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <span className="font-medium text-sm text-gray-200 flex items-center gap-2">
-              Name
-              <span className="text-xs text-red-500">*</span>
-            </span>
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+          <div className="group">
+            <label className="flex items-center gap-3 mb-3">
+              <span className="text-red-400 font-mono text-xs">[01]</span>
+              <span className="font-medium text-foreground">NAME</span>
+              <span className="text-red-500 text-xs">*REQUIRED</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
+            </label>
             <div className="relative">
               <Input
                 value={agentName}
                 onChange={setAgentName}
-                placeholder="Give your agent a unique and descriptive name"
-                className="border border-red-500/30 focus:border-red-500 transition-colors bg-black/40"
+                placeholder="Enter unique agent designation..."
+                className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="w-2 h-2 bg-red-500/50 rounded-full" />
+              </div>
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <span className="font-medium text-sm text-gray-200 flex items-center gap-2">
-              Description
-              <span className="text-xs text-red-500">*</span>
-            </span>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe what your agent does and how it can help others"
-              className="w-full h-20 p-3 border border-red-500/30 focus:border-red-500 rounded-md bg-black/40 outline-0 resize-none transition-colors"
-            />
+
+          <div className="group">
+            <label className="flex items-center gap-3 mb-3">
+              <span className="text-red-400 font-mono text-xs">[02]</span>
+              <span className="font-medium text-foreground">DESCRIPTION</span>
+              <span className="text-red-500 text-xs">*REQUIRED</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
+            </label>
+            <div className="relative">
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Define agent capabilities and operational parameters..."
+                className="w-full rounded-xl h-20 sm:h-24 p-3 sm:p-4 bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/80 outline-none"
+              />
+              <div className="absolute bottom-3 right-3 flex gap-1">
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-1 h-1 bg-red-500/50 rounded-full"
+                    style={{
+                      animationDelay: `${i * 0.2}s`,
+                      animation: 'pulse 2s infinite',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <span className="font-medium text-sm text-gray-200 flex items-center gap-2">
-              Agent Code
-              <span className="text-xs text-red-500">*</span>
-            </span>
+
+          <div className="group">
+            <label className="flex items-center gap-3 mb-3">
+              <span className="text-red-400 font-mono text-xs">[03]</span>
+              <span className="font-medium text-foreground">CODE</span>
+              <span className="text-red-500 text-xs">*REQUIRED</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
+            </label>
             <div className="relative">
               <textarea
                 value={agent}
-                onChange={(v) => {
-                  setAgent(v.target.value);
-                  debouncedCheckPrompt(v.target.value);
+                onChange={(e) => {
+                  setAgent(e.target.value);
+                  debouncedCheckPrompt(e.target.value);
                 }}
                 required
-                placeholder="Paste your agent's code here..."
-                className="w-full h-40 p-3 border border-red-500/30 focus:border-red-500 rounded-md bg-black/40 outline-0 resize-none font-mono text-sm transition-colors"
+                placeholder="// Initialize agent code..."
+                className="w-full rounded-xl h-32 sm:h-40 md:h-48 p-3 sm:p-4 bg-background/80 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/90 outline-none"
               />
-              {validateAgent.isPending ? (
-                <div className="absolute right-3 top-3">
-                  <LoadingSpinner />
-                </div>
-              ) : (
-                <div className="absolute right-3 top-3">
-                  {agent.length > 0 && validateAgent.data && (
-                    <span
-                      className={
-                        validateAgent.data.valid
-                          ? 'text-green-500'
-                          : 'text-red-500'
-                      }
-                    >
-                      {validateAgent.data.valid ? '✅' : ''}
+
+              <div className="absolute top-3 right-3 flex items-center gap-2">
+                {validateAgent.isPending ? (
+                  <div className="flex items-center gap-2">
+                    <LoadingSpinner />
+                    <span className="text-yellow-400 font-mono text-xs">
+                      ANALYZING...
                     </span>
-                  )}
-                </div>
-              )}
+                  </div>
+                ) : (
+                  agent.length > 0 &&
+                  validateAgent.data && (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-2 h-2 rounded-full ${validateAgent.data.valid ? 'bg-green-500' : 'bg-red-500'}`}
+                      />
+                      <span
+                        className={`font-mono text-xs ${validateAgent.data.valid ? 'text-green-400' : 'text-red-400'}`}
+                      >
+                        {validateAgent.data.valid ? 'VALIDATED' : 'ERROR'}
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
             </div>
+
             {agent.length > 0 &&
               !validateAgent.isPending &&
               validateAgent.data &&
               !validateAgent.data.valid && (
-                <span className="text-red-500 text-sm">
+                <div className="mt-2 p-3 bg-red-500/10 border border-red-500/30 text-red-400 font-mono text-sm">
+                  <span className="text-red-500">[ERROR]</span>{' '}
                   {validateAgent.data.error}
-                </span>
+                </div>
               )}
           </div>
-          <div className="flex flex-col gap-2">
-            <span className="font-medium text-sm text-gray-200">Language</span>
-            <Select onValueChange={setLanguage} value={language}>
-              <SelectTrigger className="w-1/2 cursor-pointer capitalize border border-red-500/30 focus:border-red-500 transition-colors bg-black/40">
-                <SelectValue placeholder={language} />
-              </SelectTrigger>
-              <SelectContent className="capitalize border border-red-500/30">
-                {languageOptions?.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <span className="font-medium text-sm text-gray-200">
-              Categories
-            </span>
-            <MultiSelect
-              options={explorerCategories.map((category) => ({
-                id: category.value,
-                label: category.label,
-              }))}
-              selectedValues={categories}
-              onChange={handleCategoriesChange}
-              placeholder="Select categories"
-              className="border !border-red-500/30 !focus:border-red-500 transition-colors bg-black/40"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="group">
+              <label className="flex items-center gap-3 mb-3">
+                <span className="text-red-400 font-mono text-xs">[04]</span>
+                <span className="font-medium text-foreground">LANGUAGE</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
+              </label>
+              <Select onValueChange={setLanguage} value={language}>
+                <SelectTrigger className="h-10 sm:h-12 bg-background/60 border border-red-500/30 focus:border-red-500 text-foreground font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80">
+                  <SelectValue placeholder="Select protocol..." />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-[9999] border-red-500/50 text-foreground">
+                  {languageOptions?.map((option) => (
+                    <SelectItem
+                      key={option}
+                      value={option}
+                      className="font-mono hover:bg-red-500/20"
+                    >
+                      {option.toUpperCase()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="group">
+              <label className="flex items-center gap-3 mb-3">
+                <span className="text-red-400 font-mono text-xs">[05]</span>
+                <span className="font-medium text-foreground">CLASSIFICATION</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
+              </label>
+              <MultiSelect
+                options={explorerCategories.map((category) => ({
+                  id: category.value,
+                  label: category.label,
+                }))}
+                selectedValues={categories}
+                onChange={handleCategoriesChange}
+                placeholder="Select categories..."
+                className="h-10 sm:h-12 bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
+              />
+            </div>
           </div>
 
           <ModelFileUpload
@@ -316,23 +416,47 @@ const AddAgentModal = ({
             uploadRef={imageUploadRef}
             uploadStatus={uploadStatus}
             uploadProgress={uploadProgress}
+            preface="[06]"
+            title="ADD_IMAGE"
           />
-          <div className="flex flex-col gap-2">
-            <span className="font-medium text-sm text-gray-200">Tags</span>
+
+          <div className="group">
+            <label className="flex items-center gap-3 mb-3">
+              <span className="text-red-400 font-mono text-xs">[07]</span>
+              <span className="font-medium text-foreground">TAGS</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
+            </label>
             <Input
               value={tags}
               onChange={setTags}
-              placeholder="Add relevant tags (e.g., AI, Data Processing, Web Scraping)"
-              className="border border-red-500/30 focus:border-red-500 transition-colors bg-black/40"
+              placeholder="ai, automation, tools, data-processing..."
+              className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
             />
           </div>
-          <div className="flex justify-end mt-4 pt-4 border-t border-red-500/30">
+        </div>
+
+        <div className="relative bg-background/95 border-t-2 border-red-500/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
+          <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-red-500" />
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-red-500" />
+
+          <div className="flex items-center justify-between">
+            <div />
             <Button
-              disabled={addAgent.isPending}
+              disabled={addAgent.isPending || isLoading}
               onClick={submit}
-              className="w-40 border-2 border-red-500 bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-400 transition-colors duration-200 font-medium"
+              className="relative group px-4 sm:px-6 md:px-8 py-2 sm:py-3 bg-background border-2 border-red-500 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 font-mono font-bold tracking-wider overflow-hidden text-sm sm:text-base"
             >
-              {addAgent.isPending ? 'Submitting...' : 'Submit Agent'}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              <span className="relative z-10">
+                {addAgent.isPending || isLoading
+                  ? 'DEPLOYING...'
+                  : 'DEPLOY_AGENT'}
+              </span>
+              {!addAgent.isPending && !isLoading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                </div>
+              )}
             </Button>
           </div>
         </div>

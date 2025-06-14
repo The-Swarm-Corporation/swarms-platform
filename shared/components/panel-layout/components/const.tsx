@@ -25,6 +25,7 @@ type MenuProps = {
   title: string;
   link: string;
   isMobileEnabled?: boolean;
+  isExternal?: boolean;
   items?: { title: string; link: string }[];
 };
 
@@ -43,11 +44,13 @@ const SHARED_LINKS: MenuProps[] = [
   {
     icon: <BookOpenText />,
     title: 'Customer Support',
+    isExternal: true,
     link: NAVIGATION.GET_DEMO,
   },
   {
     title: 'Docs',
     link: NAVIGATION.DOCS,
+    isExternal: true,
     icon: <FileText />,
   },
 ];
@@ -68,6 +71,7 @@ export const NAV_LINKS: NavMenuProps = {
     {
       icon: <Discord />,
       title: 'Community',
+      isExternal: true,
       link: DISCORD,
     },
     {

@@ -6,6 +6,7 @@ interface NavItemProps extends PropsWithChildren {
   title: string;
   link?: string;
   path?: string;
+  isExternal?: boolean;
   icon?: React.ReactNode;
   as?: 'span' | 'a' | 'form' | React.ElementType;
   className?: string;
@@ -32,6 +33,7 @@ const NavItem = React.forwardRef(function <
     as: Component = 'span',
     children,
     onSubmit,
+    isExternal,
     isShowSidebarItems,
     showTitle,
     ...props
@@ -42,6 +44,8 @@ const NavItem = React.forwardRef(function <
     return (
       <Link
         href={link}
+        target={isExternal ? '_blank' : undefined}
+        rel={isExternal ? 'noopener noreferrer' : undefined}
         className={cn(
           'group flex items-center justify-center outline-none p-4',
           showTitle && 'justify-start',
@@ -92,5 +96,7 @@ const NavItem = React.forwardRef(function <
     </Component>
   );
 });
+
+NavItem.displayName = 'NavItem';
 
 export default NavItem;

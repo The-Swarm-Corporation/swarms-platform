@@ -16,6 +16,7 @@ interface Props {
   className?: string;
   showHeader?: boolean;
   showClose?: boolean;
+  overlayClassName?: string;
 }
 
 const Modal = ({
@@ -26,10 +27,22 @@ const Modal = ({
   footer,
   className,
   showHeader = true,
+  showClose = true,
+  overlayClassName,
 }: Props) => {
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent overlayClassName="backdrop-blur-md" className={className}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent
+        overlayClassName={overlayClassName || "backdrop-blur-md"}
+        className={className}
+        hideCloseButton={!showClose}
+      >
         {showHeader && (
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

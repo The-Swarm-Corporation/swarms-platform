@@ -30,7 +30,6 @@ import {
 import remarkGfm from 'remark-gfm';
 import { stripMarkdown } from './helper';
 import dynamic from 'next/dynamic';
-import Image from 'next/image';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -59,36 +58,62 @@ const ChatComponent = dynamic(() => import('@/shared/components/chat/prompt'), {
 
 function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-4xl">Use Cases</h2>
-      <div className="flex gap-2 flex-col md:flex-row">
+    <div className="relative z-10">
+      <h2 className="text-4xl font-medium text-white mb-2 tracking-wider">
+        Use Cases
+        <div className="h-1 w-24 bg-gradient-to-r from-red-500 to-transparent mt-2" />
+      </h2>
+
+      <div className="flex gap-6 flex-col lg:flex-row">
         {usecases?.map((usecase, index) => {
           const classname = usecases?.length === 1 && 'min-h-fit md:min-h-fit';
+
           return (
             <Card3D
               key={index}
-              containerClassName="flex-1 "
-              className="inter-var w-full"
+              containerClassName="flex-1 group"
+              className="w-full"
             >
               <CardBody
                 className={cn(
-                  'bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto min-h-[255px] md:min-h-[320px] h-fit rounded-xl p-6 border flex flex-col ',
+                  'relative overflow-hidden',
+                  'bg-black border border-red-500/30',
+                  'hover:border-red-500 hover:shadow-2xl hover:shadow-red-500/20',
+                  'transition-all duration-500 ease-out',
+                  'min-h-[280px] md:min-h-[350px] h-fit',
+                  'p-8 flex flex-col',
+                  'rounded-lg',
+                  'before:absolute before:inset-0 before:bg-gradient-to-br before:from-red-500/5 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500',
+                  'after:absolute after:top-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-transparent after:via-red-500 after:to-transparent after:opacity-0 hover:after:opacity-100 after:transition-opacity after:duration-500',
                   classname,
                 )}
               >
-                <CardItem
-                  translateZ="50"
-                  className="text-xl font-bold text-neutral-600 dark:text-white"
-                >
-                  {usecase?.title}
-                </CardItem>
-                <CardItem
-                  as="p"
-                  translateZ="60"
-                  className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
-                >
-                  {usecase?.description}
-                </CardItem>
+                <div className="absolute top-4 left-4 w-4 h-4 border-l-2 border-t-2 border-red-500/50" />
+                <div className="absolute top-4 right-4 w-4 h-4 border-r-2 border-t-2 border-red-500/50" />
+                <div className="absolute bottom-4 left-4 w-4 h-4 border-l-2 border-b-2 border-red-500/50" />
+                <div className="absolute bottom-4 right-4 w-4 h-4 border-r-2 border-b-2 border-red-500/50" />
+
+                <div className="relative z-10 flex flex-col h-full">
+                  <CardItem
+                    translateZ="50"
+                    className="text-lg font-medium font-mono text-white mb-4 tracking-wide"
+                  >
+                    <span className="text-red-400 text-sm mr-2">
+                      [{String(index + 1).padStart(2, '0')}]
+                    </span>
+                    {usecase?.title}
+                  </CardItem>
+
+                  <CardItem
+                    as="p"
+                    translateZ="60"
+                    className="text-gray-300 font-mono text-sm leading-relaxed flex-grow"
+                  >
+                    {usecase?.description}
+                  </CardItem>
+                </div>
+
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/5 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </CardBody>
             </Card3D>
           );
@@ -260,9 +285,7 @@ export default function EntityComponent({
                     }}
                     className="text-sm mt-2.5 font-medium md:text-base text-white/80 bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner w-fit"
                   >
-                    <p className="text-xs italic">
-                      {description}
-                    </p>
+                    <p className="text-xs italic">{description}</p>
                   </div>
                 )}
                 <Avatar

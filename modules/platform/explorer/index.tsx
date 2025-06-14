@@ -1,24 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select';
-import { Input } from '@/shared/components/ui/input';
 import useModels from './hook/models';
 import { explorerCategories, explorerOptions } from '@/shared/utils/constants';
 import AddPromptModal from './components/add-prompt-modal';
-import { Activity, Search } from 'lucide-react';
+import { Activity, ChevronDown, Search } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import AddAgentModal from './components/add-agent-modal';
 import dynamic from 'next/dynamic';
 import Sticky from 'react-stickynode';
 import AddToolModal from './components/add-tool-modal';
-import ModelCategories from './components/content/categories';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 
 const Trending = dynamic(() => import('./components/content/trending'), {
   ssr: false,
@@ -37,6 +29,8 @@ const Explorer = () => {
   const [addAgentModalOpen, setAddAgentModalOpen] = useState(false);
   const [addToolModalOpen, setAddToolModalOpen] = useState(false);
   const [isFixed, setIsFixed] = useState(false);
+
+  const isMobile = useIsMobile();
 
   const handleStateChange = (status: { status: number }) => {
     if (status.status === Sticky.STATUS_FIXED) {
@@ -75,11 +69,23 @@ const Explorer = () => {
     isFetchingAgents,
     handleReset,
     hasMoreAgents,
+    hasMoreTools,
+    isFetchingTools,
+    loadMoreTools,
     agentsQuery,
+    toolsQuery,
+    isDropdownOpen,
+    setIsDropdownOpen,
   } = useModels();
 
+  const selectedOptionLabel =
+    !filterOption || filterOption === 'all' ? 'All Categories' : filterOption;
+
   const isAllLoading =
-    isLoading || promptsQuery.isLoading || agentsQuery.isLoading;
+    isLoading ||
+    promptsQuery.isLoading ||
+    agentsQuery.isLoading ||
+    toolsQuery.isLoading;
 
   const elements = [
     {
@@ -129,6 +135,10 @@ const Explorer = () => {
             usersMap,
             reviewsMap,
             isLoading,
+            loadMoreTools,
+            isFetchingTools,
+            hasMoreTools,
+            isToolLoading: toolsQuery.isLoading,
           }}
         />
       ),
@@ -158,154 +168,356 @@ const Explorer = () => {
   return (
     <>
       <AddPromptModal
-        onAddSuccessfully={handleReset}
+        onAddSuccessfully={() => {}}
         modelType="prompt"
         isOpen={addPromptModalOpen}
         onClose={() => setAddPromptModalOpen(false)}
       />
       <AddAgentModal
-        onAddSuccessfully={handleReset}
+        onAddSuccessfully={() => {}}
         modelType="agent"
         isOpen={addAgentModalOpen}
         onClose={() => setAddAgentModalOpen(false)}
       />
       <AddToolModal
-        onAddSuccessfully={handleReset}
+        onAddSuccessfully={() => {}}
         modelType="tool"
         isOpen={addToolModalOpen}
         onClose={() => setAddToolModalOpen(false)}
       />
-      <div className="w-full flex flex-col h-full">
-        <div className="w-full mb-8">
-          <div className="relative group">
-            {/* Animated border overlay */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 via-red-900 to-red-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x"></div>
-
-            {/* Main banner content */}
-            <div className="relative w-full bg-gradient-to-r from-black to-red-950 p-8 rounded-lg">
-              <div className="relative z-10">
-                <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-wider bg-clip-text">
-                  Swarms Marketplace
-                </h1>
-                <p className="text-xl text-red-100/80">
-                  Search and discover tools, agents, and prompts.
-                </p>
-              </div>
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(220,38,38,0.1)_0%,_transparent_70%)]"></div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className={cn(
-            'bg-white dark:bg-black sticky top-[48px] z-10 pb-4',
-            isFixed &&
-              'shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
-          )}
-        >
-          <ul className="p-0 mb-2 flex items-center flex-wrap gap-3">
-            {options.map((option) => {
-              const colorSelector = isAllLoading
-                ? 'text-primary'
-                : filterOption === option || filterOption === 'all'
-                  ? 'text-green-500'
-                  : 'text-primary';
-              return (
-                <li
-                  key={option}
-                  className={cn(
-                    'shadow mt-2 cursor-pointer capitalize text-center rounded-sm flex items-center justify-center bg-secondary text-foreground w-24 p-1 px-2 text-xs md:text-sm',
-                    colorSelector,
-                  )}
-                >
-                  {option}
-                  <Activity
-                    size={15}
-                    className={cn('ml-2 font-bold', colorSelector)}
-                  />
-                </li>
-              );
-            })}
-          </ul>
-          <div className="flex items-center gap-3">
-            <div className="relative w-full border border-gray-700 rounded-md">
-              <Input
-                placeholder="Search..."
-                onChange={(e) => handleSearchChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    searchClickHandler();
-                  }
-                }}
-                value={search}
-                disabled={isAllLoading}
-                className="disabled:cursor-not-allowed disabled:opacity-50"
-              />
-              <button
-                className={cn(
-                  'border-none absolute right-0 h-full top-0 rounded-tr-md w-[50px] flex items-center justify-center rounded-br-md',
-                  search.trim()
-                    ? 'bg-primary/70 cursor-pointer'
-                    : 'bg-[#1e1e1e] cursor-default',
-                )}
-                onClick={searchClickHandler}
-              >
-                <Search className="h-4 w-4 text-white" />
-              </button>
-            </div>
-
-            <Select
-              onValueChange={(value) => {
-                handleOptionChange(value);
+      <div className="w-full flex flex-col h-full font-mono">
+        <div className="w-full mb-8 relative z-10">
+          <div className="relative">
+            <div
+              className="bg-gradient-to-br from-red-900/30 via-background to-red-950/20 border-b-2 border-red-600/50 relative overflow-hidden"
+              style={{
+                clipPath:
+                  'polygon(0 0, 100% 0, 100% calc(100% - 40px), calc(100% - 40px) 100%, 0 100%)',
               }}
-              disabled={isAllLoading}
-              value={filterOption}
             >
-              <SelectTrigger className="w-1/2 xl:w-1/4 cursor-pointer">
-                <SelectValue placeholder={filterOption} />
-              </SelectTrigger>
-              <SelectContent>
-                {explorerOptions?.map((option) => (
-                  <SelectItem key={option.label} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-transparent to-red-500/5 animate-pulse"></div>
+
+              <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-red-500 opacity-60"></div>
+              <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-red-500 opacity-60"></div>
+
+              <div className="container mx-auto px-8 pt-16 pb-8">
+                <div className="mb-6">
+                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold  tracking-wider mb-4">
+                    <span className="bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent">
+                      SWARMS
+                    </span>
+                    <br />
+                    <span className="text-red-500 text-shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+                      MARKETPLACE
+                    </span>
+                  </h1>
+
+                  <div className="relative">
+                    <div className="bg-background/70 border border-red-600/50 p-4 rounded-lg backdrop-blur-sm">
+                      <div className="text-red-400 text-xs  uppercase tracking-wider mb-1">
+                        MISSION DIRECTIVE:
+                      </div>
+                      <p className="text-muted-foreground text-base md:text-lg  leading-relaxed">
+                        Search and discover tools, agents, and prompts.
+                      </p>
+                    </div>
+                    <div
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-600"
+                      style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }}
+                    ></div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6 mb-8">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-green-400 text-xs md:text-sm ">
+                      SYSTEMS ONLINE
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                    <span className="text-red-400 text-xs md:text-sm ">
+                      SECURITY ACTIVE
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                    <span className="text-yellow-400 text-xs md:text-sm ">
+                      SWARMS READY
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <ModelCategories
-          categories={explorerCategories}
-          isLoading={isLoading}
-          onCategoryClick={handleCategoryChange}
-          activeCategory={tagCategory}
-        />
+          {!isMobile ? (
+            <Sticky onStateChange={handleStateChange} top={50} innerZ={50}>
+              <div
+                className={cn(
+                  'relative bg-gradient-to-b from-background to-muted border-b border-red-600/30 py-8 transition-all duration-300',
+                  isFixed &&
+                    'shadow-lg shadow-primary/20 backdrop-blur-sm bg-background/95',
+                )}
+              >
+                <div className="container mx-auto px-8">
+                  <div className="mb-8">
+                    <div className="relative max-w-4xl mx-auto">
+                      <div className="relative">
+                        <div className="relative bg-background border-2 border-red-600/70 rounded-lg group hover:border-red-500 transition-colors">
+                          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-red-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-        <div
-          className={cn(
-            'flex flex-col h-full p-2',
-            isFixed
-              ? 'translate-y-[155px] md:translate-y-[125px] xl:translate-y-[120px]'
-              : 'translate-y-0',
+                          <div className="flex items-center flex-wrap">
+                            <div className="p-4 border-r border-red-600/50">
+                              <Search
+                                className={cn(
+                                  'w-6 h-6',
+                                  search.trim()
+                                    ? 'text-red-400 cursor-pointer'
+                                    : 'text-primary/50 cursor-default',
+                                )}
+                              />
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Enter search parameters..."
+                              value={search}
+                              onChange={handleSearchChange}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  searchClickHandler();
+                                }
+                              }}
+                              disabled={isAllLoading}
+                              className="flex-1 bg-transparent text-foreground placeholder-muted-foreground p-4  focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                            />
+
+                            <div className="relative">
+                              <button
+                                onClick={() =>
+                                  setIsDropdownOpen(!isDropdownOpen)
+                                }
+                                disabled={isAllLoading}
+                                className="flex items-center gap-2 p-4 border-l capitalize border-red-600/50 text-red-400 hover:text-red-300 transition-colors  disabled:pointer-events-none disabled:opacity-50"
+                              >
+                                <span>{selectedOptionLabel}</span>
+                                <ChevronDown
+                                  className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                                />
+                              </button>
+
+                              {isDropdownOpen && (
+                                <div className="absolute z-[9999] top-full right-0 mt-2 w-64 bg-background border-2 border-red-600/70 rounded-lg overflow-hidden">
+                                  <div className="bg-gradient-to-r from-red-900 to-red-800 p-3 border-b border-red-600/50">
+                                    <div className="text-red-200 text-xs  uppercase tracking-wider">
+                                      Filter Categories
+                                    </div>
+                                  </div>
+                                  <div className="max-h-64 overflow-y-auto">
+                                    {explorerOptions?.map((option) => (
+                                      <button
+                                        key={option.value}
+                                        onClick={() => {
+                                          handleOptionChange(option.value);
+                                          setIsDropdownOpen(false);
+                                        }}
+                                        className={`w-full flex items-center gap-3 p-3 text-left  text-sm transition-colors border-b border-red-600/20 last:border-b-0 ${
+                                          filterOption === option.value
+                                            ? 'bg-red-900/50 text-red-300'
+                                            : 'text-foreground hover:bg-red-900/30 hover:text-red-400'
+                                        }`}
+                                      >
+                                        <Activity className="w-4 h-4 text-primary" />
+                                        {option.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-8">
+                    <div className="text-red-400 text-xs  uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                      Category Filters
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
+                      {explorerCategories.map((category) => (
+                        <button
+                          key={category.value}
+                          onClick={() => handleCategoryChange(category.value)}
+                          className={`group relative overflow-hidden transition-all duration-300 ${
+                            tagCategory === category.value
+                              ? 'bg-gradient-to-r from-red-700 to-red-600 text-primary-foreground shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                              : 'bg-background border border-red-600/50 text-red-400 hover:border-red-500 hover:text-red-300'
+                          }`}
+                          style={{
+                            clipPath:
+                              tagCategory === category.value
+                                ? 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)'
+                                : 'none',
+                          }}
+                        >
+                          <div className="flex items-center gap-2 px-4 py-2  text-sm">
+                            {category.icon}
+                            {category.label}
+                          </div>
+
+                          {/* Hover effect */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Sticky>
+          ) : (
+            <div className="relative bg-gradient-to-b from-background to-muted border-b border-red-600/30 py-8">
+              <div className="container mx-auto px-8">
+                <div className="mb-8">
+                  <div className="relative max-w-4xl mx-auto">
+                    <div className="relative">
+                      <div className="relative bg-background border-2 border-red-600/70 rounded-lg group hover:border-red-500 transition-colors">
+                        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-red-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                        <div className="flex items-center flex-wrap">
+                          <div className="p-4 border-r border-red-600/50">
+                            <Search
+                              className={cn(
+                                'w-6 h-6',
+                                search.trim()
+                                  ? 'text-red-400 cursor-pointer'
+                                  : 'text-primary/50 cursor-default',
+                              )}
+                            />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Enter search parameters..."
+                            value={search}
+                            onChange={handleSearchChange}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                searchClickHandler();
+                              }
+                            }}
+                            disabled={isAllLoading}
+                            className="flex-1 bg-transparent text-foreground placeholder-muted-foreground p-4  focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                          />
+
+                          <div className="relative">
+                            <button
+                              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                              disabled={isAllLoading}
+                              className="flex items-center gap-2 p-4 border-l capitalize border-red-600/50 text-red-400 hover:text-red-300 transition-colors  disabled:pointer-events-none disabled:opacity-50"
+                            >
+                              <span>{selectedOptionLabel}</span>
+                              <ChevronDown
+                                className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                              />
+                            </button>
+
+                            {isDropdownOpen && (
+                              <div className="absolute z-[9999] top-full right-0 mt-2 w-64 bg-background border-2 border-red-600/70 rounded-lg overflow-hidden">
+                                <div className="bg-gradient-to-r from-red-900 to-red-800 p-3 border-b border-red-600/50">
+                                  <div className="text-red-200 text-xs  uppercase tracking-wider">
+                                    Filter Categories
+                                  </div>
+                                </div>
+                                <div className="max-h-64 overflow-y-auto">
+                                  {explorerOptions?.map((option) => (
+                                    <button
+                                      key={option.value}
+                                      onClick={() => {
+                                        handleOptionChange(option.value);
+                                        setIsDropdownOpen(false);
+                                      }}
+                                      className={`w-full flex items-center gap-3 p-3 text-left  text-sm transition-colors border-b border-red-600/20 last:border-b-0 ${
+                                        filterOption === option.value
+                                          ? 'bg-red-900/50 text-red-300'
+                                          : 'text-foreground hover:bg-red-900/30 hover:text-red-400'
+                                      }`}
+                                    >
+                                      <Activity className="w-4 h-4 text-primary" />
+                                      {option.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <div className="text-red-400 text-xs  uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                    Category Filters
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    {explorerCategories.map((category) => (
+                      <button
+                        key={category.value}
+                        onClick={() => handleCategoryChange(category.value)}
+                        className={`group relative overflow-hidden transition-all duration-300 ${
+                          tagCategory === category.value
+                            ? 'bg-gradient-to-r from-red-700 to-red-600 text-primary-foreground shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                            : 'bg-background border border-red-600/50 text-red-400 hover:border-red-500 hover:text-red-300'
+                        }`}
+                        style={{
+                          clipPath:
+                            tagCategory === category.value
+                              ? 'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)'
+                              : 'none',
+                        }}
+                      >
+                        <div className="flex items-center gap-2 px-4 py-2  text-sm">
+                          {category.icon}
+                          {category.label}
+                        </div>
+
+                        {/* Hover effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
-        >
-          {filterOption === 'all' && !searchValue && tagCategory === 'all' && (
-            <Trending
-              {...{
-                trendingModels,
-                isFetchingTrending,
-                loadMoreTrending,
-                hasMoreTrending,
-                usersMap,
-                reviewsMap,
-              }}
-              isLoading={isTrendingLoading}
-            />
-          )}
-          {reorderedElements.map(({ key, content }, index) => (
-            <div key={`${key}-${index}`}>{content}</div>
-          ))}
+
+          <div className='flex flex-col p-2 pb-10'>
+            {filterOption === 'all' &&
+              !searchValue &&
+              tagCategory === 'all' && (
+                <Trending
+                  {...{
+                    trendingModels,
+                    isFetchingTrending,
+                    loadMoreTrending,
+                    hasMoreTrending,
+                    usersMap,
+                    reviewsMap,
+                  }}
+                  isLoading={isTrendingLoading}
+                />
+              )}
+            {reorderedElements.map(({ key, content }, index) => (
+              <div key={`${key}-${index}`}>{content}</div>
+            ))}
+          </div>
         </div>
       </div>
     </>
