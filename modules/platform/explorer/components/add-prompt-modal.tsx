@@ -199,7 +199,7 @@ const AddPromptModal = ({
 
   return (
     <Modal
-      className="max-w-4xl overflow-hidden border-2 border-red-500/50 rounded-none bg-black backdrop-blur-sm shadow-2xl shadow-red-500/20"
+      className="w-full max-w-md md:max-w-4xl overflow-hidden border-2 border-red-500/50 rounded-none bg-black backdrop-blur-sm shadow-2xl shadow-red-500/20"
       overlayClassName="backdrop-blur-md bg-black/60"
       isOpen={isOpen}
       onClose={onClose}
@@ -211,8 +211,8 @@ const AddPromptModal = ({
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,0,0,0.02)_1px,transparent_1px)] bg-[size:25px_25px]" />
       </div>
 
-      <div className="relative z-10 flex flex-col h-[75vh]">
-        <div className="relative bg-black/95 border-b-2 border-red-500/50 px-8 py-6">
+      <div className="relative z-10 flex flex-col h-[85vh] sm:h-[80vh] md:h-[75vh]">
+        <div className="relative bg-black/95 border-b-2 border-red-500/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
           <div className="absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-red-500" />
           <div className="absolute top-0 right-0 w-6 h-6 border-r-2 border-t-2 border-red-500" />
 
@@ -240,11 +240,11 @@ const AddPromptModal = ({
 
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-3xl font-bold text-white mb-2 tracking-wider">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 tracking-wider">
                 PROMPT SUBMISSION
-                <div className="h-1 w-28 bg-gradient-to-r from-red-500 to-transparent mt-1" />
+                <div className="h-1 w-20 sm:w-24 md:w-28 bg-gradient-to-r from-red-500 to-transparent mt-1" />
               </h2>
-              <p className="text-gray-400 text-sm font-mono leading-relaxed max-w-2xl">
+              <p className="text-gray-400 text-xs sm:text-sm font-mono leading-relaxed max-w-2xl">
                 Share your prompt with the community by filling out the details
                 below. Make it clear, useful, and well-tagged so others can
                 easily find and use it.
@@ -253,7 +253,7 @@ const AddPromptModal = ({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
           <div className="group">
             <label className="flex items-center gap-3 mb-3">
               <span className="text-red-400 font-mono text-xs">[01]</span>
@@ -266,7 +266,7 @@ const AddPromptModal = ({
                 value={promptName}
                 onChange={setPromptName}
                 placeholder="Enter cognitive pattern identifier..."
-                className="bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white placeholder-gray-500 h-12 px-4 font-mono transition-all duration-300 hover:bg-black/80"
+                className="bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white placeholder-gray-500 h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-black/80"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 <div className="w-2 h-2 bg-red-500/50 rounded-full" />
@@ -286,7 +286,7 @@ const AddPromptModal = ({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Define behavioral patterns and parameters..."
-                className="w-full h-20 rounded-lg p-4 bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white placeholder-gray-500 resize-none font-mono text-sm transition-all duration-300 hover:bg-black/80 outline-none"
+                className="w-full h-16 sm:h-20 rounded-lg p-3 sm:p-4 bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white placeholder-gray-500 resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-black/80 outline-none"
               />
               <div className="absolute bottom-3 right-3 flex gap-1">
                 {[...Array(3)].map((_, i) => (
@@ -319,7 +319,7 @@ const AddPromptModal = ({
                 }}
                 required
                 placeholder="You are an advanced AI assistant with specialized capabilities..."
-                className="w-full h-32 p-4 bg-black/80 rounded-lg border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-gray-500 resize-none font-mono text-sm transition-all duration-300 hover:bg-black/90 outline-none leading-relaxed"
+                className="w-full h-24 sm:h-28 md:h-32 p-3 sm:p-4 bg-black/80 rounded-lg border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-gray-500 resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-black/90 outline-none leading-relaxed"
               />
 
               <div className="absolute top-3 right-3 flex items-center gap-2">
@@ -380,7 +380,7 @@ const AddPromptModal = ({
             title="ADD_IMAGE"
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div className="group">
               <label className="flex items-center gap-3 mb-3">
                 <span className="text-red-400 font-mono text-xs">[05]</span>
@@ -395,7 +395,7 @@ const AddPromptModal = ({
                 selectedValues={categories}
                 onChange={handleCategoriesChange}
                 placeholder="Select classifications..."
-                className="h-12 bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white font-mono transition-all duration-300 hover:bg-black/80"
+                className="h-10 sm:h-12 bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white font-mono text-sm sm:text-base transition-all duration-300 hover:bg-black/80"
               />
             </div>
 
@@ -409,13 +409,13 @@ const AddPromptModal = ({
                 value={tags}
                 onChange={setTags}
                 placeholder="analysis, creative, technical, search..."
-                className="bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white placeholder-gray-500 h-12 px-4 font-mono transition-all duration-300 hover:bg-black/80"
+                className="bg-black/60 border-2 border-red-500/30 focus:border-red-500 text-white placeholder-gray-500 h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-black/80"
               />
             </div>
           </div>
         </div>
 
-        <div className="relative bg-black/95 border-t-2 border-red-500/50 px-8 py-6">
+        <div className="relative bg-black/95 border-t-2 border-red-500/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
           <div className="absolute bottom-0 left-0 w-6 h-6 border-l-2 border-b-2 border-red-500" />
           <div className="absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-red-500" />
 
@@ -423,7 +423,7 @@ const AddPromptModal = ({
             <Button
               disabled={addPrompt.isPending || isLoading}
               onClick={submit}
-              className="relative group px-8 py-3 bg-black border-2 border-red-500 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 font-mono font-bold tracking-wider overflow-hidden"
+              className="relative group px-4 sm:px-6 md:px-8 py-2 sm:py-3 bg-black border-2 border-red-500 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 font-mono font-bold tracking-wider overflow-hidden text-sm sm:text-base"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
               <span className="relative z-10">
