@@ -1,162 +1,46 @@
 import Link from 'next/link';
-
-import Logo from '@/shared/components/icons/Logo';
-import GitHub from '@/shared/components/icons/GitHub';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Home } from 'lucide-react';
 
 export default function Footer() {
+  const router = useRouter();
+
   return (
-    <footer className="mx-auto max-w-[1920px] px-6 bg-zinc-900 text-foreground">
-      <div className="grid grid-cols-1 gap-8 py-12 text-white transition-colors duration-150 border-b lg:grid-cols-12 border-zinc-600 bg-zinc-900">
-        <div className="col-span-1 lg:col-span-2">
-          <span className="mr-2 flex border-zinc-700 gap-2 items-center ">
-            <Logo />
-            <span>TGSC</span>
-          </span>
-        </div>
-        <div className="col-span-1 lg:col-span-2">
-          <ul className="flex flex-col flex-initial md:flex-1">
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="/"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+    <footer className="w-full bg-black border-t border-red-500/20">
+      <div className="max-w-[1920px] mx-auto px-6 py-12">
+        <div className="flex flex-col items-start">
+          {/* Main content */}
+          <div className="w-full">
+            <h2 className="text-4xl font-bold text-white mb-4 tracking-tight">
+              SWARMS MARKETPLACE
+            </h2>
+            <p className="text-white/70 text-lg mb-8 max-w-xl">
+              Share and discover agents, prompts, and tools
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => router.back()}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-white/70 hover:text-white hover:bg-red-500/20 hover:border-red-500/40 transition-all duration-300 group shadow-sm hover:shadow-md"
               >
-                Home
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="/"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
+                <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
+                <span className="font-medium">Go back</span>
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-white/70 hover:text-white hover:bg-red-500/20 hover:border-red-500/40 transition-all duration-300 group shadow-sm hover:shadow-md"
               >
-                About
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="/"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Careers
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://docs.swarms.world/en/latest/"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Blog
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://docs.swarms.world/en/latest/"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Documentation
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://github.com/kyegomez/swarms"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Github
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://github.com/kyegomez/swarm-ecosystem"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Swarms Ecosystem
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://discord.gg/jM3Z6M9uMq"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Swarms Community
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        <div className="col-span-1 lg:col-span-2">
-          <ul className="flex flex-col flex-initial md:flex-1">
-            <li className="py-3 md:py-0 md:pb-4">
-              <p className="font-bold text-white transition duration-150 ease-in-out hover:text-zinc-200">
-                Social Medias
-              </p>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://x.com/swarms_corp"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Twitter
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://www.linkedin.com/company/swarms-corp"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Linkedin
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://www.threads.net/@swarms_corp"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Threads
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://www.youtube.com/@kyegomez3242"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Youtube
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://discord.gg/jM3Z6M9uMq"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Discord
-              </Link>
-            </li>
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://github.com/The-Swarm-Corporation"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Github Org Profile
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-
-        <div className="flex items-start col-span-1 text-white lg:col-span-6 lg:justify-end">
-          <div className="flex items-center h-10 space-x-6">
-            <a
-              aria-label="Github Repository"
-              href="https://github.com/kyegomez/swarms"
-            >
-              <GitHub />
-            </a>
+                <Home className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                <span className="font-medium">Home</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="flex flex-col items-center justify-between py-12 space-y-4 text-white md:flex-row bg-zinc-900">
-        <div className="w-full text-center">
-          <span>
-            &copy; {new Date().getFullYear()} TGSC, Inc. All rights reserved.
-          </span>
+
+        {/* Bottom copyright */}
+        <div className="mt-12 pt-8 border-t border-red-500/20">
+          <p className="text-white/50 text-sm">
+            &copy; {new Date().getFullYear()} Swarms.ai. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
