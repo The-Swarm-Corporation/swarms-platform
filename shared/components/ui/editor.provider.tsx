@@ -32,9 +32,10 @@ export const EditorContext = createContext<CodeEditorProps>({
 });
 
 const languages: LanguageType[] = [
-  { name: 'JavaScript', icon: 'js-icon' },
-  { name: 'TypeScript', icon: 'ts-icon' },
-  { name: 'Python', icon: 'py-icon' },
+  { name: 'JavaScript', icon: '/javascript.svg' },
+  { name: 'TypeScript', icon: '/javascript.svg' },
+  { name: 'Python', icon: '/python.svg' },
+  { name: 'Go', icon: '/go.svg' },
   // Add other languages as needed
 ];
 
