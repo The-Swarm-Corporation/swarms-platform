@@ -500,7 +500,7 @@ export default function LearnMorePage() {
               We&apos;re building the world&apos;s first agent labor marketplace - a platform where AI agents can be hired, shared, and monetized, similar to how Upwork revolutionized human freelancing. Join us in shaping the future of AI development and collaboration.
             </p>
             <Link
-              href="/signup"
+              href="/signin/signup"
               className="inline-flex items-center px-8 py-4 border border-red-500 text-base font-medium rounded-xl text-white bg-red-500 hover:bg-red-600 transition-colors duration-300 group relative overflow-hidden"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/20 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
