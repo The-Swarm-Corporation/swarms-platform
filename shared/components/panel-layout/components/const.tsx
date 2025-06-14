@@ -9,13 +9,12 @@ import {
   User,
   Building2,
   LogOut,
-  CandlestickChart,
-  BookOpenText,
   FileText,
   FileSpreadsheet,
   GripVertical,
   MessageSquareMore,
   Atom,
+  Lightbulb,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -36,19 +35,19 @@ type NavMenuProps = {
 
 const SHARED_LINKS: MenuProps[] = [
   {
-    icon: <CandlestickChart />,
-    title: 'Pricing',
-    link: NAVIGATION.PRICING,
-  },
-  {
-    icon: <BookOpenText />,
-    title: 'Customer Support',
-    link: NAVIGATION.GET_DEMO,
+    icon: <Blocks />,
+    title: 'Marketplace',
+    link: '/',
   },
   {
     title: 'Docs',
     link: NAVIGATION.DOCS,
     icon: <FileText />,
+  },
+  {
+    title: 'Learn More',
+    link: NAVIGATION.LEARN_MORE,
+    icon: <Lightbulb />,
   },
 ];
 

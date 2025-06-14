@@ -1202,6 +1202,76 @@ const explorerRouter = router({
         ),
       };
     }),
+  getTopUsers: publicProcedure
+    .input(z.object({ category: z.enum(['total', 'prompts', 'agents', 'tools']) }))
+    .query(async ({ input, ctx }) => {
+      const { category } = input;
+
+      // Get all users with their items
+      const { data: users, error: usersError } = await ctx.supabase
+        .from('users')
+        .select('id, username, full_name, avatar_url');
+
+      if (usersError) throw usersError;
+      if (!users) return [];
+
+      // Get all prompts
+      const { data: prompts, error: promptsError } = await ctx.supabase
+        .from('swarms_cloud_prompts')
+        .select('*');
+
+      if (promptsError) throw promptsError;
+      if (!prompts) return [];
+
+      // Get all agents
+      const { data: agents, error: agentsError } = await ctx.supabase
+        .from('swarms_cloud_agents')
+        .select('*');
+
+      if (agentsError) throw agentsError;
+      if (!agents) return [];
+
+      // Get all tools
+      const { data: tools, error: toolsError } = await ctx.supabase
+        .from('swarms_cloud_tools')
+        .select('*');
+
+      if (toolsError) throw toolsError;
+      if (!tools) return [];
+
+      // Map items to users
+      const usersWithItems = users.map(user => ({
+        id: user.id,
+        username: user.username,
+        full_name: user.full_name,
+        avatar_url: user.avatar_url,
+        prompts: prompts.filter(p => p.user_id === user.id),
+        agents: agents.filter(a => a.user_id === user.id),
+        tools: tools.filter(t => t.user_id === user.id)
+      }));
+
+      // Sort users based on the selected category
+      const sortedUsers = usersWithItems.sort((a, b) => {
+        const aTotal = a.prompts.length + a.agents.length + a.tools.length;
+        const bTotal = b.prompts.length + b.agents.length + b.tools.length;
+
+        switch (category) {
+          case 'total':
+            return bTotal - aTotal;
+          case 'prompts':
+            return b.prompts.length - a.prompts.length;
+          case 'agents':
+            return b.agents.length - a.agents.length;
+          case 'tools':
+            return b.tools.length - a.tools.length;
+          default:
+            return 0;
+        }
+      });
+
+      // Return top 9 users
+      return sortedUsers.slice(0, 9);
+    }),
 });
 
 export default explorerRouter;

@@ -32,6 +32,11 @@ const Agents = dynamic(() => import('./components/content/agents'), {
 const Tools = dynamic(() => import('./components/content/tools'), {
   ssr: false,
 });
+const Leaderboard = dynamic(
+  () => import('./components/content/leaderboard').then((mod) => mod.Leaderboard),
+  { ssr: false }
+);
+
 const Explorer = () => {
   const [addPromptModalOpen, setAddPromptModalOpen] = useState(false);
   const [addAgentModalOpen, setAddAgentModalOpen] = useState(false);
@@ -306,6 +311,9 @@ const Explorer = () => {
           {reorderedElements.map(({ key, content }, index) => (
             <div key={`${key}-${index}`}>{content}</div>
           ))}
+          {filterOption === 'all' && !searchValue && tagCategory === 'all' && (
+            <Leaderboard />
+          )}
         </div>
       </div>
     </>
