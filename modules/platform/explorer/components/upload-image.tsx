@@ -17,6 +17,8 @@ type Props = {
   filePath: string;
   modelType: string;
   isDeleteFile: boolean;
+  preface?: string;
+  title?: string;
   deleteImage: (
     filePath: string,
     modelType: string,
@@ -38,13 +40,20 @@ export default function ModelFileUpload({
   handleDrop,
   uploadRef,
   error,
+  preface,
+  title = "Add Image"
 }: Props) {
   return (
     <div className="mt-7">
-      <p className="mb-2 text-white text-sm">Add Image</p>
+      <div className="flex items-center gap-3 mb-3">
+        {preface && (
+          <span className="text-red-400 font-mono text-xs">{preface}</span>
+        )}
+        <p className="text-foreground font-medium">{title}</p>
+      </div>
 
       <div
-        className="relative w-full max-w-md cursor-pointer rounded-xl border border-dashed border-[#40403F] bg-transparent py-8 text-center text-[#928E8B]"
+        className="relative w-full max-w-md cursor-pointer rounded-xl border border-dashed border-red-500/30 hover:border-red-500/50 bg-transparent py-8 text-center text-[#928E8B]"
         tabIndex={0}
         onClick={handleImageEditClick}
         onKeyDown={(e) => e.key === 'Enter' && handleImageEditClick()}
