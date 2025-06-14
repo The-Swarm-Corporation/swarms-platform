@@ -26,10 +26,11 @@ const Modal = ({
   footer,
   className,
   showHeader = true,
+  showClose = true,
 }: Props) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent overlayClassName="backdrop-blur-md" className={className}>
+      <DialogContent overlayClassName="backdrop-blur-md" className={className} hideCloseButton={!showClose}>
         {showHeader && (
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

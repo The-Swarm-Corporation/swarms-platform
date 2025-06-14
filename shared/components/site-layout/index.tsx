@@ -34,11 +34,7 @@ export default function SiteLayout({
           )}
         >
           {children}
-          {user && (
-            <div className="absolute lg:w-[93%] xl:w-[95%]">
-              <Footer />
-            </div>
-          )}
+          {user && <Footer />}
         </main>
       </div>
       {!user && <Footer />}

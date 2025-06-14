@@ -66,6 +66,8 @@ export default function Agents({
                         reviewsMap={reviewsMap}
                         imageUrl={agent.image_url || ''}
                         description={agent.description || ''}
+                        usecases={agent?.usecases}
+                        requirements={agent?.requirements}
                         icon={icon}
                         className="w-full h-full"
                         link={url}

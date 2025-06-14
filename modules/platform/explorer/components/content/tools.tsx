@@ -56,6 +56,8 @@ export default function Tools({
                       imageUrl={tool.image_url || ''}
                       description={tool.description || ''}
                       icon={<Wrench className="w-6 h-6" />}
+                      usecases={tool?.usecases}
+                      requirements={tool?.requirements}
                       className="w-full h-full"
                       link={makeUrl(PUBLIC.TOOL, { id: tool.id })}
                       userId={tool.user_id}

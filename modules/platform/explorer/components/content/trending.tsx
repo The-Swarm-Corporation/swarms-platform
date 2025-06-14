@@ -74,6 +74,8 @@ export default function Trending({
                         link={trend?.link}
                         userId={trend?.user_id}
                         variant={variant}
+                        usecases={trend?.usecases}
+                        requirements={trend?.requirements}
                         is_free={trend?.is_free}
                         tags={trend?.tags?.split(',') || []}
                       />

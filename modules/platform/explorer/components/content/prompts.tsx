@@ -61,6 +61,8 @@ export default function Prompts({
                       link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
                       userId={prompt.user_id}
                       is_free={prompt.is_free}
+                      usecases={prompt?.usecases}
+                        requirements={prompt?.requirements}
                       variant="prompts"
                       tags={prompt?.tags?.split(',') || []}
                     />

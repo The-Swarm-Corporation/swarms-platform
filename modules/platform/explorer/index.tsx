@@ -498,7 +498,7 @@ const Explorer = () => {
             </div>
           )}
 
-          <div className='flex flex-col h-full p-2'>
+          <div className='flex flex-col p-2 pb-10'>
             {filterOption === 'all' &&
               !searchValue &&
               tagCategory === 'all' && (
