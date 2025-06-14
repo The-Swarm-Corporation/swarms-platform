@@ -5,6 +5,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { User } from '@supabase/supabase-js';
 import Image from 'next/image';
 import React from 'react';
+import Link from 'next/link';
 
 interface AvatarProps {
   user?: User;
@@ -15,6 +16,7 @@ interface AvatarProps {
   showBorder?: boolean;
   title?: string;
   profileName?: string;
+  isClickable?: boolean;
 }
 
 export default function Avatar({
@@ -26,6 +28,7 @@ export default function Avatar({
   profileName,
   showUsername,
   className,
+  isClickable = true,
 }: AvatarProps) {
   const shouldFetchUser = !explorerUser && !user && Boolean(userId);
 
@@ -47,7 +50,7 @@ export default function Avatar({
     data?.username ||
     '';
 
-  return (
+  const content = (
     <div title={title} className={cn('flex items-center', className)}>
       {avatar ? (
         <div
@@ -77,4 +80,14 @@ export default function Avatar({
       )}
     </div>
   );
+
+  if (isClickable && username) {
+    return (
+      <Link href={`/users/${username}`} className="hover:opacity-80 transition-opacity">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }
