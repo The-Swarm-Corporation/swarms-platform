@@ -16,6 +16,7 @@ import {
 import { motion } from 'framer-motion';
 import Head from 'next/head';
 import Footer from '@/shared/components/ui/Footer/Footer';
+import BookmarkButton from '@/shared/components/bookmark-button';
 
 // Cache duration in milliseconds (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -530,6 +531,14 @@ export default function UserProfile() {
                     </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                <BookmarkButton
+                  id={userData.username || ''}
+                  type="user"
+                  name={userData.full_name || userData.username || ''}
+                  description={`AI Developer with ${stats.totalItems} creations including ${stats.prompts} prompts, ${stats.agents} agents, and ${stats.tools} tools`}
+                  created_at={new Date().toISOString()}
+                  username={userData.username || ''}
+                />
               </motion.div>
             </div>
           </motion.section>

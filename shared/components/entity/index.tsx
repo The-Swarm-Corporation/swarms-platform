@@ -4,7 +4,7 @@ import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Pencil, Share, Star, FileDown } from 'lucide-react'; // Use available icons
+import { Copy, Pencil, Share, Star, FileDown, Bookmark } from 'lucide-react'; // Use available icons
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '@/shared/components/avatar';
@@ -31,6 +31,7 @@ import remarkGfm from 'remark-gfm';
 import { stripMarkdown } from './helper';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import BookmarkButton from '@/shared/components/bookmark-button';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -293,34 +294,57 @@ export default function EntityComponent({
           </div>
 
           <div className="max-md:my-8 mt-2 flex max-md:flex-col max-md:items-center md:w-fit gap-3">
-            <Button
-              onClick={handleShowShareModal}
-              variant="destructive"
-              className="mt-3 w-full"
-            >
-              <Share size={20} />
-              <span className="ml-2">Share</span>
-            </Button>
-            {showEditButton && (
+            <div className="flex flex-wrap gap-2">
+              {showEditButton && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShowEditModal}
+                  className="flex items-center gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              )}
               <Button
-                onClick={handleShowEditModal}
-                variant="destructive"
-                className="mt-3 w-full"
-              >
-                <Pencil size={20} />
-                <span className="ml-2">Edit</span>
-              </Button>
-            )}
-            {id && user.data?.id && !reviewQuery?.data?.hasReviewed && (
-              <Button
-                onClick={handleShowReviewModal}
                 variant="outline"
-                className="mt-3 w-full"
+                size="sm"
+                onClick={handleShowShareModal}
+                className="flex items-center gap-2"
               >
-                <Star size={20} className="text-yellow-500" />
-                <span className="ml-2">Add review</span>
+                <Share className="h-4 w-4" />
+                Share
               </Button>
-            )}
+              {id && user.data?.id && !reviewQuery?.data?.hasReviewed && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShowReviewModal}
+                  className="flex items-center gap-2"
+                >
+                  <Star className="h-4 w-4" />
+                  Rate
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShowReviewListModal}
+                className="flex items-center gap-2"
+              >
+                <Star className="h-4 w-4" />
+                Reviews ({reviewLength})
+              </Button>
+              <BookmarkButton
+                id={id || ''}
+                type={entityTitle as 'prompt' | 'agent' | 'tool'}
+                name={name || title}
+                description={description}
+                created_at={new Date().toISOString()}
+                username={user?.data?.username || undefined}
+                tags={tags}
+              />
+            </div>
           </div>
 
           <div

@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/shared/utils/cn';
-import { LogIn, LogOut, Keyboard } from 'lucide-react';
+import { LogIn, LogOut, Keyboard, Bookmark } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { FormEvent, useState } from 'react';
 import { SignOut } from '@/shared/utils/auth-helpers/server';
@@ -29,6 +29,7 @@ const appIdToSidebarTitle = {
   telemetry: 'Telemetry',
   settings: 'Settings',
   profile: 'Profile',
+  bookmarks: 'Bookmarks',
 };
 
 const PanelLayoutSidebar = () => {
@@ -42,6 +43,7 @@ const PanelLayoutSidebar = () => {
 
   // Always show the Apps page in the sidebar
   const appsMenuItem = SIDE_BAR_MENU.platform?.find(item => item.title.toLowerCase() === 'apps');
+  const bookmarksMenuItem = SIDE_BAR_MENU.platform?.find(item => item.title.toLowerCase() === 'bookmarks');
   let filteredMenu = [];
   if (starred.length === 0) {
     filteredMenu = SIDE_BAR_MENU.platform || [];
@@ -56,6 +58,10 @@ const PanelLayoutSidebar = () => {
     // Ensure Apps page is always present
     if (appsMenuItem && !filteredMenu.some(item => item.title.toLowerCase() === 'apps')) {
       filteredMenu.splice(2, 0, appsMenuItem); // Insert after Marketplace (index 2)
+    }
+    // Ensure Bookmarks page is always present
+    if (bookmarksMenuItem && !filteredMenu.some(item => item.title.toLowerCase() === 'bookmarks')) {
+      filteredMenu.splice(3, 0, bookmarksMenuItem); // Insert after Apps (index 3)
     }
   }
 

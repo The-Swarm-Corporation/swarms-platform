@@ -16,6 +16,7 @@ import {
   Atom,
   Lightbulb,
   Trophy,
+  Bookmark,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -126,6 +127,12 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <GripVertical size={24} className="text-orange-500" />,
       title: 'Drag & Drop',
       link: PLATFORM.DRAG_N_DROP,
+      className: navItemClass,
+    },
+    {
+      icon: <Bookmark size={24} className="text-purple-500" />,
+      title: 'Bookmarks',
+      link: PLATFORM.BOOKMARKS,
       className: navItemClass,
     },
     {

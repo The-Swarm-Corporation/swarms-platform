@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Atom, Blocks, Settings, User, Star, StarOff, MessageSquareMore, GripVertical, FileSpreadsheet, LockKeyhole, CircleGauge, LayoutDashboard, Trophy } from 'lucide-react';
+import { Atom, Blocks, Settings, User, Star, StarOff, MessageSquareMore, GripVertical, FileSpreadsheet, LockKeyhole, CircleGauge, LayoutDashboard, Trophy, Bookmark } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useStarredApps } from '@/shared/components/starred-apps-context';
 import { useRouter } from 'next/navigation';
@@ -84,6 +84,13 @@ const APPS = [
     icon: <User size={32} className="text-gray-400" />,
     category: 'More',
   },
+  {
+    id: 'bookmarks',
+    title: 'Marketplace Bookmarks',
+    description: 'Manage your bookmarks.',
+    icon: <Bookmark size={32} className="text-gray-400" />,
+    category: 'Marketplace',
+  },
 ];
 
 const CATEGORIES = [
@@ -99,21 +106,21 @@ const TEMPLATES = [
     title: 'Marketplace',
     description: 'Marketplace, Leaderboard, Dashboard, Settings',
     icon: <Blocks size={28} className="text-blue-400" />,
-    apps: ['marketplace', 'leaderboard', 'dashboard', 'settings'],
+    apps: ['dashboard', 'marketplace', 'leaderboard', 'settings', 'bookmarks'],
   },
   {
     id: 'no-code',
     title: 'No-Code Solutions',
-    description: 'Chat, Spreadsheet, Drag n Drop, Settings',
+    description: 'Dashboard, Chat, Spreadsheet, Drag n Drop, Settings',
     icon: <Atom size={28} className="text-emerald-400" />,
-    apps: ['chat', 'spreadsheet', 'dragndrop', 'settings'],
+    apps: ['dashboard', 'chat', 'spreadsheet', 'dragndrop', 'settings'],
   },
   {
     id: 'developer',
     title: 'Developer',
-    description: 'API Key, Telemetry, Settings',
+    description: 'Dashboard, API Key, Telemetry, Settings',
     icon: <LockKeyhole size={28} className="text-red-400" />,
-    apps: ['apikeys', 'telemetry', 'settings', 'dashboard'],
+    apps: ['dashboard', 'apikeys', 'telemetry', 'settings'],
   },
   {
     id: 'all',

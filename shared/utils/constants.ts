@@ -100,6 +100,7 @@ export const PLATFORM = {
   TELEMETRY_SETTINGS: '/platform/telemetry/settings',
   APPS: '/apps',
   LEADERBOARD: '/platform/leaderboard',
+  BOOKMARKS: '/bookmarks',
 };
 
 export const AUTH = {
