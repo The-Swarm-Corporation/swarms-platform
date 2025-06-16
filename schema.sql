@@ -361,7 +361,10 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_prompts" (
     "use_cases" "json",
     "status" "public"."user_prompts_status",
     "tags" "text",
-    "description" "text"
+    "description" "text",
+    "is_free" boolean DEFAULT true NOT NULL,
+    "price" decimal(10,2) DEFAULT 0.00,
+    "seller_wallet_address" "text"
 );
 
 ALTER TABLE "public"."swarms_cloud_prompts" OWNER TO "postgres";
@@ -375,7 +378,10 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_agents" (
     "use_cases" "json",
     "status" "public"."user_agents_status",
     "tags" "text",
-    "description" "text"
+    "description" "text",
+    "is_free" boolean DEFAULT true NOT NULL,
+    "price" decimal(10,2) DEFAULT 0.00,
+    "seller_wallet_address" "text"
 );
 
 ALTER TABLE "public"."swarms_cloud_agents" OWNER TO "postgres";
@@ -455,6 +461,46 @@ CREATE TABLE IF NOT EXISTS "public"."swarms_cloud_users_wallets_transactions" (
 );
 
 ALTER TABLE "public"."swarms_cloud_users_wallets_transactions" OWNER TO "postgres";
+
+CREATE TABLE IF NOT EXISTS "public"."marketplace_transactions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "buyer_id" "uuid" NOT NULL,
+    "seller_id" "uuid" NOT NULL,
+    "item_id" "uuid" NOT NULL,
+    "item_type" "text" NOT NULL,
+    "amount" decimal(10,2) NOT NULL,
+    "platform_fee" decimal(10,2) NOT NULL,
+    "seller_amount" decimal(10,2) NOT NULL,
+    "transaction_signature" "text" NOT NULL,
+    "status" "text" DEFAULT 'pending' NOT NULL,
+    "buyer_wallet_address" "text" NOT NULL,
+    "seller_wallet_address" "text" NOT NULL
+);
+
+ALTER TABLE "public"."marketplace_transactions" OWNER TO "postgres";
+
+CREATE TABLE IF NOT EXISTS "public"."marketplace_user_purchases" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "item_id" "uuid" NOT NULL,
+    "item_type" "text" NOT NULL,
+    "transaction_id" "uuid" NOT NULL
+);
+
+ALTER TABLE "public"."marketplace_user_purchases" OWNER TO "postgres";
+
+CREATE TABLE IF NOT EXISTS "public"."marketplace_user_wallets" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "wallet_address" "text" NOT NULL,
+    "is_primary" boolean DEFAULT false NOT NULL
+);
+
+ALTER TABLE "public"."marketplace_user_wallets" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."users" (
     "id" "uuid" NOT NULL,
