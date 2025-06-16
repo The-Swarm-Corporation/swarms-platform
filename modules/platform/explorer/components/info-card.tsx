@@ -15,7 +15,6 @@ import CardDetailsModal from './card-details-modal';
 import ReactStars from 'react-rating-star-with-type';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { useRouter } from 'next/navigation';
-import { getTruncatedString } from '@/shared/utils/helpers';
 import { Badge } from '@/shared/components/ui/badge';
 import { RequirementProps } from '@/shared/components/entity/agent-requirements';
 
@@ -241,7 +240,7 @@ const PromptsCard = memo(
               <div className="flex items-center gap-2"></div>
 
               {!is_free && (
-                <Crown className="w-6 h-6 text-yellow-400 drop-shadow-lg" />
+                <Crown className="w-6 h-6 text-yellow-400 drop-shadow-lg absolute right-6 top-2" />
               )}
             </div>
           </div>
@@ -405,9 +404,7 @@ const AgentsCard = memo(
 
           <div className="relative z-10 p-6 h-full flex flex-col">
             {!is_free && (
-              <div className="flex items-start justify-between mb-4">
-                <Crown className="w-6 h-6 text-yellow-400 drop-shadow-lg" />
-              </div>
+                <Crown className="w-6 h-6 text-yellow-400 drop-shadow-lg absolute right-6 top-2" />
             )}
 
             <div className="flex items-center gap-3">

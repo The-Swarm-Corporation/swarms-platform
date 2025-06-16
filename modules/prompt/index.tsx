@@ -3,8 +3,11 @@ import PromptJsonLd from '@/shared/components/prompts/PromptJsonLd';
 import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
 import AccessRestriction from '@/shared/components/marketplace/access-restriction';
+import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 
 const Prompt = async ({ id }: { id: string }) => {
+  await checkUserSession();
+
   const prompt = await trpcApi.explorer.getPromptById.query(id);
   if (!prompt) {
     redirect('/404');

@@ -53,6 +53,11 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
       if (solana?.isPhantom) {
         return solana;
       }
+
+      // Check for other wallet indicators
+      if (solana && !solana.isPhantom) {
+        console.warn('Non-Phantom Solana wallet detected');
+      }
     }
     return null;
   };
@@ -60,7 +65,7 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
   const connect = async () => {
     const provider = getProvider();
     if (!provider) {
-      throw new Error('Phantom wallet not found. Please install Phantom wallet.');
+      throw new Error('Phantom wallet not found. Please install Phantom wallet from phantom.com');
     }
 
     setIsConnecting(true);
@@ -70,9 +75,21 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
       setPublicKey(walletAddress);
       setIsConnected(true);
       await refreshBalance(walletAddress);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to connect wallet:', error);
-      throw error;
+
+      // Provide specific error messages based on error type
+      if (error?.message?.includes('User rejected')) {
+        throw new Error('Connection cancelled. Please approve the connection in your Phantom wallet.');
+      } else if (error?.message?.includes('already pending')) {
+        throw new Error('Connection request already pending. Please check your Phantom wallet.');
+      } else if (error?.message?.includes('not found')) {
+        throw new Error('Phantom wallet not found. Please install Phantom wallet from phantom.com');
+      } else if (error?.code === 4001) {
+        throw new Error('Connection rejected. Please approve the connection in your Phantom wallet.');
+      } else {
+        throw new Error(error?.message || 'Failed to connect wallet. Please try again.');
+      }
     } finally {
       setIsConnecting(false);
     }

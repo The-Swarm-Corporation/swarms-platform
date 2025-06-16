@@ -229,7 +229,7 @@ const explorerRouter = router({
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
         isFree: z.boolean().default(true),
-        price: z.number().min(0).max(999).default(0),
+        price: z.number().min(0.000001, "Price must be at least 0.000001 SOL").max(999999, "Price cannot exceed 999,999 SOL").default(0),
         sellerWalletAddress: z.string().optional(),
       }),
     )
@@ -241,6 +241,16 @@ const explorerRouter = router({
       // at least 5 characters
       if (!input.name || input.name.trim()?.length < 2) {
         throw 'Name should be at least 2 characters';
+      }
+
+      // Validate marketplace fields
+      if (!input.isFree) {
+        if (!input.price || input.price <= 0) {
+          throw 'Price must be greater than 0 for paid prompts';
+        }
+        if (!input.sellerWalletAddress || input.sellerWalletAddress.trim().length === 0) {
+          throw 'Wallet address is required for paid prompts';
+        }
       }
 
       // rate limiter - 1 prompt per minute
@@ -302,8 +312,8 @@ const explorerRouter = router({
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
         isFree: z.boolean().optional(),
-        price: z.number().min(0).max(999).optional(),
-        sellerWalletAddress: z.string().optional(),
+        price: z.number().min(0.000001, "Price must be at least 0.000001 SOL").max(999999, "Price cannot exceed 999,999 SOL").optional(),
+        sellerWalletAddress: z.string().min(1, "Wallet address is required for paid items").optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -333,6 +343,16 @@ const explorerRouter = router({
         // Add marketplace fields if provided
         if (input.isFree !== undefined) {
           updateData.is_free = input.isFree;
+
+          // Validate marketplace fields when updating
+          if (!input.isFree) {
+            if (!input.price || input.price <= 0) {
+              throw 'Price must be greater than 0 for paid prompts';
+            }
+            if (!input.sellerWalletAddress || input.sellerWalletAddress.trim().length === 0) {
+              throw 'Wallet address is required for paid prompts';
+            }
+          }
         }
         if (input.price !== undefined) {
           updateData.price = input.price;
@@ -451,7 +471,7 @@ const explorerRouter = router({
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
         isFree: z.boolean().default(true),
-        price: z.number().min(0).max(999).default(0),
+        price: z.number().min(0.000001, "Price must be at least 0.000001 SOL").max(999999, "Price cannot exceed 999,999 SOL").default(0),
         sellerWalletAddress: z.string().optional(),
       }),
     )
@@ -463,6 +483,16 @@ const explorerRouter = router({
       // at least 5 characters
       if (!input.name || input.name.trim()?.length < 2) {
         throw 'Name should be at least 2 characters';
+      }
+
+      // Validate marketplace fields
+      if (!input.isFree) {
+        if (!input.price || input.price <= 0) {
+          throw 'Price must be greater than 0 for paid agents';
+        }
+        if (!input.sellerWalletAddress || input.sellerWalletAddress.trim().length === 0) {
+          throw 'Wallet address is required for paid agents';
+        }
       }
 
       // rate limiter - 1 agent per minute
@@ -530,8 +560,8 @@ const explorerRouter = router({
         imageUrl: z.string().optional(),
         filePath: z.string().optional(),
         isFree: z.boolean().optional(),
-        price: z.number().min(0).max(999).optional(),
-        sellerWalletAddress: z.string().optional(),
+        price: z.number().min(0.000001, "Price must be at least 0.000001 SOL").max(999999, "Price cannot exceed 999,999 SOL").optional(),
+        sellerWalletAddress: z.string().min(1, "Wallet address is required for paid items").optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -563,6 +593,16 @@ const explorerRouter = router({
         // Add marketplace fields if provided
         if (input.isFree !== undefined) {
           updateData.is_free = input.isFree;
+
+          // Validate marketplace fields when updating
+          if (!input.isFree) {
+            if (!input.price || input.price <= 0) {
+              throw 'Price must be greater than 0 for paid agents';
+            }
+            if (!input.sellerWalletAddress || input.sellerWalletAddress.trim().length === 0) {
+              throw 'Wallet address is required for paid agents';
+            }
+          }
         }
         if (input.price !== undefined) {
           updateData.price = input.price;

@@ -145,9 +145,9 @@ const AddPromptModal = ({
     // Validate pricing fields
     if (!isFree) {
       const priceNum = parseFloat(price);
-      if (!price || isNaN(priceNum) || priceNum <= 0 || priceNum > 999) {
+      if (!price || isNaN(priceNum) || priceNum < 0.000001 || priceNum > 999999) {
         toast.toast({
-          title: 'Price must be between 0.01 and 999',
+          title: 'Price must be between 0.000001 and 999,999 SOL',
           variant: 'destructive',
         });
         return;
@@ -482,13 +482,13 @@ const AddPromptModal = ({
                       value={price}
                       onChange={setPrice}
                       placeholder="0.00"
-                      min="0.01"
-                      max="999"
-                      step="0.01"
+                      min="0.000001"
+                      max="999999"
+                      step="0.000001"
                       className="bg-background/60 border-2 border-yellow-500/30 focus:border-yellow-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
                     />
                     <p className="text-xs text-muted-foreground mt-1 font-mono">
-                      Maximum price: 999 SOL
+                      Range: 0.000001 - 999,999 SOL
                     </p>
                   </div>
 
