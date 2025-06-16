@@ -51,6 +51,7 @@ export default function Tools({
                     className="w-full h-full"
                     link={makeUrl(PUBLIC.TOOL, { id: tool.id })}
                     userId={tool.user_id}
+                    itemType="tool"
                   />
                 </div>
               ))

@@ -99,6 +99,7 @@ export const PLATFORM = {
   TELEMETRY_HISTORY: '/platform/telemetry/history',
   TELEMETRY_SETTINGS: '/platform/telemetry/settings',
   APPS: '/apps',
+  AUTONOMOUS_APPS: '/autonomous-apps',
   LEADERBOARD: '/platform/leaderboard',
   BOOKMARKS: '/bookmarks',
   PLAYGROUND: '/platform/playground',

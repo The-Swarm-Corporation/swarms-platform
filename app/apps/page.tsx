@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Atom, Blocks, Settings, User, Star, StarOff, MessageSquareMore, GripVertical, FileSpreadsheet, LockKeyhole, CircleGauge, LayoutDashboard, Trophy, Bookmark, Code2 } from 'lucide-react';
+import { Atom, Blocks, Settings, User, Star, StarOff, MessageSquareMore, GripVertical, FileSpreadsheet, LockKeyhole, CircleGauge, LayoutDashboard, Trophy, Bookmark, Code2, Store } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useStarredApps } from '@/shared/components/starred-apps-context';
 import { useRouter } from 'next/navigation';
@@ -19,6 +19,13 @@ const APPS = [
     title: 'Marketplace',
     description: 'Discover and use new tools, agents, and prompts.',
     icon: <Blocks size={32} className="text-blue-500" />,
+    category: 'Marketplace',
+  },
+  {
+    id: 'appstore',
+    title: 'App Store',
+    description: 'Discover and use autonomous AI applications.',
+    icon: <Store size={32} className="text-orange-500" />,
     category: 'Marketplace',
   },
   {
@@ -111,9 +118,9 @@ const TEMPLATES = [
   {
     id: 'marketplace',
     title: 'Marketplace',
-    description: 'Marketplace, Leaderboard, Dashboard, Settings',
+    description: 'Marketplace, App Store, Leaderboard, Dashboard, Settings',
     icon: <Blocks size={28} className="text-blue-400" />,
-    apps: ['dashboard', 'marketplace', 'leaderboard', 'settings', 'bookmarks'],
+    apps: ['dashboard', 'marketplace', 'appstore', 'leaderboard', 'settings', 'bookmarks'],
   },
   {
     id: 'no-code',
@@ -134,7 +141,7 @@ const TEMPLATES = [
     title: 'All',
     description: 'Activate all apps',
     icon: <Blocks size={28} className="text-blue-400" />,
-    apps: ['marketplace', 'leaderboard', 'dashboard', 'settings', 'chat', 'spreadsheet', 'dragndrop', 'settings', 'apikeys', 'telemetry', 'settings', 'profile', 'playground', 'bookmarks'],
+    apps: ['marketplace', 'appstore', 'leaderboard', 'dashboard', 'settings', 'chat', 'spreadsheet', 'dragndrop', 'settings', 'apikeys', 'telemetry', 'settings', 'profile', 'playground', 'bookmarks'],
   },
 ];
 
@@ -155,6 +162,9 @@ export default function AppsPage() {
         break;
       case 'marketplace':
         router.push('/');
+        break;
+      case 'appstore':
+        router.push('/autonomous-apps');
         break;
       case 'apps':
         router.push('/apps');

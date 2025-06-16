@@ -18,6 +18,8 @@ import {
   Trophy,
   Bookmark,
   Code2,
+  Rocket,
+  Store,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -104,6 +106,12 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <Blocks size={24} className="text-blue-500" />,
       title: 'Marketplace',
       link: PLATFORM.EXPLORER,
+      className: navItemClass,
+    },
+    {
+      icon: <Store size={24} className="text-orange-500" />,
+      title: 'App Store',
+      link: PLATFORM.AUTONOMOUS_APPS,
       className: navItemClass,
     },
     {

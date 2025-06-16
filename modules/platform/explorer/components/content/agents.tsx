@@ -57,6 +57,7 @@ export default function Agents({
                       className="w-full h-full"
                       link={makeUrl(PUBLIC.AGENT, { id: agent.id })}
                       userId={agent.user_id}
+                      itemType="agent"
                     />
                   ) : (
                     <PublicChatCard

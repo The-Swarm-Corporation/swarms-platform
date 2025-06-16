@@ -20,6 +20,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 const appIdToSidebarTitle = {
   dashboard: 'Dashboard',
   marketplace: 'Marketplace',
+  appstore: 'App Store',
   apps: 'Apps',
   chat: 'Chat',
   spreadsheet: 'Spreadsheet Swarm',
