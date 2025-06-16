@@ -58,40 +58,72 @@ const ChatComponent = dynamic(() => import('@/shared/components/chat/prompt'), {
   ssr: false,
 });
 
+const styles = `
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 15s ease infinite;
+}
+`;
+
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
+}
+
 function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
+  const colors = [
+    'from-blue-500 to-cyan-500',
+    'from-purple-500 to-pink-500',
+    'from-orange-500 to-red-500',
+    'from-green-500 to-emerald-500',
+    'from-violet-500 to-indigo-500',
+  ];
+
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-4xl">Use Cases</h2>
-      <div className="flex gap-2 flex-col md:flex-row">
+    <div className="flex flex-col gap-8 py-8">
+      <h2 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
+        Use Cases
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {usecases?.map((usecase, index) => {
-          const classname = usecases?.length === 1 && 'min-h-fit md:min-h-fit';
+          const colorClass = colors[index % colors.length];
           return (
-            <Card3D
+            <div
               key={index}
-              containerClassName="flex-1 "
-              className="inter-var w-full"
+              className="group relative overflow-hidden rounded-2xl bg-zinc-950 transition-all duration-300"
             >
-              <CardBody
-                className={cn(
-                  'bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto min-h-[255px] md:min-h-[320px] h-fit rounded-xl p-6 border flex flex-col ',
-                  classname,
-                )}
-              >
-                <CardItem
-                  translateZ="50"
-                  className="text-xl font-bold text-neutral-600 dark:text-white"
-                >
-                  {usecase?.title}
-                </CardItem>
-                <CardItem
-                  as="p"
-                  translateZ="60"
-                  className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
-                >
-                  {usecase?.description}
-                </CardItem>
-              </CardBody>
-            </Card3D>
+              {/* Animated border gradient */}
+              <div className={`absolute inset-0 bg-gradient-to-r ${colorClass} animate-gradient-x`} />
+              <div className="absolute inset-[1px] rounded-2xl bg-zinc-950" />
+              
+              {/* Content */}
+              <div className="relative p-6">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-lg font-medium text-zinc-100">
+                    {usecase?.title}
+                  </h3>
+                  <p className="text-sm text-zinc-400 leading-relaxed">
+                    {usecase?.description}
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="h-px flex-1 bg-zinc-800" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-zinc-600" />
+                  <div className="h-px flex-1 bg-zinc-800" />
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>
@@ -405,7 +437,55 @@ export default function EntityComponent({
 
       {prompt && (
         <div className="relative my-10">
-          <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar">
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-3">
+              Main Prompt
+            </h2>
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm md:text-base">
+              Copy this prompt or download it to use in ChatGPT, Claude, or in your agent code. The prompt is available in both text and markdown formats.
+            </p>
+          </div>
+          <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar relative">
+            <div className="absolute top-3 right-3 flex gap-2 z-10">
+              <button
+                onClick={handleCopy}
+                className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
+                title="Copy to clipboard"
+              >
+                <Copy size={20} className="text-zinc-200" />
+              </button>
+              <div className="relative group">
+                <button
+                  onClick={handleDownload}
+                  className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
+                  title="Download options"
+                >
+                  <FileDown size={20} className="text-zinc-200" />
+                </button>
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-lg bg-zinc-800/95 border border-zinc-700/50 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        downloadFile(prompt ?? '', `${name ?? 'prompt'}.txt`, 'text/plain');
+                        toast.toast({ description: 'Downloaded as text file' });
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
+                    >
+                      Download as Text (.txt)
+                    </button>
+                    <button
+                      onClick={() => {
+                        downloadFile(prompt ?? '', `${name ?? 'prompt'}.md`, 'text/markdown');
+                        toast.toast({ description: 'Downloaded as markdown file' });
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
+                    >
+                      Download as Markdown (.md)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="mt-7">
               <Tabs
                 className="flex  flex-col gap-4 w-auto"
@@ -442,18 +522,6 @@ export default function EntityComponent({
               </Tabs>
             </div>
           </div>
-          <div className="absolute top-2 right-2 flex gap-2">
-            <Copy
-              size={30}
-              className="p-1 text-primary cursor-pointer"
-              onClick={handleCopy}
-            />
-            <FileDown
-              size={30}
-              className="p-1 text-primary cursor-pointer"
-              onClick={handleDownload}
-            />
-          </div>
         </div>
       )}
       {children}
@@ -464,9 +532,14 @@ export default function EntityComponent({
       />
 
       {entityTitle === 'prompt' && prompt && (
-        <div className="mt-10 lg:mt-20 flex flex-col items-end">
-          <div className="w-full lg:w-[90%]">
-            <h2 className="mb-5">Prompt Agent Chat</h2>
+        <div className="mt-10 lg:mt-20 flex flex-col w-full">
+          <div className="w-full">
+            <h2 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white mb-4">
+              Prompt Agent Chat
+            </h2>
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm md:text-base mb-8">
+              Interact with this prompt in real-time. The AI will respond based on the system prompt, allowing you to test and refine the prompt's effectiveness.
+            </p>
             <ChatComponent promptId={id ?? ''} systemPrompt={prompt} />
           </div>
         </div>
