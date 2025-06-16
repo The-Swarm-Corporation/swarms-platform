@@ -7,6 +7,8 @@ import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/shared/components/ui/auth.provider';
 import { createClient } from '@/shared/utils/supabase/server';
 import AuthModal from '@/shared/components/modal/auth';
+import { CommandPaletteProvider } from '@/shared/components/command-palette/provider';
+import { StarredAppsProvider } from '@/shared/components/starred-apps-context';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -75,8 +77,12 @@ export default async function Layout({
         >
           <AuthProvider user={user}>
             <TrpcProvider>
-              <AuthModal />
-              {children}
+              <CommandPaletteProvider>
+                <AuthModal />
+                <StarredAppsProvider>
+                  {children}
+                </StarredAppsProvider>
+              </CommandPaletteProvider>
             </TrpcProvider>
           </AuthProvider>
         </ThemeProvider>

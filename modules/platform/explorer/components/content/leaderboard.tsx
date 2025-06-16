@@ -9,6 +9,7 @@ import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skele
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/components/ui/avatar';
 import { Badge } from '@/shared/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/shared/utils/cn';
 
 interface UserStats {
   totalItems: number;
@@ -162,7 +163,12 @@ const RANKING_BADGES: RankingBadges = {
   }
 };
 
-export function Leaderboard() {
+interface LeaderboardProps {
+  search?: string;
+  viewMode?: 'grid' | 'table';
+}
+
+export function Leaderboard({ search = '', viewMode = 'grid' }: LeaderboardProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category>('total');
   const { data: users, isLoading } = trpc.explorer.getTopUsers.useQuery(
     { category: selectedCategory },
@@ -192,6 +198,12 @@ export function Leaderboard() {
   };
 
   const router = useRouter();
+
+  // Filter users based on search
+  const filteredUsers = users?.filter(user => 
+    user.username?.toLowerCase().includes(search.toLowerCase()) ||
+    user.full_name?.toLowerCase().includes(search.toLowerCase())
+  );
 
   if (isLoading) {
     return (
@@ -234,116 +246,207 @@ export function Leaderboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
-        {users?.map((user: User, index: number) => {
-          const stats = getStats(user);
-          const userTier = getUserTier(stats);
-          const earnedBadges = getEarnedBadges(stats);
-          const topBadge = earnedBadges[0];
-          const rankingBadge = RANKING_BADGES[index + 1];
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
+          {filteredUsers?.map((user: User, index: number) => {
+            const stats = getStats(user);
+            const userTier = getUserTier(stats);
+            const earnedBadges = getEarnedBadges(stats);
+            const topBadge = earnedBadges[0];
+            const rankingBadge = RANKING_BADGES[index + 1];
 
-          return (
-            <motion.div
-              key={user.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-              whileHover={{ scale: 1.02, y: -5 }}
-              className="relative group h-[120px]"
-            >
-              <div className="relative bg-black/50 backdrop-blur-xl border border-gray-800 rounded-lg p-3 hover:bg-black/70 transition-all duration-300 h-full flex flex-col justify-between">
-                {/* Ranking Badge */}
-                {rankingBadge && (
-                  <div className="absolute -top-3 -right-3 z-10">
-                    <div className={`${rankingBadge.bg} ${rankingBadge.border} border rounded-full p-2 shadow-lg`}>
-                      <rankingBadge.icon className={`h-5 w-5 ${rankingBadge.color}`} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Rank Number */}
-                <div className="absolute -left-2 -top-2 z-10">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                    index === 0 ? 'bg-yellow-400/20 text-yellow-400' :
-                    index === 1 ? 'bg-gray-400/20 text-gray-400' :
-                    index === 2 ? 'bg-amber-600/20 text-amber-600' :
-                    'bg-white/10 text-white/60'
-                  } text-xs font-bold`}>
-                    #{index + 1}
-                  </div>
-                </div>
-
-                {/* Top Row: Avatar, Username, Tier, Top Badge */}
-                <div className="flex items-center gap-2 mb-2">
-                  <Link
-                    href={`/users/${user.username}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.scrollTo(0, 0);
-                      router.push(`/users/${user.username}`);
-                    }}
-                    scroll={false}
-                    className="relative group/avatar shrink-0"
-                  >
-                    <div className="w-8 h-8 rounded-md overflow-hidden border border-gray-800 bg-black/90">
-                      {user.avatar_url ? (
-                        <img
-                          src={user.avatar_url}
-                          alt={`${user.username}'s avatar`}
-                          className="object-cover w-full h-full"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-base font-bold">
-                          {user.username?.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                  <Link
-                    href={`/users/${user.username}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.scrollTo(0, 0);
-                      router.push(`/users/${user.username}`);
-                    }}
-                    scroll={false}
-                    className="text-xs font-semibold text-white hover:text-white/80 transition-colors truncate max-w-[80px]"
-                  >
-                    {user.username}
-                  </Link>
-                  <div className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${userTier.color} ${userTier.bg} ${userTier.border} border ml-1`}>{userTier.name}</div>
-                  {topBadge && (
-                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${topBadge.color} ${topBadge.bg} ${topBadge.border} border ml-1`} title={topBadge.name}>
-                      <topBadge.icon className="h-3 w-3" />
-                      {topBadge.name}
+            return (
+              <motion.div
+                key={user.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                whileHover={{ scale: 1.02, y: -5 }}
+                className="relative group h-[120px]"
+              >
+                <div className="relative bg-black/50 backdrop-blur-xl border border-gray-800 rounded-lg p-3 hover:bg-black/70 transition-all duration-300 h-full flex flex-col justify-between">
+                  {/* Ranking Badge */}
+                  {rankingBadge && (
+                    <div className="absolute -top-3 -right-3 z-10">
+                      <div className={`${rankingBadge.bg} ${rankingBadge.border} border rounded-full p-2 shadow-lg`}>
+                        <rankingBadge.icon className={`h-5 w-5 ${rankingBadge.color}`} />
+                      </div>
                     </div>
                   )}
-                </div>
 
-                {/* Stats Row */}
-                <div className="flex items-center justify-between w-full mt-auto">
-                  <div className="flex flex-col items-center flex-1">
-                    <span className="text-xs font-bold text-white leading-none">{stats.totalItems}</span>
-                    <span className="text-[9px] text-gray-400 leading-none">Total</span>
+                  {/* Rank Number */}
+                  <div className="absolute -left-2 -top-2 z-10">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                      index === 0 ? 'bg-yellow-400/20 text-yellow-400' :
+                      index === 1 ? 'bg-gray-400/20 text-gray-400' :
+                      index === 2 ? 'bg-amber-600/20 text-amber-600' :
+                      'bg-white/10 text-white/60'
+                    } text-xs font-bold`}>
+                      #{index + 1}
+                    </div>
                   </div>
-                  <div className="flex flex-col items-center flex-1">
-                    <span className="text-xs font-bold text-[#FF6B6B] leading-none">{stats.prompts}</span>
-                    <span className="text-[9px] text-gray-400 leading-none">Prompts</span>
+
+                  {/* Top Row: Avatar, Username, Tier, Top Badge */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <Link
+                      href={`/users/${user.username}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.scrollTo(0, 0);
+                        router.push(`/users/${user.username}`);
+                      }}
+                      scroll={false}
+                      className="relative group/avatar shrink-0"
+                    >
+                      <div className="w-8 h-8 rounded-md overflow-hidden border border-gray-800 bg-black/90">
+                        {user.avatar_url ? (
+                          <img
+                            src={user.avatar_url}
+                            alt={`${user.username}'s avatar`}
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-base font-bold">
+                            {user.username?.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                    <Link
+                      href={`/users/${user.username}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.scrollTo(0, 0);
+                        router.push(`/users/${user.username}`);
+                      }}
+                      scroll={false}
+                      className="text-xs font-semibold text-white hover:text-white/80 transition-colors truncate max-w-[80px]"
+                    >
+                      {user.username}
+                    </Link>
+                    <div className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${userTier.color} ${userTier.bg} ${userTier.border} border ml-1`}>{userTier.name}</div>
+                    {topBadge && (
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${topBadge.color} ${topBadge.bg} ${topBadge.border} border ml-1`} title={topBadge.name}>
+                        <topBadge.icon className="h-3 w-3" />
+                        {topBadge.name}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex flex-col items-center flex-1">
-                    <span className="text-xs font-bold text-[#4ECDC4] leading-none">{stats.agents}</span>
-                    <span className="text-[9px] text-gray-400 leading-none">Agents</span>
-                  </div>
-                  <div className="flex flex-col items-center flex-1">
-                    <span className="text-xs font-bold text-[#FFD93D] leading-none">{stats.tools}</span>
-                    <span className="text-[9px] text-gray-400 leading-none">Tools</span>
+
+                  {/* Stats Row */}
+                  <div className="flex items-center justify-between w-full mt-auto">
+                    <div className="flex flex-col items-center flex-1">
+                      <span className="text-xs font-bold text-white leading-none">{stats.totalItems}</span>
+                      <span className="text-[9px] text-gray-400 leading-none">Total</span>
+                    </div>
+                    <div className="flex flex-col items-center flex-1">
+                      <span className="text-xs font-bold text-[#FF6B6B] leading-none">{stats.prompts}</span>
+                      <span className="text-[9px] text-gray-400 leading-none">Prompts</span>
+                    </div>
+                    <div className="flex flex-col items-center flex-1">
+                      <span className="text-xs font-bold text-[#4ECDC4] leading-none">{stats.agents}</span>
+                      <span className="text-[9px] text-gray-400 leading-none">Agents</span>
+                    </div>
+                    <div className="flex flex-col items-center flex-1">
+                      <span className="text-xs font-bold text-[#FFD93D] leading-none">{stats.tools}</span>
+                      <span className="text-[9px] text-gray-400 leading-none">Tools</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b border-gray-800">
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Rank</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">User</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Tier</th>
+                <th className="text-center py-3 px-4 text-sm font-medium text-gray-400">Total</th>
+                <th className="text-center py-3 px-4 text-sm font-medium text-gray-400">Prompts</th>
+                <th className="text-center py-3 px-4 text-sm font-medium text-gray-400">Agents</th>
+                <th className="text-center py-3 px-4 text-sm font-medium text-gray-400">Tools</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Badges</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers?.map((user: User, index: number) => {
+                const stats = getStats(user);
+                const userTier = getUserTier(stats);
+                const earnedBadges = getEarnedBadges(stats);
+
+                return (
+                  <tr key={user.id} className="border-b border-gray-800 hover:bg-black/30 transition-colors">
+                    <td className="py-3 px-4">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                        index === 0 ? 'bg-yellow-400/20 text-yellow-400' :
+                        index === 1 ? 'bg-gray-400/20 text-gray-400' :
+                        index === 2 ? 'bg-amber-600/20 text-amber-600' :
+                        'bg-white/10 text-white/60'
+                      } text-xs font-bold`}>
+                        #{index + 1}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Link
+                        href={`/users/${user.username}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.scrollTo(0, 0);
+                          router.push(`/users/${user.username}`);
+                        }}
+                        scroll={false}
+                        className="flex items-center gap-2 hover:text-white/80 transition-colors"
+                      >
+                        <div className="w-8 h-8 rounded-md overflow-hidden border border-gray-800 bg-black/90">
+                          {user.avatar_url ? (
+                            <img
+                              src={user.avatar_url}
+                              alt={`${user.username}'s avatar`}
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-base font-bold">
+                              {user.username?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-medium">{user.username}</span>
+                      </Link>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${userTier.color} ${userTier.bg} ${userTier.border} border inline-block`}>
+                        {userTier.name}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-center font-medium">{stats.totalItems}</td>
+                    <td className="py-3 px-4 text-center font-medium text-[#FF6B6B]">{stats.prompts}</td>
+                    <td className="py-3 px-4 text-center font-medium text-[#4ECDC4]">{stats.agents}</td>
+                    <td className="py-3 px-4 text-center font-medium text-[#FFD93D]">{stats.tools}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex flex-wrap gap-1">
+                        {earnedBadges.map((badge, i) => (
+                          <div
+                            key={i}
+                            className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${badge.color} ${badge.bg} ${badge.border} border`}
+                            title={badge.name}
+                          >
+                            <badge.icon className="h-3 w-3" />
+                            {badge.name}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 } 

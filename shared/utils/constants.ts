@@ -98,6 +98,8 @@ export const PLATFORM = {
   TELEMETRY_DASHBOARD: '/platform/telemetry/dashboard',
   TELEMETRY_HISTORY: '/platform/telemetry/history',
   TELEMETRY_SETTINGS: '/platform/telemetry/settings',
+  APPS: '/apps',
+  LEADERBOARD: '/platform/leaderboard',
 };
 
 export const AUTH = {

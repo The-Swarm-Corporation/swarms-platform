@@ -15,6 +15,7 @@ import {
   MessageSquareMore,
   Atom,
   Lightbulb,
+  Trophy,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -104,6 +105,12 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       className: navItemClass,
     },
     {
+      icon: <Atom size={24} className="text-gray-400" />,
+      title: 'Apps',
+      link: PLATFORM.APPS,
+      className: navItemClass,
+    },
+    {
       icon: <MessageSquareMore size={24} className="text-indigo-500" />,
       title: 'Chat',
       link: PLATFORM.CHAT,
@@ -131,6 +138,12 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <CircleGauge size={24} className="text-cyan-500" />,
       title: 'Telemetry',
       link: PLATFORM.TELEMETRY,
+      className: navItemClass,
+    },
+    {
+      icon: <Trophy size={24} className="text-yellow-500" />,
+      title: 'Leaderboard',
+      link: PLATFORM.LEADERBOARD,
       className: navItemClass,
     },
     {

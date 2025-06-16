@@ -311,9 +311,6 @@ const Explorer = () => {
           {reorderedElements.map(({ key, content }, index) => (
             <div key={`${key}-${index}`}>{content}</div>
           ))}
-          {filterOption === 'all' && !searchValue && tagCategory === 'all' && (
-            <Leaderboard />
-          )}
         </div>
       </div>
     </>
