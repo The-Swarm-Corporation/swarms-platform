@@ -22,7 +22,8 @@ import Link from 'next/link';
 import { AUTH } from '@/shared/utils/constants';
 import ThemeToggle from '@/shared/components/theme-toggle';
 import CryptoWallet from './components/crypto-wallet';
-import { UserCircle, CreditCard, Wallet } from 'lucide-react';
+import MarketplaceWallet from './components/marketplace-wallet';
+import { UserCircle, CreditCard, Wallet, Store } from 'lucide-react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -114,11 +115,32 @@ export default function Account() {
             <CardHeader className="max-md:px-0">
               <CardTitle>Crypto Wallet</CardTitle>
               <CardDescription>
-                Manage your cryptocurrency wallet and transactions
+                Manage your cryptocurrency wallet and marketplace settings
               </CardDescription>
             </CardHeader>
             <CardContent className="max-md:px-0">
-              {user && <CryptoWallet user={user} />}
+              {user && (
+                <Tabs defaultValue="credit" className="space-y-4">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="credit" className="flex items-center gap-2">
+                      <Wallet className="h-4 w-4" />
+                      Credit
+                    </TabsTrigger>
+                    <TabsTrigger value="marketplace" className="flex items-center gap-2">
+                      <Store className="h-4 w-4" />
+                      Marketplace
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="credit" className="space-y-4">
+                    <CryptoWallet user={user} />
+                  </TabsContent>
+
+                  <TabsContent value="marketplace" className="space-y-4">
+                    <MarketplaceWallet user={user} />
+                  </TabsContent>
+                </Tabs>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

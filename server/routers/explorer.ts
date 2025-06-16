@@ -228,6 +228,9 @@ const explorerRouter = router({
         filePath: z.string().optional(),
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
+        isFree: z.boolean().default(true),
+        price: z.number().min(0).max(999).default(0),
+        sellerWalletAddress: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -270,6 +273,9 @@ const explorerRouter = router({
             file_path: input.filePath || null,
             status: 'pending',
             category: input.category,
+            is_free: input.isFree,
+            price: input.price,
+            seller_wallet_address: input.sellerWalletAddress || null,
           } as Tables<'swarms_cloud_prompts'>,
         ]);
         if (prompts.error) {
@@ -295,6 +301,9 @@ const explorerRouter = router({
         filePath: z.string().optional(),
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
+        isFree: z.boolean().optional(),
+        price: z.number().min(0).max(999).optional(),
+        sellerWalletAddress: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -310,18 +319,31 @@ const explorerRouter = router({
       const user_id = ctx.session.data.user?.id ?? '';
 
       try {
+        const updateData: Partial<Tables<'swarms_cloud_prompts'>> = {
+          name: input.name,
+          use_cases: input.useCases,
+          prompt: input.prompt,
+          description: input.description,
+          tags: input.tags,
+          category: input.category,
+          image_url: input.imageUrl || null,
+          file_path: input.filePath || null,
+        };
+
+        // Add marketplace fields if provided
+        if (input.isFree !== undefined) {
+          updateData.is_free = input.isFree;
+        }
+        if (input.price !== undefined) {
+          updateData.price = input.price;
+        }
+        if (input.sellerWalletAddress !== undefined) {
+          updateData.seller_wallet_address = input.sellerWalletAddress || null;
+        }
+
         const prompt = await ctx.supabase
           .from('swarms_cloud_prompts')
-          .update({
-            name: input.name,
-            use_cases: input.useCases,
-            prompt: input.prompt,
-            description: input.description,
-            tags: input.tags,
-            category: input.category,
-            image_url: input.imageUrl || null,
-            file_path: input.filePath || null,
-          } as Tables<'swarms_cloud_prompts'>)
+          .update(updateData)
           .eq('user_id', user_id)
           .eq('id', input.id)
           .select('*');
@@ -428,6 +450,9 @@ const explorerRouter = router({
         filePath: z.string().optional(),
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
+        isFree: z.boolean().default(true),
+        price: z.number().min(0).max(999).default(0),
+        sellerWalletAddress: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -475,6 +500,9 @@ const explorerRouter = router({
             file_path: input.filePath || null,
             status: 'pending',
             category: input.category,
+            is_free: input.isFree,
+            price: input.price,
+            seller_wallet_address: input.sellerWalletAddress || null,
           } as Tables<'swarms_cloud_agents'>,
         ]);
         if (agents.error) {
@@ -501,6 +529,9 @@ const explorerRouter = router({
         category: z.array(z.string()).optional(),
         imageUrl: z.string().optional(),
         filePath: z.string().optional(),
+        isFree: z.boolean().optional(),
+        price: z.number().min(0).max(999).optional(),
+        sellerWalletAddress: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -516,20 +547,33 @@ const explorerRouter = router({
       const user_id = ctx.session.data.user?.id ?? '';
 
       try {
+        const updateData: Partial<Tables<'swarms_cloud_agents'>> = {
+          name: input.name,
+          description: input.description,
+          use_cases: input.useCases,
+          agent: input.agent,
+          requirements: input.requirements,
+          tags: input.tags,
+          language: input.language,
+          category: input.category,
+          image_url: input.imageUrl || null,
+          file_path: input.filePath || null,
+        };
+
+        // Add marketplace fields if provided
+        if (input.isFree !== undefined) {
+          updateData.is_free = input.isFree;
+        }
+        if (input.price !== undefined) {
+          updateData.price = input.price;
+        }
+        if (input.sellerWalletAddress !== undefined) {
+          updateData.seller_wallet_address = input.sellerWalletAddress || null;
+        }
+
         const agent = await ctx.supabase
           .from('swarms_cloud_agents')
-          .update({
-            name: input.name,
-            description: input.description,
-            use_cases: input.useCases,
-            agent: input.agent,
-            requirements: input.requirements,
-            tags: input.tags,
-            language: input.language,
-            category: input.category,
-            image_url: input.imageUrl || null,
-            file_path: input.filePath || null,
-          } as Tables<'swarms_cloud_agents'>)
+          .update(updateData)
           .eq('user_id', user_id)
           .eq('id', input.id)
           .select('*');

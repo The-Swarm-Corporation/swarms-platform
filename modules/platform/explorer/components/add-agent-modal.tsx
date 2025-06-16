@@ -40,6 +40,9 @@ const AddAgentModal = ({
   const [language, setLanguage] = useState('python');
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFree, setIsFree] = useState(true);
+  const [price, setPrice] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
 
   const {
     image,
@@ -138,6 +141,26 @@ const AddAgentModal = ({
       return;
     }
 
+    // Validate pricing fields
+    if (!isFree) {
+      const priceNum = parseFloat(price);
+      if (!price || isNaN(priceNum) || priceNum <= 0 || priceNum > 999) {
+        toast.toast({
+          title: 'Price must be between 0.01 and 999',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (!walletAddress.trim()) {
+        toast.toast({
+          title: 'Wallet address is required for paid agents',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     const trimTags = tags
       .split(',')
       .map((tag) => tag.trim())
@@ -166,6 +189,9 @@ const AddAgentModal = ({
           { package: 'requests', installation: 'pip3 install requests' },
         ],
         tags: trimTags,
+        isFree,
+        price: isFree ? 0 : parseFloat(price),
+        sellerWalletAddress: isFree ? "" : walletAddress,
       })
       .then(async () => {
         toast.toast({
@@ -427,6 +453,82 @@ const AddAgentModal = ({
               placeholder="ai, automation, tools, data-processing..."
               className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
             />
+          </div>
+
+          <div className="group">
+            <label className="flex items-center gap-3 mb-3">
+              <span className="text-red-400 font-mono text-xs">[08]</span>
+              <span className="font-medium text-foreground">PRICING</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
+            </label>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setIsFree(true)}
+                  className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-sm ${
+                    isFree
+                      ? 'border-green-500 bg-green-500/10 text-green-400'
+                      : 'border-red-500/30 bg-background/60 text-muted-foreground hover:border-red-500/50'
+                  }`}
+                >
+                  <div className={`w-2 h-2 rounded-full ${isFree ? 'bg-green-500' : 'bg-red-500/30'}`} />
+                  FREE
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsFree(false)}
+                  className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-sm ${
+                    !isFree
+                      ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400'
+                      : 'border-red-500/30 bg-background/60 text-muted-foreground hover:border-red-500/50'
+                  }`}
+                >
+                  <div className={`w-2 h-2 rounded-full ${!isFree ? 'bg-yellow-500' : 'bg-red-500/30'}`} />
+                  PAID
+                </button>
+              </div>
+
+              {!isFree && (
+                <div className="space-y-4 p-4 border border-yellow-500/30 bg-yellow-500/5">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Price (SOL) <span className="text-yellow-500">*</span>
+                    </label>
+                    <Input
+                      type="number"
+                      value={price}
+                      onChange={setPrice}
+                      placeholder="0.00"
+                      min="0.01"
+                      max="999"
+                      step="0.01"
+                      className="bg-background/60 border-2 border-yellow-500/30 focus:border-yellow-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1 font-mono">
+                      Maximum price: 999 SOL
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Your Wallet Address <span className="text-yellow-500">*</span>
+                    </label>
+                    <Input
+                      value={walletAddress}
+                      onChange={setWalletAddress}
+                      placeholder="Enter your Solana wallet address..."
+                      className="bg-background/60 border-2 border-yellow-500/30 focus:border-yellow-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1 font-mono">
+                      Platform takes 10% commission. You&apos;ll receive 90% of the sale price.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

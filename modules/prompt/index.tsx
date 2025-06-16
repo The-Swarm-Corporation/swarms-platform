@@ -2,6 +2,7 @@ import EntityComponent from '@/shared/components/entity';
 import PromptJsonLd from '@/shared/components/prompts/PromptJsonLd';
 import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
+import AccessRestriction from '@/shared/components/marketplace/access-restriction';
 
 const Prompt = async ({ id }: { id: string }) => {
   const prompt = await trpcApi.explorer.getPromptById.query(id);
@@ -17,17 +18,30 @@ const Prompt = async ({ id }: { id: string }) => {
   return (
     <>
       <PromptJsonLd prompt={prompt} userId={prompt.user_id} />
-      <EntityComponent
-        title="Prompt"
-        id={id}
-        tags={tags}
-        usecases={usecases}
-        description={prompt.description ?? ''}
-        name={prompt.name ?? ''}
-        imageUrl={prompt.image_url ?? ''}
-        prompt={prompt.prompt ?? ''}
-        userId={prompt.user_id ?? ''}
-      />
+      <AccessRestriction
+        item={{
+          id: prompt.id,
+          name: prompt.name ?? '',
+          description: prompt.description ?? '',
+          price: prompt.price ?? 0,
+          is_free: prompt.is_free ?? true,
+          seller_wallet_address: prompt.seller_wallet_address ?? '',
+          user_id: prompt.user_id ?? '',
+          type: 'prompt',
+        }}
+      >
+        <EntityComponent
+          title="Prompt"
+          id={id}
+          tags={tags}
+          usecases={usecases}
+          description={prompt.description ?? ''}
+          name={prompt.name ?? ''}
+          imageUrl={prompt.image_url ?? ''}
+          prompt={prompt.prompt ?? ''}
+          userId={prompt.user_id ?? ''}
+        />
+      </AccessRestriction>
     </>
   );
 };

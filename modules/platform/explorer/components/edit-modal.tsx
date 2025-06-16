@@ -407,11 +407,81 @@ function EditExplorerModal({
             </div>
           </div>
 
+          {/* Marketplace Section */}
+          {(entityType === 'agent' || entityType === 'prompt') && (
+            <div className="group">
+              <label className="flex items-center gap-3 mb-3">
+                <span className="text-red-400 font-mono text-xs">[08]</span>
+                <span className="font-medium text-foreground">MARKETPLACE</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
+              </label>
+              <div className="space-y-4 border border-red-500/20 bg-background/40 p-4 rounded">
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="pricing"
+                      checked={inputState.isFree}
+                      onChange={() => setInputState({ ...inputState, isFree: true, price: 0 })}
+                      className="w-4 h-4 text-red-500 border-red-500/30 focus:ring-red-500"
+                    />
+                    <span className="font-mono text-sm text-foreground">FREE</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="pricing"
+                      checked={!inputState.isFree}
+                      onChange={() => setInputState({ ...inputState, isFree: false })}
+                      className="w-4 h-4 text-red-500 border-red-500/30 focus:ring-red-500"
+                    />
+                    <span className="font-mono text-sm text-foreground">PAID</span>
+                  </label>
+                </div>
+
+                {!inputState.isFree && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-mono text-red-400 mb-2">
+                        PRICE (SOL)
+                      </label>
+                      <Input
+                        type="number"
+                        min="0.01"
+                        max="999"
+                        step="0.01"
+                        value={inputState.price}
+                        onChange={(value) =>
+                          setInputState({ ...inputState, price: parseFloat(value) || 0 })
+                        }
+                        placeholder="0.01"
+                        className="bg-background/60 border border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-mono text-red-400 mb-2">
+                        WALLET ADDRESS
+                      </label>
+                      <Input
+                        value={inputState.sellerWalletAddress}
+                        onChange={(value) =>
+                          setInputState({ ...inputState, sellerWalletAddress: value })
+                        }
+                        placeholder="Your Solana wallet address..."
+                        className="bg-background/60 border border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground font-mono"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {(entityType === 'agent' || entityType === 'tool') && (
             <>
               <div className="group">
                 <label className="flex items-center gap-3 mb-3">
-                  <span className="text-red-400 font-mono text-xs">[08]</span>
+                  <span className="text-red-400 font-mono text-xs">[09]</span>
                   <span className="font-medium text-foreground">LANGUAGE</span>
                   <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
                 </label>
@@ -440,7 +510,7 @@ function EditExplorerModal({
 
               <div className="group">
                 <label className="flex items-center gap-3 mb-3">
-                  <span className="text-red-400 font-mono text-xs">[09]</span>
+                  <span className="text-red-400 font-mono text-xs">[10]</span>
                   <span className="font-medium text-foreground">
                     REQUIREMENTS
                   </span>
