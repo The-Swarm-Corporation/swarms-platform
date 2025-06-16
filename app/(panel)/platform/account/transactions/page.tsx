@@ -1,12 +1,11 @@
 'use client';
 
 import { User } from '@supabase/supabase-js';
-import { useSession } from '@/shared/components/providers/session-provider';
 import MarketplaceTransactions from '@/modules/platform/account/components/marketplace-wallet/marketplace-transactions';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 export default function TransactionsPage() {
-  const { session } = useSession();
-  const user = session?.data?.user as User | null;
+  const { user } = useAuthContext()
 
   return (
     <div className="container mx-auto px-4 py-8">
