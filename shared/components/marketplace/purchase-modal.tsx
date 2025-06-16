@@ -5,7 +5,7 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import Modal from '@/shared/components/modal';
-import { Wallet, CreditCard, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { Wallet, CreditCard, AlertCircle, CheckCircle, Loader2, Download } from 'lucide-react';
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useWallet } from './wallet-provider';
@@ -52,12 +52,36 @@ const PurchaseModal = ({ isOpen, onClose, item, onPurchaseSuccess }: PurchaseMod
   const connectWallet = async () => {
     try {
       await connect();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Connect error:', error);
-      toast({
-        description: 'Failed to connect wallet',
-        variant: 'destructive',
-      });
+
+      // Show specific error message with helpful guidance
+      let errorMessage = error?.message || 'Failed to connect wallet. Please try again.';
+
+      // Add installation link for Phantom wallet not found errors
+      if (errorMessage.includes('Phantom wallet not found')) {
+        toast({
+          description: (
+            <div className="space-y-2">
+              <p>{errorMessage}</p>
+              <button
+                onClick={() => window.open('https://phantom.com/', '_blank')}
+                className="flex items-center gap-2 text-sm underline hover:no-underline"
+              >
+                <Download className="h-4 w-4" />
+                Install Phantom Wallet
+              </button>
+            </div>
+          ),
+          variant: 'destructive',
+          duration: 8000,
+        });
+      } else {
+        toast({
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -227,6 +251,22 @@ const PurchaseModal = ({ isOpen, onClose, item, onPurchaseSuccess }: PurchaseMod
               <AlertCircle className="h-5 w-5 text-blue-500" />
               <span className="text-sm">Connect your wallet to proceed with the purchase</span>
             </div>
+
+            {typeof window !== 'undefined' && !(window as any)?.solana?.isPhantom && (
+              <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950 rounded-lg">
+                <AlertCircle className="h-4 w-4 text-amber-500" />
+                <span className="text-sm text-amber-700 dark:text-amber-300">
+                  Phantom wallet not detected.
+                  <button
+                    onClick={() => window.open('https://phantom.com/', '_blank')}
+                    className="underline hover:no-underline ml-1"
+                  >
+                    Install here
+                  </button>
+                </span>
+              </div>
+            )}
+
             <Button onClick={connectWallet} className="w-full" size="lg">
               <Wallet className="h-5 w-5 mr-2" />
               Connect Phantom Wallet

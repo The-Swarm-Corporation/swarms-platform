@@ -447,14 +447,14 @@ function EditExplorerModal({
                       </label>
                       <Input
                         type="number"
-                        min="0.01"
-                        max="999"
-                        step="0.01"
+                        min="0.000001"
+                        max="999999"
+                        step="0.000001"
                         value={inputState.price}
                         onChange={(value) =>
                           setInputState({ ...inputState, price: parseFloat(value) || 0 })
                         }
-                        placeholder="0.01"
+                        placeholder="0.000001"
                         className="bg-background/60 border border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground font-mono"
                       />
                     </div>

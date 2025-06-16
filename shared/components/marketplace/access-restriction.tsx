@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import {
@@ -11,9 +11,10 @@ import {
   CardTitle,
 } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import { Lock, CreditCard, Star, User } from 'lucide-react';
+import { Lock, CreditCard, Star, User, Loader2 } from 'lucide-react';
 import PurchaseModal from './purchase-modal';
 import { WalletProvider } from './wallet-provider';
+import MessageScreen from '../chat/components/message-screen';
 
 interface AccessRestrictionProps {
   item: {
@@ -36,29 +37,43 @@ const AccessRestrictionContent = ({
   const { user } = useAuthContext();
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
-  // Check if user has purchased this item
-  const { data: purchaseData, refetch: refetchPurchase } =
-    trpc.marketplace.checkUserPurchase.useQuery(
-      {
-        itemId: item.id,
-        itemType: item.type,
-      },
-      {
-        enabled: !!user?.id && !item.is_free,
-      },
-    );
+  const {
+    data: purchaseData,
+    isLoading: isPurchaseLoading,
+    refetch: refetchPurchase,
+  } = trpc.marketplace.checkUserPurchase.useQuery(
+    {
+      itemId: item.id,
+      itemType: item.type,
+    },
+    {
+      enabled: !!user?.id && !item.is_free,
+    },
+  );
 
-  // If item is free, show content directly
   if (item.is_free) {
     return <>{children}</>;
   }
 
-  // If user is the owner, show content directly
   if (user?.id === item.user_id) {
     return <>{children}</>;
   }
 
-  // If user hasn't purchased and it's not free, show purchase screen
+  if (isPurchaseLoading && user?.id) {
+    return (
+      <MessageScreen
+        icon={Loader2}
+        iconClass="h-8 w-8 text-red-400 dark:text-red-500 animate-spin mb-2"
+        title="Checking Access..."
+        borderClass="border border-zinc-700/50"
+      >
+        <p className="text-center text-sm text-zinc-300">
+          Verifying your status
+        </p>
+      </MessageScreen>
+    );
+  }
+
   if (!purchaseData?.hasPurchased) {
     return (
       <div className="min-h-screen bg-background">
@@ -185,7 +200,6 @@ const AccessRestrictionContent = ({
     );
   }
 
-  // If user has purchased, show the content
   return <>{children}</>;
 };
 

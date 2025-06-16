@@ -101,7 +101,6 @@ export default function useModels() {
   );
 
   const isTrendingLoading = trendingQuery.isLoading;
-  const [options, setOptions] = useState(defaultOptions);
   const [filterOption, setFilterOption] = useState<string>(
     explorerOptions[0].value,
   );
@@ -317,7 +316,6 @@ export default function useModels() {
     isTrendingLoading,
     search,
     searchValue,
-    options,
     usersMap,
     reviewsMap,
     hasMorePrompts,
@@ -330,6 +328,7 @@ export default function useModels() {
     isFetchingTrending,
     isFetchingAgents,
     isFetchingTools,
+    refetch,
     loadMorePrompts,
     loadMoreTrending,
     loadMoreAgents,
