@@ -17,6 +17,7 @@ import {
   Lightbulb,
   Trophy,
   Bookmark,
+  Code2,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -133,6 +134,12 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <Bookmark size={24} className="text-purple-500" />,
       title: 'Bookmarks',
       link: PLATFORM.BOOKMARKS,
+      className: navItemClass,
+    },
+    {
+      icon: <Code2 size={24} className="text-cyan-500" />,
+      title: 'Playground',
+      link: PLATFORM.PLAYGROUND,
       className: navItemClass,
     },
     {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Atom, Blocks, Settings, User, Star, StarOff, MessageSquareMore, GripVertical, FileSpreadsheet, LockKeyhole, CircleGauge, LayoutDashboard, Trophy, Bookmark } from 'lucide-react';
+import { Atom, Blocks, Settings, User, Star, StarOff, MessageSquareMore, GripVertical, FileSpreadsheet, LockKeyhole, CircleGauge, LayoutDashboard, Trophy, Bookmark, Code2 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useStarredApps } from '@/shared/components/starred-apps-context';
 import { useRouter } from 'next/navigation';
@@ -91,6 +91,13 @@ const APPS = [
     icon: <Bookmark size={32} className="text-gray-400" />,
     category: 'Marketplace',
   },
+  {
+    id: 'playground',
+    title: 'Playground',
+    description: 'Playground',
+    icon: <Code2 size={32} className="text-gray-400" />,
+    category: 'Account Settings',
+  },
 ];
 
 const CATEGORIES = [
@@ -118,16 +125,16 @@ const TEMPLATES = [
   {
     id: 'developer',
     title: 'Developer',
-    description: 'Dashboard, API Key, Telemetry, Settings',
+    description: 'Dashboard, API Key, Telemetry, Settings, Playground',
     icon: <LockKeyhole size={28} className="text-red-400" />,
-    apps: ['dashboard', 'apikeys', 'telemetry', 'settings'],
+    apps: ['dashboard', 'apikeys', 'telemetry', 'settings', 'playground'],
   },
   {
     id: 'all',
     title: 'All',
     description: 'Activate all apps',
     icon: <Blocks size={28} className="text-blue-400" />,
-    apps: ['marketplace', 'leaderboard', 'dashboard', 'settings', 'chat', 'spreadsheet', 'dragndrop', 'settings', 'apikeys', 'telemetry', 'settings', 'profile'],
+    apps: ['marketplace', 'leaderboard', 'dashboard', 'settings', 'chat', 'spreadsheet', 'dragndrop', 'settings', 'apikeys', 'telemetry', 'settings', 'profile', 'playground', 'bookmarks'],
   },
 ];
 

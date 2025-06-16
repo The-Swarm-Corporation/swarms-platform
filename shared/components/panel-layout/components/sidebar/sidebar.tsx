@@ -30,6 +30,7 @@ const appIdToSidebarTitle = {
   settings: 'Settings',
   profile: 'Profile',
   bookmarks: 'Bookmarks',
+  playground: 'Playground',
 };
 
 const PanelLayoutSidebar = () => {
@@ -58,10 +59,6 @@ const PanelLayoutSidebar = () => {
     // Ensure Apps page is always present
     if (appsMenuItem && !filteredMenu.some(item => item.title.toLowerCase() === 'apps')) {
       filteredMenu.splice(2, 0, appsMenuItem); // Insert after Marketplace (index 2)
-    }
-    // Ensure Bookmarks page is always present
-    if (bookmarksMenuItem && !filteredMenu.some(item => item.title.toLowerCase() === 'bookmarks')) {
-      filteredMenu.splice(3, 0, bookmarksMenuItem); // Insert after Apps (index 3)
     }
   }
 

@@ -101,6 +101,7 @@ export const PLATFORM = {
   APPS: '/apps',
   LEADERBOARD: '/platform/leaderboard',
   BOOKMARKS: '/bookmarks',
+  PLAYGROUND: '/platform/playground',
 };
 
 export const AUTH = {
