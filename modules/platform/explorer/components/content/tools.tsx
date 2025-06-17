@@ -28,7 +28,7 @@ export default function Tools({
         <Button
           onClick={handleToolModal}
           disabled={isLoading}
-          className="bg-[#FFD93D]/20 border border-[#FFD93D]/60 hover:bg-[#FFD93D]/30 text-[#FFD93D] hover:text-black transition-all duration-300 font-medium px-6 py-2.5 rounded-lg shadow-lg hover:shadow-[#FFD93D]/25 group"
+          className="bg-[#FFD93D]/20 border border-[#FFD93D]/60 hover:bg-[#FFD93D]/30 text-[#FFD93D] hover:text-black transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FFD93D]/25 group"
         >
           <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
           Add Tool

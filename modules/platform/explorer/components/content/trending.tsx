@@ -83,7 +83,7 @@ export default function Trending({
                   <Button
                     onClick={loadMoreTrending}
                     disabled={isFetchingTrending}
-                    className="bg-[#9A8572]/20 border border-[#9A8572]/60 hover:bg-[#9A8572]/30 text-[#9A8572] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-lg shadow-lg hover:shadow-[#9A8572]/25 group"
+                    className="bg-[#9A8572]/20 border border-[#9A8572]/60 hover:bg-[#9A8572]/30 text-[#9A8572] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#9A8572]/25 group"
                   >
                     {isFetchingTrending ? (
                       <>

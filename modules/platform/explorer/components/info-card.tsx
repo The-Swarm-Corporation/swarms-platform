@@ -116,7 +116,7 @@ const InfoCard = ({
         }
       }}
       className={cn(
-        'relative flex flex-col h-full min-h-[280px] max-h-[350px] p-4 sm:p-6 rounded-xl overflow-hidden group cursor-pointer',
+        'relative flex flex-col h-full min-h-[280px] max-h-[350px] p-4 sm:p-6 rounded-md overflow-hidden group cursor-pointer',
         'transition-all duration-300 ease-in-out',
         'bg-black/95 border',
         'hover:shadow-xl hover:shadow-current/30',
