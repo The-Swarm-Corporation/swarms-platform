@@ -15,6 +15,7 @@ import { Lock, CreditCard, Star, User, Loader2 } from 'lucide-react';
 import PurchaseModal from './purchase-modal';
 import { WalletProvider } from './wallet-provider';
 import MessageScreen from '../chat/components/message-screen';
+import PriceDisplay from './price-display';
 
 interface AccessRestrictionProps {
   item: {
@@ -111,19 +112,25 @@ const AccessRestrictionContent = ({
                     <span className="text-sm text-muted-foreground">
                       Price:
                     </span>
-                    <span className="text-lg font-bold">{item.price} SOL</span>
+                    <span className="text-lg font-bold">
+                      <PriceDisplay solAmount={item.price} size="md" />
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
                       Platform fee (10%):
                     </span>
-                    <span>{(item.price * 0.1).toFixed(4)} SOL</span>
+                    <span>
+                      <PriceDisplay solAmount={item.price * 0.1} size="sm" />
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
                       To creator (90%):
                     </span>
-                    <span>{(item.price * 0.9).toFixed(4)} SOL</span>
+                    <span>
+                      <PriceDisplay solAmount={item.price * 0.9} size="sm" />
+                    </span>
                   </div>
                 </div>
 
@@ -158,7 +165,7 @@ const AccessRestrictionContent = ({
                     size="lg"
                   >
                     <CreditCard className="h-5 w-5 mr-2" />
-                    Purchase for {item.price} SOL
+                    Purchase for <PriceDisplay solAmount={item.price} size="sm" className="inline" />
                   </Button>
                   <Button
                     variant="outline"

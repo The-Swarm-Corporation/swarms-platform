@@ -51,6 +51,9 @@ export default function Trending({
                           ? trend?.is_free
                           : true
                       }
+                      price={trend.price}
+                      seller_wallet_address={trend.seller_wallet_address}
+                      type="prompt"
                     />
                   </div>
                 ))

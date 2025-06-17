@@ -8,6 +8,7 @@ import { Download, History, Loader2 } from 'lucide-react';
 import { WalletProvider, useWallet } from '@/shared/components/marketplace/wallet-provider';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
+import { CompactPriceDisplay } from '@/shared/components/marketplace/price-display';
 import {
   Table,
   TableBody,
@@ -165,7 +166,7 @@ const MarketplaceWalletContent = ({ user }: { user: User | null }) => {
                   <div className="bg-black/60 border border-red-500/30 rounded-lg p-4">
                     <div className="text-sm text-gray-400">SOL BALANCE</div>
                     <div className="font-mono text-red-400">
-                      {solBalance.toFixed(4)}
+                      <CompactPriceDisplay solAmount={solBalance} />
                     </div>
                   </div>
                 </div>
@@ -251,7 +252,7 @@ const MarketplaceWalletContent = ({ user }: { user: User | null }) => {
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium text-red-400">
-                              {transaction.amount} SOL
+                              <CompactPriceDisplay solAmount={transaction.amount} />
                             </p>
                             <p className={`text-xs capitalize ${
                               transaction.status === 'completed' ? 'text-green-400' :

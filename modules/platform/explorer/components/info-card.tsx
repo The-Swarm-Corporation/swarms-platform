@@ -10,6 +10,9 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import CardDetailsModal from './card-details-modal';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import { USDPriceDisplay } from '@/shared/components/marketplace/price-display';
+import usePurchaseStatus from '@/shared/hooks/use-purchase-status';
+import { Edit, CheckCircle, DollarSign } from 'lucide-react';
 interface Props {
   title: string;
   description: string;
@@ -27,6 +30,9 @@ interface Props {
   usersMap: any;
   reviewsMap: any;
   is_free?: boolean;
+  price?: number | null;
+  seller_wallet_address?: string | null;
+  type?: 'prompt' | 'agent' | 'tool';
   usecases?: { title: string; description: string }[];
   requirements?: Array<{ package: string; installation: string }>;
   tags?: string[];
@@ -48,6 +54,9 @@ const InfoCard = ({
   reviewsMap,
   tags,
   is_free,
+  price,
+  seller_wallet_address,
+  type = 'prompt',
   usecases,
   requirements,
 }: Props) => {
@@ -55,6 +64,20 @@ const InfoCard = ({
   const user = usersMap?.[userId as string];
 
   const { user: authUser } = useAuthContext();
+
+  // Get purchase status for this item
+  const {
+    isOwner,
+    hasPurchased,
+    showPremiumBadge,
+    showOwnerBadge,
+    showPurchasedBadge,
+  } = usePurchaseStatus({
+    itemId: id || '',
+    itemType: type,
+    userId: userId,
+    isFree: is_free,
+  });
 
   const [isHovered, setIsHovered] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -107,7 +130,35 @@ const InfoCard = ({
         )}
       >
         <div className="flex absolute right-2 top-2 mb-1">
-          {!is_free && (
+          {/* Premium badge for non-owners who haven't purchased */}
+          {showPremiumBadge && price && price > 0 && (
+            <div className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-full text-xs font-semibold">
+              <span>💎</span>
+              <USDPriceDisplay solAmount={price} className="text-white" />
+            </div>
+          )}
+
+          {/* Owner badge */}
+          {showOwnerBadge && (
+            <div className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full text-xs font-semibold">
+              <Edit className="w-3 h-3" />
+              <span>Owner</span>
+              {price && price > 0 && (
+                <USDPriceDisplay solAmount={price} className="text-white" />
+              )}
+            </div>
+          )}
+
+          {/* Purchased badge */}
+          {showPurchasedBadge && (
+            <div className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-xs font-semibold">
+              <CheckCircle className="w-3 h-3" />
+              <span>Owned</span>
+            </div>
+          )}
+
+          {/* Fallback crown for premium items without specific pricing */}
+          {!is_free && (!price || price === 0) && !showOwnerBadge && !showPurchasedBadge && (
             <Crown className="w-5 h-5 text-yellow-400 drop-shadow-lg" />
           )}
         </div>
@@ -249,10 +300,12 @@ const InfoCard = ({
           user,
           review,
           is_free,
+          price,
+          seller_wallet_address,
           link,
           usecases,
           requirements,
-          type: 'prompt',
+          type: type,
           icon: icon || <Database className="w-6 h-6" />,
           handleRoute: handleViewClick,
         }}

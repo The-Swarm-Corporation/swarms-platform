@@ -29,6 +29,7 @@ import {
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useWallet } from './wallet-provider';
 import { useConfig } from '@/shared/hooks/use-config';
+import PriceDisplay from './price-display';
 
 interface PurchaseModalProps {
   isOpen: boolean;
@@ -247,20 +248,28 @@ const PurchaseModal = ({
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Price:</span>
-                <span className="font-semibold">{item.price} SOL</span>
+                <span className="font-semibold">
+                  <PriceDisplay solAmount={item.price} size="sm" />
+                </span>
               </div>
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Platform fee (10%):</span>
-                <span>{platformFee.toFixed(4)} SOL</span>
+                <span>
+                  <PriceDisplay solAmount={platformFee} size="sm" />
+                </span>
               </div>
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>To seller (90%):</span>
-                <span>{sellerAmount.toFixed(4)} SOL</span>
+                <span>
+                  <PriceDisplay solAmount={sellerAmount} size="sm" />
+                </span>
               </div>
               <hr />
               <div className="flex justify-between font-semibold">
                 <span>Total:</span>
-                <span>{item.price} SOL</span>
+                <span>
+                  <PriceDisplay solAmount={item.price} size="sm" />
+                </span>
               </div>
             </div>
           </CardContent>
@@ -320,7 +329,7 @@ const PurchaseModal = ({
               ) : (
                 <>
                   <CreditCard className="h-5 w-5 mr-2" />
-                  Purchase for {item.price} SOL
+                  Purchase for <PriceDisplay solAmount={item.price} size="sm" className="inline" />
                 </>
               )}
             </Button>

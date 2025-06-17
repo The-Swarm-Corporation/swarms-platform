@@ -61,7 +61,10 @@ export default function Tools({
                       userId={tool.user_id}
                       usecases={tool?.usecases}
                       requirements={tool?.requirements}
-                      is_free
+                      is_free={tool.is_free}
+                      price={tool.price}
+                      seller_wallet_address={tool.seller_wallet_address}
+                      type="tool"
                       tags={tool?.tags?.split(',') || []}
                     />
                   </div>

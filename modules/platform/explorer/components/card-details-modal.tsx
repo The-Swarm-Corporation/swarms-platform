@@ -15,12 +15,17 @@ import {
   X,
   Plus,
   Wrench,
+  CheckCircle,
+  Edit,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import ShareModal from './share-modal';
 import MarkdownComponent from '@/shared/components/markdown';
 import { DialogTitle } from '@/shared/components/ui/dialog';
+import { USDPriceDisplay } from '@/shared/components/marketplace/price-display';
+import usePurchaseStatus from '@/shared/hooks/use-purchase-status';
+import EditPriceModal from '@/shared/components/marketplace/edit-price-modal';
 
 interface CardDetailsModalProps {
   isOpen: boolean;
@@ -33,6 +38,8 @@ interface CardDetailsModalProps {
     user?: any;
     review?: any;
     is_free?: boolean;
+    price?: number | null;
+    seller_wallet_address?: string | null;
     link?: string;
     type: 'prompt' | 'agent' | 'tool';
     icon?: React.ReactNode;
@@ -51,7 +58,22 @@ export default function CardDetailsModal({
   cardData,
 }: CardDetailsModalProps) {
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showEditPrice, setShowEditPrice] = useState(false);
   const toast = useToast();
+
+  // Get purchase status for this item
+  const {
+    isOwner,
+    hasPurchased,
+    showPremiumBadge,
+    showOwnerBadge,
+    showPurchasedBadge,
+  } = usePurchaseStatus({
+    itemId: cardData.id || '',
+    itemType: cardData.type,
+    userId: cardData.user?.id,
+    isFree: cardData.is_free,
+  });
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -112,7 +134,42 @@ export default function CardDetailsModal({
             }}
           >
             <div className="absolute -inset-0.5 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x" />
-            {!cardData.is_free && (
+
+            {/* Premium badge for non-owners who haven't purchased */}
+            {showPremiumBadge && cardData.price && cardData.price > 0 && (
+              <div className="absolute top-4 left-4">
+                <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                  <Crown className="w-5 h-5" />
+                  <USDPriceDisplay solAmount={cardData.price} className="text-white" />
+                </div>
+              </div>
+            )}
+
+            {/* Owner badge */}
+            {showOwnerBadge && (
+              <div className="absolute top-4 left-4">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  <span>Owner</span>
+                  {cardData.price && cardData.price > 0 && (
+                    <USDPriceDisplay solAmount={cardData.price} className="text-white" />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Purchased badge */}
+            {showPurchasedBadge && (
+              <div className="absolute top-4 left-4">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Owned</span>
+                </div>
+              </div>
+            )}
+
+            {/* Fallback crown for premium items without specific pricing */}
+            {!cardData.is_free && (!cardData.price || cardData.price === 0) && !showOwnerBadge && !showPurchasedBadge && (
               <div className="absolute top-4 left-4">
                 <Crown className="w-8 h-8 text-yellow-400 drop-shadow-lg" />
               </div>
@@ -146,9 +203,39 @@ export default function CardDetailsModal({
                   >
                     {cardData.type}
                   </Badge>
-                  {!cardData.is_free && (
+                  {/* Premium badge for non-owners who haven't purchased */}
+                  {showPremiumBadge && (
                     <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
-                      PREMIUM
+                      {cardData.price && cardData.price > 0 ? (
+                        <USDPriceDisplay
+                          solAmount={cardData.price}
+                          className="text-yellow-400"
+                        />
+                      ) : (
+                        'PREMIUM'
+                      )}
+                    </Badge>
+                  )}
+
+                  {/* Owner badge */}
+                  {showOwnerBadge && (
+                    <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs flex items-center gap-1">
+                      <Edit className="w-3 h-3" />
+                      <span>Owner</span>
+                      {cardData.price && cardData.price > 0 && (
+                        <USDPriceDisplay
+                          solAmount={cardData.price}
+                          className="text-blue-400"
+                        />
+                      )}
+                    </Badge>
+                  )}
+
+                  {/* Purchased badge */}
+                  {showPurchasedBadge && (
+                    <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      <span>Owned</span>
                     </Badge>
                   )}
                 </div>
@@ -259,12 +346,24 @@ export default function CardDetailsModal({
                 <Share2 className="w-4 h-4" />
                 Share
               </button>
+
+              {/* Edit Price button for owners */}
+              {showOwnerBadge && cardData.price && cardData.price > 0 && (
+                <button
+                  onClick={() => setShowEditPrice(true)}
+                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-500 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit Price
+                </button>
+              )}
+
               <button
                 onClick={cardData.handleRoute}
                 className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
               >
                 <Plus className="w-4 h-4" />
-                Learn More
+                {showOwnerBadge ? 'View Details' : 'Learn More'}
               </button>
             </div>
 
@@ -280,6 +379,24 @@ export default function CardDetailsModal({
         onClose={() => setShowShareModal(false)}
         link={cardData.link || ''}
       />
+
+      {/* Edit Price Modal for owners */}
+      {showOwnerBadge && cardData.price && (
+        <EditPriceModal
+          isOpen={showEditPrice}
+          onClose={() => setShowEditPrice(false)}
+          item={{
+            id: cardData.id || '',
+            name: cardData.title,
+            type: cardData.type,
+            currentPrice: cardData.price,
+          }}
+          onPriceUpdated={() => {
+            // Refresh the data or trigger a refetch
+            window.location.reload(); // Simple approach for now
+          }}
+        />
+      )}
     </>
   );
 }
