@@ -15,9 +15,10 @@ import {
 import { explorerCategories, languageOptions } from '@/shared/utils/constants';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import MultiSelect from '@/shared/components/ui/multi-select';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useModelFileUpload } from '../hook/upload-file';
 import ModelFileUpload from './upload-image';
+import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
 
 interface Props {
   isOpen: boolean;
@@ -43,6 +44,7 @@ const AddAgentModal = ({
   const [isFree, setIsFree] = useState(true);
   const [price, setPrice] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
 
   const {
     image,
@@ -70,6 +72,26 @@ const AddAgentModal = ({
   const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addAgent = trpc.explorer.addAgent.useMutation();
+  const checkTrustworthiness = trpc.marketplace.checkUserTrustworthiness.useQuery(
+    undefined,
+    {
+      enabled: !isFree, // Only check when user wants to create paid content
+      retry: false,
+    }
+  );
+
+  // Initialize deferred validation
+  const validation = useMarketplaceValidation();
+
+  // Update validation fields when state changes
+  useEffect(() => {
+    validation.updateField('name', agentName);
+    validation.updateField('description', description);
+    validation.updateField('content', agent);
+    validation.updateField('price', price);
+    validation.updateField('walletAddress', walletAddress);
+    validation.updateField('tags', tags);
+  }, [agentName, description, agent, price, walletAddress, tags]);
 
   const handleCategoriesChange = (selectedCategories: string[]) => {
     setCategories(selectedCategories);
@@ -108,17 +130,19 @@ const AddAgentModal = ({
   };
 
   const submit = () => {
-    // Validate Agent
-    if (validateAgent.isPending) {
+    // Check if validation is in progress
+    if (isValidating || validateAgent.isPending) {
       toast.toast({
-        title: 'Validating Agent',
+        title: 'Please wait for validation to complete',
+        variant: 'destructive',
       });
       return;
     }
 
-    if (agentName.trim().length < 2) {
+    // Validate all fields using deferred validation
+    if (!validation.validateAll()) {
       toast.toast({
-        title: 'Name should be at least 2 characters long',
+        title: 'Please fix the errors in the form',
         variant: 'destructive',
       });
       return;
@@ -141,25 +165,28 @@ const AddAgentModal = ({
       return;
     }
 
-    // Validate pricing fields
+    // Check trustworthiness for paid items
     if (!isFree) {
-      const priceNum = parseFloat(price);
-      if (
-        !price ||
-        isNaN(priceNum) ||
-        priceNum < 0.000001 ||
-        priceNum > 999999
-      ) {
+      if (checkTrustworthiness.isLoading) {
         toast.toast({
-          title: 'Price must be between 0.000001 and 999,999 SOL',
+          title: 'Checking eligibility...',
+        });
+        return;
+      }
+
+      if (checkTrustworthiness.error) {
+        toast.toast({
+          title: 'Unable to verify eligibility',
+          description: 'Please try again later',
           variant: 'destructive',
         });
         return;
       }
 
-      if (!walletAddress.trim()) {
+      if (checkTrustworthiness.data && !checkTrustworthiness.data.isEligible) {
         toast.toast({
-          title: 'Wallet address is required for paid agents',
+          title: 'Not eligible for marketplace',
+          description: checkTrustworthiness.data.reason,
           variant: 'destructive',
         });
         return;
@@ -213,8 +240,31 @@ const AddAgentModal = ({
       })
       .catch((error) => {
         console.log({ error });
+
+        // Parse error message for better user feedback
+        let errorMessage = 'An error has occurred';
+        let isApiFailure = false;
+
+        if (error?.message) {
+          if (error.message.includes('Fallback validation:')) {
+            errorMessage = error.message;
+            isApiFailure = true;
+          } else if (error.message.includes('Content quality score')) {
+            errorMessage = error.message;
+          } else if (error.message.includes('not eligible')) {
+            errorMessage = error.message;
+          } else if (error.message.includes('API request failed') || error.message.includes('temporarily unavailable')) {
+            errorMessage = error.message;
+            isApiFailure = true;
+          } else {
+            errorMessage = error.message;
+          }
+        }
+
         toast.toast({
-          title: 'An error has occurred',
+          title: isApiFailure ? 'Validation Service Issue' : 'Submission Failed',
+          description: errorMessage,
+          variant: 'destructive',
         });
         setIsLoading(false);
       });
@@ -244,6 +294,26 @@ const AddAgentModal = ({
         </div>
 
         <div className="px-6 pb-4 flex flex-col gap-4">
+          {/* Quality Validation Disclosure */}
+          <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+            <div className="flex items-start gap-2">
+              <span className="text-blue-400 text-lg">ℹ️</span>
+              <div className="text-sm">
+                <p className="text-blue-300 font-medium mb-1">Quality Validation Notice</p>
+                <p className="text-blue-200 text-xs leading-relaxed">
+                  All agent submissions undergo automated quality validation to maintain marketplace standards.
+                  {!isFree && (
+                    <span className="text-yellow-300"> Paid submissions require higher quality scores and contributor eligibility checks.</span>
+                  )}
+                  {' '}Low-quality entries will be rejected with constructive feedback to help you improve.
+                </p>
+                <p className="text-blue-100 text-xs mt-2 font-mono">
+                  <strong>Fallback Policy:</strong> If our AI validation service is unavailable, we&apos;ll check your submission history instead.
+                  {isFree ? ' Free submissions need 2+ approved items.' : ' Paid submissions need 2+ approved items with 3.5+ average rating.'}
+                </p>
+              </div>
+            </div>
+          </div>
           <div className="flex flex-col gap-2">
             <span className="font-medium text-sm text-gray-200 flex items-center gap-2">
               Name
@@ -280,11 +350,24 @@ const AddAgentModal = ({
                 value={agent}
                 onChange={(v) => {
                   setAgent(v.target.value);
-                  debouncedCheckPrompt(v.target.value);
+                  // Only trigger API validation on blur, not on every keystroke
+                }}
+                onBlur={async () => {
+                  validation.validateOnBlur('content');
+                  if (agent.trim().length >= 5) {
+                    setIsValidating(true);
+                    try {
+                      await validateAgent.mutateAsync(agent);
+                    } finally {
+                      setIsValidating(false);
+                    }
+                  }
                 }}
                 required
                 placeholder="Paste your agent's code here..."
-                className="w-full h-40 p-3 border border-red-500/30 focus:border-red-500 rounded-md bg-black/40 outline-0 resize-none font-mono text-sm transition-colors"
+                className={`w-full h-40 p-3 border rounded-md bg-black/40 outline-0 resize-none font-mono text-sm transition-colors ${
+                  validation.fields.content?.error ? 'border-red-500' : 'border-red-500/30 focus:border-red-500'
+                }`}
               />
               {validateAgent.isPending ? (
                 <div className="absolute right-3 top-3">
@@ -306,6 +389,13 @@ const AddAgentModal = ({
                 </div>
               )}
             </div>
+            {/* Show validation errors */}
+            {validation.fields.content?.error && (
+              <span className="text-red-500 text-sm">
+                {validation.fields.content.error}
+              </span>
+            )}
+            {/* Show API validation errors */}
             {agent.length > 0 &&
               !validateAgent.isPending &&
               validateAgent.data &&
@@ -409,6 +499,41 @@ const AddAgentModal = ({
 
               {!isFree && (
                 <div className="space-y-4 p-4 border border-yellow-500/30 bg-yellow-500/5">
+                  {/* Trustworthiness Status */}
+                  {checkTrustworthiness.isLoading && (
+                    <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                      <LoadingSpinner />
+                      <span className="text-blue-400 text-sm">Checking marketplace eligibility...</span>
+                    </div>
+                  )}
+
+                  {checkTrustworthiness.data && !checkTrustworthiness.data.isEligible && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-red-400 font-medium">❌ Not Eligible for Marketplace</span>
+                      </div>
+                      <p className="text-red-300 text-sm">{checkTrustworthiness.data.reason}</p>
+                      {!checkTrustworthiness.data.isBypassUser && (
+                        <div className="mt-2 text-xs text-red-200">
+                          <p>Requirements: 2+ published items with 3.5+ average rating</p>
+                          <p>Your stats: {checkTrustworthiness.data.publishedCount} published, {checkTrustworthiness.data.averageRating.toFixed(1)} avg rating</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {checkTrustworthiness.data && checkTrustworthiness.data.isEligible && (
+                    <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-400 font-medium">✅ Eligible for Marketplace</span>
+                      </div>
+                      {!checkTrustworthiness.data.isBypassUser && (
+                        <p className="text-green-300 text-sm mt-1">
+                          {checkTrustworthiness.data.publishedCount} published items, {checkTrustworthiness.data.averageRating.toFixed(1)} avg rating
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Price (SOL) <span className="text-yellow-500">*</span>
@@ -451,12 +576,23 @@ const AddAgentModal = ({
 
           <div className="flex justify-end mt-4 pt-4 border-t border-red-500/30">
             <Button
-              disabled={addAgent.isPending || isLoading}
+              disabled={
+                addAgent.isPending ||
+                isLoading ||
+                isValidating ||
+                validateAgent.isPending ||
+                (!isFree && checkTrustworthiness.isLoading) ||
+                (!isFree && checkTrustworthiness.data && !checkTrustworthiness.data.isEligible)
+              }
               onClick={submit}
               className="w-40 border-2 border-red-500 bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-400 transition-colors duration-200 font-medium"
             >
               {addAgent.isPending || isLoading
                 ? 'Submitting...'
+                : isValidating || validateAgent.isPending
+                ? 'Validating...'
+                : !isFree && checkTrustworthiness.isLoading
+                ? 'Checking...'
                 : 'Submit Agent'}
             </Button>
           </div>

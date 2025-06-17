@@ -7,6 +7,7 @@ import { extractCategories } from '@/shared/utils/helpers';
 import { Tables } from '@/types_db';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { validateMarketplaceSubmission } from '@/shared/services/fraud-prevention';
 
 const BUCKET_NAME = 'images';
 
@@ -247,6 +248,9 @@ const explorerRouter = router({
         throw 'Name should be at least 2 characters';
       }
 
+      // Get user ID early for validation
+      const user_id = ctx.session.data.user?.id ?? '';
+
       // Validate marketplace fields
       if (!input.isFree) {
         if (!input.price || input.price <= 0) {
@@ -258,10 +262,26 @@ const explorerRouter = router({
         ) {
           throw 'Wallet address is required for paid prompts';
         }
+
+        // Fraud prevention validation for paid items
+        const validation = await validateMarketplaceSubmission(
+          user_id,
+          input.prompt,
+          'prompt',
+          input.name || '',
+          input.description || '',
+          input.isFree
+        );
+
+        if (!validation.isValid) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: validation.errors.join('. '),
+          });
+        }
       }
 
       // rate limiter - 1 prompt per minute
-      const user_id = ctx.session.data.user?.id ?? '';
       const lastSubmits = await ctx.supabase
         .from('swarms_cloud_prompts')
         .select('*')
@@ -506,6 +526,9 @@ const explorerRouter = router({
         throw 'Name should be at least 2 characters';
       }
 
+      // Get user ID early for validation
+      const user_id = ctx.session.data.user?.id ?? '';
+
       // Validate marketplace fields
       if (!input.isFree) {
         if (!input.price || input.price <= 0) {
@@ -517,10 +540,26 @@ const explorerRouter = router({
         ) {
           throw 'Wallet address is required for paid agents';
         }
+
+        // Fraud prevention validation for paid items
+        const validation = await validateMarketplaceSubmission(
+          user_id,
+          input.agent,
+          'agent',
+          input.name || '',
+          input.description || '',
+          input.isFree
+        );
+
+        if (!validation.isValid) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: validation.errors.join('. '),
+          });
+        }
       }
 
       // rate limiter - 1 agent per minute
-      const user_id = ctx.session.data.user?.id ?? '';
       const lastSubmits = await ctx.supabase
         .from('swarms_cloud_agents')
         .select('*')

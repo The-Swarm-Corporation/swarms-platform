@@ -8,8 +8,9 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { explorerCategories } from '@/shared/utils/constants';
 import { debounce, launchConfetti } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useModelFileUpload } from '../hook/upload-file';
+import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
 import ModelFileUpload from './upload-image';
 
 interface Props {
@@ -36,6 +37,7 @@ const AddPromptModal = ({
   const [isFree, setIsFree] = useState(true);
   const [price, setPrice] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
 
   const {
     image,
@@ -67,6 +69,26 @@ const AddPromptModal = ({
   const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addPrompt = trpc.explorer.addPrompt.useMutation();
+  const checkTrustworthiness = trpc.marketplace.checkUserTrustworthiness.useQuery(
+    undefined,
+    {
+      enabled: !isFree, // Only check when user wants to create paid content
+      retry: false,
+    }
+  );
+
+  // Initialize deferred validation
+  const validation = useMarketplaceValidation();
+
+  // Update validation fields when state changes
+  useEffect(() => {
+    validation.updateField('name', promptName);
+    validation.updateField('description', description);
+    validation.updateField('content', prompt);
+    validation.updateField('price', price);
+    validation.updateField('walletAddress', walletAddress);
+    validation.updateField('tags', tags);
+  }, [promptName, description, prompt, price, walletAddress, tags]);
 
   const handleImageUploadClick = () => {
     imageUploadRef.current?.click();
@@ -101,25 +123,19 @@ const AddPromptModal = ({
   };
 
   const submit = () => {
-    // Validate prompt
-    if (validatePrompt.isPending) {
+    // Check if validation is in progress
+    if (isValidating || validatePrompt.isPending) {
       toast.toast({
-        title: 'Validating prompt',
-      });
-      return;
-    }
-
-    if (promptName.trim().length < 2) {
-      toast.toast({
-        title: 'Name should be at least 2 characters long',
+        title: 'Please wait for validation to complete',
         variant: 'destructive',
       });
       return;
     }
 
-    if (prompt.trim().length === 0) {
+    // Validate all fields using deferred validation
+    if (!validation.validateAll()) {
       toast.toast({
-        title: 'Prompt is required',
+        title: 'Please fix the errors in the form',
         variant: 'destructive',
       });
       return;
@@ -142,25 +158,28 @@ const AddPromptModal = ({
       return;
     }
 
-    // Validate pricing fields
+    // Check trustworthiness for paid items
     if (!isFree) {
-      const priceNum = parseFloat(price);
-      if (
-        !price ||
-        isNaN(priceNum) ||
-        priceNum < 0.000001 ||
-        priceNum > 999999
-      ) {
+      if (checkTrustworthiness.isLoading) {
         toast.toast({
-          title: 'Price must be between 0.000001 and 999,999 SOL',
+          title: 'Checking eligibility...',
+        });
+        return;
+      }
+
+      if (checkTrustworthiness.error) {
+        toast.toast({
+          title: 'Unable to verify eligibility',
+          description: 'Please try again later',
           variant: 'destructive',
         });
         return;
       }
 
-      if (!walletAddress.trim()) {
+      if (checkTrustworthiness.data && !checkTrustworthiness.data.isEligible) {
         toast.toast({
-          title: 'Wallet address is required for paid prompts',
+          title: 'Not eligible for marketplace',
+          description: checkTrustworthiness.data.reason,
           variant: 'destructive',
         });
         return;
@@ -214,8 +233,31 @@ const AddPromptModal = ({
       })
       .catch((error) => {
         console.log({ error });
+
+        // Parse error message for better user feedback
+        let errorMessage = 'An error has occurred';
+        let isApiFailure = false;
+
+        if (error?.message) {
+          if (error.message.includes('Fallback validation:')) {
+            errorMessage = error.message;
+            isApiFailure = true;
+          } else if (error.message.includes('Content quality score')) {
+            errorMessage = error.message;
+          } else if (error.message.includes('not eligible')) {
+            errorMessage = error.message;
+          } else if (error.message.includes('API request failed') || error.message.includes('temporarily unavailable')) {
+            errorMessage = error.message;
+            isApiFailure = true;
+          } else {
+            errorMessage = error.message;
+          }
+        }
+
         toast.toast({
-          title: 'An error has occurred',
+          title: isApiFailure ? 'Validation Service Issue' : 'Submission Failed',
+          description: errorMessage,
+          variant: 'destructive',
         });
         setIsLoading(false);
       });
@@ -231,14 +273,41 @@ const AddPromptModal = ({
       title="Add Prompt"
     >
       <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
+        {/* Quality Validation Disclosure */}
+        <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+          <div className="flex items-start gap-2">
+            <span className="text-blue-400 text-lg">ℹ️</span>
+            <div className="text-sm">
+              <p className="text-blue-300 font-medium mb-1">Quality Validation Notice</p>
+              <p className="text-blue-200 text-xs leading-relaxed">
+                All prompt submissions undergo automated quality validation to maintain marketplace standards.
+                {!isFree && (
+                  <span className="text-yellow-300"> Paid submissions require higher quality scores and contributor eligibility checks.</span>
+                )}
+                {' '}Low-quality entries will be rejected with constructive feedback to help you improve.
+              </p>
+              <p className="text-blue-100 text-xs mt-2 font-mono">
+                <strong>Fallback Policy:</strong> If our AI validation service is unavailable, we&apos;ll check your submission history instead.
+                {isFree ? ' Free submissions need 2+ approved items.' : ' Paid submissions need 2+ approved items with 3.5+ average rating.'}
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="flex flex-col gap-1">
           <span>Name</span>
           <div className="relative">
             <Input
               value={promptName}
               onChange={setPromptName}
+              onBlur={() => validation.validateOnBlur('name')}
               placeholder="Enter name"
+              className={validation.fields.name?.error ? 'border-red-500' : ''}
             />
+            {validation.fields.name?.error && (
+              <span className="text-red-500 text-sm mt-1">
+                {validation.fields.name.error}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex flex-col gap-1">
@@ -246,9 +315,17 @@ const AddPromptModal = ({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            onBlur={() => validation.validateOnBlur('description')}
             placeholder="Enter description"
-            className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+            className={`w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none ${
+              validation.fields.description?.error ? 'border-red-500' : ''
+            }`}
           />
+          {validation.fields.description?.error && (
+            <span className="text-red-500 text-sm mt-1">
+              {validation.fields.description.error}
+            </span>
+          )}
         </div>
         <div className="flex flex-col gap-1">
           <span>Prompt</span>
@@ -257,11 +334,24 @@ const AddPromptModal = ({
               value={prompt}
               onChange={(v) => {
                 setPrompt(v.target.value);
-                debouncedCheckPrompt(v.target.value);
+                // Only trigger API validation on blur, not on every keystroke
+              }}
+              onBlur={async () => {
+                validation.validateOnBlur('content');
+                if (prompt.trim().length >= 5) {
+                  setIsValidating(true);
+                  try {
+                    await validatePrompt.mutateAsync(prompt);
+                  } finally {
+                    setIsValidating(false);
+                  }
+                }
               }}
               required
               placeholder="Enter prompt here..."
-              className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+              className={`w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none ${
+                validation.fields.content?.error ? 'border-red-500' : ''
+              }`}
             />
             {validatePrompt.isPending ? (
               <div className="absolute right-2 top-2">
@@ -283,6 +373,13 @@ const AddPromptModal = ({
               </div>
             )}
           </div>
+          {/* Show validation errors */}
+          {validation.fields.content?.error && (
+            <span className="text-red-500 text-sm">
+              {validation.fields.content.error}
+            </span>
+          )}
+          {/* Show API validation errors */}
           {prompt.length > 0 &&
             !validatePrompt.isPending &&
             validatePrompt.data &&
@@ -325,8 +422,15 @@ const AddPromptModal = ({
           <Input
             value={tags}
             onChange={setTags}
+            onBlur={() => validation.validateOnBlur('tags')}
             placeholder="Tools, Search, etc."
+            className={validation.fields.tags?.error ? 'border-red-500' : ''}
           />
+          {validation.fields.tags?.error && (
+            <span className="text-red-500 text-sm mt-1">
+              {validation.fields.tags.error}
+            </span>
+          )}
         </div>
 
         <div className="group flex flex-col gap-2">
@@ -367,6 +471,41 @@ const AddPromptModal = ({
 
             {!isFree && (
               <div className="space-y-4 p-4 border border-yellow-500/30 bg-yellow-500/5">
+                {/* Trustworthiness Status */}
+                {checkTrustworthiness.isLoading && (
+                  <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                    <LoadingSpinner />
+                    <span className="text-blue-400 text-sm">Checking marketplace eligibility...</span>
+                  </div>
+                )}
+
+                {checkTrustworthiness.data && !checkTrustworthiness.data.isEligible && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-red-400 font-medium">❌ Not Eligible for Marketplace</span>
+                    </div>
+                    <p className="text-red-300 text-sm">{checkTrustworthiness.data.reason}</p>
+                    {!checkTrustworthiness.data.isBypassUser && (
+                      <div className="mt-2 text-xs text-red-200">
+                        <p>Requirements: 2+ published items with 3.5+ average rating</p>
+                        <p>Your stats: {checkTrustworthiness.data.publishedCount} published, {checkTrustworthiness.data.averageRating.toFixed(1)} avg rating</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {checkTrustworthiness.data && checkTrustworthiness.data.isEligible && (
+                  <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-400 font-medium">✅ Eligible for Marketplace</span>
+                    </div>
+                    {!checkTrustworthiness.data.isBypassUser && (
+                      <p className="text-green-300 text-sm mt-1">
+                        {checkTrustworthiness.data.publishedCount} published items, {checkTrustworthiness.data.averageRating.toFixed(1)} avg rating
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Price (SOL) <span className="text-yellow-500">*</span>
@@ -375,12 +514,22 @@ const AddPromptModal = ({
                     type="number"
                     value={price}
                     onChange={setPrice}
+                    onBlur={() => validation.validateOnBlur('price')}
                     placeholder="0.00"
                     min="0.000001"
-                    max="999999"
+                    max="999"
                     step="0.000001"
-                    className="bg-background/40 border border-yellow-500/30 focus:border-yellow-500 text-foreground placeholder-muted-foreground transition-colors duration-300 hover:bg-background/60"
+                    className={`bg-background/40 border transition-colors duration-300 hover:bg-background/60 ${
+                      validation.fields.price?.error
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-yellow-500/30 focus:border-yellow-500'
+                    } text-foreground placeholder-muted-foreground`}
                   />
+                  {validation.fields.price?.error && (
+                    <span className="text-red-500 text-sm mt-1">
+                      {validation.fields.price.error}
+                    </span>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1 font-mono">
                     Range: 0.000001 - 999,999 SOL
                   </p>
@@ -394,9 +543,19 @@ const AddPromptModal = ({
                   <Input
                     value={walletAddress}
                     onChange={setWalletAddress}
+                    onBlur={() => validation.validateOnBlur('walletAddress')}
                     placeholder="Enter your Solana wallet address..."
-                    className="bg-background/40 border border-yellow-500/30 focus:border-yellow-500 text-foreground placeholder-muted-foreground transition-colors duration-300 hover:bg-background/60"
+                    className={`bg-background/40 border transition-colors duration-300 hover:bg-background/60 ${
+                      validation.fields.walletAddress?.error
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-yellow-500/30 focus:border-yellow-500'
+                    } text-foreground placeholder-muted-foreground`}
                   />
+                  {validation.fields.walletAddress?.error && (
+                    <span className="text-red-500 text-sm mt-1">
+                      {validation.fields.walletAddress.error}
+                    </span>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1 font-mono">
                     Platform takes 10% commission. You&apos;ll receive 90% of
                     the sale price.
@@ -409,12 +568,23 @@ const AddPromptModal = ({
 
         <div className="flex justify-end mt-4">
           <Button
-            disabled={addPrompt.isPending || isLoading}
+            disabled={
+              addPrompt.isPending ||
+              isLoading ||
+              isValidating ||
+              validatePrompt.isPending ||
+              (!isFree && checkTrustworthiness.isLoading) ||
+              (!isFree && checkTrustworthiness.data && !checkTrustworthiness.data.isEligible)
+            }
             onClick={submit}
-            className="w-32"
+            className="w-40"
           >
             {addPrompt.isPending || isLoading
               ? 'Submitting...'
+              : isValidating || validatePrompt.isPending
+              ? 'Validating...'
+              : !isFree && checkTrustworthiness.isLoading
+              ? 'Checking...'
               : 'Submit Prompt'}
           </Button>
         </div>

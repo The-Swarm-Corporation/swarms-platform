@@ -99,8 +99,6 @@ export default function CardDetailsModal({
     }
   };
 
-  console.log({ tag: cardData?.tags });
-
   return (
     <>
       <Modal

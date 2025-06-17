@@ -6,6 +6,7 @@ import {
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
+import { checkUserTrustworthiness } from '@/shared/services/fraud-prevention';
 
 const transactionLimiter = new RateLimiterMemory({
   points: 5,
@@ -307,6 +308,28 @@ const marketplaceRouter = router({
       totalVolume,
       totalPlatformFees,
     };
+  }),
+
+  checkUserTrustworthiness: userProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.data.user?.id;
+
+    if (!userId) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User not authenticated',
+      });
+    }
+
+    try {
+      const result = await checkUserTrustworthiness(userId);
+      return result;
+    } catch (error) {
+      console.error('Error checking user trustworthiness:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to check user eligibility',
+      });
+    }
   }),
 });
 
