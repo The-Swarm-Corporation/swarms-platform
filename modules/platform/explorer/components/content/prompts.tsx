@@ -56,6 +56,7 @@ export default function Prompts({
                     className="w-full h-full"
                     link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
                     userId={prompt.user_id}
+                    itemType="prompt"
                   />
                 </div>
               ))
