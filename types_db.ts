@@ -702,6 +702,13 @@ export type Database = {
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "credit_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       customers: {
@@ -724,6 +731,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_customers_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -759,6 +773,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drag_and_drop_flows_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -853,6 +874,174 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_transactions: {
+        Row: {
+          amount: number
+          buyer_id: string
+          buyer_wallet_address: string
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          platform_fee: number
+          seller_amount: number
+          seller_id: string
+          seller_wallet_address: string
+          status: string
+          transaction_signature: string
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          buyer_wallet_address: string
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          platform_fee: number
+          seller_amount: number
+          seller_id: string
+          seller_wallet_address: string
+          status?: string
+          transaction_signature: string
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          buyer_wallet_address?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          platform_fee?: number
+          seller_amount?: number
+          seller_id?: string
+          seller_wallet_address?: string
+          status?: string
+          transaction_signature?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_transactions_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_transactions_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "marketplace_transactions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_transactions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      marketplace_user_purchases: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          transaction_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          transaction_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          transaction_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_user_purchases_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_user_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_user_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      marketplace_user_wallets: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean
+          updated_at: string
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          updated_at?: string
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_user_wallets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_user_wallets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1132,6 +1321,13 @@ export type Database = {
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       swarm_cloud_billing_transcations: {
@@ -1178,18 +1374,21 @@ export type Database = {
       swarms_api_logs: {
         Row: {
           api_key: string | null
+          category: string | null
           created_at: string
           data: Json | null
           id: number
         }
         Insert: {
           api_key?: string | null
+          category?: string | null
           created_at?: string
           data?: Json | null
           id?: number
         }
         Update: {
           api_key?: string | null
+          category?: string | null
           created_at?: string
           data?: Json | null
           id?: number
@@ -1213,10 +1412,13 @@ export type Database = {
           file_path: string | null
           id: string
           image_url: string | null
+          is_free: boolean
           language: string | null
           name: string | null
+          price: number | null
           requirements: Json | null
           search_type: string
+          seller_wallet_address: string | null
           status: Database["public"]["Enums"]["user_agents_status"] | null
           tags: string | null
           use_cases: Json | null
@@ -1230,10 +1432,13 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           language?: string | null
           name?: string | null
+          price?: number | null
           requirements?: Json | null
           search_type?: string
+          seller_wallet_address?: string | null
           status?: Database["public"]["Enums"]["user_agents_status"] | null
           tags?: string | null
           use_cases?: Json | null
@@ -1247,10 +1452,13 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           language?: string | null
           name?: string | null
+          price?: number | null
           requirements?: Json | null
           search_type?: string
+          seller_wallet_address?: string | null
           status?: Database["public"]["Enums"]["user_agents_status"] | null
           tags?: string | null
           use_cases?: Json | null
@@ -1463,6 +1671,13 @@ export type Database = {
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "swarms_cloud_chat_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       swarms_cloud_chat_agent_templates: {
@@ -1521,6 +1736,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_chat_agent_templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1601,6 +1823,13 @@ export type Database = {
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "swarms_cloud_chat_agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       swarms_cloud_chat_messages: {
@@ -1674,6 +1903,13 @@ export type Database = {
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "swarms_cloud_chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       swarms_cloud_chat_swarm_agents: {
@@ -1717,6 +1953,13 @@ export type Database = {
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "swarms_cloud_chat_swarm_agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       swarms_cloud_chat_swarm_configs: {
@@ -1758,6 +2001,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_cloud_chat_swarm_configs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -2230,9 +2480,12 @@ export type Database = {
           file_path: string | null
           id: string
           image_url: string | null
+          is_free: boolean
           name: string | null
+          price: number | null
           prompt: string | null
           search_type: string
+          seller_wallet_address: string | null
           status: Database["public"]["Enums"]["user_prompts_status"] | null
           tags: string | null
           use_cases: Json | null
@@ -2245,9 +2498,12 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           name?: string | null
+          price?: number | null
           prompt?: string | null
           search_type?: string
+          seller_wallet_address?: string | null
           status?: Database["public"]["Enums"]["user_prompts_status"] | null
           tags?: string | null
           use_cases?: Json | null
@@ -2260,9 +2516,12 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           name?: string | null
+          price?: number | null
           prompt?: string | null
           search_type?: string
+          seller_wallet_address?: string | null
           status?: Database["public"]["Enums"]["user_prompts_status"] | null
           tags?: string | null
           use_cases?: Json | null
@@ -2488,6 +2747,7 @@ export type Database = {
           file_path: string | null
           id: string
           image_url: string | null
+          is_free: boolean
           language: string | null
           name: string | null
           requirements: Json | null
@@ -2504,6 +2764,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           language?: string | null
           name?: string | null
           requirements?: Json | null
@@ -2520,6 +2781,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           image_url?: string | null
+          is_free?: boolean
           language?: string | null
           name?: string | null
           requirements?: Json | null
@@ -2963,6 +3225,13 @@ export type Database = {
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "swarms_spreadsheet_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       token_holders: {
@@ -3268,6 +3537,13 @@ export type Database = {
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_fingerprints_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       users: {
@@ -3353,6 +3629,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "safe_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "user_marketplace_summary"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "users_referred_by_fkey"
@@ -3633,6 +3916,18 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_stats: {
+        Row: {
+          average_transaction_amount: number | null
+          completed_transactions: number | null
+          total_platform_fees: number | null
+          total_transactions: number | null
+          total_volume: number | null
+          unique_buyers: number | null
+          unique_sellers: number | null
+        }
+        Relationships: []
+      }
       safe_cloud_reviews: {
         Row: {
           comment: string | null
@@ -3684,6 +3979,17 @@ export type Database = {
         }
         Relationships: []
       }
+      user_marketplace_summary: {
+        Row: {
+          total_earned: number | null
+          total_gross_sales: number | null
+          total_purchases: number | null
+          total_sales: number | null
+          total_spent: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_referral_credits: {
@@ -3703,6 +4009,10 @@ export type Database = {
         Returns: {
           id: string
         }[]
+      }
+      update_referral_status: {
+        Args: { referral_id: string; new_status: string }
+        Returns: undefined
       }
     }
     Enums: {

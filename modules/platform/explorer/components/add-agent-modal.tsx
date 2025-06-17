@@ -39,6 +39,10 @@ const AddAgentModal = ({
   const [tags, setTags] = useState('');
   const [language, setLanguage] = useState('python');
   const [categories, setCategories] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFree, setIsFree] = useState(true);
+  const [price, setPrice] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
 
   const {
     image,
@@ -63,6 +67,7 @@ const AddAgentModal = ({
   }, []);
 
   const toast = useToast();
+  const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addAgent = trpc.explorer.addAgent.useMutation();
 
@@ -136,11 +141,38 @@ const AddAgentModal = ({
       return;
     }
 
+    // Validate pricing fields
+    if (!isFree) {
+      const priceNum = parseFloat(price);
+      if (
+        !price ||
+        isNaN(priceNum) ||
+        priceNum < 0.000001 ||
+        priceNum > 999999
+      ) {
+        toast.toast({
+          title: 'Price must be between 0.000001 and 999,999 SOL',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (!walletAddress.trim()) {
+        toast.toast({
+          title: 'Wallet address is required for paid agents',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     const trimTags = tags
       .split(',')
       .map((tag) => tag.trim())
       .filter(Boolean)
       .join(',');
+
+    setIsLoading(true);
 
     // Add Agent
     addAgent
@@ -162,11 +194,15 @@ const AddAgentModal = ({
           { package: 'requests', installation: 'pip3 install requests' },
         ],
         tags: trimTags,
+        isFree,
+        price: isFree ? 0 : parseFloat(price),
+        sellerWalletAddress: isFree ? '' : walletAddress,
       })
-      .then(() => {
+      .then(async () => {
         toast.toast({
           title: 'Agent added successfully 🎉',
         });
+
         onClose();
         onAddSuccessfully();
         // Reset form
@@ -174,6 +210,13 @@ const AddAgentModal = ({
         setAgent('');
         setDescription('');
         setTags('');
+      })
+      .catch((error) => {
+        console.log({ error });
+        toast.toast({
+          title: 'An error has occurred',
+        });
+        setIsLoading(false);
       });
   };
 
@@ -193,9 +236,10 @@ const AddAgentModal = ({
           </h2>
           <p className="text-gray-400 text-sm leading-relaxed">
             Share your agent with the community by filling out the details
-            below. Make sure to provide clear descriptions, categories and appropriate tags
-            below. Make sure to provide clear descriptions and appropriate tags
-            to help others discover and use your agent effectively.
+            below. Make sure to provide clear descriptions, categories and
+            appropriate tags below. Make sure to provide clear descriptions and
+            appropriate tags to help others discover and use your agent
+            effectively.
           </p>
         </div>
 
@@ -326,13 +370,94 @@ const AddAgentModal = ({
               className="border border-red-500/30 focus:border-red-500 transition-colors bg-black/40"
             />
           </div>
+
+          <div className="group flex flex-col gap-2">
+            <span className="font-medium text-sm text-gray-200">Pricing</span>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setIsFree(true)}
+                  className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-sm ${
+                    isFree
+                      ? 'border-green-500 bg-green-500/10 text-green-400'
+                      : 'border-red-500/30 bg-background/60 text-muted-foreground hover:border-red-500/50'
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${isFree ? 'bg-green-500' : 'bg-red-500/30'}`}
+                  />
+                  Free
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsFree(false)}
+                  className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-sm ${
+                    !isFree
+                      ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400'
+                      : 'border-red-500/30 bg-background/60 text-muted-foreground hover:border-red-500/50'
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${!isFree ? 'bg-yellow-500' : 'bg-red-500/30'}`}
+                  />
+                  Paid
+                </button>
+              </div>
+
+              {!isFree && (
+                <div className="space-y-4 p-4 border border-yellow-500/30 bg-yellow-500/5">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Price (SOL) <span className="text-yellow-500">*</span>
+                    </label>
+                    <Input
+                      type="number"
+                      value={price}
+                      onChange={setPrice}
+                      placeholder="0.00"
+                      min="0.000001"
+                      max="999999"
+                      step="0.000001"
+                      className="bg-background/40 border border-yellow-500/30 focus:border-yellow-500 text-foreground placeholder-muted-foreground transition-colors duration-300 hover:bg-background/60"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1 font-mono">
+                      Range: 0.000001 - 999,999 SOL
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Your Wallet Address{' '}
+                      <span className="text-yellow-500">*</span>
+                    </label>
+                    <Input
+                      value={walletAddress}
+                      onChange={setWalletAddress}
+                      placeholder="Enter your Solana wallet address..."
+                      className="bg-background/40 border border-yellow-500/30 focus:border-yellow-500 text-foreground placeholder-muted-foreground transition-colors duration-300 hover:bg-background/60"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1 font-mono">
+                      Platform takes 10% commission. You&apos;ll receive 90% of
+                      the sale price.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-end mt-4 pt-4 border-t border-red-500/30">
             <Button
-              disabled={addAgent.isPending}
+              disabled={addAgent.isPending || isLoading}
               onClick={submit}
               className="w-40 border-2 border-red-500 bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-400 transition-colors duration-200 font-medium"
             >
-              {addAgent.isPending ? 'Submitting...' : 'Submit Agent'}
+              {addAgent.isPending || isLoading
+                ? 'Submitting...'
+                : 'Submit Agent'}
             </Button>
           </div>
         </div>

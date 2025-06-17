@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { NotepadText } from 'lucide-react';
+import { Brain, NotepadText } from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
@@ -28,8 +28,11 @@ export default function Prompts({
 
   return (
     <div className="flex flex-col min-h-1/2 gap-2 pb-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold pb-2">Prompts</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+          <Brain className="text-red-500" />
+          Prompts
+        </h2>
         <Button onClick={handlePromptModal} disabled={isLoading}>
           Add Prompt
         </Button>
@@ -56,6 +59,10 @@ export default function Prompts({
                     className="w-full h-full"
                     link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
                     userId={prompt.user_id}
+                    is_free={prompt.is_free}
+                    usecases={prompt?.usecases}
+                    requirements={prompt?.requirements}
+                    tags={prompt?.tags?.split(',') || []}
                   />
                 </div>
               ))
@@ -73,18 +80,20 @@ export default function Prompts({
           </div>
         )}
 
-        {(hasMorePrompts || isFetchingPrompts) && !isLoading && filteredPrompts?.length > 0 && (
-          <div className="flex justify-center mt-3 w-full">
-            <Button
-              variant="destructive"
-              className="w-36 md:w-40"
-              onClick={loadMorePrompts}
-              disabled={isFetchingPrompts || isPromptLoading}
-            >
-              Get more
-            </Button>
-          </div>
-        )}
+        {(hasMorePrompts || isFetchingPrompts) &&
+          !isLoading &&
+          filteredPrompts?.length > 0 && (
+            <div className="flex justify-center mt-3 w-full">
+              <Button
+                variant="destructive"
+                className="w-36 md:w-40"
+                onClick={loadMorePrompts}
+                disabled={isFetchingPrompts || isPromptLoading}
+              >
+                Get more
+              </Button>
+            </div>
+          )}
       </div>
     </div>
   );

@@ -59,7 +59,6 @@ function EditExplorerModal({
     deleteImage,
   } = useEditModal({ entityId, entityType, onClose, onEditSuccessfully });
 
-
   const imageUploadRef = useRef<HTMLInputElement>(null);
 
   const handleImageUploadClick = () => {
@@ -205,7 +204,7 @@ function EditExplorerModal({
             placeholder="Select categories"
           />
         </div>
-        
+
         {/* UseCases */}
         <div className="flex flex-col gap-1">
           <span>Use Cases</span>
@@ -259,6 +258,83 @@ function EditExplorerModal({
             </div>
           </div>
         </div>
+        {(entityType === 'agent' || entityType === 'prompt') && (
+          <div className="flex flex-col gap-1">
+            <span>Pricing</span>
+            <div className="space-y-4 border border-red-500/20 bg-background/40 p-4 rounded">
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="pricing"
+                    checked={inputState.isFree}
+                    onChange={() =>
+                      setInputState({ ...inputState, isFree: true, price: 0 })
+                    }
+                    className="w-4 h-4 text-red-500 border-red-500/30 focus:ring-red-500"
+                  />
+                  <span className="font-mono text-sm text-foreground">
+                    Free
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="pricing"
+                    checked={!inputState.isFree}
+                    onChange={() =>
+                      setInputState({ ...inputState, isFree: false })
+                    }
+                    className="w-4 h-4 text-red-500 border-red-500/30 focus:ring-red-500"
+                  />
+                  <span className="font-mono text-sm text-foreground">
+                    Paid
+                  </span>
+                </label>
+              </div>
+
+              {!inputState.isFree && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-mono text-red-400 mb-2">
+                      Price (SOL)
+                    </label>
+                    <Input
+                      type="number"
+                      min="0.000001"
+                      max="999999"
+                      step="0.000001"
+                      value={inputState.price}
+                      onChange={(value) =>
+                        setInputState({
+                          ...inputState,
+                          price: parseFloat(value) || 0,
+                        })
+                      }
+                      placeholder="0.000001"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-mono text-red-400 mb-2">
+                      Wallet Address
+                    </label>
+                    <Input
+                      value={inputState.sellerWalletAddress}
+                      onChange={(value) =>
+                        setInputState({
+                          ...inputState,
+                          sellerWalletAddress: value,
+                        })
+                      }
+                      placeholder="Your Solana wallet address..."
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {entityType === 'agent' ||
           (entityType === 'tool' && (
             <>

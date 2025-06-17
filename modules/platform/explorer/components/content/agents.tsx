@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { Bot, MessagesSquare } from 'lucide-react';
+import { Bot, Code, MessagesSquare } from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
@@ -28,8 +28,11 @@ export default function Agents({
   }
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold pb-2">Agents</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+          <Code className="text-red-500" />
+          Agents
+        </h2>
         <Button onClick={handleAgentModal} disabled={isLoading}>
           Add Agent
         </Button>
@@ -57,6 +60,10 @@ export default function Agents({
                       className="w-full h-full"
                       link={makeUrl(PUBLIC.AGENT, { id: agent.id })}
                       userId={agent.user_id}
+                      is_free={agent.is_free}
+                      usecases={agent?.usecases}
+                      requirements={agent?.requirements}
+                      tags={agent?.tags?.split(',') || []}
                     />
                   ) : (
                     <PublicChatCard
@@ -85,18 +92,20 @@ export default function Agents({
           </div>
         )}
 
-        {(hasMoreAgents || isFetchingAgents) && !isLoading && filteredAgents?.length > 0 && (
-          <div className="flex justify-center mt-3 w-full">
-            <Button
-              variant="destructive"
-              className="w-36 md:w-40"
-              onClick={loadMoreAgents}
-              disabled={isFetchingAgents || isAgentLoading}
-            >
-              Get more
-            </Button>
-          </div>
-        )}
+        {(hasMoreAgents || isFetchingAgents) &&
+          !isLoading &&
+          filteredAgents?.length > 0 && (
+            <div className="flex justify-center mt-3 w-full">
+              <Button
+                variant="destructive"
+                className="w-36 md:w-40"
+                onClick={loadMoreAgents}
+                disabled={isFetchingAgents || isAgentLoading}
+              >
+                Get more
+              </Button>
+            </div>
+          )}
       </div>
     </div>
   );

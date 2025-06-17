@@ -163,8 +163,10 @@ const explorerRouter = router({
       }
 
       if (includeTools) {
-        const { data, error } =
-          await buildQuery('swarms_cloud_tools').select('*');
+        const { data, error } = await buildQuery('swarms_cloud_tools').range(
+          offset,
+          offset + limit - 1,
+        );
         if (error) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
         }
@@ -226,6 +228,13 @@ const explorerRouter = router({
         filePath: z.string().optional(),
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
+        isFree: z.boolean().default(true),
+        price: z
+          .number()
+          .min(0.000001, 'Price must be at least 0.000001 SOL')
+          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .default(0),
+        sellerWalletAddress: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -236,6 +245,19 @@ const explorerRouter = router({
       // at least 5 characters
       if (!input.name || input.name.trim()?.length < 2) {
         throw 'Name should be at least 2 characters';
+      }
+
+      // Validate marketplace fields
+      if (!input.isFree) {
+        if (!input.price || input.price <= 0) {
+          throw 'Price must be greater than 0 for paid prompts';
+        }
+        if (
+          !input.sellerWalletAddress ||
+          input.sellerWalletAddress.trim().length === 0
+        ) {
+          throw 'Wallet address is required for paid prompts';
+        }
       }
 
       // rate limiter - 1 prompt per minute
@@ -268,6 +290,9 @@ const explorerRouter = router({
             file_path: input.filePath || null,
             status: 'pending',
             category: input.category,
+            is_free: input.isFree,
+            price: input.price,
+            seller_wallet_address: input.sellerWalletAddress || null,
           } as Tables<'swarms_cloud_prompts'>,
         ]);
         if (prompts.error) {
@@ -293,6 +318,16 @@ const explorerRouter = router({
         filePath: z.string().optional(),
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
+        isFree: z.boolean().optional(),
+        price: z
+          .number()
+          .min(0.000001, 'Price must be at least 0.000001 SOL')
+          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .optional(),
+        sellerWalletAddress: z
+          .string()
+          .min(1, 'Wallet address is required for paid items')
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -308,18 +343,44 @@ const explorerRouter = router({
       const user_id = ctx.session.data.user?.id ?? '';
 
       try {
+        const updateData: Partial<Tables<'swarms_cloud_prompts'>> = {
+          name: input.name,
+          use_cases: input.useCases,
+          prompt: input.prompt,
+          description: input.description,
+          tags: input.tags,
+          category: input.category,
+          image_url: input.imageUrl || null,
+          file_path: input.filePath || null,
+        };
+
+        // Add marketplace fields if provided
+        if (input.isFree !== undefined) {
+          updateData.is_free = input.isFree;
+
+          // Validate marketplace fields when updating
+          if (!input.isFree) {
+            if (!input.price || input.price <= 0) {
+              throw 'Price must be greater than 0 for paid prompts';
+            }
+            if (
+              !input.sellerWalletAddress ||
+              input.sellerWalletAddress.trim().length === 0
+            ) {
+              throw 'Wallet address is required for paid prompts';
+            }
+          }
+        }
+        if (input.price !== undefined) {
+          updateData.price = input.price;
+        }
+        if (input.sellerWalletAddress !== undefined) {
+          updateData.seller_wallet_address = input.sellerWalletAddress || null;
+        }
+
         const prompt = await ctx.supabase
           .from('swarms_cloud_prompts')
-          .update({
-            name: input.name,
-            use_cases: input.useCases,
-            prompt: input.prompt,
-            description: input.description,
-            tags: input.tags,
-            category: input.category,
-            image_url: input.imageUrl || null,
-            file_path: input.filePath || null,
-          } as Tables<'swarms_cloud_prompts'>)
+          .update(updateData)
           .eq('user_id', user_id)
           .eq('id', input.id)
           .select('*');
@@ -426,6 +487,13 @@ const explorerRouter = router({
         filePath: z.string().optional(),
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
+        isFree: z.boolean().default(true),
+        price: z
+          .number()
+          .min(0.000001, 'Price must be at least 0.000001 SOL')
+          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .default(0),
+        sellerWalletAddress: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -436,6 +504,19 @@ const explorerRouter = router({
       // at least 5 characters
       if (!input.name || input.name.trim()?.length < 2) {
         throw 'Name should be at least 2 characters';
+      }
+
+      // Validate marketplace fields
+      if (!input.isFree) {
+        if (!input.price || input.price <= 0) {
+          throw 'Price must be greater than 0 for paid agents';
+        }
+        if (
+          !input.sellerWalletAddress ||
+          input.sellerWalletAddress.trim().length === 0
+        ) {
+          throw 'Wallet address is required for paid agents';
+        }
       }
 
       // rate limiter - 1 agent per minute
@@ -473,6 +554,9 @@ const explorerRouter = router({
             file_path: input.filePath || null,
             status: 'pending',
             category: input.category,
+            is_free: input.isFree,
+            price: input.price,
+            seller_wallet_address: input.sellerWalletAddress || null,
           } as Tables<'swarms_cloud_agents'>,
         ]);
         if (agents.error) {
@@ -499,6 +583,16 @@ const explorerRouter = router({
         category: z.array(z.string()).optional(),
         imageUrl: z.string().optional(),
         filePath: z.string().optional(),
+        isFree: z.boolean().optional(),
+        price: z
+          .number()
+          .min(0.000001, 'Price must be at least 0.000001 SOL')
+          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .optional(),
+        sellerWalletAddress: z
+          .string()
+          .min(1, 'Wallet address is required for paid items')
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -514,20 +608,46 @@ const explorerRouter = router({
       const user_id = ctx.session.data.user?.id ?? '';
 
       try {
+        const updateData: Partial<Tables<'swarms_cloud_agents'>> = {
+          name: input.name,
+          description: input.description,
+          use_cases: input.useCases,
+          agent: input.agent,
+          requirements: input.requirements,
+          tags: input.tags,
+          language: input.language,
+          category: input.category,
+          image_url: input.imageUrl || null,
+          file_path: input.filePath || null,
+        };
+
+        // Add marketplace fields if provided
+        if (input.isFree !== undefined) {
+          updateData.is_free = input.isFree;
+
+          // Validate marketplace fields when updating
+          if (!input.isFree) {
+            if (!input.price || input.price <= 0) {
+              throw 'Price must be greater than 0 for paid agents';
+            }
+            if (
+              !input.sellerWalletAddress ||
+              input.sellerWalletAddress.trim().length === 0
+            ) {
+              throw 'Wallet address is required for paid agents';
+            }
+          }
+        }
+        if (input.price !== undefined) {
+          updateData.price = input.price;
+        }
+        if (input.sellerWalletAddress !== undefined) {
+          updateData.seller_wallet_address = input.sellerWalletAddress || null;
+        }
+
         const agent = await ctx.supabase
           .from('swarms_cloud_agents')
-          .update({
-            name: input.name,
-            description: input.description,
-            use_cases: input.useCases,
-            agent: input.agent,
-            requirements: input.requirements,
-            tags: input.tags,
-            language: input.language,
-            category: input.category,
-            image_url: input.imageUrl || null,
-            file_path: input.filePath || null,
-          } as Tables<'swarms_cloud_agents'>)
+          .update(updateData)
           .eq('user_id', user_id)
           .eq('id', input.id)
           .select('*');
@@ -1201,76 +1321,6 @@ const explorerRouter = router({
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         ),
       };
-    }),
-  getTopUsers: publicProcedure
-    .input(z.object({ category: z.enum(['total', 'prompts', 'agents', 'tools']) }))
-    .query(async ({ input, ctx }) => {
-      const { category } = input;
-
-      // Get all users with their items
-      const { data: users, error: usersError } = await ctx.supabase
-        .from('users')
-        .select('id, username, full_name, avatar_url');
-
-      if (usersError) throw usersError;
-      if (!users) return [];
-
-      // Get all prompts
-      const { data: prompts, error: promptsError } = await ctx.supabase
-        .from('swarms_cloud_prompts')
-        .select('*');
-
-      if (promptsError) throw promptsError;
-      if (!prompts) return [];
-
-      // Get all agents
-      const { data: agents, error: agentsError } = await ctx.supabase
-        .from('swarms_cloud_agents')
-        .select('*');
-
-      if (agentsError) throw agentsError;
-      if (!agents) return [];
-
-      // Get all tools
-      const { data: tools, error: toolsError } = await ctx.supabase
-        .from('swarms_cloud_tools')
-        .select('*');
-
-      if (toolsError) throw toolsError;
-      if (!tools) return [];
-
-      // Map items to users
-      const usersWithItems = users.map(user => ({
-        id: user.id,
-        username: user.username,
-        full_name: user.full_name,
-        avatar_url: user.avatar_url,
-        prompts: prompts.filter(p => p.user_id === user.id),
-        agents: agents.filter(a => a.user_id === user.id),
-        tools: tools.filter(t => t.user_id === user.id)
-      }));
-
-      // Sort users based on the selected category
-      const sortedUsers = usersWithItems.sort((a, b) => {
-        const aTotal = a.prompts.length + a.agents.length + a.tools.length;
-        const bTotal = b.prompts.length + b.agents.length + b.tools.length;
-
-        switch (category) {
-          case 'total':
-            return bTotal - aTotal;
-          case 'prompts':
-            return b.prompts.length - a.prompts.length;
-          case 'agents':
-            return b.agents.length - a.agents.length;
-          case 'tools':
-            return b.tools.length - a.tools.length;
-          default:
-            return 0;
-        }
-      });
-
-      // Return top 9 users
-      return sortedUsers.slice(0, 9);
     }),
 });
 

@@ -1,11 +1,9 @@
 'use client';
 
 import { Button } from '@/shared/components/ui/button';
-import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { NotepadText } from 'lucide-react';
-import { PUBLIC } from '@/shared/utils/constants';
+import { NotepadText, Zap } from 'lucide-react';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 
 export default function Trending({
@@ -20,7 +18,10 @@ export default function Trending({
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold pb-2">Trending</h1>
+        <h2 className="text-3xl font-bold text-foreground mb-6 flex items-center gap-3">
+          <Zap className="text-red-500" />
+          Trending
+        </h2>
       </div>
       <div>
         {isLoading && !isFetchingTrending ? (
@@ -45,6 +46,11 @@ export default function Trending({
                       className="w-full h-full"
                       link={trend?.link}
                       userId={trend?.user_id}
+                      is_free={
+                        typeof trend?.is_free === 'boolean'
+                          ? trend?.is_free
+                          : true
+                      }
                     />
                   </div>
                 ))

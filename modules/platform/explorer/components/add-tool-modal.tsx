@@ -39,6 +39,7 @@ const AddToolModal = ({
   const [tags, setTags] = useState('');
   const [language, setLanguage] = useState('python');
   const [categories, setCategories] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     image,
@@ -67,6 +68,7 @@ const AddToolModal = ({
   };
 
   const toast = useToast();
+  const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addTool = trpc.explorer.addTool.useMutation();
 
@@ -142,6 +144,8 @@ const AddToolModal = ({
       .filter(Boolean)
       .join(',');
 
+    setIsLoading(true);
+
     // Add Tool
     addTool
       .mutateAsync({
@@ -156,10 +160,11 @@ const AddToolModal = ({
         requirements: [{ package: '', installation: '' }],
         tags: trimTags,
       })
-      .then(() => {
+      .then(async () => {
         toast.toast({
           title: 'Tool added successfully 🎉',
         });
+
         onClose();
         onAddSuccessfully();
         // Reset form
@@ -167,6 +172,13 @@ const AddToolModal = ({
         setTool('');
         setDescription('');
         setTags('');
+      })
+      .catch((error) => {
+        console.log({ error });
+        toast.toast({
+          title: 'An error has occurred',
+        });
+        setIsLoading(false);
       });
   };
 
@@ -292,11 +304,11 @@ const AddToolModal = ({
         </div>
         <div className="flex justify-end mt-4">
           <Button
-            disabled={addTool.isPending}
+            disabled={addTool.isPending || isLoading}
             onClick={submit}
             className="w-32"
           >
-            Submit
+            {addTool.isPending || isLoading ? 'Submitting...' : 'Submit Tool'}
           </Button>
         </div>
       </div>
