@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { Hammer } from 'lucide-react';
+import { Hammer, Plus } from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
@@ -25,19 +25,24 @@ export default function Tools({
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold pb-2">Tools</h1>
-        <Button onClick={handleToolModal} disabled={isLoading}>
-          Add tool
+        <Button
+          onClick={handleToolModal}
+          disabled={isLoading}
+          className="bg-[#FFD93D]/20 border border-[#FFD93D]/60 hover:bg-[#FFD93D]/30 text-[#FFD93D] hover:text-black transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FFD93D]/25 group"
+        >
+          <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+          Add Tool
         </Button>
       </div>
       <div>
         {isLoading ? (
           <ExplorerSkeletonLoaders />
         ) : (
-          <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTools.length > 0 ? (
               filteredTools?.map((tool: any, index: number) => (
                 <div
-                  className="flex flex-col w-full h-[220px] sm:w-full mb-11"
+                  className="flex flex-col w-full"
                   key={`${tool?.id}-${index}`}
                 >
                   <InfoCard

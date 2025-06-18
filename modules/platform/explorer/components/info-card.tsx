@@ -1,13 +1,13 @@
 import { cn } from '@/shared/utils/cn';
 import { formatPrice, getTruncatedString } from '@/shared/utils/helpers';
 import { ReactNode, useState } from 'react';
-import { Share2 } from 'lucide-react';
-import Avatar from '@/shared/components/avatar';
+import { Share2, ShoppingCart, ExternalLink } from 'lucide-react';
 import ShareModal from './share-modal';
 import ReactStars from 'react-rating-star-with-type';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface Props {
   title: string;
@@ -26,6 +26,7 @@ interface Props {
   usersMap: any;
   reviewsMap: any;
   itemType?: 'prompt' | 'agent' | 'tool';
+  isPremium?: boolean;
 }
 
 const InfoCard = ({
@@ -43,11 +44,11 @@ const InfoCard = ({
   usersMap,
   reviewsMap,
   itemType = 'prompt',
+  isPremium = false,
 }: Props) => {
   const review = reviewsMap?.[id as string];
   const user = usersMap?.[userId as string];
 
-  const [isButtonHover, setIsButtonHover] = useState(false);
   const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
   const router = useRouter();
 
@@ -76,25 +77,28 @@ const InfoCard = ({
         return {
           icon: 'text-[#4ECDC4]',
           bg: 'bg-[#4ECDC4]/5',
-          border: 'border-[#4ECDC4]/20',
-          hover: 'hover:bg-[#4ECDC4]/10',
-          button: 'bg-[#4ECDC4]/10 border-[#4ECDC4]/50 hover:bg-[#4ECDC4]/20'
+          border: 'border-[#4ECDC4]/40',
+          hover: 'hover:bg-[#4ECDC4]/15',
+          button:
+            'bg-[#4ECDC4]/10 border-[0.5px] border-[#4ECDC4]/20 hover:bg-[#4ECDC4]/20 text-[#4ECDC4]',
         };
       case 'tool':
         return {
           icon: 'text-[#FFD93D]',
           bg: 'bg-[#FFD93D]/5',
-          border: 'border-[#FFD93D]/20',
-          hover: 'hover:bg-[#FFD93D]/10',
-          button: 'bg-[#FFD93D]/10 border-[#FFD93D]/50 hover:bg-[#FFD93D]/20'
+          border: 'border-[#FFD93D]/40',
+          hover: 'hover:bg-[#FFD93D]/15',
+          button:
+            'bg-[#FFD93D]/10 border-[0.5px] border-[#FFD93D]/20 hover:bg-[#FFD93D]/20 text-[#FFD93D]',
         };
       default: // prompt
         return {
           icon: 'text-[#FF6B6B]',
           bg: 'bg-[#FF6B6B]/5',
-          border: 'border-[#FF6B6B]/20',
-          hover: 'hover:bg-[#FF6B6B]/10',
-          button: 'bg-[#FF6B6B]/10 border-[#FF6B6B]/50 hover:bg-[#FF6B6B]/20'
+          border: 'border-[#FF6B6B]/40',
+          hover: 'hover:bg-[#FF6B6B]/15',
+          button:
+            'bg-[#FF6B6B]/10 border-[0.5px] border-[#FF6B6B]/20 hover:bg-[#FF6B6B]/20 text-[#FF6B6B]',
         };
     }
   };
@@ -113,98 +117,114 @@ const InfoCard = ({
         }
       }}
       className={cn(
-        'relative flex flex-col justify-between h-full min-h-[260px] max-h-[320px] gap-4 p-6 rounded-lg overflow-hidden group cursor-pointer',
-        'transition-all duration-200 ease-in-out',
-        'bg-black/90 border border-gray-800',
-        'hover:shadow-lg hover:shadow-current/20',
-        'hover:scale-[1.02] active:scale-[0.98]',
+        'relative flex flex-col h-full min-h-[240px] max-h-[280px] p-4 sm:p-6 rounded-md overflow-hidden group cursor-pointer',
+        'transition-all duration-300 ease-in-out',
+        'bg-black/95 border',
+        'hover:shadow-xl hover:shadow-current/30',
+        'hover:scale-[1.02] sm:hover:scale-[1.03] active:scale-[0.98]',
+        'backdrop-blur-sm',
+        'border-gray-800',
         colors.bg,
         className,
       )}
     >
-      {/* Rating */}
       {id && (
-        <div className="absolute top-4 right-4 flex items-center gap-1 z-10">
+        <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5">
           <div className="mb-0.5">
-            <ReactStars value={review?.rating} isEdit={false} count={1} />
+            <ReactStars
+              value={review?.rating}
+              isEdit={false}
+              count={1}
+              size={16}
+            />
           </div>
-          <span className="text-sm font-semibold text-white/80">
-            {review?.rating || 0}/5
+          <span className="text-sm font-bold text-white">
+            {review?.rating || 0}
           </span>
         </div>
       )}
 
-      {/* Top Section: Icon/Image, Title, User, Description, Price */}
-      <div className="flex-1 flex flex-col gap-2 overflow-hidden">
-        <div className="flex items-center gap-3 mb-1">
-          {imageUrl ? (
-            <div className="relative h-10 aspect-square">
-              <Image
-                src={imageUrl ?? ''}
-                alt={title}
-                fill
-                className="rounded-lg border border-primary/30"
-              />
-            </div>
-          ) : (
-            <div className={`flex items-center justify-center h-10 ${colors.bg} text-white rounded-lg aspect-square transition-colors group-hover:bg-opacity-20`}>
-              {icon}
-            </div>
-          )}
-          <span className={`text-xs uppercase tracking-wider font-medium ${colors.icon}`}>
-            {itemType}
-          </span>
+      <div className="flex-1 flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex items-center justify-center h-14 w-12 rounded-lg ${colors.bg} border border-current/30 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 shadow-sm`}
+          >
+            <div className={`${colors.icon} transition-colors`}>{icon}</div>
+          </div>
+          <div>
+            <span
+              className={`text-xs uppercase tracking-widest font-medium rounded-md ${colors.icon} border border-current/20`}
+            >
+              {itemType}
+            </span>
+            <Link
+              href={`/users/${user?.username}`}
+              className={`flex items-center gap-2 transition-opacity mt-1`}
+            >
+              <div className="w-5 h-5 rounded-full overflow-hidden bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
+                {user?.avatar_url ? (
+                  <Image
+                    src={user.avatar_url}
+                    alt={user.username || 'User'}
+                    width={20}
+                    height={20}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div
+                    className='w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#ccc]'
+                  >
+                    {user?.username?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+              </div>
+              <span
+                className={`text-xs font-semibold group-hover:${colors.icon}/80 transition-colors ${colors.icon}`}
+              >
+                {user?.username || 'Anonymous'}
+              </span>
+            </Link>
+          </div>
         </div>
-        <h1 className="text-xl font-bold text-white group-hover:text-white/90 transition-colors line-clamp-1">
+
+        <h1 className="text-lg font-bold text-white group-hover:text-white/90 transition-colors line-clamp-1 leading-tight">
           {title}
         </h1>
-        <Avatar explorerUser={user} showUsername showBorder />
-        <span
-          title={description}
-          className="text-sm text-white/70 group-hover:text-white/80 transition-colors truncate"
-        >
+
+        <p className="text-sm text-white/70 group-hover:text-white/80 transition-colors line-clamp-2 flex-1">
           {getTruncatedString(description, 80)}
-        </span>
+        </p>
+
         {(input || output) && (
-          <ul className="p-0 my-2 flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {input && renderPrice('Input', input)}
             {output && renderPrice('Output', output)}
-          </ul>
+          </div>
         )}
       </div>
 
-      {/* Buttons at the bottom */}
-      <div className="flex items-center gap-3 mt-2 pt-2">
+      <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/10">
         <button
           onClick={handleShowShareModal}
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md ${colors.button} text-white transition-all duration-200 group`}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${colors.button} hover:scale-105 active:scale-95`}
           tabIndex={-1}
         >
-          <Share2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
-          <span className="text-sm font-medium">Share</span>
+          <Share2 className="h-4 w-4" />
+          <span>Share</span>
         </button>
         <button
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md ${colors.button} text-white transition-all duration-200 group`}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${colors.button} hover:scale-105 active:scale-95`}
           tabIndex={-1}
         >
-          <span className="text-sm font-medium">{btnLabel || 'Learn More'}</span>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="transition-transform group-hover:translate-x-0.5"
-          >
-            <path
-              fillRule="evenodd"
-              clipRule="evenodd"
-              d="M5.74999 2H4.99999V3.5H5.74999H11.4393L2.21966 12.7197L1.68933 13.25L2.74999 14.3107L3.28032 13.7803L12.4988 4.56182V10.25V11H13.9988V10.25V3C13.9988 2.44772 13.5511 2 12.9988 2H5.74999Z"
-              fill="currentColor"
-            />
-          </svg>
+          <span>{isPremium ? 'Buy Now' : btnLabel || 'Learn More'}</span>
+          {isPremium ? (
+            <ShoppingCart className="h-4 w-4" />
+          ) : (
+            <ExternalLink className="h-4 w-4" />
+          )}
         </button>
       </div>
+
       <ShareModal
         isOpen={isShowShareModalOpen}
         onClose={handleCloseModal}

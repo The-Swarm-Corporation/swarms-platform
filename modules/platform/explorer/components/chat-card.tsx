@@ -1,11 +1,11 @@
 import { cn } from '@/shared/utils/cn';
 import { getTruncatedString } from '@/shared/utils/helpers';
 import { ReactNode, useState } from 'react';
-import { Share2 } from 'lucide-react';
-import Avatar from '@/shared/components/avatar';
+import { Share2, ExternalLink, Users, BotMessageSquare } from 'lucide-react';
 import ShareModal from './share-modal';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface Props {
   title: string;
@@ -44,7 +44,14 @@ const PublicChatCard = ({
     router.push(link);
   };
 
-  const remainingAgentsLength = Math.max(agents?.length - 3, 0);
+  const colors = {
+    icon: 'text-[#4ECDC4]',
+    bg: 'bg-[#4ECDC4]/5',
+    border: 'border-[#4ECDC4]/40',
+    hover: 'hover:bg-[#4ECDC4]/15',
+    button:
+      'bg-[#4ECDC4]/10 border-[0.5px] border-[#4ECDC4]/20 hover:bg-[#4ECDC4]/20 text-[#4ECDC4]',
+  };
 
   return (
     <div
@@ -58,118 +65,88 @@ const PublicChatCard = ({
         }
       }}
       className={cn(
-        'relative flex gap-4 p-4 px-3 rounded-lg overflow-hidden group cursor-pointer',
-        'transition-all duration-200 ease-in-out',
-        'bg-black border border-red-600',
-        'hover:shadow-lg hover:shadow-red-600/20',
-        'hover:scale-[1.02] active:scale-[0.98] h-[220px]',
+        'relative flex flex-col h-full min-h-[240px] max-h-[280px] p-4 sm:p-6 rounded-md overflow-hidden group cursor-pointer',
+        'transition-all duration-300 ease-in-out',
+        'bg-black/95 border',
+        'hover:shadow-xl hover:shadow-current/30',
+        'hover:scale-[1.02] sm:hover:scale-[1.03] active:scale-[0.98]',
+        'backdrop-blur-sm',
+        'border-gray-800',
+        colors.bg,
         className,
       )}
     >
-      <div className="flex items-center justify-center h-10 bg-red-600 text-white rounded-lg aspect-square transition-colors group-hover:bg-red-500">
-        {icon}
-      </div>
-
-      <div className="h-4/5 flex flex-col overflow-y-auto no-scrollbar">
-        <div className="flex flex-col gap-2 flex-grow">
-          <h1 className="text-xl sm:text-2xl font-bold text-white group-hover:text-red-500 transition-colors">
-            {title}
-          </h1>
-
-          <Avatar explorerUser={user} showUsername showBorder />
-          {description && (
-            <span title={description} className="text-sm">
-              {getTruncatedString(description, 100)}
+      <div className="flex-1 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`flex items-center justify-center h-14 w-12 rounded-lg ${colors.bg} border border-current/30 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 shadow-sm`}>
+              <div className={`${colors.icon} transition-colors`}>
+                {icon}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className={`text-xs uppercase tracking-widest font-medium rounded-md ${colors.icon} border border-current/20`}>
+                Chat
+              </span>
+              <div className="flex items-center gap-2 opacity-75 group-hover:opacity-100 transition-opacity">
+                <div className="w-5 h-5 rounded-full overflow-hidden bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
+                  {user?.avatar_url ? (
+                    <Image
+                      src={user.avatar_url}
+                      alt={user.username || 'User'}
+                      width={20}
+                      height={20}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className='w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#ccc]'>
+                      {user?.username?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                </div>
+                <span className={`text-xs font-semibold group-hover:${colors.icon}/80 transition-colors ${colors.icon}`}>
+                  {user?.username || 'Anonymous'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 opacity-75 group-hover:opacity-100 transition-opacity">
+            <Users className={`h-3.5 w-3.5 ${colors.icon}`} />
+            <span className="text-xs font-medium text-white/60 group-hover:text-white/80 transition-colors">
+              {agents?.length || 0}
             </span>
+          </div>
+        </div>
+
+        <h1 className="text-xl font-bold text-white group-hover:text-white/90 transition-colors line-clamp-1 leading-tight">
+          {title}
+        </h1>
+
+        <p className="text-sm text-white/70 group-hover:text-white/80 transition-colors line-clamp-2 flex-1">
+          {getTruncatedString(
+            description ||
+              'Join this public conversation and explore AI-powered discussions with multiple agents.',
+            80,
           )}
-
-          <div className="flex flex-wrap gap-2">
-            {agents?.slice(0, 3)?.map((agent, index) => (
-              <div
-                key={`${agent}-${index}`}
-                className="rounded-[4000px] bg-[#2e2e2e] border border-[#40403F] px-3 py-1"
-              >
-                <p className="text-sm font-bold text-[#F5F5F4]">
-                  {getTruncatedString(agent, 30)}
-                </p>
-              </div>
-            ))}
-            {remainingAgentsLength > 0 && (
-              <div
-                onClick={handleCardClick}
-                role="button"
-                tabIndex={0}
-                aria-label={`${remainingAgentsLength} more agents`}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleCardClick();
-                  }
-                }}
-                className="cursor-pointer rounded-[4000px] bg-[#1f1f1f] px-3 py-1 hover:bg-primary/70"
-              >
-                <p className="text-sm font-bold text-[#F5F5F4]">
-                  +{remainingAgentsLength}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+        </p>
       </div>
 
-      <div
-        className="cursor-pointer hover:opacity-70 z-10"
-        onClick={handleShowShareModal}
-      >
-        <svg
-          width="95"
-          height="25"
-          viewBox="0 0 95 25"
-          xmlns="http://www.w3.org/2000/svg"
-          className="rating-svg absolute right-[150px] xl:right-[120px] bottom-0 scale-x-[2.5] scale-y-[1.8]"
+      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/10">
+        <button
+          onClick={handleShowShareModal}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${colors.button} hover:scale-105 active:scale-95`}
+          tabIndex={-1}
         >
-          <path d="M21 0H95V25H0L21 0Z" className="fill-red-600" />
-        </svg>
-        <div className="absolute right-[150px] bottom-0 text-white px-4 py-1">
-          <div className="relative flex items-center justify-center gap-2 w-[80px] xl:w-[66px] group">
-            <span>Share</span>
-            <Share2 className="group-hover:text-red-500 transition-colors" />
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute right-0 bottom-0 z-10">
-        <svg
-          width="95"
-          height="25"
-          viewBox="0 0 95 25"
-          xmlns="http://www.w3.org/2000/svg"
-          className="preview-svg scale-x-[2.5] scale-y-[1.8]"
+          <Share2 className="h-4 w-4" />
+          <span>Share</span>
+        </button>
+        <button
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${colors.button} hover:scale-105 active:scale-95`}
+          tabIndex={-1}
         >
-          <path
-            d="M21 0H95V25H0L21 0Z"
-            className="fill-red-600 transition-colors hover:fill-red-500"
-          />
-        </svg>
-        <div className="absolute right-0 bottom-0 text-white px-4 py-1">
-          <div className="relative flex items-center justify-center gap-2 w-[110px]">
-            <span>Learn More</span>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="transition-transform group-hover:translate-x-0.5"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M5.74999 2H4.99999V3.5H5.74999H11.4393L2.21966 12.7197L1.68933 13.25L2.74999 14.3107L3.28032 13.7803L12.4988 4.56182V10.25V11H13.9988V10.25V3C13.9988 2.44772 13.5511 2 12.9988 2H5.74999Z"
-                fill="white"
-              />
-            </svg>
-          </div>
-        </div>
+          <span>Join Chat</span>
+          <ExternalLink className="h-4 w-4" />
+        </button>
       </div>
 
       <ShareModal
