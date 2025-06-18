@@ -146,7 +146,7 @@ const InfoCard = ({
       role="button"
       tabIndex={0}
       aria-label={title}
-      className="relative group cursor-pointer"
+      className="relative group cursor-pointer h-full"
       onClick={handleCardClick}
     >
       <div

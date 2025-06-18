@@ -7,6 +7,7 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { checkUserTrustworthiness } from '@/shared/services/fraud-prevention';
+import { calculateCommission, validateCommissionCalculation } from '@/shared/utils/marketplace/commission';
 
 const transactionLimiter = new RateLimiterMemory({
   points: 5,
@@ -172,18 +173,23 @@ const marketplaceRouter = router({
         });
       }
 
-      const platformFee = amount * 0.1;
-      const sellerAmount = amount - platformFee;
+      // Calculate platform fee with proper decimal precision using utility
+      const commission = calculateCommission(amount);
+      const { platformFee, sellerAmount } = commission;
 
-      console.log(`Creating marketplace transaction: ${transactionSignature}`, {
-        buyerId,
-        sellerId,
-        itemId,
-        itemType,
-        amount,
-        platformFee,
-        sellerAmount,
-      });
+      // Validate commission calculation
+      if (!validateCommissionCalculation(amount, platformFee, sellerAmount)) {
+        console.error('Commission calculation validation failed', {
+          amount,
+          platformFee,
+          sellerAmount,
+          expected: commission,
+        });
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Commission calculation error',
+        });
+      }
 
       const { data: transaction, error: transactionError } = await ctx.supabase
         .from('marketplace_transactions')

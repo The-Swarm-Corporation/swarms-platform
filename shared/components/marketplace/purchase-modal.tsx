@@ -30,6 +30,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { useWallet } from './wallet-provider';
 import { useConfig } from '@/shared/hooks/use-config';
 import PriceDisplay from './price-display';
+import { calculateCommission, validateCommissionCalculation } from '@/shared/utils/marketplace/commission';
 
 interface PurchaseModalProps {
   isOpen: boolean;
@@ -143,7 +144,9 @@ const PurchaseModal = ({
       const platformPubkey = new PublicKey(platformWalletAddress);
 
       const totalAmount = item.price * LAMPORTS_PER_SOL;
-      const platformFee = totalAmount * 0.1;
+      // Use precise commission calculation
+      const commission = calculateCommission(item.price);
+      const platformFee = Math.floor(commission.platformFee * LAMPORTS_PER_SOL);
       const sellerAmount = totalAmount - platformFee;
 
       transaction.add(
@@ -217,8 +220,16 @@ const PurchaseModal = ({
     }
   };
 
-  const platformFee = item.price * 0.1;
-  const sellerAmount = item.price - platformFee;
+  // Calculate commission with proper precision using utility
+  const commission = calculateCommission(item.price);
+  const { platformFee, sellerAmount } = commission;
+
+  // Validate commission calculation
+  const isCommissionValid = validateCommissionCalculation(
+    item.price,
+    platformFee,
+    sellerAmount
+  );
 
   return (
     <Modal
@@ -275,6 +286,18 @@ const PurchaseModal = ({
           </CardContent>
         </Card>
 
+        {/* Commission validation warning */}
+        {!isCommissionValid && (
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-red-500" />
+              <span className="text-sm text-red-700 dark:text-red-300">
+                Commission calculation error detected. Please contact support.
+              </span>
+            </div>
+          </div>
+        )}
+
         {!isConnected ? (
           <div className="space-y-4">
             <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
@@ -317,7 +340,7 @@ const PurchaseModal = ({
             </div>
             <Button
               onClick={handlePurchase}
-              disabled={isProcessing}
+              disabled={isProcessing || !isCommissionValid}
               className="w-full"
               size="lg"
             >

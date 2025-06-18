@@ -19,6 +19,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { formatSOLAmount } from '@/shared/utils/marketplace/commission';
 
 interface MarketplaceTransactionsProps {
   user: User | null;
@@ -49,7 +50,7 @@ const MarketplaceTransactions = ({ user }: MarketplaceTransactionsProps) => {
 
   if (!user) return null;
 
-  const formatSOL = (amount: number) => `${amount.toFixed(4)} SOL`;
+  const formatSOL = (amount: number) => formatSOLAmount(amount);
 
   const getTransactionTypeColor = (transaction: any, userId: string) => {
     if (transaction.buyer_id === userId) {

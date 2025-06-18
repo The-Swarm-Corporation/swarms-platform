@@ -41,7 +41,7 @@ export default function PriceDisplay({
   showUSD = true,
   showSOL = true,
   className,
-  solDecimals = 4,
+  solDecimals,
   usdDecimals = 2,
   size = 'md',
   variant = 'default',
@@ -50,6 +50,15 @@ export default function PriceDisplay({
   const [usdAmount, setUsdAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const getOptimalDecimals = (amount: number, defaultDecimals: number) => {
+    if (amount === 0) return 1;
+    if (amount < 0.0001) return 8;
+    if (amount < 0.01) return 6;
+    return defaultDecimals || 4;
+  };
+
+  const actualSolDecimals = solDecimals ?? getOptimalDecimals(solAmount, 4);
 
   useEffect(() => {
     let mounted = true;
@@ -125,7 +134,7 @@ export default function PriceDisplay({
       <div
         className={cn('flex items-center gap-1', getSizeClasses(), className)}
       >
-        {showSOL && <span>{solAmount.toFixed(solDecimals)} SOL</span>}
+        {showSOL && <span>{solAmount.toFixed(actualSolDecimals)} SOL</span>}
         <span className="text-muted-foreground">(USD unavailable)</span>
       </div>
     );
@@ -133,9 +142,9 @@ export default function PriceDisplay({
 
   const formatDisplay = () => {
     if (showSOL && showUSD && usdAmount !== null) {
-      return `${solAmount.toFixed(solDecimals)} SOL (~$${usdAmount.toFixed(usdDecimals)})`;
+      return `${solAmount.toFixed(actualSolDecimals)} SOL (~$${usdAmount.toFixed(usdDecimals)})`;
     } else if (showSOL) {
-      return `${solAmount.toFixed(solDecimals)} SOL`;
+      return `${solAmount.toFixed(actualSolDecimals)} SOL`;
     } else if (showUSD && usdAmount !== null) {
       return `$${usdAmount.toFixed(usdDecimals)}`;
     }

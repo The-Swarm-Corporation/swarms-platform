@@ -28,6 +28,8 @@ import { DialogTitle } from '@/shared/components/ui/dialog';
 import { USDPriceDisplay } from '@/shared/components/marketplace/price-display';
 import usePurchaseStatus from '@/shared/hooks/use-purchase-status';
 import EditPriceModal from '@/shared/components/marketplace/edit-price-modal';
+import Image from 'next/image';
+import Link from 'next/link';
 
 interface CardDetailsModalProps {
   isOpen: boolean;
@@ -206,29 +208,47 @@ export default function CardDetailsModal({
                 <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-2">
                   <Badge
                     className={cn(
-                      'text-xs font-mono uppercase tracking-wider',
-                      `${colors.bg} ${colors.icon} ${colors.border}`,
+                      'text-xs font-mono uppercase tracking-wider px-0',
+                      `bg-transparent ${colors.icon}`,
                     )}
                   >
                     {cardData.type}
                   </Badge>
                 </div>
-                <h1 className="text-xl md:text-3xl font-bold text-foreground mb-3 leading-tight break-words">
-                  {cardData.title}
-                </h1>
+                <div className="flex gap-2 flex-col mb-3">
+                  <h1 className="text-xl md:text-3xl font-bold text-foreground leading-tight break-words">
+                    {cardData.title}
+                  </h1>
+
+                  <Link
+                    href={`/users/${cardData?.user?.username}`}
+                    className={`flex items-center gap-2 w-fit transition-opacity rounded-md ${colors.bg} border border-current/30 px-3 py-1 backdrop-blur-sm transition-all duration-300 shadow-sm`}
+                  >
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
+                      {cardData?.user?.avatar_url ? (
+                        <Image
+                          src={cardData.user.avatar_url}
+                          alt={cardData.user.username || 'User'}
+                          width={20}
+                          height={20}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#ccc]">
+                          {cardData?.user?.username?.charAt(0)?.toUpperCase() ||
+                            '?'}
+                        </div>
+                      )}
+                    </div>
+                    <span
+                      className={`text-xs font-semibold group-hover:${colors.icon}/80 transition-colors ${colors.icon}`}
+                    >
+                      {cardData?.user?.username || 'Anonymous'}
+                    </span>
+                  </Link>
+                </div>
 
                 <DialogTitle hidden />
-
-                {cardData.user && (
-                  <div className="flex items-center gap-3">
-                    <Avatar
-                      explorerUser={cardData.user}
-                      showUsername
-                      showBorder
-                      className="text-foreground/90"
-                    />
-                  </div>
-                )}
               </div>
             </div>
           </div>
