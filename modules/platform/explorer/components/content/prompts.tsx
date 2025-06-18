@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { Brain, NotepadText } from 'lucide-react';
+import { Plus, ChevronDown, MessageSquare, Brain } from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
@@ -33,7 +33,12 @@ export default function Prompts({
           <Brain className="text-red-500" />
           Prompts
         </h2>
-        <Button onClick={handlePromptModal} disabled={isLoading}>
+                <Button
+          onClick={handlePromptModal}
+          disabled={isLoading}
+          className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/60 hover:bg-[#FF6B6B]/30 text-[#FF6B6B] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FF6B6B]/25 group"
+        >
+          <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
           Add Prompt
         </Button>
       </div>
@@ -41,11 +46,11 @@ export default function Prompts({
         {isLoading && !isFetchingPrompts ? (
           <ExplorerSkeletonLoaders />
         ) : (
-          <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPrompts.length > 0 ? (
               filteredPrompts?.map((prompt: any, index: number) => (
                 <div
-                  className="flex flex-col w-full h-[220px] sm:w-full mb-11"
+                  className="flex flex-col w-full"
                   key={`${prompt?.id}-${index}`}
                 >
                   <InfoCard
@@ -55,17 +60,17 @@ export default function Prompts({
                     reviewsMap={reviewsMap}
                     imageUrl={prompt.image_url || ''}
                     description={prompt.description || ''}
-                    icon={<NotepadText />}
+                    icon={<MessageSquare />}
                     className="w-full h-full"
                     link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
                     userId={prompt.user_id}
                     is_free={prompt.is_free}
                     price={prompt.price}
                     seller_wallet_address={prompt.seller_wallet_address}
-                    type="prompt"
                     usecases={prompt?.usecases}
                     requirements={prompt?.requirements}
                     tags={prompt?.tags?.split(',') || []}
+                    itemType="prompt"
                   />
                 </div>
               ))
@@ -86,14 +91,23 @@ export default function Prompts({
         {(hasMorePrompts || isFetchingPrompts) &&
           !isLoading &&
           filteredPrompts?.length > 0 && (
-            <div className="flex justify-center mt-3 w-full">
+            <div className="flex justify-center mt-8 w-full">
               <Button
-                variant="destructive"
-                className="w-36 md:w-40"
                 onClick={loadMorePrompts}
                 disabled={isFetchingPrompts || isPromptLoading}
+                className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/60 hover:bg-[#FF6B6B]/30 text-[#FF6B6B] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FF6B6B]/25 group"
               >
-                Get more
+                {isFetchingPrompts ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <span>Load More</span>
+                    <ChevronDown className="h-4 w-4 ml-2 group-hover:translate-y-0.5 transition-transform" />
+                  </>
+                )}
               </Button>
             </div>
           )}

@@ -40,7 +40,8 @@ type NavMenuProps = {
   [K in NavMenuPropsKeys]?: MenuProps[];
 };
 
-const navItemClass = "p-2 rounded-md bg-gray-50/5 hover:bg-gray-50/10 transition-colors duration-200";
+const navItemClass =
+  'p-2 rounded-md bg-gray-50/5 hover:bg-gray-50/10 transition-colors duration-200';
 
 const SHARED_LINKS: MenuProps[] = [
   {

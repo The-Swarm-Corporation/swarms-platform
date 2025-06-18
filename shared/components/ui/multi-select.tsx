@@ -107,7 +107,7 @@ export default function MultiSelect({
           className,
           isOpen
             ? 'border-primary/50 ring-2 ring-primary/20'
-            : 'border-gray-300',
+            : 'border-red-500/30',
           disabled
             ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
             : 'cursor-pointer',

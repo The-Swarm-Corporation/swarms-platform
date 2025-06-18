@@ -108,7 +108,8 @@ export default function PlatformNavBar() {
                     'inline-flex items-center justify-center px-4 py-2 my-1 font-medium text-sm text-white',
                     'rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary',
                     'transition-all duration-300',
-                    item.link === path && 'bg-primary/20 text-primary border-primary/50 shadow-[0_0_10px_rgba(var(--primary-rgb,255,0,0),0.4)]',
+                    item.link === path &&
+                      'bg-primary/20 text-primary border-primary/50 shadow-[0_0_10px_rgba(var(--primary-rgb,255,0,0),0.4)]',
                   )}
                   showTitle
                 >

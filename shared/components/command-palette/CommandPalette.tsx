@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { NAV_LINKS, SIDE_BAR_MENU } from '../panel-layout/components/const';
-import { Blocks, CircleGauge, LayoutDashboard, LockKeyhole, Settings, User, Building2, LogOut, FileText, FileSpreadsheet, GripVertical, MessageSquareMore, Atom, Lightbulb } from 'lucide-react';
-import Discord from '../icons/Discord';
 
 interface CommandPaletteProps {
   isOpen: boolean;

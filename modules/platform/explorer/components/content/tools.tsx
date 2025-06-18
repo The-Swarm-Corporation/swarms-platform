@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { Hammer, Wrench } from 'lucide-react';
+import { ChevronDown, Hammer, Plus, Wrench } from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
@@ -32,8 +32,13 @@ export default function Tools({
           <Wrench className="text-red-500" />
           Tools
         </h2>
-        <Button onClick={handleToolModal} disabled={isLoading}>
-          Add tool
+        <Button
+          onClick={handleToolModal}
+          disabled={isLoading}
+          className="bg-[#FFD93D]/20 border border-[#FFD93D]/60 hover:bg-[#FFD93D]/30 text-[#FFD93D] hover:text-black transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FFD93D]/25 group"
+        >
+          <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+          Add Tool
         </Button>
       </div>
       <div>
@@ -64,7 +69,7 @@ export default function Tools({
                       is_free={tool.is_free}
                       price={tool.price}
                       seller_wallet_address={tool.seller_wallet_address}
-                      type="tool"
+                      itemType="tool"
                       tags={tool?.tags?.split(',') || []}
                     />
                   </div>
@@ -85,14 +90,23 @@ export default function Tools({
             {(hasMoreTools || isFetchingTools) &&
               !isLoading &&
               filteredTools?.length > 0 && (
-                <div className="flex justify-center mt-3 w-full">
+                <div className="flex justify-center mt-8 w-full">
                   <Button
-                    variant="destructive"
-                    className="w-36 md:w-40"
                     onClick={loadMoreTools}
                     disabled={isFetchingTools || isToolLoading}
+                    className="bg-[#FFD93D]/20 border border-[#FFD93D]/60 hover:bg-[#FFD93D]/30 text-[#FFD93D] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FFD93D]/25 group"
                   >
-                    Get more
+                    {isFetchingTools ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <span>Load More</span>
+                        <ChevronDown className="h-4 w-4 ml-2 group-hover:translate-y-0.5 transition-transform" />
+                      </>
+                    )}
                   </Button>
                 </div>
               )}

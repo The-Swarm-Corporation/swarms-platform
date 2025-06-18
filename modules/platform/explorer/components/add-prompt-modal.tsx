@@ -69,13 +69,11 @@ const AddPromptModal = ({
   const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addPrompt = trpc.explorer.addPrompt.useMutation();
-  const checkTrustworthiness = trpc.marketplace.checkUserTrustworthiness.useQuery(
-    undefined,
-    {
+  const checkTrustworthiness =
+    trpc.marketplace.checkUserTrustworthiness.useQuery(undefined, {
       enabled: !isFree, // Only check when user wants to create paid content
       retry: false,
-    }
-  );
+    });
 
   // Initialize deferred validation
   const validation = useMarketplaceValidation();
@@ -246,7 +244,10 @@ const AddPromptModal = ({
             errorMessage = error.message;
           } else if (error.message.includes('not eligible')) {
             errorMessage = error.message;
-          } else if (error.message.includes('API request failed') || error.message.includes('temporarily unavailable')) {
+          } else if (
+            error.message.includes('API request failed') ||
+            error.message.includes('temporarily unavailable')
+          ) {
             errorMessage = error.message;
             isApiFailure = true;
           } else {
@@ -255,7 +256,9 @@ const AddPromptModal = ({
         }
 
         toast.toast({
-          title: isApiFailure ? 'Validation Service Issue' : 'Submission Failed',
+          title: isApiFailure
+            ? 'Validation Service Issue'
+            : 'Submission Failed',
           description: errorMessage,
           variant: 'destructive',
         });
@@ -278,17 +281,29 @@ const AddPromptModal = ({
           <div className="flex items-start gap-2">
             <span className="text-blue-400 text-lg">ℹ️</span>
             <div className="text-sm">
-              <p className="text-blue-300 font-medium mb-1">Quality Validation Notice</p>
+              <p className="text-blue-300 font-medium mb-1">
+                Quality Validation Notice
+              </p>
               <p className="text-blue-200 text-xs leading-relaxed">
-                All prompt submissions undergo automated quality validation to maintain marketplace standards.
+                All prompt submissions undergo automated quality validation to
+                maintain marketplace standards.
                 {!isFree && (
-                  <span className="text-yellow-300"> Paid submissions require higher quality scores and contributor eligibility checks.</span>
-                )}
-                {' '}Low-quality entries will be rejected with constructive feedback to help you improve.
+                  <span className="text-yellow-300">
+                    {' '}
+                    Paid submissions require higher quality scores and
+                    contributor eligibility checks.
+                  </span>
+                )}{' '}
+                Low-quality entries will be rejected with constructive feedback
+                to help you improve.
               </p>
               <p className="text-blue-100 text-xs mt-2 font-mono">
-                <strong>Fallback Policy:</strong> If our AI validation service is unavailable, we&apos;ll check your submission history instead.
-                {isFree ? ' Free submissions need 2+ approved items.' : ' Paid submissions need 2+ approved items with 3.5+ average rating.'}
+                <strong>Fallback Policy:</strong> If our AI validation service
+                is unavailable, we&apos;ll check your submission history
+                instead.
+                {isFree
+                  ? ' Free submissions need 2+ approved items.'
+                  : ' Paid submissions need 2+ approved items with 3.5+ average rating.'}
               </p>
             </div>
           </div>
@@ -475,37 +490,59 @@ const AddPromptModal = ({
                 {checkTrustworthiness.isLoading && (
                   <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                     <LoadingSpinner />
-                    <span className="text-blue-400 text-sm">Checking marketplace eligibility...</span>
+                    <span className="text-blue-400 text-sm">
+                      Checking marketplace eligibility...
+                    </span>
                   </div>
                 )}
 
-                {checkTrustworthiness.data && !checkTrustworthiness.data.isEligible && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-red-400 font-medium">❌ Not Eligible for Marketplace</span>
-                    </div>
-                    <p className="text-red-300 text-sm">{checkTrustworthiness.data.reason}</p>
-                    {!checkTrustworthiness.data.isBypassUser && (
-                      <div className="mt-2 text-xs text-red-200">
-                        <p>Requirements: 2+ published items with 3.5+ average rating</p>
-                        <p>Your stats: {checkTrustworthiness.data.publishedCount} published, {checkTrustworthiness.data.averageRating.toFixed(1)} avg rating</p>
+                {checkTrustworthiness.data &&
+                  !checkTrustworthiness.data.isEligible && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-red-400 font-medium">
+                          ❌ Not Eligible for Marketplace
+                        </span>
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {checkTrustworthiness.data && checkTrustworthiness.data.isEligible && (
-                  <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <span className="text-green-400 font-medium">✅ Eligible for Marketplace</span>
-                    </div>
-                    {!checkTrustworthiness.data.isBypassUser && (
-                      <p className="text-green-300 text-sm mt-1">
-                        {checkTrustworthiness.data.publishedCount} published items, {checkTrustworthiness.data.averageRating.toFixed(1)} avg rating
+                      <p className="text-red-300 text-sm">
+                        {checkTrustworthiness.data.reason}
                       </p>
-                    )}
-                  </div>
-                )}
+                      {!checkTrustworthiness.data.isBypassUser && (
+                        <div className="mt-2 text-xs text-red-200">
+                          <p>
+                            Requirements: 2+ published items with 3.5+ average
+                            rating
+                          </p>
+                          <p>
+                            Your stats:{' '}
+                            {checkTrustworthiness.data.publishedCount}{' '}
+                            published,{' '}
+                            {checkTrustworthiness.data.averageRating.toFixed(1)}{' '}
+                            avg rating
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                {checkTrustworthiness.data &&
+                  checkTrustworthiness.data.isEligible && (
+                    <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-400 font-medium">
+                          ✅ Eligible for Marketplace
+                        </span>
+                      </div>
+                      {!checkTrustworthiness.data.isBypassUser && (
+                        <p className="text-green-300 text-sm mt-1">
+                          {checkTrustworthiness.data.publishedCount} published
+                          items,{' '}
+                          {checkTrustworthiness.data.averageRating.toFixed(1)}{' '}
+                          avg rating
+                        </p>
+                      )}
+                    </div>
+                  )}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Price (SOL) <span className="text-yellow-500">*</span>
@@ -574,7 +611,9 @@ const AddPromptModal = ({
               isValidating ||
               validatePrompt.isPending ||
               (!isFree && checkTrustworthiness.isLoading) ||
-              (!isFree && checkTrustworthiness.data && !checkTrustworthiness.data.isEligible)
+              (!isFree &&
+                checkTrustworthiness.data &&
+                !checkTrustworthiness.data.isEligible)
             }
             onClick={submit}
             className="w-40"
@@ -582,10 +621,10 @@ const AddPromptModal = ({
             {addPrompt.isPending || isLoading
               ? 'Submitting...'
               : isValidating || validatePrompt.isPending
-              ? 'Validating...'
-              : !isFree && checkTrustworthiness.isLoading
-              ? 'Checking...'
-              : 'Submit Prompt'}
+                ? 'Validating...'
+                : !isFree && checkTrustworthiness.isLoading
+                  ? 'Checking...'
+                  : 'Submit Prompt'}
           </Button>
         </div>
       </div>

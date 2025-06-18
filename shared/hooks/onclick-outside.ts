@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import type { RefObject } from 'react';
 import { useEffect, useCallback } from 'react';
@@ -13,7 +13,7 @@ export const useOnClickOutside = <T extends HTMLElement = HTMLElement>(
     (event: Event) => {
       const el = ref?.current;
       const target = event.target as Node;
-      
+
       // Do nothing if clicking ref's element or descendent elements
       if (!el || el.contains(target)) {
         return;
@@ -21,7 +21,7 @@ export const useOnClickOutside = <T extends HTMLElement = HTMLElement>(
 
       handler(event);
     },
-    [ref, handler]
+    [ref, handler],
   );
 
   useEffect(() => {

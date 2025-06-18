@@ -23,36 +23,39 @@ export default function Navlinks() {
 
   const isSwarmsPath = pathname === '/swarms';
 
-  const navButtonClass = "relative px-6 py-2.5 rounded-lg transition-all duration-300 font-medium text-sm backdrop-blur-sm border border-white/10 hover:border-primary/50 hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]";
-  const activeNavButtonClass = "bg-gradient-to-r from-primary/20 to-primary/10 text-primary border-primary/50 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]";
+  const navButtonClass =
+    'relative px-6 py-2.5 rounded-lg transition-all duration-300 font-medium text-sm backdrop-blur-sm border border-white/10 hover:border-primary/50 hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]';
+  const activeNavButtonClass =
+    'bg-gradient-to-r from-primary/20 to-primary/10 text-primary border-primary/50 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]';
 
   const buttonVariants = {
     initial: { scale: 1 },
-    hover: { 
+    hover: {
       scale: 1.05,
       transition: {
-        type: "spring",
+        type: 'spring',
         stiffness: 400,
-        damping: 10
-      }
+        damping: 10,
+      },
     },
-    tap: { 
+    tap: {
       scale: 0.95,
       transition: {
-        type: "spring",
+        type: 'spring',
         stiffness: 400,
-        damping: 10
-      }
-    }
+        damping: 10,
+      },
+    },
   };
 
-  const glowEffect = "before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-primary/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300";
+  const glowEffect =
+    'before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-primary/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300';
 
   return (
     <div className="relative flex flex-row justify-between py-2 align-center md:py-6 px-4">
       <div className="flex flex-shrink-0 items-center">
         {/* desktop */}
-        <motion.div 
+        <motion.div
           className="flex items-center w-[40px] h-[40px] min-w-[40px] max-md:hidden"
           whileHover={{ rotate: 360 }}
           transition={{ duration: 0.5 }}
@@ -61,27 +64,59 @@ export default function Navlinks() {
         </motion.div>
         <nav className="flex ml-2 md:ml-6 gap-4 max-md:hidden">
           {!isSwarmsPath && (
-            <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-              <Link href="https://github.com/kyegomez/swarms" className={cn(navButtonClass, glowEffect)}>
+            <motion.div
+              variants={buttonVariants}
+              initial="initial"
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <Link
+                href="https://github.com/kyegomez/swarms"
+                className={cn(navButtonClass, glowEffect)}
+              >
                 Github
               </Link>
             </motion.div>
           )}
           {!isSwarmsPath && (
-            <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-              <Link href={DISCORD} className={cn(navButtonClass, glowEffect, 'hidden md:inline')}>
+            <motion.div
+              variants={buttonVariants}
+              initial="initial"
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <Link
+                href={DISCORD}
+                className={cn(navButtonClass, glowEffect, 'hidden md:inline')}
+              >
                 Community
               </Link>
             </motion.div>
           )}
-          <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-            <Link href="https://docs.swarms.world/en/latest/" className={cn(navButtonClass, glowEffect)}>
+          <motion.div
+            variants={buttonVariants}
+            initial="initial"
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <Link
+              href="https://docs.swarms.world/en/latest/"
+              className={cn(navButtonClass, glowEffect)}
+            >
               Docs
             </Link>
           </motion.div>
           {user && (
-            <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-              <Link href={PLATFORM.DASHBOARD} className={cn(navButtonClass, glowEffect)}>
+            <motion.div
+              variants={buttonVariants}
+              initial="initial"
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <Link
+                href={PLATFORM.DASHBOARD}
+                className={cn(navButtonClass, glowEffect)}
+              >
                 Dashboard
               </Link>
             </motion.div>
@@ -91,7 +126,10 @@ export default function Navlinks() {
         <div className="md:hidden">
           <Drawer direction="left">
             <DrawerTrigger asChild>
-              <Button className="text-white p-0 hover:bg-white/10 rounded-full" variant="ghost">
+              <Button
+                className="text-white p-0 hover:bg-white/10 rounded-full"
+                variant="ghost"
+              >
                 <Menu />
               </Button>
             </DrawerTrigger>
@@ -99,45 +137,87 @@ export default function Navlinks() {
             <DrawerContent className="flex flex-col h-full w-[300px] mt-24 fixed bottom-0 rounded-none backdrop-blur-xl bg-background/80 border-r border-white/10">
               <div className="p-4 flex-1 h-full flex flex-col gap-4">
                 <div className="flex gap-2 items-center">
-                  <motion.div 
+                  <motion.div
                     className="flex items-center w-[40px] h-[40px] min-w-[40px]"
                     whileHover={{ rotate: 360 }}
                     transition={{ duration: 0.5 }}
                   >
                     <Logo />
                   </motion.div>
-                  <h2 className="font-bold text-primary bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">SWARMS</h2>
+                  <h2 className="font-bold text-primary bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                    SWARMS
+                  </h2>
                 </div>
                 <DrawerClose className="absolute top-4 right-4 hover:bg-white/10 rounded-full p-2 transition-colors">
                   <X />
                 </DrawerClose>
                 {!isSwarmsPath && (
-                  <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-                    <Link href="/pricing" className={cn(navButtonClass, glowEffect)}>
+                  <motion.div
+                    variants={buttonVariants}
+                    initial="initial"
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    <Link
+                      href="/pricing"
+                      className={cn(navButtonClass, glowEffect)}
+                    >
                       Pricing
                     </Link>
                   </motion.div>
                 )}
-                <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-                  <Link href={SWARMS_GITHUB} className={cn(navButtonClass, glowEffect)}>
+                <motion.div
+                  variants={buttonVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <Link
+                    href={SWARMS_GITHUB}
+                    className={cn(navButtonClass, glowEffect)}
+                  >
                     GitHub
                   </Link>
                 </motion.div>
-                <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-                  <Link href={DISCORD} className={cn(navButtonClass, glowEffect)}>
+                <motion.div
+                  variants={buttonVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <Link
+                    href={DISCORD}
+                    className={cn(navButtonClass, glowEffect)}
+                  >
                     Community
                   </Link>
                 </motion.div>
                 {!isSwarmsPath && (
-                  <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-                    <Link href="https://docs.swarms.world/en/latest/" className={cn(navButtonClass, glowEffect)}>
+                  <motion.div
+                    variants={buttonVariants}
+                    initial="initial"
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    <Link
+                      href="https://docs.swarms.world/en/latest/"
+                      className={cn(navButtonClass, glowEffect)}
+                    >
                       Docs
                     </Link>
                   </motion.div>
                 )}
                 {user && (
-                  <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-                    <Link href={PLATFORM.DASHBOARD} className={cn(navButtonClass, glowEffect)}>
+                  <motion.div
+                    variants={buttonVariants}
+                    initial="initial"
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    <Link
+                      href={PLATFORM.DASHBOARD}
+                      className={cn(navButtonClass, glowEffect)}
+                    >
                       Dashboard
                     </Link>
                   </motion.div>
@@ -156,28 +236,63 @@ export default function Navlinks() {
               name="pathName"
               value={usePathname()?.toString()}
             />
-            <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-              <button type="submit" className={cn(navButtonClass, "bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20 hover:border-red-500/50 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]")}>
+            <motion.div
+              variants={buttonVariants}
+              initial="initial"
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <button
+                type="submit"
+                className={cn(
+                  navButtonClass,
+                  'bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20 hover:border-red-500/50 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]',
+                )}
+              >
                 Sign out
               </button>
             </motion.div>
           </form>
         ) : (
-          <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
+          <motion.div
+            variants={buttonVariants}
+            initial="initial"
+            whileHover="hover"
+            whileTap="tap"
+          >
             <Link href="/signin" className={cn(navButtonClass, glowEffect)}>
               Sign In
             </Link>
           </motion.div>
         )}
         {!user && (
-          <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-            <Link href="/signin/signup" className={cn(navButtonClass, "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 border-primary/50 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]")}>
+          <motion.div
+            variants={buttonVariants}
+            initial="initial"
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <Link
+              href="/signin/signup"
+              className={cn(
+                navButtonClass,
+                'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 border-primary/50 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]',
+              )}
+            >
               Sign Up
             </Link>
           </motion.div>
         )}
-        <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
-          <Link href="https://cal.com/swarms" className={cn(navButtonClass, glowEffect)}>
+        <motion.div
+          variants={buttonVariants}
+          initial="initial"
+          whileHover="hover"
+          whileTap="tap"
+        >
+          <Link
+            href="https://cal.com/swarms"
+            className={cn(navButtonClass, glowEffect)}
+          >
             Customer Support
           </Link>
         </motion.div>

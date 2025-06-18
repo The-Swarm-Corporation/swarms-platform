@@ -17,6 +17,8 @@ import {
   Wrench,
   CheckCircle,
   Edit,
+  DollarSign,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
@@ -61,7 +63,6 @@ export default function CardDetailsModal({
   const [showEditPrice, setShowEditPrice] = useState(false);
   const toast = useToast();
 
-  // Get purchase status for this item
   const {
     isOwner,
     hasPurchased,
@@ -99,12 +100,50 @@ export default function CardDetailsModal({
     }
   };
 
+  // Get item colors based on type (matching info-card styling)
+  const getItemColors = () => {
+    switch (cardData.type) {
+      case 'agent':
+        return {
+          icon: 'text-[#4ECDC4]',
+          bg: 'bg-[#4ECDC4]/5',
+          border: 'border-[#4ECDC4]/40',
+          hover: 'hover:bg-[#4ECDC4]/15',
+          button:
+            'bg-[#4ECDC4]/10 border-[0.5px] border-[#4ECDC4]/20 hover:bg-[#4ECDC4]/20 text-[#4ECDC4]',
+        };
+      case 'tool':
+        return {
+          icon: 'text-[#FFD93D]',
+          bg: 'bg-[#FFD93D]/5',
+          border: 'border-[#FFD93D]/40',
+          hover: 'hover:bg-[#FFD93D]/15',
+          button:
+            'bg-[#FFD93D]/10 border-[0.5px] border-[#FFD93D]/20 hover:bg-[#FFD93D]/20 text-[#FFD93D]',
+        };
+      default: // prompt
+        return {
+          icon: 'text-[#FF6B6B]',
+          bg: 'bg-[#FF6B6B]/5',
+          border: 'border-[#FF6B6B]/40',
+          hover: 'hover:bg-[#FF6B6B]/15',
+          button:
+            'bg-[#FF6B6B]/10 border-[0.5px] border-[#FF6B6B]/20 hover:bg-[#FF6B6B]/20 text-[#FF6B6B]',
+        };
+    }
+  };
+
+  const colors = getItemColors();
+
   return (
     <>
       <Modal
         isOpen={isOpen}
         onClose={() => null}
-        className="w-full max-w-5xl max-h-[80vh] md:max-h-[80vh] h-full overflow-y-hidden border-[#40403F] border mx-4 md:mx-auto"
+        className={cn(
+          'w-full max-w-5xl max-h-[80vh] md:max-h-[80vh] h-full overflow-y-hidden mx-4 md:mx-auto',
+          `border ${colors.border}`,
+        )}
         showHeader={false}
         showClose={false}
       >
@@ -118,77 +157,49 @@ export default function CardDetailsModal({
           <div
             className={cn(
               'relative w-full rounded-2xl overflow-hidden',
-              'bg-gradient-to-r from-background to-red-950 p-4 md:p-8',
+              `bg-black/95 ${colors.bg}`,
+              'p-4 md:p-8',
             )}
             style={{
-              backgroundImage: `
+              backgroundImage: cardData?.imageUrl
+                ? `
                   linear-gradient(180deg, rgba(9, 11, 10, 0) 38.11%, rgba(9, 11, 10, 0.8) 88.68%),
                   linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
                   url(${cardData?.imageUrl})
-                `,
+                `
+                : undefined,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
             }}
           >
-            <div className="absolute -inset-0.5 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x" />
-
-            {/* Premium badge for non-owners who haven't purchased */}
-            {showPremiumBadge && cardData.price && cardData.price > 0 && (
-              <div className="absolute top-4 left-4">
-                <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
-                  <Crown className="w-5 h-5" />
-                  <USDPriceDisplay solAmount={cardData.price} className="text-white" />
+            {/* Rating display in top right */}
+            {cardData.review && (
+              <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5">
+                <div className="mb-0.5">
+                  <ReactStars
+                    value={cardData.review.rating}
+                    isEdit={false}
+                    count={5}
+                    size={16}
+                  />
                 </div>
-              </div>
-            )}
-
-            {/* Owner badge */}
-            {showOwnerBadge && (
-              <div className="absolute top-4 left-4">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
-                  <Plus className="w-5 h-5" />
-                  <span>Owner</span>
-                  {cardData.price && cardData.price > 0 && (
-                    <USDPriceDisplay solAmount={cardData.price} className="text-white" />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Purchased badge */}
-            {showPurchasedBadge && (
-              <div className="absolute top-4 left-4">
-                <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Owned</span>
-                </div>
-              </div>
-            )}
-
-            {/* Fallback crown for premium items without specific pricing */}
-            {!cardData.is_free && (!cardData.price || cardData.price === 0) && !showOwnerBadge && !showPurchasedBadge && (
-              <div className="absolute top-4 left-4">
-                <Crown className="w-8 h-8 text-yellow-400 drop-shadow-lg" />
+                <span className="text-sm font-bold text-white">
+                  {cardData.review.rating}/5
+                </span>
               </div>
             )}
 
             <div className="flex flex-col md:flex-row items-start gap-4 md:gap-6">
               <div className="relative flex-shrink-0">
                 <div
-                  className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-gray-700 to-gray-900 rounded-xl
-                              border-2 border-red-500 flex items-center justify-center text-foreground
-                              shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"
+                  className={cn(
+                    'w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center',
+                    `${colors.bg} border border-current/30 ${colors.icon}`,
+                  )}
                 >
                   {getTypeIcon()}
                 </div>
-                <div
-                  className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-br-xl"
-                  style={{
-                    clipPath:
-                      'polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%)',
-                  }}
-                ></div>
               </div>
 
               <div className="flex-1 min-w-0">
@@ -196,46 +207,11 @@ export default function CardDetailsModal({
                   <Badge
                     className={cn(
                       'text-xs font-mono uppercase tracking-wider',
-                      'bg-red-500/20 text-red-400 border-red-500/30',
+                      `${colors.bg} ${colors.icon} ${colors.border}`,
                     )}
                   >
                     {cardData.type}
                   </Badge>
-                  {/* Premium badge for non-owners who haven't purchased */}
-                  {showPremiumBadge && (
-                    <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
-                      {cardData.price && cardData.price > 0 ? (
-                        <USDPriceDisplay
-                          solAmount={cardData.price}
-                          className="text-yellow-400"
-                        />
-                      ) : (
-                        'PREMIUM'
-                      )}
-                    </Badge>
-                  )}
-
-                  {/* Owner badge */}
-                  {showOwnerBadge && (
-                    <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs flex items-center gap-1">
-                      <Edit className="w-3 h-3" />
-                      <span>Owner</span>
-                      {cardData.price && cardData.price > 0 && (
-                        <USDPriceDisplay
-                          solAmount={cardData.price}
-                          className="text-blue-400"
-                        />
-                      )}
-                    </Badge>
-                  )}
-
-                  {/* Purchased badge */}
-                  {showPurchasedBadge && (
-                    <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" />
-                      <span>Owned</span>
-                    </Badge>
-                  )}
                 </div>
                 <h1 className="text-xl md:text-3xl font-bold text-foreground mb-3 leading-tight break-words">
                   {cardData.title}
@@ -254,60 +230,41 @@ export default function CardDetailsModal({
                   </div>
                 )}
               </div>
-
-              {cardData.review && (
-                <div className="flex flex-col items-start md:items-end flex-shrink-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <ReactStars
-                      value={cardData.review.rating}
-                      isEdit={false}
-                      count={5}
-                      size={16}
-                    />
-                  </div>
-                  <span className="text-foreground/70 text-sm">
-                    {cardData.review.rating}/5
-                  </span>
-                </div>
-              )}
             </div>
           </div>
 
           <div className="p-4 md:p-8">
             <div className="mb-6 md:mb-8">
               <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-                <FileText className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
+                <FileText className={`w-4 h-4 md:w-5 md:h-5 ${colors.icon}`} />
                 Description
               </h3>
-              <div
-                style={{
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-                }}
-                className="text-sm font-mono mt-2.5 font-medium md:text-base text-foreground/80 bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner w-full"
-              >
+              <div className="text-sm font-mono mt-2.5 font-medium md:text-base text-foreground/80 bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner w-full">
                 <MarkdownComponent text={cardData?.description} />
               </div>
             </div>
 
-            {cardData?.tags && cardData.tags.length > 0 && cardData?.tags[0] && (
-              <div className="mb-6 md:mb-8">
-                <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Tag className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
-                  Tags
-                </h3>
-                <div className="flex flex-wrap gap-2 md:gap-3">
-                  {cardData.tags.map((tag, index) => (
-                    <Badge
-                      key={index}
-                      variant="outline"
-                      className="bg-gradient-to-r rounded-[4000px] max-md:line-clamp-3 from-red-500/10 to-red-500/20 border-red-400/30 text-foreground/80 py-2 px-4 text-xs md:text-sm"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
+            {cardData?.tags &&
+              cardData.tags.length > 0 &&
+              cardData?.tags[0] && (
+                <div className="mb-6 md:mb-8">
+                  <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <Tag className={`w-4 h-4 md:w-5 md:h-5 ${colors.icon}`} />
+                    Tags
+                  </h3>
+                  <div className="flex flex-wrap gap-2 md:gap-3">
+                    {cardData.tags.map((tag, index) => (
+                      <Badge
+                        key={index}
+                        variant="outline"
+                        className={`bg-gradient-to-r rounded-[4000px] max-md:line-clamp-3 ${colors.bg} ${colors.border} text-foreground/80 py-2 px-4 text-xs md:text-sm`}
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {cardData?.usecases && cardData?.usecases.length > 0 && (
               <div className="mb-6 md:mb-8">
@@ -339,7 +296,10 @@ export default function CardDetailsModal({
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4 w-full md:w-auto">
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-red-600 hover:bg-red-500 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
+                className={cn(
+                  'flex items-center gap-2 px-3 md:px-4 py-2 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center',
+                  colors.button,
+                )}
               >
                 <Share2 className="w-4 h-4" />
                 Share
@@ -358,15 +318,53 @@ export default function CardDetailsModal({
 
               <button
                 onClick={cardData.handleRoute}
-                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
+                className={cn(
+                  'flex items-center gap-2 px-3 md:px-4 py-2 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center',
+                  colors.button,
+                )}
               >
-                <Plus className="w-4 h-4" />
-                {showOwnerBadge ? 'View Details' : 'Learn More'}
+                {showPremiumBadge && cardData.price && cardData.price > 0 ? (
+                  <>
+                    <DollarSign className="w-4 h-4" />
+                    Buy for&nbsp;&mdash;&nbsp;
+                    <USDPriceDisplay
+                      solAmount={cardData.price}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-full text-xs font-semibold"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <ExternalLink className="w-4 h-4" />
+                    {showOwnerBadge ? 'View Details' : 'Learn More'}
+                  </>
+                )}
               </button>
             </div>
 
-            <div className="text-xs text-muted-foreground capitalize font-mono italic hidden md:block">
-              {cardData.is_free ? 'Free' : 'Premium'} • {cardData.type}
+            <div
+              title={`${cardData.is_free ? 'Free' : 'Premium'} • ${cardData.type}`}
+              className="font-mono hidden md:block"
+            >
+              {cardData.is_free ? (
+                <Badge className="bg-green-500/20 hover:bg-green-500/20 text-green-400 border-green-500/30 text-xs">
+                  FREE
+                </Badge>
+              ) : showOwnerBadge ? (
+                <Badge className="bg-blue-500/20 hover:bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs flex items-center gap-1">
+                  <Edit className="w-3 h-3" />
+                  <span>AUTHOR</span>
+                </Badge>
+              ) : showPurchasedBadge ? (
+                <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/20 border-green-500/30 text-xs flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  <span>PAID</span>
+                </Badge>
+              ) : (
+                <Badge className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20 border-yellow-500/30 text-xs flex items-center gap-1">
+                  <span>💎</span>
+                  <span>PREMIUM</span>
+                </Badge>
+              )}
             </div>
           </div>
         </div>

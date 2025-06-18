@@ -3,7 +3,14 @@
 import { Button } from '@/shared/components/ui/button';
 import React from 'react';
 import InfoCard from '../info-card';
-import { NotepadText, Zap } from 'lucide-react';
+import {
+  NotepadText,
+  ChevronDown,
+  Zap,
+  Hammer,
+  Code,
+  MessageSquare,
+} from 'lucide-react';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 
 export default function Trending({
@@ -28,38 +35,52 @@ export default function Trending({
           <ExplorerSkeletonLoaders />
         ) : (
           <>
-            <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-lg:grid-cols-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {trendingModels.length > 0 ? (
-                trendingModels?.map((trend: any, index: number) => (
-                  <div
-                    className="flex flex-col w-full h-[220px] sm:w-full mb-11"
-                    key={`${trend.id}-${index}`}
-                  >
-                    <InfoCard
-                      id={trend.id ?? ''}
-                      title={trend.name || ''}
-                      usersMap={usersMap}
-                      reviewsMap={reviewsMap}
-                      imageUrl={trend.image_url || ''}
-                      description={trend.description || ''}
-                      icon={<NotepadText />}
-                      className="w-full h-full"
-                      link={trend?.link}
-                      userId={trend?.user_id}
-                      is_free={
-                        typeof trend?.is_free === 'boolean'
-                          ? trend?.is_free
-                          : true
-                      }
-                      price={trend.price}
-                      seller_wallet_address={trend.seller_wallet_address}
-                      type="prompt"
-                    />
-                  </div>
-                ))
+                trendingModels?.map((trend: any, index: number) => {
+                  const itemType = trend?.itemType || trend?.type || 'prompt';
+                  const getIcon = () => {
+                    switch (itemType) {
+                      case 'agent':
+                        return <Code />;
+                      case 'tool':
+                        return <Hammer />;
+                      default:
+                        return <MessageSquare />;
+                    }
+                  };
+
+                  return (
+                    <div
+                      className="flex flex-col w-full"
+                      key={`${trend.id}-${index}`}
+                    >
+                      <InfoCard
+                        id={trend.id ?? ''}
+                        title={trend.name || ''}
+                        usersMap={usersMap}
+                        reviewsMap={reviewsMap}
+                        imageUrl={trend.image_url || ''}
+                        description={trend.description || ''}
+                        icon={<NotepadText />}
+                        className="w-full h-full"
+                        link={trend?.link}
+                        userId={trend?.user_id}
+                        is_free={
+                          typeof trend?.is_free === 'boolean'
+                            ? trend?.is_free
+                            : true
+                        }
+                        price={trend.price}
+                        seller_wallet_address={trend.seller_wallet_address}
+                        itemType={itemType}
+                      />
+                    </div>
+                  );
+                })
               ) : (
                 <div className="border p-4 rounded-md text-center">
-                  No prompts found
+                  No trending items found
                 </div>
               )}
             </div>
@@ -73,14 +94,23 @@ export default function Trending({
             {(hasMoreTrending || isFetchingTrending) &&
               !isLoading &&
               trendingModels?.length > 0 && (
-                <div className="flex justify-center mt-3 w-full">
+                <div className="flex justify-center mt-8 w-full">
                   <Button
-                    variant="destructive"
-                    className="w-36 md:w-40"
                     onClick={loadMoreTrending}
                     disabled={isFetchingTrending}
+                    className="bg-[#9A8572]/20 border border-[#9A8572]/60 hover:bg-[#9A8572]/30 text-[#9A8572] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#9A8572]/25 group"
                   >
-                    Get more
+                    {isFetchingTrending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <span>Load More</span>
+                        <ChevronDown className="h-4 w-4 ml-2 group-hover:translate-y-0.5 transition-transform" />
+                      </>
+                    )}
                   </Button>
                 </div>
               )}

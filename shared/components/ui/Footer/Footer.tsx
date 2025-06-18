@@ -11,7 +11,7 @@ export default function Footer() {
     <footer className="w-full bg-black border-t border-red-500/20">
       <div className="max-w-[1920px] mx-auto px-6 py-12">
         <div className="flex flex-col items-start">
-          {/* Main content */}
+
           <div className="w-full">
             <h2 className="text-4xl font-bold text-white mb-4 tracking-tight">
               SWARMS MARKETPLACE
@@ -38,7 +38,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom copyright */}
         <div className="mt-12 pt-8 border-t border-red-500/20">
           <p className="text-white/50 text-sm">
             &copy; {new Date().getFullYear()} swarms.ai All rights reserved.

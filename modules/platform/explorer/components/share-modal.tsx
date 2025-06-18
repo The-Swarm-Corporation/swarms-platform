@@ -9,11 +9,9 @@ interface ShareModalProps {
   link?: string;
   isOpen: boolean;
   onClose: () => void;
-  title?: string;
-  description?: string;
 }
 
-export default function ShareModal({ isOpen, onClose, link, title, description }: ShareModalProps) {
+export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const toast = useToast();
   
@@ -30,9 +28,9 @@ export default function ShareModal({ isOpen, onClose, link, title, description }
   }, [isOpen]);
 
   const shareDetails: ShareDetails = {
-    message: `Check out "${title}" on the Swarms Platform! ${description ? `\n\n${description}` : ''}`,
+    message: 'Check out this cool model/prompt/swarm on the swarms platform!',
     link: `https://swarms.world${link}`,
-    subject: `Check out "${title}" on Swarms Platform!`,
+    subject: 'Check this out!',
   };
 
   const handleCopy = () => {
