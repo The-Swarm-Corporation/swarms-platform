@@ -1,9 +1,18 @@
 'use client';
 
 import { Button } from '@/shared/components/ui/button';
+import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { Brain, Code, NotepadText, Wrench, Zap } from 'lucide-react';
+import {
+  NotepadText,
+  ChevronDown,
+  Bot,
+  Hammer,
+  Code,
+  MessageSquare,
+} from 'lucide-react';
+import { PUBLIC } from '@/shared/utils/constants';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 
 export default function Trending({
@@ -15,48 +24,31 @@ export default function Trending({
   usersMap,
   reviewsMap,
 }: any) {
-  const getIcon = (type: string) => {
-    switch (type?.toLowerCase()) {
-      case 'prompt':
-        return <Brain className="w-6 h-6" />;
-      case 'agent':
-        return <Code className="w-6 h-6" />;
-      case 'tool':
-        return <Wrench className="w-6 h-6" />;
-      default:
-        return <NotepadText className="w-6 h-6" />;
-    }
-  };
-
-  const getVariant = (type: string) => {
-    switch (type?.toLowerCase()) {
-      case 'prompt':
-        return 'prompts';
-      case 'agent':
-        return 'agents';
-      case 'tool':
-        return 'tools';
-      default:
-        return 'chat';
-    }
-  };
-
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
-      <h2 className="text-3xl font-bold text-foreground mb-6 flex items-center gap-3">
-        <Zap className="text-red-500" />
-        Trending
-      </h2>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold pb-2">Trending</h1>
+      </div>
       <div>
         {isLoading && !isFetchingTrending ? (
           <ExplorerSkeletonLoaders />
         ) : (
           <>
-            {trendingModels.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {trendingModels?.map((trend: any, index: number) => {
-                  const icon = getIcon(trend?.type);
-                  const variant = getVariant(trend?.type);
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {trendingModels.length > 0 ? (
+                trendingModels?.map((trend: any, index: number) => {
+                  const itemType = trend?.itemType || trend?.type || 'prompt';
+                  const getIcon = () => {
+                    switch (itemType) {
+                      case 'agent':
+                        return <Code />;
+                      case 'tool':
+                        return <Hammer />;
+                      default:
+                        return <MessageSquare />;
+                    }
+                  };
+
                   return (
                     <div
                       className="flex flex-col w-full"
@@ -69,33 +61,21 @@ export default function Trending({
                         reviewsMap={reviewsMap}
                         imageUrl={trend.image_url || ''}
                         description={trend.description || ''}
-                        icon={icon}
+                        icon={getIcon()}
                         className="w-full h-full"
                         link={trend?.link}
                         userId={trend?.user_id}
-                        variant={variant}
-                        usecases={trend?.usecases}
-                        requirements={trend?.requirements}
-                        is_free={trend?.is_free}
-                        tags={trend?.tags?.split(',') || []}
+                        itemType={itemType}
                       />
                     </div>
                   );
-                })}
-              </div>
-            ) : (
-              <div className="w-full flex justify-center">
-                <div
-                  className="bg-gradient-to-r from-red-700/30 to-red-600/10 flex justify-center p-4 font-mono relative overflow-hidden transition-all duration-300 shadow-[0_0_20px_rgba(239,68,68,0.4)] max-w-sm w-full text-foreground"
-                  style={{
-                    clipPath:
-                      'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)',
-                  }}
-                >
-                  No data found
+                })
+              ) : (
+                <div className="border p-4 rounded-md text-center">
+                  No trending items found
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {isFetchingTrending && (
               <div className="mt-4">
@@ -103,21 +83,29 @@ export default function Trending({
               </div>
             )}
 
-            {(hasMoreTrending || isFetchingTrending) && !isLoading && trendingModels?.length > 0 && (
-              <div className="w-full flex justify-center mt-4 md:mt-6">
-                <button
-                  onClick={loadMoreTrending}
-                  disabled={isFetchingTrending || isLoading}
-                  className="uppercase bg-gradient-to-r from-red-700/50 to-red-600/30 hover:from-red-700/80 hover:to-red-600/60 flex justify-center p-4 font-mono relative overflow-hidden transition-all duration-300 shadow-[0_0_20px_rgba(239,68,68,0.4)] max-w-sm w-full disabled:pointer-events-none disabled:opacity-50 text-primary-foreground"
-                  style={{
-                    clipPath:
-                      'polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)',
-                  }}
-                >
-                  Get more trends
-                </button>
-              </div>
-            )}
+            {(hasMoreTrending || isFetchingTrending) &&
+              !isLoading &&
+              trendingModels?.length > 0 && (
+                <div className="flex justify-center mt-8 w-full">
+                  <Button
+                    onClick={loadMoreTrending}
+                    disabled={isFetchingTrending}
+                    className="bg-[#9A8572]/20 border border-[#9A8572]/60 hover:bg-[#9A8572]/30 text-[#9A8572] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#9A8572]/25 group"
+                  >
+                    {isFetchingTrending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <span>Load More</span>
+                        <ChevronDown className="h-4 w-4 ml-2 group-hover:translate-y-0.5 transition-transform" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
           </>
         )}
       </div>

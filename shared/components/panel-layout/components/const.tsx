@@ -9,13 +9,17 @@ import {
   User,
   Building2,
   LogOut,
-  CandlestickChart,
-  BookOpenText,
   FileText,
   FileSpreadsheet,
   GripVertical,
   MessageSquareMore,
   Atom,
+  Lightbulb,
+  Trophy,
+  Bookmark,
+  Code2,
+  Rocket,
+  Store,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -25,8 +29,9 @@ type MenuProps = {
   title: string;
   link: string;
   isMobileEnabled?: boolean;
-  isExternal?: boolean;
   items?: { title: string; link: string }[];
+  color?: string;
+  className?: string;
 };
 
 export type NavMenuPropsKeys = 'account' | 'external' | 'base' | 'platform';
@@ -35,23 +40,27 @@ type NavMenuProps = {
   [K in NavMenuPropsKeys]?: MenuProps[];
 };
 
+const navItemClass =
+  'p-2 rounded-md bg-gray-50/5 hover:bg-gray-50/10 transition-colors duration-200';
+
 const SHARED_LINKS: MenuProps[] = [
   {
-    icon: <CandlestickChart />,
-    title: 'Pricing',
-    link: NAVIGATION.PRICING,
-  },
-  {
-    icon: <BookOpenText />,
-    title: 'Customer Support',
-    isExternal: true,
-    link: NAVIGATION.GET_DEMO,
+    icon: <Blocks className="text-blue-500" />,
+    title: 'Marketplace',
+    link: '/',
+    className: navItemClass,
   },
   {
     title: 'Docs',
     link: NAVIGATION.DOCS,
-    isExternal: true,
-    icon: <FileText />,
+    icon: <FileText className="text-purple-500" />,
+    className: navItemClass,
+  },
+  {
+    title: 'Learn More',
+    link: NAVIGATION.LEARN_MORE,
+    icon: <Lightbulb className="text-yellow-500" />,
+    className: navItemClass,
   },
 ];
 
@@ -59,25 +68,28 @@ export const NAV_LINKS: NavMenuProps = {
   external: SHARED_LINKS,
   account: [
     {
-      icon: <User size={20} />,
+      icon: <User size={20} className="text-gray-400" />,
       title: 'Manage account',
       link: PLATFORM.ACCOUNT,
+      className: navItemClass,
     },
     {
-      icon: <Building2 size={20} />,
+      icon: <Building2 size={20} className="text-gray-400" />,
       title: 'Organization',
       link: PLATFORM.ORGANIZATION,
+      className: navItemClass,
     },
     {
       icon: <Discord />,
       title: 'Community',
-      isExternal: true,
       link: DISCORD,
+      className: navItemClass,
     },
     {
-      icon: <LogOut size={20} />,
+      icon: <LogOut size={20} className="text-red-500" />,
       title: 'Sign out',
       link: '',
+      className: navItemClass,
     },
   ],
 };
@@ -86,44 +98,82 @@ export const SIDE_BAR_MENU: NavMenuProps = {
   base: SHARED_LINKS,
   platform: [
     {
-      icon: <LayoutDashboard size={24} />,
+      icon: <LayoutDashboard size={24} className="text-emerald-500" />,
       title: 'Dashboard',
       link: PLATFORM.DASHBOARD,
+      className: navItemClass,
     },
     {
-      icon: <Blocks size={24} />,
-      title: 'Explorer',
+      icon: <Blocks size={24} className="text-blue-500" />,
+      title: 'Marketplace',
       link: PLATFORM.EXPLORER,
+      className: navItemClass,
     },
     {
-      icon: <MessageSquareMore size={24} />,
+      icon: <Store size={24} className="text-orange-500" />,
+      title: 'App Store',
+      link: PLATFORM.AUTONOMOUS_APPS,
+      className: navItemClass,
+    },
+    {
+      icon: <Atom size={24} className="text-gray-400" />,
+      title: 'Apps',
+      link: PLATFORM.APPS,
+      className: navItemClass,
+    },
+    {
+      icon: <MessageSquareMore size={24} className="text-indigo-500" />,
       title: 'Chat',
       link: PLATFORM.CHAT,
+      className: navItemClass,
     },
     {
-      icon: <FileSpreadsheet size={24} />,
+      icon: <FileSpreadsheet size={24} className="text-green-500" />,
       title: 'Spreadsheet Swarm',
       link: PLATFORM.SPREADSHEET,
+      className: navItemClass,
     },
     {
-      icon: <GripVertical size={24} />,
+      icon: <GripVertical size={24} className="text-orange-500" />,
       title: 'Drag & Drop',
       link: PLATFORM.DRAG_N_DROP,
+      className: navItemClass,
     },
     {
-      icon: <LockKeyhole size={24} />,
+      icon: <Bookmark size={24} className="text-purple-500" />,
+      title: 'Bookmarks',
+      link: PLATFORM.BOOKMARKS,
+      className: navItemClass,
+    },
+    {
+      icon: <Code2 size={24} className="text-cyan-500" />,
+      title: 'Playground',
+      link: PLATFORM.PLAYGROUND,
+      className: navItemClass,
+    },
+    {
+      icon: <LockKeyhole size={24} className="text-red-500" />,
       title: 'API Keys',
       link: PLATFORM.API_KEYS,
+      className: navItemClass,
     },
     {
-      icon: <CircleGauge size={24} />,
+      icon: <CircleGauge size={24} className="text-cyan-500" />,
       title: 'Telemetry',
       link: PLATFORM.TELEMETRY,
+      className: navItemClass,
     },
     {
-      icon: <Settings size={24} />,
+      icon: <Trophy size={24} className="text-yellow-500" />,
+      title: 'Leaderboard',
+      link: PLATFORM.LEADERBOARD,
+      className: navItemClass,
+    },
+    {
+      icon: <Settings size={24} className="text-gray-400" />,
       title: 'Settings',
       link: PLATFORM.ACCOUNT,
+      className: navItemClass,
       items: [
         {
           title: 'Account',

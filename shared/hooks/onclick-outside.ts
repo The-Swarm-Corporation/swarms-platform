@@ -1,28 +1,38 @@
+'use client';
+
 import type { RefObject } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 type Event = MouseEvent | TouchEvent;
 
 export const useOnClickOutside = <T extends HTMLElement = HTMLElement>(
   ref: RefObject<T>,
-  handler: (event?: Event) => void,
+  handler: (event: Event) => void,
 ) => {
-  useEffect(() => {
-    const listener = (event: Event) => {
+  const listener = useCallback(
+    (event: Event) => {
       const el = ref?.current;
-      if (!el || el.contains((event?.target as Node) || null)) {
+      const target = event.target as Node;
+
+      // Do nothing if clicking ref's element or descendent elements
+      if (!el || el.contains(target)) {
         return;
       }
 
       handler(event);
-    };
+    },
+    [ref, handler],
+  );
 
+  useEffect(() => {
+    // Add event listeners
     document.addEventListener('mousedown', listener);
     document.addEventListener('touchstart', listener);
 
+    // Remove event listeners on cleanup
     return () => {
       document.removeEventListener('mousedown', listener);
       document.removeEventListener('touchstart', listener);
     };
-  }, [ref, handler]);
+  }, [listener]);
 };

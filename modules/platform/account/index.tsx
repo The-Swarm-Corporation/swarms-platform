@@ -22,15 +22,19 @@ import Link from 'next/link';
 import { AUTH } from '@/shared/utils/constants';
 import ThemeToggle from '@/shared/components/theme-toggle';
 import CryptoWallet from './components/crypto-wallet';
-import { UserCircle, CreditCard, Wallet } from 'lucide-react';
+import { UserCircle, CreditCard, Wallet, Palette } from 'lucide-react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { trpc } from '@/shared/utils/trpc/trpc';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
 
 export default function Account() {
   const { user } = useAuthContext();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('profile');
+  const { data: userData } = trpc.main.getUser.useQuery();
 
   useEffect(() => {
     const type = searchParams?.get('payment_type');
@@ -38,6 +42,7 @@ export default function Account() {
       setActiveTab('billing');
     }
   }, [searchParams]);
+
   return (
     <div className="container mx-auto py-10 max-md:px-0">
       <div className="flex items-center justify-between mb-8">
@@ -47,12 +52,13 @@ export default function Account() {
             Manage your account settings and preferences
           </p>
         </div>
-        <div className="hidden lg:block">
-          <ThemeToggle />
-        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <UserCircle className="h-4 w-4" />
@@ -66,6 +72,10 @@ export default function Account() {
             <Wallet className="h-4 w-4" />
             Crypto
           </TabsTrigger>
+          <TabsTrigger value="theme" className="flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            Theme
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-4">
@@ -77,7 +87,35 @@ export default function Account() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 max-md:px-0">
-              <Credit user={user} />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={userData?.full_name || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    value={userData?.username || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    value={userData?.email || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+              </div>
               <Separator />
               <div className="space-y-2">
                 <h3 className="font-semibold">Password</h3>
@@ -100,6 +138,8 @@ export default function Account() {
             <CardContent className="space-y-6 max-md:px-0">
               {user && (
                 <>
+                  <Credit user={user} />
+                  <Separator />
                   <CardManager />
                   <Separator />
                   <SubscriptionStatus />
@@ -122,11 +162,21 @@ export default function Account() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
 
-      <div className="my-4 lg:hidden">
-        <ThemeToggle />
-      </div>
+        <TabsContent value="theme" className="space-y-4">
+          <Card>
+            <CardHeader className="max-md:px-0">
+              <CardTitle>Theme Settings</CardTitle>
+              <CardDescription>
+                Customize your application appearance
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="max-md:px-0">
+              <ThemeToggle />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

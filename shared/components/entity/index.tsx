@@ -4,7 +4,7 @@ import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Pencil, Share, Star, FileDown } from 'lucide-react'; // Use available icons
+import { Copy, Pencil, Share, Star, FileDown, Bookmark } from 'lucide-react'; // Use available icons
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '@/shared/components/avatar';
@@ -30,6 +30,8 @@ import {
 import remarkGfm from 'remark-gfm';
 import { stripMarkdown } from './helper';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import BookmarkButton from '@/shared/components/bookmark-button';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -56,66 +58,74 @@ const ChatComponent = dynamic(() => import('@/shared/components/chat/prompt'), {
   ssr: false,
 });
 
+const styles = `
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 15s ease infinite;
+}
+`;
+
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
+}
+
 function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
+  const colors = [
+    'from-blue-500 to-cyan-500',
+    'from-purple-500 to-pink-500',
+    'from-orange-500 to-red-500',
+    'from-green-500 to-emerald-500',
+    'from-violet-500 to-indigo-500',
+  ];
+
   return (
-    <div className="relative z-10">
-      <h2 className="text-4xl font-medium text-white mb-2 tracking-wider">
+    <div className="flex flex-col gap-8 py-8">
+      <h2 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
         Use Cases
-        <div className="h-1 w-24 bg-gradient-to-r from-red-500 to-transparent mt-2" />
       </h2>
-
-      <div className="flex gap-6 flex-col lg:flex-row">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {usecases?.map((usecase, index) => {
-          const classname = usecases?.length === 1 && 'min-h-fit md:min-h-fit';
-
+          const colorClass = colors[index % colors.length];
           return (
-            <Card3D
+            <div
               key={index}
-              containerClassName="flex-1 group"
-              className="w-full"
+              className="group relative overflow-hidden rounded-2xl bg-zinc-950 transition-all duration-300"
             >
-              <CardBody
-                className={cn(
-                  'relative overflow-hidden',
-                  'bg-black border border-red-500/30',
-                  'hover:border-red-500 hover:shadow-2xl hover:shadow-red-500/20',
-                  'transition-all duration-500 ease-out',
-                  'min-h-[280px] md:min-h-[350px] h-fit',
-                  'p-8 flex flex-col',
-                  'rounded-lg',
-                  'before:absolute before:inset-0 before:bg-gradient-to-br before:from-red-500/5 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500',
-                  'after:absolute after:top-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-transparent after:via-red-500 after:to-transparent after:opacity-0 hover:after:opacity-100 after:transition-opacity after:duration-500',
-                  classname,
-                )}
-              >
-                <div className="absolute top-4 left-4 w-4 h-4 border-l-2 border-t-2 border-red-500/50" />
-                <div className="absolute top-4 right-4 w-4 h-4 border-r-2 border-t-2 border-red-500/50" />
-                <div className="absolute bottom-4 left-4 w-4 h-4 border-l-2 border-b-2 border-red-500/50" />
-                <div className="absolute bottom-4 right-4 w-4 h-4 border-r-2 border-b-2 border-red-500/50" />
+              {/* Animated border gradient */}
+              <div
+                className={`absolute inset-0 bg-gradient-to-r ${colorClass} animate-gradient-x`}
+              />
+              <div className="absolute inset-[1px] rounded-2xl bg-zinc-950" />
 
-                <div className="relative z-10 flex flex-col h-full">
-                  <CardItem
-                    translateZ="50"
-                    className="text-lg font-medium font-mono text-white mb-4 tracking-wide"
-                  >
-                    <span className="text-red-400 text-sm mr-2">
-                      [{String(index + 1).padStart(2, '0')}]
-                    </span>
+              {/* Content */}
+              <div className="relative p-6">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-lg font-medium text-zinc-100">
                     {usecase?.title}
-                  </CardItem>
-
-                  <CardItem
-                    as="p"
-                    translateZ="60"
-                    className="text-gray-300 font-mono text-sm leading-relaxed flex-grow"
-                  >
+                  </h3>
+                  <p className="text-sm text-zinc-400 leading-relaxed">
                     {usecase?.description}
-                  </CardItem>
+                  </p>
                 </div>
-
-                <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/5 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              </CardBody>
-            </Card3D>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="h-px flex-1 bg-zinc-800" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-zinc-600" />
+                  <div className="h-px flex-1 bg-zinc-800" />
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>
@@ -316,34 +326,57 @@ export default function EntityComponent({
           </div>
 
           <div className="max-md:my-8 mt-2 flex max-md:flex-col max-md:items-center md:w-fit gap-3">
-            <Button
-              onClick={handleShowShareModal}
-              variant="destructive"
-              className="mt-3 w-full"
-            >
-              <Share size={20} />
-              <span className="ml-2">Share</span>
-            </Button>
-            {showEditButton && (
+            <div className="flex flex-wrap gap-2">
+              {showEditButton && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShowEditModal}
+                  className="flex items-center gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              )}
               <Button
-                onClick={handleShowEditModal}
-                variant="destructive"
-                className="mt-3 w-full"
-              >
-                <Pencil size={20} />
-                <span className="ml-2">Edit</span>
-              </Button>
-            )}
-            {id && user.data?.id && !reviewQuery?.data?.hasReviewed && (
-              <Button
-                onClick={handleShowReviewModal}
                 variant="outline"
-                className="mt-3 w-full"
+                size="sm"
+                onClick={handleShowShareModal}
+                className="flex items-center gap-2"
               >
-                <Star size={20} className="text-yellow-500" />
-                <span className="ml-2">Add review</span>
+                <Share className="h-4 w-4" />
+                Share
               </Button>
-            )}
+              {id && user.data?.id && !reviewQuery?.data?.hasReviewed && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShowReviewModal}
+                  className="flex items-center gap-2"
+                >
+                  <Star className="h-4 w-4" />
+                  Rate
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShowReviewListModal}
+                className="flex items-center gap-2"
+              >
+                <Star className="h-4 w-4" />
+                Reviews ({reviewLength})
+              </Button>
+              <BookmarkButton
+                id={id || ''}
+                type={entityTitle as 'prompt' | 'agent' | 'tool'}
+                name={name || title}
+                description={description}
+                created_at={new Date().toISOString()}
+                username={user?.data?.username || undefined}
+                tags={tags}
+              />
+            </div>
           </div>
 
           <div
@@ -404,7 +437,67 @@ export default function EntityComponent({
 
       {prompt && (
         <div className="relative my-10">
-          <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar">
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-3">
+              Main Prompt
+            </h2>
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm md:text-base">
+              Copy this prompt or download it to use in ChatGPT, Claude, or in
+              your agent code. The prompt is available in both text and markdown
+              formats.
+            </p>
+          </div>
+          <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar relative">
+            <div className="absolute top-3 right-3 flex gap-2 z-10">
+              <button
+                onClick={handleCopy}
+                className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
+                title="Copy to clipboard"
+              >
+                <Copy size={20} className="text-zinc-200" />
+              </button>
+              <div className="relative group">
+                <button
+                  onClick={handleDownload}
+                  className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
+                  title="Download options"
+                >
+                  <FileDown size={20} className="text-zinc-200" />
+                </button>
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-lg bg-zinc-800/95 border border-zinc-700/50 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        downloadFile(
+                          prompt ?? '',
+                          `${name ?? 'prompt'}.txt`,
+                          'text/plain',
+                        );
+                        toast.toast({ description: 'Downloaded as text file' });
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
+                    >
+                      Download as Text (.txt)
+                    </button>
+                    <button
+                      onClick={() => {
+                        downloadFile(
+                          prompt ?? '',
+                          `${name ?? 'prompt'}.md`,
+                          'text/markdown',
+                        );
+                        toast.toast({
+                          description: 'Downloaded as markdown file',
+                        });
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
+                    >
+                      Download as Markdown (.md)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="mt-7">
               <Tabs
                 className="flex  flex-col gap-4 w-auto"
@@ -441,18 +534,6 @@ export default function EntityComponent({
               </Tabs>
             </div>
           </div>
-          <div className="absolute top-2 right-2 flex gap-2">
-            <Copy
-              size={30}
-              className="p-1 text-primary cursor-pointer"
-              onClick={handleCopy}
-            />
-            <FileDown
-              size={30}
-              className="p-1 text-primary cursor-pointer"
-              onClick={handleDownload}
-            />
-          </div>
         </div>
       )}
       {children}
@@ -463,9 +544,16 @@ export default function EntityComponent({
       />
 
       {entityTitle === 'prompt' && prompt && (
-        <div className="mt-10 lg:mt-20 flex flex-col items-end">
-          <div className="w-full lg:w-[90%]">
-            <h2 className="mb-5">Prompt Agent Chat</h2>
+        <div className="mt-10 lg:mt-20 flex flex-col w-full">
+          <div className="w-full">
+            <h2 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white mb-4">
+              Prompt Agent Chat
+            </h2>
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm md:text-base mb-8">
+              Interact with this prompt in real-time. The AI will respond based
+              on the system prompt, allowing you to test and refine the prompt's
+              effectiveness.
+            </p>
             <ChatComponent promptId={id ?? ''} systemPrompt={prompt} />
           </div>
         </div>

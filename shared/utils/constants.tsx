@@ -99,6 +99,11 @@ export const PLATFORM = {
   TELEMETRY_DASHBOARD: '/platform/telemetry/dashboard',
   TELEMETRY_HISTORY: '/platform/telemetry/history',
   TELEMETRY_SETTINGS: '/platform/telemetry/settings',
+  APPS: '/apps',
+  AUTONOMOUS_APPS: '/autonomous-apps',
+  LEADERBOARD: '/platform/leaderboard',
+  BOOKMARKS: '/bookmarks',
+  PLAYGROUND: '/platform/playground',
 };
 
 export const AUTH = {
@@ -121,12 +126,14 @@ enum NAV_LINKS {
   PRICING = '/pricing',
   DOCS = SWARMS_DOCS,
   GET_DEMO = SWARM_CALENDLY,
+  LEARN_MORE = '/learn-more',
 }
 
 export const NAVIGATION: { [key in keyof typeof NAV_LINKS]: NAV_LINKS } = {
   PRICING: NAV_LINKS.PRICING,
   DOCS: NAV_LINKS.DOCS,
   GET_DEMO: NAV_LINKS.GET_DEMO,
+  LEARN_MORE: NAV_LINKS.LEARN_MORE,
 };
 
 export const SECURITY_LEVELS = {
