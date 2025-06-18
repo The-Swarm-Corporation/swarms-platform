@@ -4,7 +4,14 @@ import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { NotepadText, ChevronDown, Bot, Hammer, Code, MessageSquare } from 'lucide-react';
+import {
+  NotepadText,
+  ChevronDown,
+  Bot,
+  Hammer,
+  Code,
+  MessageSquare,
+} from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 

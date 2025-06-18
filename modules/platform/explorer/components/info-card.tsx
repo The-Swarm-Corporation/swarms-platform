@@ -171,9 +171,7 @@ const InfoCard = ({
                     className="object-cover w-full h-full"
                   />
                 ) : (
-                  <div
-                    className='w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#ccc]'
-                  >
+                  <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#ccc]">
                     {user?.username?.charAt(0)?.toUpperCase() || '?'}
                   </div>
                 )}

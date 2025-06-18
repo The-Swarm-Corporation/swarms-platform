@@ -1203,7 +1203,9 @@ const explorerRouter = router({
       };
     }),
   getTopUsers: publicProcedure
-    .input(z.object({ category: z.enum(['total', 'prompts', 'agents', 'tools']) }))
+    .input(
+      z.object({ category: z.enum(['total', 'prompts', 'agents', 'tools']) }),
+    )
     .query(async ({ input, ctx }) => {
       const { category } = input;
 
@@ -1240,14 +1242,14 @@ const explorerRouter = router({
       if (!tools) return [];
 
       // Map items to users
-      const usersWithItems = users.map(user => ({
+      const usersWithItems = users.map((user) => ({
         id: user.id,
         username: user.username,
         full_name: user.full_name,
         avatar_url: user.avatar_url,
-        prompts: prompts.filter(p => p.user_id === user.id),
-        agents: agents.filter(a => a.user_id === user.id),
-        tools: tools.filter(t => t.user_id === user.id)
+        prompts: prompts.filter((p) => p.user_id === user.id),
+        agents: agents.filter((a) => a.user_id === user.id),
+        tools: tools.filter((t) => t.user_id === user.id),
       }));
 
       // Sort users based on the selected category

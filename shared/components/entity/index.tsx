@@ -104,9 +104,11 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
               className="group relative overflow-hidden rounded-2xl bg-zinc-950 transition-all duration-300"
             >
               {/* Animated border gradient */}
-              <div className={`absolute inset-0 bg-gradient-to-r ${colorClass} animate-gradient-x`} />
+              <div
+                className={`absolute inset-0 bg-gradient-to-r ${colorClass} animate-gradient-x`}
+              />
               <div className="absolute inset-[1px] rounded-2xl bg-zinc-950" />
-              
+
               {/* Content */}
               <div className="relative p-6">
                 <div className="flex flex-col gap-2">
@@ -293,9 +295,7 @@ export default function EntityComponent({
                     }}
                     className="text-sm mt-2.5 font-medium md:text-base text-white/80 bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner w-fit"
                   >
-                    <p className="text-xs italic">
-                      {description}
-                    </p>
+                    <p className="text-xs italic">{description}</p>
                   </div>
                 )}
                 <Avatar
@@ -442,7 +442,9 @@ export default function EntityComponent({
               Main Prompt
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 text-sm md:text-base">
-              Copy this prompt or download it to use in ChatGPT, Claude, or in your agent code. The prompt is available in both text and markdown formats.
+              Copy this prompt or download it to use in ChatGPT, Claude, or in
+              your agent code. The prompt is available in both text and markdown
+              formats.
             </p>
           </div>
           <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar relative">
@@ -466,7 +468,11 @@ export default function EntityComponent({
                   <div className="py-1">
                     <button
                       onClick={() => {
-                        downloadFile(prompt ?? '', `${name ?? 'prompt'}.txt`, 'text/plain');
+                        downloadFile(
+                          prompt ?? '',
+                          `${name ?? 'prompt'}.txt`,
+                          'text/plain',
+                        );
                         toast.toast({ description: 'Downloaded as text file' });
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
@@ -475,8 +481,14 @@ export default function EntityComponent({
                     </button>
                     <button
                       onClick={() => {
-                        downloadFile(prompt ?? '', `${name ?? 'prompt'}.md`, 'text/markdown');
-                        toast.toast({ description: 'Downloaded as markdown file' });
+                        downloadFile(
+                          prompt ?? '',
+                          `${name ?? 'prompt'}.md`,
+                          'text/markdown',
+                        );
+                        toast.toast({
+                          description: 'Downloaded as markdown file',
+                        });
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
                     >
@@ -538,7 +550,9 @@ export default function EntityComponent({
               Prompt Agent Chat
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 text-sm md:text-base mb-8">
-              Interact with this prompt in real-time. The AI will respond based on the system prompt, allowing you to test and refine the prompt's effectiveness.
+              Interact with this prompt in real-time. The AI will respond based
+              on the system prompt, allowing you to test and refine the prompt's
+              effectiveness.
             </p>
             <ChatComponent promptId={id ?? ''} systemPrompt={prompt} />
           </div>

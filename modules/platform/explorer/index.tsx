@@ -32,10 +32,6 @@ const Agents = dynamic(() => import('./components/content/agents'), {
 const Tools = dynamic(() => import('./components/content/tools'), {
   ssr: false,
 });
-const Leaderboard = dynamic(
-  () => import('./components/content/leaderboard').then((mod) => mod.Leaderboard),
-  { ssr: false }
-);
 
 const Explorer = () => {
   const [addPromptModalOpen, setAddPromptModalOpen] = useState(false);

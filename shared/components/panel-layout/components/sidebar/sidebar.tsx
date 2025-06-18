@@ -44,21 +44,31 @@ const PanelLayoutSidebar = () => {
   const { starred } = useStarredApps();
 
   // Always show the Apps page in the sidebar
-  const appsMenuItem = SIDE_BAR_MENU.platform?.find(item => item.title.toLowerCase() === 'apps');
-  const bookmarksMenuItem = SIDE_BAR_MENU.platform?.find(item => item.title.toLowerCase() === 'bookmarks');
+  const appsMenuItem = SIDE_BAR_MENU.platform?.find(
+    (item) => item.title.toLowerCase() === 'apps',
+  );
+  const bookmarksMenuItem = SIDE_BAR_MENU.platform?.find(
+    (item) => item.title.toLowerCase() === 'bookmarks',
+  );
   let filteredMenu = [];
   if (starred.length === 0) {
     filteredMenu = SIDE_BAR_MENU.platform || [];
   } else {
-    filteredMenu = SIDE_BAR_MENU.platform?.filter(item =>
-      starred.includes(
-        Object.keys(appIdToSidebarTitle).find(
-          id => appIdToSidebarTitle[id as keyof typeof appIdToSidebarTitle] === item.title
-        ) || ''
-      )
-    ) || [];
+    filteredMenu =
+      SIDE_BAR_MENU.platform?.filter((item) =>
+        starred.includes(
+          Object.keys(appIdToSidebarTitle).find(
+            (id) =>
+              appIdToSidebarTitle[id as keyof typeof appIdToSidebarTitle] ===
+              item.title,
+          ) || '',
+        ),
+      ) || [];
     // Ensure Apps page is always present
-    if (appsMenuItem && !filteredMenu.some(item => item.title.toLowerCase() === 'apps')) {
+    if (
+      appsMenuItem &&
+      !filteredMenu.some((item) => item.title.toLowerCase() === 'apps')
+    ) {
       filteredMenu.splice(2, 0, appsMenuItem); // Insert after Marketplace (index 2)
     }
   }
@@ -128,7 +138,7 @@ const PanelLayoutSidebar = () => {
                         isIcon
                         className={cn(
                           'p-2 py-3 my-1 hover:bg-gray-700/40 hover:text-white rounded-md hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
-                          (item.link === path) &&
+                          item.link === path &&
                             'bg-gray-700/40 text-white [&_svg]:text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
                         )}
                       />
@@ -161,7 +171,9 @@ const PanelLayoutSidebar = () => {
                 {showTitle && (
                   <div className="flex items-center gap-2">
                     <span>Command Bar</span>
-                    <kbd className="px-2 py-1 text-xs font-semibold text-gray-400 bg-gray-800 border border-gray-700 rounded">⌘K</kbd>
+                    <kbd className="px-2 py-1 text-xs font-semibold text-gray-400 bg-gray-800 border border-gray-700 rounded">
+                      ⌘K
+                    </kbd>
                   </div>
                 )}
               </div>

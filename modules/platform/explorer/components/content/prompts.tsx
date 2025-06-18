@@ -79,27 +79,29 @@ export default function Prompts({
           </div>
         )}
 
-        {(hasMorePrompts || isFetchingPrompts) && !isLoading && filteredPrompts?.length > 0 && (
-          <div className="flex justify-center mt-8 w-full">
-            <Button
-              onClick={loadMorePrompts}
-              disabled={isFetchingPrompts || isPromptLoading}
-              className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/60 hover:bg-[#FF6B6B]/30 text-[#FF6B6B] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FF6B6B]/25 group"
-            >
-              {isFetchingPrompts ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <span>Load More</span>
-                  <ChevronDown className="h-4 w-4 ml-2 group-hover:translate-y-0.5 transition-transform" />
-                </>
-              )}
-            </Button>
-          </div>
-        )}
+        {(hasMorePrompts || isFetchingPrompts) &&
+          !isLoading &&
+          filteredPrompts?.length > 0 && (
+            <div className="flex justify-center mt-8 w-full">
+              <Button
+                onClick={loadMorePrompts}
+                disabled={isFetchingPrompts || isPromptLoading}
+                className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/60 hover:bg-[#FF6B6B]/30 text-[#FF6B6B] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FF6B6B]/25 group"
+              >
+                {isFetchingPrompts ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <span>Load More</span>
+                    <ChevronDown className="h-4 w-4 ml-2 group-hover:translate-y-0.5 transition-transform" />
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
       </div>
     </div>
   );

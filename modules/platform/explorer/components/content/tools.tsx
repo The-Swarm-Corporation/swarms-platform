@@ -15,7 +15,7 @@ export default function Tools({
   filteredTools,
   setAddToolModalOpen,
   usersMap,
-  reviewsMap
+  reviewsMap,
 }: any) {
   async function handleToolModal() {
     await checkUserSession();

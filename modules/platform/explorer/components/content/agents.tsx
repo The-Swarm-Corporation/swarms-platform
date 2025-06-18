@@ -68,7 +68,10 @@ export default function Agents({
                     <PublicChatCard
                       usersMap={usersMap}
                       title={agent.name}
-                      description={agent.description || 'Join this public conversation and explore AI-powered discussions with multiple agents.'}
+                      description={
+                        agent.description ||
+                        'Join this public conversation and explore AI-powered discussions with multiple agents.'
+                      }
                       icon={<MessageCircle />}
                       link={`/platform/chat?conversationId=${agent?.id}&shareId=${agent?.share_id}`}
                       agents={agent?.agents}
@@ -91,27 +94,29 @@ export default function Agents({
           </div>
         )}
 
-        {(hasMoreAgents || isFetchingAgents) && !isLoading && filteredAgents?.length > 0 && (
-          <div className="flex justify-center mt-8 w-full">
-            <Button
-              onClick={loadMoreAgents}
-              disabled={isFetchingAgents || isAgentLoading}
-              className="bg-[#4ECDC4]/20 border border-[#4ECDC4]/60 hover:bg-[#4ECDC4]/30 text-[#4ECDC4] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#4ECDC4]/25 group"
-            >
-              {isFetchingAgents ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <span>Load More</span>
-                  <ChevronDown className="h-4 w-4 ml-2 group-hover:translate-y-0.5 transition-transform" />
-                </>
-              )}
-            </Button>
-          </div>
-        )}
+        {(hasMoreAgents || isFetchingAgents) &&
+          !isLoading &&
+          filteredAgents?.length > 0 && (
+            <div className="flex justify-center mt-8 w-full">
+              <Button
+                onClick={loadMoreAgents}
+                disabled={isFetchingAgents || isAgentLoading}
+                className="bg-[#4ECDC4]/20 border border-[#4ECDC4]/60 hover:bg-[#4ECDC4]/30 text-[#4ECDC4] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#4ECDC4]/25 group"
+              >
+                {isFetchingAgents ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <span>Load More</span>
+                    <ChevronDown className="h-4 w-4 ml-2 group-hover:translate-y-0.5 transition-transform" />
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
       </div>
     </div>
   );
