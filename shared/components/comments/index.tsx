@@ -101,9 +101,6 @@ export default function CommentList({ modelId, title }: CommentListProps) {
 
   return (
     <div className="max-w-[800px] w-full">
-      <h3 className="my-3 text-2xl">
-        {title} comments {totalCount > 0 && `(${totalCount})`}
-      </h3>
 
       <CommentForm
         modelId={modelId}
