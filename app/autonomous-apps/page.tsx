@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Heart, Sparkles, Rocket, X, Search, Calendar, Zap, AlertCircle, RefreshCcw, Maximize2, Minimize2, ExternalLink } from 'lucide-react';
+import { Heart, Sparkles, Rocket, X, Search, Calendar, Zap, AlertCircle, RefreshCcw, Maximize2, Minimize2, ExternalLink, Brain } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/shared/utils/cn';
 
@@ -33,6 +33,16 @@ const AUTONOMOUS_APPS = [
     icon: <Zap size={32} className="text-yellow-500" />,
     color: 'yellow',
   },
+  {
+    id: 'SSI',
+    title: 'SSI.fun',
+    description: 'Build, Deploy, and Tokenize your Applications on Solana',
+    domain: 'ssi.fun',
+    url: 'https://ssi.fun',
+    icon: <Brain size={32} className="text-green-500" />,
+    color: 'green',
+  },
+  
 ];
 
 export default function AutonomousAppsPage() {
