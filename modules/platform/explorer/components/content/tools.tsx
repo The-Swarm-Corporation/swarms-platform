@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { ChevronDown, Hammer, Plus, Wrench } from 'lucide-react';
+import { ChevronDown, Hammer, Plus } from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
@@ -29,7 +29,7 @@ export default function Tools({
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-          <Wrench className="text-red-500" />
+          <Hammer className="text-[#FFD93D]" />
           Tools
         </h2>
         <Button

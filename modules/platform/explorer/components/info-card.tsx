@@ -191,31 +191,33 @@ const InfoCard = ({
               >
                 {itemType}
               </span>
-              <Link
-                href={`/users/${user?.username}`}
-                className={`flex items-center gap-2 transition-opacity mt-1`}
-              >
-                <div className="w-5 h-5 rounded-full overflow-hidden bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
-                  {user?.avatar_url ? (
-                    <Image
-                      src={user.avatar_url}
-                      alt={user.username || 'User'}
-                      width={20}
-                      height={20}
-                      className="object-cover w-full h-full"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#ccc]">
-                      {user?.username?.charAt(0)?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                </div>
-                <span
-                  className={`text-xs font-semibold group-hover:${colors.icon}/80 transition-colors ${colors.icon}`}
+              {user?.username && (
+                <Link
+                  href={`/users/${user?.username}`}
+                  className={`flex items-center gap-2 transition-opacity mt-1`}
                 >
-                  {user?.username || 'Anonymous'}
-                </span>
-              </Link>
+                  <div className="w-5 h-5 rounded-full overflow-hidden bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
+                    {user?.avatar_url ? (
+                      <Image
+                        src={user.avatar_url}
+                        alt={user.username || 'User'}
+                        width={20}
+                        height={20}
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#ccc]">
+                        {user?.username?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className={`text-xs font-semibold group-hover:${colors.icon}/80 transition-colors ${colors.icon}`}
+                  >
+                    {user?.username || 'Anonymous'}
+                  </span>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -246,9 +248,11 @@ const InfoCard = ({
           </button>
           <button
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${colors.button} hover:scale-105 active:scale-95`}
-            title={showPremiumBadge && price && price > 0
-              ? `Buy this ${itemType} for ${formatPrice(price)}`
-              : `View item ${itemType}`}
+            title={
+              showPremiumBadge && price && price > 0
+                ? `Buy this ${itemType} for ${formatPrice(price)}`
+                : `View item ${itemType}`
+            }
             onClick={handleViewClick}
           >
             <span>

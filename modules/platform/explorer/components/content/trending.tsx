@@ -26,7 +26,7 @@ export default function Trending({
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-foreground mb-6 flex items-center gap-3">
-          <Zap className="text-red-500" />
+          <Zap className="text-[#9A8572]" />
           Trending
         </h2>
       </div>

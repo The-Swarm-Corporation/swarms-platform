@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { Plus, ChevronDown, MessageSquare, Brain } from 'lucide-react';
+import { Plus, ChevronDown, MessageSquare } from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
@@ -30,7 +30,7 @@ export default function Prompts({
     <div className="flex flex-col min-h-1/2 gap-2 pb-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-          <Brain className="text-red-500" />
+          <MessageSquare className="text-[#FF6B6B]" />
           Prompts
         </h2>
                 <Button

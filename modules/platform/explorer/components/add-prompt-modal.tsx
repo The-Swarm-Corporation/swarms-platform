@@ -277,14 +277,14 @@ const AddPromptModal = ({
     >
       <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
         {/* Quality Validation Disclosure */}
-        <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+        <div className="mb-4 p-3 bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-lg font-mono">
           <div className="flex items-start gap-2">
-            <span className="text-blue-400 text-lg">ℹ️</span>
+            <span className="text-[#FF6B6B] text-lg">ℹ️</span>
             <div className="text-sm">
-              <p className="text-blue-300 font-medium mb-1">
+              <p className="text-[#FF6B6B] font-medium mb-1">
                 Quality Validation Notice
               </p>
-              <p className="text-blue-200 text-xs leading-relaxed">
+              <p className="text-[#FF6B6B] text-xs leading-relaxed">
                 All prompt submissions undergo automated quality validation to
                 maintain marketplace standards.
                 {!isFree && (
@@ -293,17 +293,7 @@ const AddPromptModal = ({
                     Paid submissions require higher quality scores and
                     contributor eligibility checks.
                   </span>
-                )}{' '}
-                Low-quality entries will be rejected with constructive feedback
-                to help you improve.
-              </p>
-              <p className="text-blue-100 text-xs mt-2 font-mono">
-                <strong>Fallback Policy:</strong> If our AI validation service
-                is unavailable, we&apos;ll check your submission history
-                instead.
-                {isFree
-                  ? ' Free submissions need 2+ approved items.'
-                  : ' Paid submissions need 2+ approved items with 3.5+ average rating.'}
+                )}
               </p>
             </div>
           </div>
@@ -488,9 +478,9 @@ const AddPromptModal = ({
               <div className="space-y-4 p-4 border border-yellow-500/30 bg-yellow-500/5">
                 {/* Trustworthiness Status */}
                 {checkTrustworthiness.isLoading && (
-                  <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <div className="flex items-center gap-2 p-3 bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-lg">
                     <LoadingSpinner />
-                    <span className="text-blue-400 text-sm">
+                    <span className="text-[#FF6B6B] text-sm">
                       Checking marketplace eligibility...
                     </span>
                   </div>

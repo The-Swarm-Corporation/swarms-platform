@@ -6,7 +6,7 @@ export async function GET() {
     openAPIKey: process.env.OPENAI_API_KEY,
     // Marketplace config
     marketplaceEnabled: process.env.NEXT_PUBLIC_MARKETPLACE_ENABLED === 'true',
-    platformWalletAddress: process.env.NEXT_PUBLIC_PLATFORM_WALLET_ADDRESS,
+    platformWalletAddress: process.env.NEXT_PUBLIC_DAO_TREASURY_ADDRESS,
     solanaNetwork: process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'mainnet-beta',
   });
 }
