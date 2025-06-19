@@ -19,6 +19,8 @@ import { useMemo, useRef, useState, useEffect } from 'react';
 import { useModelFileUpload } from '../hook/upload-file';
 import ModelFileUpload from './upload-image';
 import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
+import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
+import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
 
 interface Props {
   isOpen: boolean;
@@ -60,16 +62,7 @@ const AddAgentModal = ({
   const imageUploadRef = useRef<HTMLInputElement>(null);
 
   const validateAgent = trpc.explorer.validateAgent.useMutation();
-
-  const debouncedCheckPrompt = useMemo(() => {
-    const debouncedFn = debounce((value: string) => {
-      validateAgent.mutateAsync(value);
-    }, 400);
-    return debouncedFn;
-  }, []);
-
   const toast = useToast();
-  const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addAgent = trpc.explorer.addAgent.useMutation();
   const checkTrustworthiness =
@@ -237,7 +230,6 @@ const AddAgentModal = ({
       .catch((error) => {
         console.log({ error });
 
-        // Parse error message for better user feedback
         let errorMessage = 'An error has occurred';
         let isApiFailure = false;
 
@@ -274,14 +266,14 @@ const AddAgentModal = ({
   if (!user) return null;
 
   return (
-    <Modal
-      className="max-w-2xl"
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Add Agent"
-    >
+    <WalletProvider>
+      <Modal
+        className="max-w-2xl"
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Add Agent"
+      >
       <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
-        {/* Quality Validation Disclosure */}
         <div className="mb-4 p-3 bg-teal-500/10 border border-teal-500/30 rounded-lg font-mono">
           <div className="flex items-start gap-2">
             <span className="text-teal-500 text-lg">ℹ️</span>
@@ -352,7 +344,6 @@ const AddAgentModal = ({
               }`}
             />
 
-            {/* Validation Status */}
             {validateAgent.isPending && (
               <div className="absolute bottom-2 right-2 flex items-center gap-2">
                 <LoadingSpinner />
@@ -361,14 +352,12 @@ const AddAgentModal = ({
             )}
           </div>
 
-          {/* Show validation errors */}
           {validation.fields.content?.error && (
             <span className="text-red-500 text-sm">
               {validation.fields.content.error}
             </span>
           )}
 
-          {/* Show API validation errors */}
           {agent.length > 0 &&
             !validateAgent.isPending &&
             validateAgent.data &&
@@ -556,32 +545,13 @@ const AddAgentModal = ({
                   </p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Your Wallet Address{' '}
-                    <span className="text-yellow-500">*</span>
-                  </label>
-                  <Input
-                    value={walletAddress}
-                    onChange={setWalletAddress}
-                    onBlur={() => validation.validateOnBlur('walletAddress')}
-                    placeholder="Enter your Solana wallet address..."
-                    className={`bg-background/40 border transition-colors duration-300 hover:bg-background/60 ${
-                      validation.fields.walletAddress?.error
-                        ? 'border-red-500 focus:border-red-500'
-                        : 'border-yellow-500/30 focus:border-yellow-500'
-                    } text-foreground placeholder-muted-foreground`}
-                  />
-                  {validation.fields.walletAddress?.error && (
-                    <span className="text-red-500 text-sm mt-1">
-                      {validation.fields.walletAddress.error}
-                    </span>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1 font-mono">
-                    Platform takes 10% commission. You&apos;ll receive 90% of
-                    the sale price.
-                  </p>
-                </div>
+                <SmartWalletInput
+                  value={walletAddress}
+                  onChange={setWalletAddress}
+                  onBlur={() => validation.validateOnBlur('walletAddress')}
+                  error={validation.fields.walletAddress?.error}
+                  disabled={addAgent.isPending || isLoading}
+                />
               </div>
             )}
           </div>
@@ -613,6 +583,7 @@ const AddAgentModal = ({
         </div>
       </div>
     </Modal>
+    </WalletProvider>
   );
 };
 

@@ -12,6 +12,8 @@ import { useMemo, useRef, useState, useEffect } from 'react';
 import { useModelFileUpload } from '../hook/upload-file';
 import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
 import ModelFileUpload from './upload-image';
+import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
+import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
 
 interface Props {
   isOpen: boolean;
@@ -54,31 +56,22 @@ const AddPromptModal = ({
 
   const validatePrompt = trpc.explorer.validatePrompt.useMutation();
 
-  const debouncedCheckPrompt = useMemo(() => {
-    const debouncedFn = debounce((value: string) => {
-      validatePrompt.mutateAsync(value);
-    }, 400);
-    return debouncedFn;
-  }, []);
-
   const handleCategoriesChange = (selectedCategories: string[]) => {
     setCategories(selectedCategories);
   };
 
   const toast = useToast();
-  const utils = trpc.useUtils(); // For immediate cache invalidation
+  const utils = trpc.useUtils();
 
   const addPrompt = trpc.explorer.addPrompt.useMutation();
   const checkTrustworthiness =
     trpc.marketplace.checkUserTrustworthiness.useQuery(undefined, {
-      enabled: !isFree, // Only check when user wants to create paid content
+      enabled: !isFree,
       retry: false,
     });
 
-  // Initialize deferred validation
   const validation = useMarketplaceValidation();
 
-  // Update validation fields when state changes
   useEffect(() => {
     validation.updateField('name', promptName);
     validation.updateField('description', description);
@@ -232,7 +225,6 @@ const AddPromptModal = ({
       .catch((error) => {
         console.log({ error });
 
-        // Parse error message for better user feedback
         let errorMessage = 'An error has occurred';
         let isApiFailure = false;
 
@@ -269,14 +261,14 @@ const AddPromptModal = ({
   if (!user) return null;
 
   return (
-    <Modal
-      className="max-w-2xl"
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Add Prompt"
-    >
+    <WalletProvider>
+      <Modal
+        className="max-w-2xl"
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Add Prompt"
+      >
       <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
-        {/* Quality Validation Disclosure */}
         <div className="mb-4 p-3 bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-lg font-mono">
           <div className="flex items-start gap-2">
             <span className="text-[#FF6B6B] text-lg">ℹ️</span>
@@ -339,7 +331,6 @@ const AddPromptModal = ({
               value={prompt}
               onChange={(v) => {
                 setPrompt(v.target.value);
-                // Only trigger API validation on blur, not on every keystroke
               }}
               onBlur={async () => {
                 validation.validateOnBlur('content');
@@ -378,13 +369,11 @@ const AddPromptModal = ({
               </div>
             )}
           </div>
-          {/* Show validation errors */}
           {validation.fields.content?.error && (
             <span className="text-red-500 text-sm">
               {validation.fields.content.error}
             </span>
           )}
-          {/* Show API validation errors */}
           {prompt.length > 0 &&
             !validatePrompt.isPending &&
             validatePrompt.data &&
@@ -476,7 +465,6 @@ const AddPromptModal = ({
 
             {!isFree && (
               <div className="space-y-4 p-4 border border-yellow-500/30 bg-yellow-500/5">
-                {/* Trustworthiness Status */}
                 {checkTrustworthiness.isLoading && (
                   <div className="flex items-center gap-2 p-3 bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-lg">
                     <LoadingSpinner />
@@ -562,32 +550,13 @@ const AddPromptModal = ({
                   </p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Your Wallet Address{' '}
-                    <span className="text-yellow-500">*</span>
-                  </label>
-                  <Input
-                    value={walletAddress}
-                    onChange={setWalletAddress}
-                    onBlur={() => validation.validateOnBlur('walletAddress')}
-                    placeholder="Enter your Solana wallet address..."
-                    className={`bg-background/40 border transition-colors duration-300 hover:bg-background/60 ${
-                      validation.fields.walletAddress?.error
-                        ? 'border-red-500 focus:border-red-500'
-                        : 'border-yellow-500/30 focus:border-yellow-500'
-                    } text-foreground placeholder-muted-foreground`}
-                  />
-                  {validation.fields.walletAddress?.error && (
-                    <span className="text-red-500 text-sm mt-1">
-                      {validation.fields.walletAddress.error}
-                    </span>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1 font-mono">
-                    Platform takes 10% commission. You&apos;ll receive 90% of
-                    the sale price.
-                  </p>
-                </div>
+                <SmartWalletInput
+                  value={walletAddress}
+                  onChange={setWalletAddress}
+                  onBlur={() => validation.validateOnBlur('walletAddress')}
+                  error={validation.fields.walletAddress?.error}
+                  disabled={addPrompt.isPending || isLoading}
+                />
               </div>
             )}
           </div>
@@ -619,6 +588,7 @@ const AddPromptModal = ({
         </div>
       </div>
     </Modal>
+    </WalletProvider>
   );
 };
 
