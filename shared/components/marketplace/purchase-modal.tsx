@@ -31,6 +31,7 @@ import { useWallet } from './wallet-provider';
 import { useConfig } from '@/shared/hooks/use-config';
 import PriceDisplay from './price-display';
 import { calculateCommission, validateCommissionCalculation } from '@/shared/utils/marketplace/commission';
+import { executeTransactionWithRetry, createEnhancedConnection } from '@/shared/utils/solana-transaction-utils';
 
 interface PurchaseModalProps {
   isOpen: boolean;
@@ -136,9 +137,9 @@ const PurchaseModal = ({
         throw new Error('Platform wallet address not configured');
       }
 
-      const connection = new Connection(rpcUrl);
+      // Create enhanced connection with better timeout settings
+      const connection = createEnhancedConnection(rpcUrl);
 
-      const transaction = new Transaction();
       const fromPubkey = new PublicKey(publicKey);
       const toPubkey = new PublicKey(item.sellerWalletAddress);
       const platformPubkey = new PublicKey(platformWalletAddress);
@@ -149,70 +150,36 @@ const PurchaseModal = ({
       const platformFee = Math.floor(commission.platformFee * LAMPORTS_PER_SOL);
       const sellerAmount = totalAmount - platformFee;
 
-      transaction.add(
-        SystemProgram.transfer({
-          fromPubkey,
-          toPubkey,
-          lamports: Math.floor(sellerAmount),
-        }),
-      );
-
-      if (platformFee > 0) {
-        transaction.add(
-          SystemProgram.transfer({
-            fromPubkey,
-            toPubkey: platformPubkey,
-            lamports: Math.floor(platformFee),
-          }),
-        );
-      }
-
-      const { blockhash } = await connection.getLatestBlockhash('confirmed');
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = fromPubkey;
-
-      const signedTransaction = await solana.signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(
-        signedTransaction.serialize(),
-      );
-
-      const confirmation = await connection.confirmTransaction(
-        {
-          signature,
-          blockhash: transaction.recentBlockhash!,
-          lastValidBlockHeight: (await connection.getLatestBlockhash())
-            .lastValidBlockHeight,
-        },
-        'confirmed',
-      );
-
-      if (confirmation.value.err) {
-        throw new Error(
-          `Transaction failed: ${JSON.stringify(confirmation.value.err)}`,
-        );
-      }
-
-      const transactionDetails = await connection.getTransaction(signature, {
-        commitment: 'confirmed',
-        maxSupportedTransactionVersion: 0,
+      // Execute transaction with retry logic for blockhash issues
+      const result = await executeTransactionWithRetry({
+        connection,
+        fromPubkey,
+        toPubkey,
+        platformPubkey,
+        sellerAmount,
+        platformFee,
+        solana,
       });
 
-      if (!transactionDetails || transactionDetails.meta?.err) {
-        throw new Error('Transaction verification failed');
+      if (!result.success) {
+        throw new Error(result.error || 'Transaction failed');
       }
 
+      // Save transaction to database
       await createTransactionMutation.mutateAsync({
         sellerId: item.sellerId,
         itemId: item.id,
         itemType: item.type,
         amount: item.price,
-        transactionSignature: signature,
+        transactionSignature: result.signature,
         buyerWalletAddress: publicKey,
         sellerWalletAddress: item.sellerWalletAddress,
       });
+
     } catch (error) {
       console.error('Purchase error:', error);
       toast({
+        title: 'Purchase Failed',
         description: error instanceof Error ? error.message : 'Purchase failed',
         variant: 'destructive',
       });

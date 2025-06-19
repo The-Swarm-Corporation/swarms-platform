@@ -1,8 +1,3 @@
-/**
- * Smart Wallet Input Component
- * Auto-detects connected wallet or allows manual input as fallback
- */
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -46,32 +41,35 @@ export function SmartWalletInput({
 
   const MAX_CONNECTION_ATTEMPTS = 3;
 
-  // Auto-populate wallet address when connected
   useEffect(() => {
     if (isConnected && publicKey && !value) {
       onChange(publicKey);
     }
   }, [isConnected, publicKey, value, onChange]);
 
-  // Auto-connect on component mount if wallet is available
   useEffect(() => {
     const autoConnect = async () => {
       if (!isConnected && !showManualInput && connectionAttempts === 0) {
-        // Check if Phantom is available
-        if (typeof window !== 'undefined' && (window as any)?.solana?.isPhantom) {
-          setIsAutoConnecting(true);
-          try {
-            await connect();
-            setConnectionAttempts(1);
-          } catch (error) {
-            console.log('Auto-connect failed, will show manual option');
-            setConnectionAttempts(1);
-          } finally {
-            setIsAutoConnecting(false);
+        const wasDisconnected = typeof window !== 'undefined' &&
+          localStorage.getItem('phantom-disconnected') === 'true';
+
+        if (!wasDisconnected) {
+          if (typeof window !== 'undefined' && (window as any)?.solana?.isPhantom) {
+            setIsAutoConnecting(true);
+            try {
+              await connect();
+              setConnectionAttempts(1);
+            } catch (error) {
+              console.log('Auto-connect failed, will show manual option');
+              setConnectionAttempts(1);
+            } finally {
+              setIsAutoConnecting(false);
+            }
+          } else {
+            setShowManualInput(true);
           }
         } else {
-          // No Phantom detected, show manual input
-          setShowManualInput(true);
+          setShowManualInput(false);
         }
       }
     };
@@ -88,7 +86,11 @@ export function SmartWalletInput({
     try {
       await connect();
       setConnectionAttempts(prev => prev + 1);
-      
+
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('phantom-disconnected');
+      }
+
       toast({
         title: 'Wallet Connected',
         description: 'Your Phantom wallet has been connected successfully.',
@@ -129,7 +131,6 @@ export function SmartWalletInput({
         });
       }
 
-      // Show manual input after max attempts
       if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS - 1) {
         setTimeout(() => {
           setShowManualInput(true);
@@ -151,12 +152,10 @@ export function SmartWalletInput({
   const handleManualToggle = () => {
     setShowManualInput(!showManualInput);
     if (!showManualInput) {
-      // Clear auto-filled address when switching to manual
       onChange('');
     }
   };
 
-  // If wallet is connected and address is auto-filled
   if (isConnected && publicKey && value === publicKey && !showManualInput) {
     return (
       <div className="space-y-3">
@@ -189,7 +188,6 @@ export function SmartWalletInput({
     );
   }
 
-  // Show connection interface or manual input
   return (
     <div className="space-y-3">
       {!showManualInput && !isConnected ? (

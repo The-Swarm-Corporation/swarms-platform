@@ -1,8 +1,3 @@
-/**
- * SOL Price Service
- * Fetches live SOL/USD price from CoinGecko API
- */
-
 interface SolPriceResponse {
   solana: {
     usd: number;
@@ -14,22 +9,15 @@ interface CachedPrice {
   timestamp: number;
 }
 
-// Cache price for 30 seconds to avoid excessive API calls
 const CACHE_DURATION = 30 * 1000; // 30 seconds
 let cachedPrice: CachedPrice | null = null;
 
-/**
- * Fetches the current SOL price in USD
- * Uses caching to minimize API calls
- */
 export async function getSolPrice(): Promise<number> {
   try {
-    // Check if we have a valid cached price
     if (cachedPrice && Date.now() - cachedPrice.timestamp < CACHE_DURATION) {
       return cachedPrice.price;
     }
 
-    // Fetch fresh price from CoinGecko
     const response = await fetch(
       'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',
       {
@@ -51,7 +39,6 @@ export async function getSolPrice(): Promise<number> {
       throw new Error('Invalid price data received');
     }
 
-    // Cache the price
     cachedPrice = {
       price,
       timestamp: Date.now(),
@@ -61,29 +48,21 @@ export async function getSolPrice(): Promise<number> {
   } catch (error) {
     console.error('Failed to fetch SOL price:', error);
     
-    // Return cached price if available, otherwise fallback
     if (cachedPrice) {
       console.warn('Using cached SOL price due to fetch error');
       return cachedPrice.price;
     }
     
-    // Fallback price (approximate SOL price as of recent data)
     console.warn('Using fallback SOL price');
-    return 100; // Fallback to ~$100 USD
+    return 100;
   }
 }
 
-/**
- * Converts SOL amount to USD
- */
 export async function solToUsd(solAmount: number): Promise<number> {
   const solPrice = await getSolPrice();
   return solAmount * solPrice;
 }
 
-/**
- * Formats SOL amount with USD equivalent
- */
 export async function formatSolWithUsd(
   solAmount: number,
   options: {
@@ -113,10 +92,6 @@ export async function formatSolWithUsd(
   return '';
 }
 
-/**
- * Get price change percentage (24h)
- * This could be extended to show price trends
- */
 export async function getSolPriceChange(): Promise<number> {
   try {
     const response = await fetch(
@@ -141,9 +116,6 @@ export async function getSolPriceChange(): Promise<number> {
   }
 }
 
-/**
- * Format price change with color coding
- */
 export function formatPriceChange(change: number): {
   formatted: string;
   color: 'green' | 'red' | 'gray';
@@ -154,18 +126,11 @@ export function formatPriceChange(change: number): {
   return { formatted, color };
 }
 
-/**
- * Batch convert multiple SOL amounts to USD
- * Useful for displaying multiple prices efficiently
- */
 export async function batchSolToUsd(solAmounts: number[]): Promise<number[]> {
   const solPrice = await getSolPrice();
   return solAmounts.map(amount => amount * solPrice);
 }
 
-/**
- * Get formatted price display for UI
- */
 export async function getFormattedPrice(
   solAmount: number,
   options: {

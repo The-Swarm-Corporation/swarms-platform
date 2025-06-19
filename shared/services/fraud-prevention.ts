@@ -18,19 +18,11 @@ export interface ContentQualityResult {
   usedFallback?: boolean;
 }
 
-/**
- * Check if user meets trustworthiness criteria for marketplace listing
- * Requirements:
- * - At least 2 published prompts/agents
- * - Average rating of 3.5+ (excluding self-ratings)
- * - Bypass for PREVENT_DEFAULT_ADD_MODEL_USER_ID
- */
 export async function checkUserTrustworthiness(
   userId: string,
 ): Promise<UserTrustworthinessResult> {
   console.log('checkUserTrustworthiness', userId);
   try {
-    // Check if user is in bypass list
     const bypassUserId = process.env.PREVENT_DEFAULT_ADD_MODEL_USER_ID;
     const bypassHypenatedUserId =
       process.env.PREVENT_DEFAULT_ADD_MODEL_HYPHENATED_USER_ID;
@@ -94,7 +86,6 @@ export async function checkUserTrustworthiness(
 
     const ratings = ratingsResult.data || [];
 
-    // Calculate average rating
     if (ratings.length === 0) {
       return {
         isEligible: false,
@@ -112,7 +103,6 @@ export async function checkUserTrustworthiness(
     );
     const averageRating = totalRating / ratings.length;
 
-    // Check minimum rating requirement
     if (averageRating < 3.5) {
       return {
         isEligible: false,
@@ -141,16 +131,11 @@ export async function checkUserTrustworthiness(
   }
 }
 
-/**
- * Fallback validation when Swarms API fails
- * Checks user's historical content quality based on past submissions
- */
 export async function validateContentFallback(
   userId: string,
   isFree: boolean = false
 ): Promise<ContentQualityResult> {
   try {
-    // Get user's approved prompts and agents
     const [promptsResult, agentsResult] = await Promise.all([
       supabaseAdmin
         .from('swarms_cloud_prompts')
@@ -172,7 +157,6 @@ export async function validateContentFallback(
     const agents = agentsResult.data || [];
     const totalApproved = prompts.length + agents.length;
 
-    // Minimum requirement: 2 approved items
     if (totalApproved < 2) {
       return {
         isValid: false,
@@ -181,7 +165,6 @@ export async function validateContentFallback(
       };
     }
 
-    // For free content: Just need 2 approved items (with or without ratings)
     if (isFree) {
       return {
         isValid: true,
@@ -190,18 +173,16 @@ export async function validateContentFallback(
       };
     }
 
-    // For paid content: Need 2 approved items with 3.5+ average rating
     const allItemIds = [
       ...prompts.map(p => p.id),
       ...agents.map(a => a.id),
     ];
 
-    // Get ratings for all items (excluding self-ratings)
     const ratingsResult = await supabaseAdmin
       .from('swarms_cloud_reviews')
       .select('rating, model_id')
       .in('model_id', allItemIds)
-      .neq('user_id', userId); // Exclude self-ratings
+      .neq('user_id', userId);
 
     if (ratingsResult.error) {
       throw new Error('Failed to fetch ratings for fallback validation');
@@ -209,7 +190,6 @@ export async function validateContentFallback(
 
     const ratings = ratingsResult.data || [];
 
-    // For paid content, require ratings
     if (ratings.length === 0) {
       return {
         isValid: false,
@@ -218,7 +198,6 @@ export async function validateContentFallback(
       };
     }
 
-    // Calculate average rating (filter out null ratings)
     const validRatings = ratings.filter(review => review.rating !== null && review.rating !== undefined);
 
     if (validRatings.length === 0) {
@@ -249,7 +228,6 @@ export async function validateContentFallback(
   } catch (error) {
     console.error('Error in fallback validation:', error);
 
-    // If fallback also fails, we need to block submission for safety
     return {
       isValid: false,
       reason: 'Unable to validate content quality. Both primary and fallback validation systems are unavailable. Please try again later.',
@@ -258,9 +236,6 @@ export async function validateContentFallback(
   }
 }
 
-/**
- * Validate content quality using Swarms API
- */
 export async function validateContentQuality(
   content: string,
   type: 'prompt' | 'agent',
@@ -275,16 +250,13 @@ export async function validateContentQuality(
       throw new Error('API key not configured');
     }
 
-    // Test mode: simulate API failure for testing fallback validation
     if (process.env.TEST_API_FAILURE === 'true') {
       throw new Error('Simulated API failure for testing');
     }
 
-    // Different thresholds for free vs paid content
     const minScore = isFree ? 4 : 6;
     const qualityLevel = isFree ? 'basic' : 'high';
 
-    // Prepare validation prompt based on content type
     const validationPrompt =
       type === 'prompt'
         ? `Evaluate this prompt for ${qualityLevel} quality standards for a marketplace:
@@ -320,7 +292,6 @@ ${isFree ? 'This is a FREE agent submission - apply basic quality standards.' : 
 
 Respond with ONLY a number (1-10) followed by a dash and brief constructive feedback. Example: "8 - Well-structured agent with clear purpose, but could benefit from better error handling."`;
 
-    // Call Swarms API
     const response = await fetch(
       'https://api.swarms.world/v1/agent/completions',
       {
@@ -360,12 +331,10 @@ Respond with ONLY a number (1-10) followed by a dash and brief constructive feed
 
     console.log('API Response:', { result, apiResponse });
 
-    // Parse score from response (format: "7 - Good clarity but...")
     const scoreMatch = apiResponse.match(/^(\d+(?:\.\d+)?)\s*[-–—]\s*(.+)/);
     const score = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
     const feedback = scoreMatch ? scoreMatch[2].trim() : apiResponse;
 
-    // Use dynamic threshold based on content type
     const isValid = score >= minScore;
 
     return {
@@ -379,13 +348,11 @@ Respond with ONLY a number (1-10) followed by a dash and brief constructive feed
   } catch (error) {
     console.error('Error validating content quality:', error);
 
-    // Use fallback validation when API fails
     if (userId) {
       console.log('API failed, using fallback validation for user:', userId);
       return await validateContentFallback(userId, isFree);
     }
 
-    // If no userId provided, we can't do fallback validation
     return {
       isValid: false,
       reason: 'Quality validation service is temporarily unavailable and user history cannot be verified. Please try again later.',
@@ -395,9 +362,6 @@ Respond with ONLY a number (1-10) followed by a dash and brief constructive feed
   }
 }
 
-/**
- * Combined validation for marketplace submission
- */
 export async function validateMarketplaceSubmission(
   userId: string,
   content: string,
@@ -411,12 +375,10 @@ export async function validateMarketplaceSubmission(
   contentQuality: ContentQualityResult;
   errors: string[];
 }> {
-  // For free content, only validate quality, not trustworthiness
   let trustworthiness: UserTrustworthinessResult;
   let contentQuality: ContentQualityResult;
 
   if (isFree) {
-    // Free content: only validate quality
     trustworthiness = {
       isEligible: true,
       publishedCount: 0,
@@ -425,7 +387,6 @@ export async function validateMarketplaceSubmission(
     };
     contentQuality = await validateContentQuality(content, type, name, description, isFree, userId);
   } else {
-    // Paid content: validate both trustworthiness and quality
     const [trustResult, qualityResult] = await Promise.all([
       checkUserTrustworthiness(userId),
       validateContentQuality(content, type, name, description, isFree, userId),

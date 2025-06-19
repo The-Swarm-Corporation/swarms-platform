@@ -292,7 +292,7 @@ const CryptoWallet = ({ user }: { user: User | null }) => {
               className="w-full flex items-center justify-center bg-red-500/20 border border-red-500 text-red-500 
                        font-bold py-4 px-6 rounded-lg mb-6"
             >
-              Loading...
+              ...
             </div>
           ) : !publicKey ? (
             <button

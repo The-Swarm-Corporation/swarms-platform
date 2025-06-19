@@ -341,17 +341,23 @@ export default function CardDetailsModal({
                 className={cn(
                   'flex items-center gap-2 px-3 md:px-4 py-2 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center',
                   colors.button,
+                  showPremiumBadge && cardData.price && cardData.price > 0
+                    ? 'bg-[#4ECD78]/10 border-[0.5px] border-[#4ECD78]/20 hover:bg-[#4ECD78]/20 text-[#4ECD78]'
+                    : '',
                 )}
               >
                 {showPremiumBadge && cardData.price && cardData.price > 0 ? (
-                  <>
-                    <DollarSign className="w-4 h-4" />
-                    Buy for&nbsp;&mdash;&nbsp;
+                  <div className="flex items-center gap-1">
+                    <span>
+                      <DollarSign className="w-4 h-4" />
+                      Buy for
+                    </span>
+
                     <USDPriceDisplay
                       solAmount={cardData.price}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-full text-xs font-semibold"
+                      className="text-[#4ECD78]"
                     />
-                  </>
+                  </div>
                 ) : (
                   <>
                     <ExternalLink className="w-4 h-4" />

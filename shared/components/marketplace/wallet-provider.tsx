@@ -84,6 +84,10 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
       setPublicKey(walletAddress);
       setIsConnected(true);
       await refreshBalance(walletAddress);
+
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('phantom-disconnected');
+      }
     } catch (error: any) {
       console.error('Failed to connect wallet:', error);
 
@@ -118,10 +122,27 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
     if (provider) {
       try {
         await provider.disconnect();
+
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('walletName');
+          localStorage.removeItem('phantom-wallet');
+
+          sessionStorage.removeItem('walletName');
+          sessionStorage.removeItem('phantom-wallet');
+
+          localStorage.setItem('phantom-disconnected', 'true');
+        }
+
+        if (provider.removeListener) {
+          provider.removeListener('accountChanged', () => {});
+          provider.removeListener('disconnect', () => {});
+        }
+
       } catch (error) {
         console.error('Failed to disconnect wallet:', error);
       }
     }
+
     setPublicKey(null);
     setIsConnected(false);
     setSolBalance(0);
@@ -146,12 +167,17 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
       const provider = getProvider();
       if (provider) {
         try {
-          const response = await provider.connect({ onlyIfTrusted: true });
-          if (response.publicKey) {
-            const walletAddress = response.publicKey.toString();
-            setPublicKey(walletAddress);
-            setIsConnected(true);
-            await refreshBalance(walletAddress);
+          const wasDisconnected = typeof window !== 'undefined' &&
+            localStorage.getItem('phantom-disconnected') === 'true';
+
+          if (!wasDisconnected) {
+            const response = await provider.connect({ onlyIfTrusted: true });
+            if (response.publicKey) {
+              const walletAddress = response.publicKey.toString();
+              setPublicKey(walletAddress);
+              setIsConnected(true);
+              await refreshBalance(walletAddress);
+            }
           }
         } catch (error) {
           console.log('Auto-connect failed:', error);

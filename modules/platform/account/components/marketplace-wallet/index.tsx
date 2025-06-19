@@ -4,11 +4,12 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { User } from '@supabase/supabase-js';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { Button } from '@/shared/components/ui/button';
-import { Download, History, Loader2 } from 'lucide-react';
+import { Download, History, Loader2, LogOut, AlertTriangle } from 'lucide-react';
 import { WalletProvider, useWallet } from '@/shared/components/marketplace/wallet-provider';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { CompactPriceDisplay } from '@/shared/components/marketplace/price-display';
+import { useState, useRef, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -21,6 +22,23 @@ import {
 const MarketplaceWalletContent = ({ user }: { user: User | null }) => {
   const { toast } = useToast();
   const { publicKey, isConnected, isConnecting, connect, disconnect, solBalance, refreshBalance } = useWallet();
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const disconnectRef = useRef<HTMLDivElement>(null);
+
+  // Close disconnect confirmation when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (disconnectRef.current && !disconnectRef.current.contains(event.target as Node)) {
+        setShowDisconnectConfirm(false);
+      }
+    };
+
+    if (showDisconnectConfirm) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showDisconnectConfirm]);
 
   const saveWalletMutation = trpc.marketplace.saveUserWallet.useMutation({
     onSuccess: () => {
@@ -88,6 +106,28 @@ const MarketplaceWalletContent = ({ user }: { user: User | null }) => {
           variant: 'destructive',
         });
       }
+    }
+  };
+
+  const handleDisconnect = async () => {
+    setIsDisconnecting(true);
+    try {
+      await disconnect();
+      setShowDisconnectConfirm(false);
+      toast({
+        title: 'Wallet Disconnected',
+        description: 'Your Phantom wallet has been disconnected from the marketplace.',
+        style: { backgroundColor: '#10B981', color: 'white' },
+      });
+    } catch (error: any) {
+      console.error('Disconnect error:', error);
+      toast({
+        title: 'Disconnect Failed',
+        description: error?.message || 'Failed to disconnect wallet. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDisconnecting(false);
     }
   };
 
@@ -170,14 +210,58 @@ const MarketplaceWalletContent = ({ user }: { user: User | null }) => {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={disconnect}
-                  className="ml-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500
-                           text-red-500 rounded-lg transition duration-300 ease-in-out
-                           hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]"
-                >
-                  DISCONNECT
-                </button>
+                <div className="ml-4 relative" ref={disconnectRef}>
+                  {!showDisconnectConfirm ? (
+                    <button
+                      onClick={() => setShowDisconnectConfirm(true)}
+                      className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500
+                               text-red-500 rounded-lg transition duration-300 ease-in-out
+                               hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      DISCONNECT
+                    </button>
+                  ) : (
+                    <div className="bg-black/90 border border-red-500 rounded-lg p-4 absolute right-0 top-0 z-10 min-w-[280px] shadow-xl">
+                      <div className="flex items-center gap-2 mb-3">
+                        <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                        <span className="text-sm font-medium text-yellow-500">Confirm Disconnect</span>
+                      </div>
+                      <p className="text-xs text-gray-300 mb-4">
+                        Are you sure you want to disconnect your wallet? You&apos;ll need to reconnect to make marketplace transactions.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleDisconnect}
+                          disabled={isDisconnecting}
+                          className="flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded
+                                   transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed
+                                   flex items-center justify-center gap-2"
+                        >
+                          {isDisconnecting ? (
+                            <>
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Disconnecting...
+                            </>
+                          ) : (
+                            <>
+                              <LogOut className="h-3 w-3" />
+                              Disconnect
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => setShowDisconnectConfirm(false)}
+                          disabled={isDisconnecting}
+                          className="flex-1 px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded
+                                   transition duration-300 disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Marketplace Features */}

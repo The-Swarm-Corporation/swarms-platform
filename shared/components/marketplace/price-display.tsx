@@ -32,8 +32,9 @@ interface PriceDisplayProps {
   solDecimals?: number;
   usdDecimals?: number;
   size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'premium' | 'compact';
+  variant?: 'default' | 'premium' | 'compact' | 'button';
   loading?: boolean;
+  showBracket?: boolean;
 }
 
 export default function PriceDisplay({
@@ -45,6 +46,7 @@ export default function PriceDisplay({
   usdDecimals = 2,
   size = 'md',
   variant = 'default',
+  showBracket = false,
   loading: externalLoading = false,
 }: PriceDisplayProps) {
   const [usdAmount, setUsdAmount] = useState<number | null>(null);
@@ -56,6 +58,11 @@ export default function PriceDisplay({
     if (amount < 0.0001) return 8;
     if (amount < 0.01) return 6;
     return defaultDecimals || 4;
+  };
+
+  // Smart number formatting that removes trailing zeros
+  const formatNumber = (amount: number, decimals: number) => {
+    return parseFloat(amount.toFixed(decimals)).toString();
   };
 
   const actualSolDecimals = solDecimals ?? getOptimalDecimals(solAmount, 4);
@@ -124,7 +131,6 @@ export default function PriceDisplay({
         className={cn('flex items-center gap-1', getSizeClasses(), className)}
       >
         <Loader2 className="h-3 w-3 animate-spin" />
-        <span>Loading...</span>
       </div>
     );
   }
@@ -134,7 +140,9 @@ export default function PriceDisplay({
       <div
         className={cn('flex items-center gap-1', getSizeClasses(), className)}
       >
-        {showSOL && <span>{solAmount.toFixed(actualSolDecimals)} SOL</span>}
+        {showSOL && (
+          <span>{formatNumber(solAmount, actualSolDecimals)} SOL</span>
+        )}
         <span className="text-muted-foreground">(USD unavailable)</span>
       </div>
     );
@@ -142,11 +150,13 @@ export default function PriceDisplay({
 
   const formatDisplay = () => {
     if (showSOL && showUSD && usdAmount !== null) {
-      return `${solAmount.toFixed(actualSolDecimals)} SOL (~$${usdAmount.toFixed(usdDecimals)})`;
+      return `${formatNumber(solAmount, actualSolDecimals)} SOL (~$${usdAmount.toFixed(usdDecimals)})`;
     } else if (showSOL) {
-      return `${solAmount.toFixed(actualSolDecimals)} SOL`;
+      return `${formatNumber(solAmount, actualSolDecimals)} SOL`;
     } else if (showUSD && usdAmount !== null) {
       return `$${usdAmount.toFixed(usdDecimals)}`;
+    } else if (showBracket && showUSD && usdAmount !== null) {
+      return `[$${usdAmount.toFixed(usdDecimals)}]`;
     }
     return '';
   };
@@ -158,7 +168,6 @@ export default function PriceDisplay({
   );
 }
 
-// Premium badge component for marketplace items (USD only)
 export function PremiumPriceBadge({
   solAmount,
   className,
@@ -186,7 +195,6 @@ export function PremiumPriceBadge({
   );
 }
 
-// USD-only price display for cards
 export function USDPriceDisplay({
   solAmount,
   className,
@@ -198,14 +206,14 @@ export function USDPriceDisplay({
     <PriceDisplay
       solAmount={solAmount}
       showSOL={false}
-      showUSD={true}
+      showUSD
+      showBracket
       size="sm"
       className={className}
     />
   );
 }
 
-// Compact price display for cards
 export function CompactPriceDisplay({
   solAmount,
   className,
@@ -232,6 +240,83 @@ export function LargePriceDisplay({
   className?: string;
 }) {
   return <PriceDisplay solAmount={solAmount} size="lg" className={className} />;
+}
+
+// Button price display with box brackets for info-card and card-details
+export function ButtonPriceDisplay({
+  solAmount,
+  className,
+}: {
+  solAmount: number;
+  className?: string;
+}) {
+  const [usdAmount, setUsdAmount] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchUsdPrice = async () => {
+      try {
+        setLoading(true);
+        const usd = await solToUsd(solAmount);
+        if (mounted) {
+          setUsdAmount(usd);
+        }
+      } catch (error) {
+        console.error('Failed to fetch USD price:', error);
+        if (mounted) {
+          setUsdAmount(null);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    if (solAmount > 0) {
+      fetchUsdPrice();
+    } else {
+      setLoading(false);
+      setUsdAmount(0);
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [solAmount]);
+
+  // Smart number formatting that removes trailing zeros
+  const formatNumber = (amount: number, decimals: number) => {
+    return parseFloat(amount.toFixed(decimals)).toString();
+  };
+
+  if (loading) {
+    return (
+      <span className={cn('text-xs', className)}>
+        <Loader2 className="h-3 w-3 animate-spin inline" />
+      </span>
+    );
+  }
+
+  if (usdAmount === null) {
+    // Fallback to SOL only if USD fails
+    const formattedSol = formatNumber(solAmount, 3);
+    return (
+      <span className={cn('text-xs font-medium', className)}>
+        [{formattedSol}]
+      </span>
+    );
+  }
+
+  // Show USD price in box brackets
+  const formattedUsd = formatNumber(usdAmount, 2);
+  return (
+    <span className={cn('text-xs font-medium', className)}>
+      [${formattedUsd}]
+    </span>
+  );
 }
 
 // Hook for getting live SOL price
