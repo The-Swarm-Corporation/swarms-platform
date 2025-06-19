@@ -75,7 +75,7 @@ const AccessRestrictionContent = ({
     );
   }
 
-  if (purchaseData?.hasPurchased) {
+  if (!purchaseData?.hasPurchased) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
