@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { checkUserTrustworthiness } from '@/shared/services/fraud-prevention';
 import { calculateCommission, validateCommissionCalculation } from '@/shared/utils/marketplace/commission';
+import { sendTransactionNotifications } from '@/shared/services/marketplace-notifications';
 
 const transactionLimiter = new RateLimiterMemory({
   points: 5,
@@ -233,6 +234,47 @@ const marketplaceRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to create purchase record',
+        });
+      }
+
+      // Get user emails for notifications
+      const { data: buyerData } = await ctx.supabase
+        .from('users')
+        .select('email, full_name')
+        .eq('id', buyerId)
+        .single();
+
+      const { data: sellerData } = await ctx.supabase
+        .from('users')
+        .select('email, full_name')
+        .eq('id', sellerId)
+        .single();
+
+      // Get item details for notifications
+      const itemTable = itemType === 'prompt' ? 'swarms_cloud_prompts' : 'swarms_cloud_agents';
+      const { data: itemData } = await ctx.supabase
+        .from(itemTable)
+        .select('name')
+        .eq('id', itemId)
+        .single();
+
+      // Send transaction notifications (async, don't block response)
+      if (buyerData?.email && sellerData?.email && itemData?.name) {
+        sendTransactionNotifications({
+          transactionId: transaction.id,
+          buyerEmail: buyerData.email,
+          sellerEmail: sellerData.email,
+          itemName: itemData.name,
+          itemType,
+          totalAmount: amount,
+          platformFee,
+          sellerAmount,
+          transactionSignature,
+          buyerWalletAddress,
+          sellerWalletAddress,
+        }).catch(error => {
+          console.error('Failed to send transaction notifications:', error);
+          // Don't throw error - notifications are not critical for transaction success
         });
       }
 
