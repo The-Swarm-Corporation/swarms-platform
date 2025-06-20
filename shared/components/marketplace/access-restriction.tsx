@@ -77,7 +77,7 @@ const AccessRestrictionContent = ({
 
   if (!purchaseData?.hasPurchased) {
     return (
-      <div className="min-h-[70vh] relative my-10 flex justify-center 2xl:items-center 2xl:my-0">
+      <div className="min-h-screen relative my-10 items-center flex justify-center 2xl:my-0">
         <div className="absolute inset-0 dark:bg-black/50 dark:backdrop-blur-sm" />
         <div className="w-full max-w-lg relative">
           <Card className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-lg dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] dark:ring-1 dark:ring-white/10 transition-colors">
