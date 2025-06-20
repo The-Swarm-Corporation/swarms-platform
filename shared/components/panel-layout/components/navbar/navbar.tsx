@@ -1,6 +1,6 @@
 'use client';
 
-import { Github, LogIn } from 'lucide-react';
+import { Github, LogIn, Coins } from 'lucide-react';
 import { FormEvent, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Logo from '@/shared/components/icons/Logo';
@@ -18,6 +18,7 @@ import Avatar from '@/shared/components/avatar';
 import { NAVIGATION, SWARMS_GITHUB } from '@/shared/utils/constants';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import useSubscription from '@/shared/hooks/subscription';
 
 export default function PlatformNavBar() {
   const { user } = useAuthContext();
@@ -25,6 +26,7 @@ export default function PlatformNavBar() {
   const path = usePathname();
   const router = useRouter();
   const { isOn, setOn, setOff } = useToggle();
+  const subscription = useSubscription();
 
   const isChatInterface = path?.includes('/platform/chat');
 
@@ -118,6 +120,18 @@ export default function PlatformNavBar() {
               </li>
             ))}
           </ul>
+          {/* Credits Display */}
+          {user && (
+            <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-black/40 border border-white/15 rounded-md backdrop-blur-sm">
+              <Coins className="w-4 h-4 text-primary" />
+              <span className="text-sm text-white/80">Credits:</span>
+              <span className="text-sm font-semibold text-primary">
+                {subscription.creditLoading
+                  ? '...'
+                  : `$${(subscription.credit ?? 0).toFixed(2)}`}
+              </span>
+            </div>
+          )}
           <div
             className="relative ml-5 cursor-pointer max-sm:mt-1"
             onClick={setOn}

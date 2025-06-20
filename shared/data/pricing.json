@@ -1,23 +1,24 @@
 [
   {
     "title": "Free",
-    "description": "Get Started with AI, No fees – Pay only for what you use.",
+    "description": "Get started with AI. No fees – pay only for what you use.",
     "link": "platform/explorer",
     "price": "0",
     "features": ["100% Uptime with 24/7 Support"],
-    "subtitle": "What you are getting",
+    "subtitle": "What you get",
     "content": {
-      "Sign up Bonus!": "20$ Sign Up bonus",
+      "Sign-up Bonus": "$20 sign-up bonus",
       "Basic Access": "Get started with limited access to our AI platforms and basic models.",
-      "Pay-Per-Use Pricing": "Only pay for the compute time and resources you use, perfect for beginners and low-frequency users",
+      "Pay-Per-Use Pricing": "Only pay for the compute time and resources you use, perfect for beginners and low-frequency users.",
       "Community Support": "Access our user forums and community support for help and guidance.",
-      "Standard Processing Speed": "Adequate for basic tasks and learning purposes."
+      "Standard Processing Speed": "Adequate for basic tasks and learning purposes.",
+      "Access to the Marketplace": "Access to the marketplace to find and share the best agents, prompts, and tools."
     }
   },
   {
     "title": "Premium",
-    "description": "Subscribe annually and save 15%, with a reduced rate of $1020/year.",
-    "lifetime_description": "A lifetime subscription and one-time payment for the next 60 years.",
+    "description": "Subscribe annually and save 15%, with a reduced rate of $1,020/year.",
+    "lifetime_description": "A lifetime subscription with a one-time payment for the next 60 years.",
     "link": "platform/account",
     "subtitle": "Everything in Free, plus",
     "price": {
@@ -27,25 +28,26 @@
       "lifetime": "71250"
     },
     "features": [
-      "Access to the best Multi-Modal models",
+      "Access to the best multi-modal models",
       "100% Uptime with 24/7 Support",
       "5 TB cloud storage"
     ],
     "content": {
-      "Full Access to Explorer and Agents": "Unrestricted use of our most advanced AI tools and environments for extensive experimentation.",
-      "Access to Premium Multi-Modality Models": "Harness advanced AI capabilities that interact through text, image, and beyond",
-      "Priority Access to Swarms": "Engage with enhanced AI-driven collective intelligence for more complex project needs",
-      "High-Performance GPUs": "Utilize faster GPUs for reduced latency and quicker results.",
+      "Priority Access to Swarms": "Engage with enhanced AI-driven collective intelligence for more complex project needs.",
       "Exclusive Webinars and Tutorials": "Expand your knowledge with sessions led by AI experts.",
       "Priority Support": "Receive quicker responses and dedicated assistance for your inquiries.",
       "Enhanced Security Features": "Protect your projects with improved security protocols.",
-      "Early Access to New Models and Features": "Stay ahead with early access to the newest tools and AI advancements"
+      "Increased Swarms API Limits": "Increase your API rate limits by 100%.",
+      "Early Access to New API Updates": "Get access to the latest API updates and features before they are released to the public.",
+      "Faster API Response Times": "Get faster response times for your API requests through our priority queue.",
+      "Marketplace Monetization Access": "Sell your own agents, prompts, and tools in the marketplace.",
+      "SwarmOps Telemetry Platform": "Access to the SwarmOps telemetry platform to monitor your multi-agent systems."
     }
   },
   {
     "title": "Enterprise",
-    "description": "Critical support, compliance, control for large scale enterprises.",
-    "lifetime_description": "Critical support, compliance, control for organization for life.",
+    "description": "Critical support, compliance, and control for large-scale enterprises.",
+    "lifetime_description": "Critical support, compliance, and control for your organization for life.",
     "price": {
       "monthly": "50",
       "annually": "600",
@@ -54,16 +56,13 @@
     "link": "https://cal.com/swarms",
     "subtitle": "Everything in Premium, plus",
     "content": {
-      "Access to Premium Models": "Work with the most advanced AI models to drive industry-leading results.",
-      "High-Performance GPUs": "Experience minimal latency with cutting-edge GPUs for swift processing.",
-      "Batch API": "Maximize efficiency with APIs designed for high-volume usage, reducing costs significantly.",
-      "Early Access to New Models": "Gain a competitive edge by accessing the latest AI technologies first.",
-      "Dedicated 24/7 Support": "Enjoy continuous support to maintain seamless operation.",
+      "Dedicated 24/7 Support": "Enjoy continuous support to maintain seamless operations.",
       "Custom Solutions Engineering": "Collaborate on bespoke AI solutions that perfectly match your business requirements.",
-      "Advanced Security Features": "Secure your data with robust security measures.",
       "Onsite Training and Onboarding": "Fast-track your team's proficiency with direct expert training.",
-      "Custom Model Training": "Customize AI models based on your unique data sets.",
-      "Priority Support": "Ensure quick resolution of issues with priority customer service."
+      "Priority Support": "Ensure quick resolution of issues with priority customer service.",
+      "Custom Agent Development": "Develop custom agents and tools to fit your specific needs.",
+      "No Rate Limits": "No rate limits for your Swarms API requests.",
+      "Access to Experimental Features": "Access to the latest experimental Swarms API updates before they are released to the public."
     },
     "extraContent": [
       { "item": "Dedicated workspace" },
@@ -85,8 +84,8 @@
       { "item": "Dedicated onboarding" }
     ],
     "features": [
-      "Access to the best Multi-Modal models",
-      "100% Uptime with 24/7 Support",
+      "Access to the best swarm architectures",
+      "100% uptime with 24/7 support",
       "5 TB cloud storage",
       "Marketing campaigns"
     ]

@@ -4,7 +4,7 @@ import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Pencil, Share, Star, FileDown, Bookmark } from 'lucide-react'; // Use available icons
+import { Copy, Pencil, Share, Star, FileDown, Bookmark, Info, MessageSquare, Download, Code, Stars, Bot } from 'lucide-react'; // Use available icons
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '@/shared/components/avatar';
@@ -91,45 +91,50 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
   ];
 
   return (
-    <div className="flex flex-col gap-8 py-8">
-      <h2 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
-        Use Cases
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 ">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+          <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+          Use Cases
+        </h2>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 ">
         {usecases?.map((usecase, index) => {
           const colorClass = colors[index % colors.length];
           return (
             <div
               key={index}
-              className="group relative overflow-hidden rounded-2xl bg-zinc-950 transition-all duration-300"
+              className="group relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-all duration-500 ease-out hover:shadow-xl hover:scale-[1.02] hover:border-zinc-300 dark:hover:border-zinc-700 hover:-translate-y-1"
             >
               {/* Animated border gradient */}
               <div
                 className={`absolute inset-0 bg-gradient-to-r ${colorClass} animate-gradient-x`}
               />
-              <div className="absolute inset-[1px] rounded-2xl bg-zinc-950" />
+              <div className="absolute inset-[1px] rounded-xl bg-white dark:bg-zinc-950" />
 
               {/* Content */}
               <div className="relative p-6">
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-lg font-medium text-zinc-100">
+                  <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
                     {usecase?.title}
                   </h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
                     {usecase?.description}
                   </p>
                 </div>
                 <div className="mt-4 flex items-center gap-2">
-                  <div className="h-px flex-1 bg-zinc-800" />
-                  <div className="h-1.5 w-1.5 rounded-full bg-zinc-600" />
-                  <div className="h-px flex-1 bg-zinc-800" />
+                  <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-zinc-400 dark:bg-zinc-600" />
+                  <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
                 </div>
               </div>
             </div>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -260,13 +265,22 @@ export default function EntityComponent({
     downloadFile(contentToDownload ?? '', filename, filetype);
     toast.toast({ description: toastText });
   };
-  return (
-    <div className="max-w-6xl md:px-6 mx-auto">
-      <div className="flex flex-col py-8 md:py-16">
-        <div className="max-md:text-center">
-          {title && <h2>{title}</h2>}
 
-          <div className="relative group my-5">
+  return (
+    <div className="max-w-6xl mx-auto px-4 md:px-6 mt-8">
+      {/* Header Section */}
+      <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 md:p-8 bg-white dark:bg-zinc-950/50 mb-8">
+        <div className="max-md:text-center">
+          {title && (
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+                <Code className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+              </div>
+              <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">{title}</h2>
+            </div>
+          )}
+
+          <div className="relative group mb-6">
             <div className="absolute -inset-0.5 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x" />
             <div
               className={cn(
@@ -309,30 +323,34 @@ export default function EntityComponent({
             </div>
           </div>
 
-          <div className="flex gap-2 mt-4 select-none flex-wrap">
-            {tags &&
-              tags.length > 0 &&
-              tags?.map(
-                (tag) =>
-                  tag.trim() && (
-                    <div
-                      key={tag}
-                      className="text-sm px-2 py-1 rounded-2xl !text-red-500/70 border border-red-500/70"
-                    >
-                      {tag}
-                    </div>
-                  ),
-              )}
-          </div>
+          {/* Tags Section */}
+          {tags && tags.length > 0 && (
+            <div className="mb-6">
+              <div className="flex gap-2 select-none flex-wrap">
+                {tags?.map(
+                  (tag) =>
+                    tag.trim() && (
+                      <div
+                        key={tag}
+                        className="text-sm px-3 py-1.5 rounded-full !text-red-500/70 border border-red-500/70 bg-red-50 dark:bg-red-950/20"
+                      >
+                        {tag}
+                      </div>
+                    ),
+                )}
+              </div>
+            </div>
+          )}
 
-          <div className="max-md:my-8 mt-2 flex max-md:flex-col max-md:items-center md:w-fit gap-3">
-            <div className="flex flex-wrap gap-2">
+          {/* Action Buttons Section */}
+          <div className="max-md:flex-col max-md:items-center md:w-fit gap-3">
+            <div className="flex flex-wrap gap-3">
               {showEditButton && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleShowEditModal}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 border-zinc-300 dark:border-zinc-700"
                 >
                   <Pencil className="h-4 w-4" />
                   Edit
@@ -342,9 +360,9 @@ export default function EntityComponent({
                 variant="outline"
                 size="sm"
                 onClick={handleShowShareModal}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 border-green-600"
               >
-                <Share className="h-4 w-4" />
+                <Share className="h-4 w-4 text-white" />
                 Share
               </Button>
               {id && user.data?.id && !reviewQuery?.data?.hasReviewed && (
@@ -352,9 +370,9 @@ export default function EntityComponent({
                   variant="outline"
                   size="sm"
                   onClick={handleShowReviewModal}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 border-blue-600"
                 >
-                  <Star className="h-4 w-4" />
+                  <Star className="h-4 w-4 text-white hover:text-white" />
                   Rate
                 </Button>
               )}
@@ -362,9 +380,9 @@ export default function EntityComponent({
                 variant="outline"
                 size="sm"
                 onClick={handleShowReviewListModal}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 border-yellow-600"
               >
-                <Star className="h-4 w-4" />
+                <Stars className="h-4 w-4 text-white hover:text-white" />
                 Reviews ({reviewLength})
               </Button>
               <BookmarkButton
@@ -379,74 +397,96 @@ export default function EntityComponent({
             </div>
           </div>
 
+          {/* Rating Section
           <div
             className={cn(
-              'flex items-center gap-3 w-full invisible',
+              'flex items-center gap-3 w-full invisible mt-4',
               reviews?.data && reviews.data?.length > 0 && 'visible',
             )}
           >
-            <div className="flex items-center gap-2 my-4 separator">
+            <div className="flex items-center gap-2 separator">
               <ReactStars value={modelRating} isEdit={false} />
-              <div className="flex">
+              <div className="flex text-sm text-zinc-600 dark:text-zinc-400">
                 <span>{reviewLength}</span> <span>review{reviewTextEnd}</span>
               </div>
             </div>
             <Button
               variant="ghost"
-              className="underline w-fit p-0 hover:bg-transparent"
+              className="underline w-fit p-0 hover:bg-transparent text-sm"
               onClick={handleShowReviewListModal}
             >
               Click to See Reviews
             </Button>
-          </div>
+          </div> */}
         </div>
+      </section>
 
-        <ListReview
-          reviews={reviews.data as ReviewProps[]}
-          isOpen={isReviewListModal}
-          onClose={handleCloseReviewListModal}
-        />
+      {/* Modals */}
+      <ListReview
+        reviews={reviews.data as ReviewProps[]}
+        isOpen={isReviewListModal}
+        onClose={handleCloseReviewListModal}
+      />
 
-        {!reviewQuery?.data?.hasReviewed && (
-          <AddRatingModal
-            id={id ?? ''}
-            handleRefetch={handleRefetch}
-            open={isReviewModal}
-            setOpen={setIsReviewModal}
-            modelType={entityTitle}
-          />
-        )}
-        <EditExplorerModal
-          entityId={id ?? ''}
-          entityType={entityTitle as EntityType}
-          isOpen={isEditModalOpen}
-          onClose={handleCloseEditModal}
-          onEditSuccessfully={onEditSuccessfully}
-          key={id}
+      {!reviewQuery?.data?.hasReviewed && (
+        <AddRatingModal
+          id={id ?? ''}
+          handleRefetch={handleRefetch}
+          open={isReviewModal}
+          setOpen={setIsReviewModal}
+          modelType={entityTitle}
         />
-      </div>
-      {usecases && usecases?.some((uc) => uc?.title?.trim() !== '') && (
-        <UseCases usecases={usecases} />
       )}
-      {title.toLowerCase() === 'agent' ||
-        (title.toLowerCase() === 'tool' && (
+      <EditExplorerModal
+        entityId={id ?? ''}
+        entityType={entityTitle as EntityType}
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        onEditSuccessfully={onEditSuccessfully}
+        key={id}
+      />
+
+      {/* Use Cases Section */}
+      {usecases && usecases?.some((uc) => uc?.title?.trim() !== '') && (
+        <section className="mb-8">
+          <UseCases usecases={usecases} />
+        </section>
+      )}
+
+      {/* Requirements Section */}
+      {(title.toLowerCase() === 'agent' || title.toLowerCase() === 'tool') && requirements && (
+        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+              <Info className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+              Requirements
+            </h2>
+          </div>
           <AgentRequirements
             requirements={requirements as RequirementProps[]}
           />
-        ))}
+        </section>
+      )}
 
+      {/* Prompt Section */}
       {prompt && (
-        <div className="relative my-10">
-          <div className="mb-6">
-            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-3">
-              Main Prompt
-            </h2>
-            <p className="text-zinc-600 dark:text-zinc-400 text-sm md:text-base">
-              Copy this prompt or download it to use in ChatGPT, Claude, or in
-              your agent code. The prompt is available in both text and markdown
-              formats.
-            </p>
+        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+              <Download className="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                Main Prompt
+              </h2>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                Copy this prompt or download it to use in ChatGPT, Claude, or in your agent code.
+              </p>
+            </div>
           </div>
+          
           <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar relative">
             <div className="absolute top-3 right-3 flex gap-2 z-10">
               <button
@@ -500,7 +540,7 @@ export default function EntityComponent({
             </div>
             <div className="mt-7">
               <Tabs
-                className="flex  flex-col gap-4 w-auto"
+                className="flex flex-col gap-4 w-auto"
                 defaultValue="preview"
                 onValueChange={(value) => setSelectedTab(value)}
               >
@@ -534,34 +574,57 @@ export default function EntityComponent({
               </Tabs>
             </div>
           </div>
-        </div>
+        </section>
       )}
-      {children}
+
+      {/* Children Content */}
+      {children && (
+        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
+          {children}
+        </section>
+      )}
+
+      {/* Chat Section for Prompts */}
+      {entityTitle === 'prompt' && prompt && (
+        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <Bot className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                Prompt Agent Chat
+              </h2>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                Interact with this prompt in real-time. The AI will respond based on the system prompt.
+              </p>
+            </div>
+          </div>
+          <ChatComponent promptId={id ?? ''} systemPrompt={prompt} />
+        </section>
+      )}
+
+      {/* Comments Section */}
+      {id && (
+        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+              <MessageSquare className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+              Comments & Discussion
+            </h2>
+          </div>
+          <CommentList modelId={id} title={title} />
+        </section>
+      )}
+
+      {/* Share Modal */}
       <ShareModal
         isOpen={isShowShareModalOpen}
         onClose={handleCloseModal}
         link={pathName ?? ''}
       />
-
-      {entityTitle === 'prompt' && prompt && (
-        <div className="mt-10 lg:mt-20 flex flex-col w-full">
-          <div className="w-full">
-            <h2 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white mb-4">
-              Prompt Agent Chat
-            </h2>
-            <p className="text-zinc-600 dark:text-zinc-400 text-sm md:text-base mb-8">
-              Interact with this prompt in real-time. The AI will respond based
-              on the system prompt, allowing you to test and refine the prompt's
-              effectiveness.
-            </p>
-            <ChatComponent promptId={id ?? ''} systemPrompt={prompt} />
-          </div>
-        </div>
-      )}
-
-      <div className="mt-20">
-        {id && <CommentList modelId={id} title={title} />}
-      </div>
     </div>
   );
 }

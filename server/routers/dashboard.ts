@@ -81,7 +81,7 @@ const dashboardRouter = router({
       z.object({
         amountUsd: z.number().positive(),
         transactionHash: z.string(),
-        swarmsAmount: z.number().positive(),
+        swarmsAmount: z.number().min(0), // Allow 0 for SOL transactions
       })
     )
     .mutation(async ({ ctx, input }: { ctx: any, input: any }) => {
@@ -111,7 +111,9 @@ const dashboardRouter = router({
         console.log('Transaction details:', {
           exists: !!transaction,
           error: transaction?.meta?.err,
-          balances: transaction?.meta?.postTokenBalances
+          balances: transaction?.meta?.postTokenBalances,
+          postBalances: transaction?.meta?.postBalances,
+          preBalances: transaction?.meta?.preBalances
         });
 
         if (!transaction || transaction.meta?.err) {
@@ -121,15 +123,37 @@ const dashboardRouter = router({
           });
         }
 
-        // Verify the destination address matches our DAO treasury
-        const isValidDestination = transaction?.meta?.postTokenBalances?.some(
-          balance => balance.owner === process.env.DAO_TREASURY_ADDRESS
-        );
+        // Check if this is a SWARMS token transaction or SOL transaction
+        const isSwarmsTransaction = input.swarmsAmount > 0;
+        let isValidDestination = false;
+
+        if (isSwarmsTransaction) {
+          // Verify SWARMS token transfer to DAO treasury
+          isValidDestination = transaction?.meta?.postTokenBalances?.some(
+            balance => balance.owner === process.env.DAO_TREASURY_ADDRESS
+          );
+        } else {
+          // Verify SOL transfer to DAO treasury
+          // Check if the DAO treasury address received SOL
+          const daoAddress = process.env.DAO_TREASURY_ADDRESS;
+          if (daoAddress && transaction?.transaction?.message?.accountKeys) {
+            const daoIndex = transaction.transaction.message.accountKeys.findIndex(
+              (key: any) => key.toString() === daoAddress
+            );
+            
+            if (daoIndex !== -1) {
+              // Check if SOL balance increased for DAO treasury
+              const preBalance = transaction.meta?.preBalances?.[daoIndex] || 0;
+              const postBalance = transaction.meta?.postBalances?.[daoIndex] || 0;
+              isValidDestination = postBalance > preBalance;
+            }
+          }
+        }
 
         if (!isValidDestination) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
-            message: 'Invalid destination address',
+            message: 'Invalid destination address or transaction type',
           });
         }
 

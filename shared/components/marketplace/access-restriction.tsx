@@ -75,7 +75,7 @@ const AccessRestrictionContent = ({
     );
   }
 
-  if (purchaseData?.hasPurchased) {
+  if (!purchaseData?.hasPurchased) {
     return (
       <div className="min-h-[70vh] relative my-10 flex justify-center 2xl:items-center 2xl:my-0">
         <div className="absolute inset-0 dark:bg-black/50 dark:backdrop-blur-sm" />

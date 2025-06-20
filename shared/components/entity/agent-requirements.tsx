@@ -45,7 +45,6 @@ export default function AgentRequirements({
 
   return (
     <div className="my-6">
-      <h2 className="text-4xl mb-2">Requirements</h2>
       <Table>
         <TableHeader>
           {table
