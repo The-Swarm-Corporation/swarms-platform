@@ -3,15 +3,16 @@
 import { useState } from 'react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/shared/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import { Lock, CreditCard, Star, User, Loader2, Check, ArrowLeft } from 'lucide-react';
+import {
+  Lock,
+  CreditCard,
+  Star,
+  Loader2,
+  Check,
+  ArrowLeft,
+} from 'lucide-react';
 import PurchaseModal from './purchase-modal';
 import { WalletProvider } from './wallet-provider';
 import MessageScreen from '../chat/components/message-screen';
@@ -77,7 +78,7 @@ const AccessRestrictionContent = ({
 
   if (!purchaseData?.hasPurchased) {
     return (
-      <div className="min-h-[70vh] relative my-10 flex justify-center 2xl:items-center 2xl:my-0">
+      <div className="min-h-screen relative my-10 items-center flex justify-center 2xl:my-0">
         <div className="absolute inset-0 dark:bg-black/50 dark:backdrop-blur-sm" />
         <div className="w-full max-w-lg relative">
           <Card className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-lg dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] dark:ring-1 dark:ring-white/10 transition-colors">
@@ -86,9 +87,9 @@ const AccessRestrictionContent = ({
                 <Lock className="h-8 w-8 text-gray-600 dark:text-gray-400" />
               </div>
 
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Premium Content
-                </h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Premium Content
+              </h1>
             </CardHeader>
 
             <CardContent className="space-y-6 px-8 pb-8">
@@ -107,7 +108,9 @@ const AccessRestrictionContent = ({
 
               <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">One-time payment</span>
+                  <span className="text-gray-600 dark:text-gray-300 font-medium">
+                    One-time payment
+                  </span>
                   <div className="text-2xl font-bold text-gray-900 dark:text-white">
                     <PriceDisplay showSOL={false} solAmount={item.price} />
                   </div>
@@ -115,7 +118,9 @@ const AccessRestrictionContent = ({
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white">What you get:</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  What you get:
+                </h3>
 
                 <div className="space-y-3">
                   {[
@@ -129,7 +134,9 @@ const AccessRestrictionContent = ({
                       <div className="w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
                         <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
                       </div>
-                      <span className="text-gray-700 dark:text-gray-300">{benefit}</span>
+                      <span className="text-gray-700 dark:text-gray-300">
+                        {benefit}
+                      </span>
                     </div>
                   ))}
                 </div>
