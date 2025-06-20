@@ -153,10 +153,10 @@ export default function PriceDisplay({
       return `${formatNumber(solAmount, actualSolDecimals)} SOL (~$${usdAmount.toFixed(usdDecimals)})`;
     } else if (showSOL) {
       return `${formatNumber(solAmount, actualSolDecimals)} SOL`;
-    } else if (showUSD && usdAmount !== null) {
-      return `$${usdAmount.toFixed(usdDecimals)}`;
     } else if (showBracket && showUSD && usdAmount !== null) {
       return `[$${usdAmount.toFixed(usdDecimals)}]`;
+    } else if (showUSD && usdAmount !== null) {
+      return `$${usdAmount.toFixed(usdDecimals)}`;
     }
     return '';
   };

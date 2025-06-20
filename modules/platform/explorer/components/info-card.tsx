@@ -247,7 +247,13 @@ const InfoCard = ({
             <span>Share</span>
           </button>
           <button
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${colors.button} hover:scale-105 active:scale-95 ${showPremiumBadge && price && price > 0 ? 'bg-[#4ECD78]/10 border-[0.5px] border-[#4ECD78]/20 hover:bg-[#4ECD78]/20 text-[#4ECD78]' : ''}`}
+            className={cn(
+              `flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 hover:scale-105 active:scale-95`,
+              colors.button,
+              showPremiumBadge && price && price > 0
+                ? 'bg-[#4ECD78]/10 border-[0.5px] border-[#4ECD78]/20 hover:bg-[#4ECD78]/20 text-[#4ECD78]'
+                : '',
+            )}
             title={
               showPremiumBadge && price && price > 0
                 ? `Buy this ${itemType} for ${formatPrice(price)}`
@@ -261,7 +267,7 @@ const InfoCard = ({
                 : btnLabel || 'Learn More'}{' '}
             </span>
             {showPremiumBadge && price && price > 0 ? (
-              <USDPriceDisplay solAmount={price} className="text-[#4ECD78]" />
+              <USDPriceDisplay solAmount={price} className="text-[#4ECD78] text-sm" />
             ) : (
               <ExternalLink className="h-4 w-4" />
             )}
