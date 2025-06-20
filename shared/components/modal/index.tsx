@@ -39,7 +39,7 @@ const Modal = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
-        overlayClassName={overlayClassName || 'backdrop-blur-md'}
+        overlayClassName={overlayClassName || "backdrop-blur-md"}
         className={className}
         hideCloseButton={!showClose}
       >

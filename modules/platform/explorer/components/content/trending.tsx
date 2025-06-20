@@ -1,16 +1,18 @@
 'use client';
 
 import { Button } from '@/shared/components/ui/button';
+import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
 import {
   NotepadText,
   ChevronDown,
-  Zap,
+  Bot,
   Hammer,
   Code,
   MessageSquare,
 } from 'lucide-react';
+import { PUBLIC } from '@/shared/utils/constants';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 
 export default function Trending({
@@ -25,10 +27,7 @@ export default function Trending({
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-foreground mb-6 flex items-center gap-3">
-          <Zap className="text-[#9A8572]" />
-          Trending
-        </h2>
+        <h1 className="text-3xl font-bold pb-2">Trending</h1>
       </div>
       <div>
         {isLoading && !isFetchingTrending ? (
@@ -62,17 +61,10 @@ export default function Trending({
                         reviewsMap={reviewsMap}
                         imageUrl={trend.image_url || ''}
                         description={trend.description || ''}
-                        icon={<NotepadText />}
+                        icon={getIcon()}
                         className="w-full h-full"
                         link={trend?.link}
                         userId={trend?.user_id}
-                        is_free={
-                          typeof trend?.is_free === 'boolean'
-                            ? trend?.is_free
-                            : true
-                        }
-                        price={trend.price}
-                        seller_wallet_address={trend.seller_wallet_address}
                         itemType={itemType}
                       />
                     </div>

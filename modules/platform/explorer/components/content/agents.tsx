@@ -28,11 +28,8 @@ export default function Agents({
   }
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-          <Code className="text-[#4ECDC4]" />
-          Agents
-        </h2>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold pb-2">Agents</h1>
         <Button
           onClick={handleAgentModal}
           disabled={isLoading}
@@ -65,12 +62,6 @@ export default function Agents({
                       className="w-full h-full"
                       link={makeUrl(PUBLIC.AGENT, { id: agent.id })}
                       userId={agent.user_id}
-                      is_free={agent.is_free}
-                      price={agent.price}
-                      seller_wallet_address={agent.seller_wallet_address}
-                      usecases={agent?.usecases}
-                      requirements={agent?.requirements}
-                      tags={agent?.tags?.split(',') || []}
                       itemType="agent"
                     />
                   ) : (

@@ -15,21 +15,12 @@ import {
   X,
   Plus,
   Wrench,
-  CheckCircle,
-  Edit,
-  DollarSign,
-  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import ShareModal from './share-modal';
 import MarkdownComponent from '@/shared/components/markdown';
 import { DialogTitle } from '@/shared/components/ui/dialog';
-import { USDPriceDisplay } from '@/shared/components/marketplace/price-display';
-import usePurchaseStatus from '@/shared/hooks/use-purchase-status';
-import EditPriceModal from '@/shared/components/marketplace/edit-price-modal';
-import Image from 'next/image';
-import Link from 'next/link';
 
 interface CardDetailsModalProps {
   isOpen: boolean;
@@ -42,8 +33,6 @@ interface CardDetailsModalProps {
     user?: any;
     review?: any;
     is_free?: boolean;
-    price?: number | null;
-    seller_wallet_address?: string | null;
     link?: string;
     type: 'prompt' | 'agent' | 'tool';
     icon?: React.ReactNode;
@@ -62,21 +51,7 @@ export default function CardDetailsModal({
   cardData,
 }: CardDetailsModalProps) {
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showEditPrice, setShowEditPrice] = useState(false);
   const toast = useToast();
-
-  const {
-    isOwner,
-    hasPurchased,
-    showPremiumBadge,
-    showOwnerBadge,
-    showPurchasedBadge,
-  } = usePurchaseStatus({
-    itemId: cardData.id || '',
-    itemType: cardData.type,
-    userId: cardData.user?.id,
-    isFree: cardData.is_free,
-  });
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -102,50 +77,14 @@ export default function CardDetailsModal({
     }
   };
 
-  // Get item colors based on type (matching info-card styling)
-  const getItemColors = () => {
-    switch (cardData.type) {
-      case 'agent':
-        return {
-          icon: 'text-[#4ECDC4]',
-          bg: 'bg-[#4ECDC4]/5',
-          border: 'border-[#4ECDC4]/40',
-          hover: 'hover:bg-[#4ECDC4]/15',
-          button:
-            'bg-[#4ECDC4]/10 border-[0.5px] border-[#4ECDC4]/20 hover:bg-[#4ECDC4]/20 text-[#4ECDC4]',
-        };
-      case 'tool':
-        return {
-          icon: 'text-[#FFD93D]',
-          bg: 'bg-[#FFD93D]/5',
-          border: 'border-[#FFD93D]/40',
-          hover: 'hover:bg-[#FFD93D]/15',
-          button:
-            'bg-[#FFD93D]/10 border-[0.5px] border-[#FFD93D]/20 hover:bg-[#FFD93D]/20 text-[#FFD93D]',
-        };
-      default: // prompt
-        return {
-          icon: 'text-[#FF6B6B]',
-          bg: 'bg-[#FF6B6B]/5',
-          border: 'border-[#FF6B6B]/40',
-          hover: 'hover:bg-[#FF6B6B]/15',
-          button:
-            'bg-[#FF6B6B]/10 border-[0.5px] border-[#FF6B6B]/20 hover:bg-[#FF6B6B]/20 text-[#FF6B6B]',
-        };
-    }
-  };
-
-  const colors = getItemColors();
+  console.log({ tag: cardData?.tags });
 
   return (
     <>
       <Modal
         isOpen={isOpen}
         onClose={() => null}
-        className={cn(
-          'w-full max-w-5xl max-h-[80vh] md:max-h-[80vh] h-full overflow-y-hidden mx-4 md:mx-auto',
-          `border ${colors.border}`,
-        )}
+        className="w-full max-w-5xl max-h-[80vh] md:max-h-[80vh] h-full overflow-y-hidden border-[#40403F] border mx-4 md:mx-auto"
         showHeader={false}
         showClose={false}
       >
@@ -159,132 +98,131 @@ export default function CardDetailsModal({
           <div
             className={cn(
               'relative w-full rounded-2xl overflow-hidden',
-              `bg-black/95 ${colors.bg}`,
-              'p-4 md:p-8',
+              'bg-gradient-to-r from-background to-red-950 p-4 md:p-8',
             )}
             style={{
-              backgroundImage: cardData?.imageUrl
-                ? `
+              backgroundImage: `
                   linear-gradient(180deg, rgba(9, 11, 10, 0) 38.11%, rgba(9, 11, 10, 0.8) 88.68%),
                   linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
                   url(${cardData?.imageUrl})
-                `
-                : undefined,
+                `,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
             }}
           >
-            {/* Rating display in top right */}
-            {cardData.review && (
-              <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5">
-                <div className="mb-0.5">
-                  <ReactStars
-                    value={cardData.review.rating}
-                    isEdit={false}
-                    count={5}
-                    size={16}
-                  />
-                </div>
-                <span className="text-sm font-bold text-white">
-                  {cardData.review.rating}/5
-                </span>
+            <div className="absolute -inset-0.5 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x" />
+            {!cardData.is_free && (
+              <div className="absolute top-4 left-4">
+                <Crown className="w-8 h-8 text-yellow-400 drop-shadow-lg" />
               </div>
             )}
 
             <div className="flex flex-col md:flex-row items-start gap-4 md:gap-6">
               <div className="relative flex-shrink-0">
                 <div
-                  className={cn(
-                    'w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center',
-                    `${colors.bg} border border-current/30 ${colors.icon}`,
-                  )}
+                  className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-gray-700 to-gray-900 rounded-xl
+                              border-2 border-red-500 flex items-center justify-center text-foreground
+                              shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"
                 >
                   {getTypeIcon()}
                 </div>
+                <div
+                  className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-br-xl"
+                  style={{
+                    clipPath:
+                      'polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%)',
+                  }}
+                ></div>
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-2">
                   <Badge
                     className={cn(
-                      'text-xs font-mono uppercase tracking-wider px-0',
-                      `bg-transparent ${colors.icon}`,
+                      'text-xs font-mono uppercase tracking-wider',
+                      'bg-red-500/20 text-red-400 border-red-500/30',
                     )}
                   >
                     {cardData.type}
                   </Badge>
+                  {!cardData.is_free && (
+                    <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
+                      PREMIUM
+                    </Badge>
+                  )}
                 </div>
-                <div className="flex gap-2 flex-col mb-3">
-                  <h1 className="text-xl md:text-3xl font-bold text-foreground leading-tight break-words">
-                    {cardData.title}
-                  </h1>
-
-                  <Link
-                    href={`/users/${cardData?.user?.username}`}
-                    className={`flex items-center gap-2 w-fit transition-opacity rounded-md ${colors.bg} border border-current/30 px-3 py-1 backdrop-blur-sm transition-all duration-300 shadow-sm`}
-                  >
-                    <div className="w-5 h-5 rounded-full overflow-hidden bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
-                      {cardData?.user?.avatar_url ? (
-                        <Image
-                          src={cardData.user.avatar_url}
-                          alt={cardData.user.username || 'User'}
-                          width={20}
-                          height={20}
-                          className="object-cover w-full h-full"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#ccc]">
-                          {cardData?.user?.username?.charAt(0)?.toUpperCase() ||
-                            '?'}
-                        </div>
-                      )}
-                    </div>
-                    <span
-                      className={`text-xs font-semibold group-hover:${colors.icon}/80 transition-colors ${colors.icon}`}
-                    >
-                      {cardData?.user?.username || 'Anonymous'}
-                    </span>
-                  </Link>
-                </div>
+                <h1 className="text-xl md:text-3xl font-bold text-foreground mb-3 leading-tight break-words">
+                  {cardData.title}
+                </h1>
 
                 <DialogTitle hidden />
+
+                {cardData.user && (
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      explorerUser={cardData.user}
+                      showUsername
+                      showBorder
+                      className="text-foreground/90"
+                    />
+                  </div>
+                )}
               </div>
+
+              {cardData.review && (
+                <div className="flex flex-col items-start md:items-end flex-shrink-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <ReactStars
+                      value={cardData.review.rating}
+                      isEdit={false}
+                      count={5}
+                      size={16}
+                    />
+                  </div>
+                  <span className="text-foreground/70 text-sm">
+                    {cardData.review.rating}/5
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="p-4 md:p-8">
             <div className="mb-6 md:mb-8">
               <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-                <FileText className={`w-4 h-4 md:w-5 md:h-5 ${colors.icon}`} />
+                <FileText className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
                 Description
               </h3>
-              <div className="text-sm font-mono mt-2.5 font-medium md:text-base text-foreground/80 bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner w-full">
+              <div
+                style={{
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                }}
+                className="text-sm font-mono mt-2.5 font-medium md:text-base text-foreground/80 bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner w-full"
+              >
                 <MarkdownComponent text={cardData?.description} />
               </div>
             </div>
 
-            {cardData?.tags &&
-              cardData.tags.length > 0 &&
-              cardData?.tags[0] && (
-                <div className="mb-6 md:mb-8">
-                  <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-                    <Tag className={`w-4 h-4 md:w-5 md:h-5 ${colors.icon}`} />
-                    Tags
-                  </h3>
-                  <div className="flex flex-wrap gap-2 md:gap-3">
-                    {cardData.tags.map((tag, index) => (
-                      <Badge
-                        key={index}
-                        variant="outline"
-                        className={`bg-gradient-to-r rounded-[4000px] max-md:line-clamp-3 ${colors.bg} ${colors.border} text-foreground/80 py-2 px-4 text-xs md:text-sm`}
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
+            {cardData?.tags && cardData.tags.length > 0 && cardData?.tags[0] && (
+              <div className="mb-6 md:mb-8">
+                <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Tag className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
+                  Tags
+                </h3>
+                <div className="flex flex-wrap gap-2 md:gap-3">
+                  {cardData.tags.map((tag, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="bg-gradient-to-r rounded-[4000px] max-md:line-clamp-3 from-red-500/10 to-red-500/20 border-red-400/30 text-foreground/80 py-2 px-4 text-xs md:text-sm"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
             {cardData?.usecases && cardData?.usecases.length > 0 && (
               <div className="mb-6 md:mb-8">
@@ -316,81 +254,22 @@ export default function CardDetailsModal({
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4 w-full md:w-auto">
               <button
                 onClick={handleShare}
-                className={cn(
-                  'flex items-center gap-2 px-3 md:px-4 py-2 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center',
-                  colors.button,
-                )}
+                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-red-600 hover:bg-red-500 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
               >
                 <Share2 className="w-4 h-4" />
                 Share
               </button>
-
-              {/* Edit Price button for owners */}
-              {showOwnerBadge && cardData.price && cardData.price > 0 && (
-                <button
-                  onClick={() => setShowEditPrice(true)}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-500 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Price
-                </button>
-              )}
-
               <button
                 onClick={cardData.handleRoute}
-                className={cn(
-                  'flex items-center gap-2 px-3 md:px-4 py-2 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center',
-                  colors.button,
-                  showPremiumBadge && cardData.price && cardData.price > 0
-                    ? 'bg-[#4ECD78]/10 border-[0.5px] border-[#4ECD78]/20 hover:bg-[#4ECD78]/20 text-[#4ECD78]'
-                    : '',
-                )}
+                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
               >
-                {showPremiumBadge && cardData.price && cardData.price > 0 ? (
-                  <div className="flex items-center gap-1">
-                    <span>
-                      <DollarSign className="w-4 h-4" />
-                      Buy for
-                    </span>
-
-                    <USDPriceDisplay
-                      solAmount={cardData.price}
-                      className="text-[#4ECD78]"
-                    />
-                  </div>
-                ) : (
-                  <>
-                    <ExternalLink className="w-4 h-4" />
-                    {showOwnerBadge ? 'View Details' : 'Learn More'}
-                  </>
-                )}
+                <Plus className="w-4 h-4" />
+                Learn More
               </button>
             </div>
 
-            <div
-              title={`${cardData.is_free ? 'Free' : 'Premium'} • ${cardData.type}`}
-              className="font-mono hidden md:block"
-            >
-              {cardData.is_free ? (
-                <Badge className="bg-green-500/20 hover:bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                  FREE
-                </Badge>
-              ) : showOwnerBadge ? (
-                <Badge className="bg-blue-500/20 hover:bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs flex items-center gap-1">
-                  <Edit className="w-3 h-3" />
-                  <span>AUTHOR</span>
-                </Badge>
-              ) : showPurchasedBadge ? (
-                <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/20 border-green-500/30 text-xs flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>PAID</span>
-                </Badge>
-              ) : (
-                <Badge className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20 border-yellow-500/30 text-xs flex items-center gap-1">
-                  <span>💎</span>
-                  <span>PREMIUM</span>
-                </Badge>
-              )}
+            <div className="text-xs text-muted-foreground capitalize font-mono italic hidden md:block">
+              {cardData.is_free ? 'Free' : 'Premium'} • {cardData.type}
             </div>
           </div>
         </div>
@@ -401,24 +280,6 @@ export default function CardDetailsModal({
         onClose={() => setShowShareModal(false)}
         link={cardData.link || ''}
       />
-
-      {/* Edit Price Modal for owners */}
-      {showOwnerBadge && cardData.price && (
-        <EditPriceModal
-          isOpen={showEditPrice}
-          onClose={() => setShowEditPrice(false)}
-          item={{
-            id: cardData.id || '',
-            name: cardData.title,
-            type: cardData.type,
-            currentPrice: cardData.price,
-          }}
-          onPriceUpdated={() => {
-            // Refresh the data or trigger a refetch
-            window.location.reload(); // Simple approach for now
-          }}
-        />
-      )}
     </>
   );
 }

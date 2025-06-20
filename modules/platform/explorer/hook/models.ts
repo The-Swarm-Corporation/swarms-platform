@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { debounce } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { defaultOptions, explorerOptions } from '@/shared/utils/constants';
@@ -7,7 +7,6 @@ import { useSearchParams } from 'next/navigation';
 const promptLimit = 6;
 const trendingLimit = 6;
 const agentLimit = 6;
-const toolLimit = 6;
 
 const updateList = (offset: number, setter: any, newData: any[]) => {
   if (offset === 0) {
@@ -25,21 +24,16 @@ export default function useModels() {
   const [promptOffset, setPromptOffset] = useState(0);
   const [trendingOffset, setTrendingOffset] = useState(0);
   const [agentOffset, setAgentOffset] = useState(0);
-  const [toolOffset, setToolOffset] = useState(0);
 
   const [prompts, setPrompts] = useState<any[]>([]);
   const [trendingModels, setTrendingModels] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
-  const [tools, setTools] = useState<any[]>([]);
   const [hasMorePrompts, setHasMorePrompts] = useState(true);
   const [hasMoreAgents, setHasMoreAgents] = useState(true);
-  const [hasMoreTools, setHasMoreTools] = useState(true);
 
   const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
   const [isFetchingTrending, setIsFetchingTrending] = useState(false);
   const [isFetchingAgents, setIsFetchingAgents] = useState(false);
-  const [isFetchingTools, setIsFetchingTools] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
@@ -79,18 +73,6 @@ export default function useModels() {
     { enabled: agentOffset > 0 },
   );
 
-  const toolsQuery = trpc.explorer.getExplorerData.useQuery(
-    {
-      includePrompts: false,
-      includeAgents: false,
-      limit: toolLimit,
-      offset: toolOffset,
-      search: searchQuery || searchValue,
-      category: tagCategory,
-    },
-    { enabled: toolOffset > 0 },
-  );
-
   const trendingQuery = trpc.main.trending.useQuery(
     {
       limit: trendingLimit,
@@ -101,6 +83,7 @@ export default function useModels() {
   );
 
   const isTrendingLoading = trendingQuery.isLoading;
+  const [options, setOptions] = useState(defaultOptions);
   const [filterOption, setFilterOption] = useState<string>(
     explorerOptions[0].value,
   );
@@ -121,11 +104,7 @@ export default function useModels() {
       setAgents(data.agents);
       setHasMoreAgents(data.agents.length === agentLimit);
     }
-    if (data?.tools) {
-      setTools(data.tools);
-      setHasMoreTools(data.tools.length === toolLimit);
-    }
-  }, [data?.prompts, data?.agents, data?.tools]);
+  }, [data?.prompts, data?.agents]);
 
   useEffect(() => {
     if (promptsQuery.data?.prompts) {
@@ -138,11 +117,6 @@ export default function useModels() {
       setIsFetchingAgents(false);
       setHasMoreAgents(agentsQuery.data.agents.length === agentLimit);
     }
-    if (toolsQuery.data?.tools) {
-      updateList(toolOffset, setTools, toolsQuery.data.tools);
-      setIsFetchingTools(false);
-      setHasMoreTools(toolsQuery.data.tools.length === toolLimit);
-    }
     if (trendingQuery.data?.data) {
       updateList(trendingOffset, setTrendingModels, trendingQuery.data.data);
       setIsFetchingTrending(false);
@@ -150,11 +124,9 @@ export default function useModels() {
   }, [
     promptsQuery.data?.prompts,
     agentsQuery.data?.agents,
-    toolsQuery.data?.tools,
     trendingQuery.data?.data,
     promptOffset,
     agentOffset,
-    toolOffset,
     trendingOffset,
   ]);
 
@@ -166,11 +138,6 @@ export default function useModels() {
   const loadMoreAgents = useCallback(() => {
     setAgentOffset((prevOffset) => prevOffset + agentLimit);
     setIsFetchingAgents(true);
-  }, []);
-
-  const loadMoreTools = useCallback(() => {
-    setToolOffset((prevOffset) => prevOffset + toolLimit);
-    setIsFetchingTools(true);
   }, []);
 
   const loadMoreTrending = useCallback(() => {
@@ -186,10 +153,8 @@ export default function useModels() {
     setPromptOffset(0);
     setTrendingOffset(0);
     setAgentOffset(0);
-    setToolOffset(0);
     setHasMorePrompts(true);
     setHasMoreAgents(true);
-    setHasMoreTools(true);
   };
 
   const searchClickHandler = () => {
@@ -203,9 +168,9 @@ export default function useModels() {
   };
 
   const handleSearchChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      debouncedSearch(e.target.value);
-      if (e.target.value.trim() === '') {
+    (value: string) => {
+      debouncedSearch(value);
+      if (value.trim() === '') {
         setSearchValue('');
       }
     },
@@ -293,8 +258,8 @@ export default function useModels() {
     [agents, filterData],
   );
   const filteredTools = useMemo(
-    () => filterData(tools, 'tools'),
-    [tools, filterData],
+    () => filterData(data?.tools, 'tools'),
+    [data?.tools, filterData],
   );
 
   const handleOptionChange = useCallback(
@@ -316,32 +281,26 @@ export default function useModels() {
     isTrendingLoading,
     search,
     searchValue,
+    options,
     usersMap,
     reviewsMap,
     hasMorePrompts,
-    hasMoreAgents,
-    hasMoreTools,
     hasMoreTrending: trendingModels.length < 12,
     filterOption,
     isLoading,
     isFetchingPrompts,
     isFetchingTrending,
-    isFetchingAgents,
-    isFetchingTools,
-    refetch,
     loadMorePrompts,
     loadMoreTrending,
-    loadMoreAgents,
-    loadMoreTools,
     searchClickHandler,
     handleSearchChange,
     handleOptionChange,
     handleCategoryChange,
     tagCategory,
+    loadMoreAgents,
     handleReset,
+    isFetchingAgents,
+    hasMoreAgents,
     agentsQuery,
-    toolsQuery,
-    isDropdownOpen,
-    setIsDropdownOpen,
   };
 }
