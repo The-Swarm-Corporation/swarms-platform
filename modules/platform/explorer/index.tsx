@@ -10,7 +10,7 @@ import {
 } from '@/shared/components/ui/select';
 import { Input } from '@/shared/components/ui/input';
 import useModels from './hook/models';
-import { explorerCategories, explorerOptions } from '@/shared/utils/constants';
+import { defaultOptions, explorerCategories, explorerOptions } from '@/shared/utils/constants';
 import AddPromptModal from './components/add-prompt-modal';
 import { Activity, Search } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
@@ -59,7 +59,6 @@ const Explorer = () => {
     hasMoreTrending,
     hasMorePrompts,
     search,
-    options,
     usersMap,
     reviewsMap,
     filterOption,
@@ -75,12 +74,25 @@ const Explorer = () => {
     loadMoreAgents,
     isFetchingAgents,
     handleReset,
+    refetch,
     hasMoreAgents,
+    hasMoreTools,
+    isFetchingTools,
+    loadMoreTools,
     agentsQuery,
+    toolsQuery,
+    isDropdownOpen,
+    setIsDropdownOpen,
   } = useModels();
 
+  const selectedOptionLabel =
+    !filterOption || filterOption === 'all' ? 'All Categories' : filterOption;
+
   const isAllLoading =
-    isLoading || promptsQuery.isLoading || agentsQuery.isLoading;
+    isLoading ||
+    promptsQuery.isLoading ||
+    agentsQuery.isLoading ||
+    toolsQuery.isLoading;
 
   const elements = [
     {
@@ -130,6 +142,10 @@ const Explorer = () => {
             usersMap,
             reviewsMap,
             isLoading,
+            loadMoreTools,
+            isFetchingTools,
+            hasMoreTools,
+            isToolLoading: toolsQuery.isLoading,
           }}
         />
       ),
@@ -159,22 +175,31 @@ const Explorer = () => {
   return (
     <>
       <AddPromptModal
-        onAddSuccessfully={handleReset}
+        onAddSuccessfully={() => {}}
         modelType="prompt"
         isOpen={addPromptModalOpen}
-        onClose={() => setAddPromptModalOpen(false)}
+        onClose={() => {
+          setAddPromptModalOpen(false);
+          refetch();
+        }}
       />
       <AddAgentModal
-        onAddSuccessfully={handleReset}
+        onAddSuccessfully={() => {}}
         modelType="agent"
         isOpen={addAgentModalOpen}
-        onClose={() => setAddAgentModalOpen(false)}
+        onClose={() => {
+          setAddAgentModalOpen(false);
+          refetch();
+        }}
       />
       <AddToolModal
-        onAddSuccessfully={handleReset}
+        onAddSuccessfully={() => {}}
         modelType="tool"
         isOpen={addToolModalOpen}
-        onClose={() => setAddToolModalOpen(false)}
+        onClose={() => {
+          setAddToolModalOpen(false);
+          refetch();
+        }}
       />
       <div className="w-full flex flex-col h-full">
         <div className="w-full mb-8">
@@ -205,7 +230,7 @@ const Explorer = () => {
           )}
         >
           <ul className="p-0 mb-2 flex items-center flex-wrap gap-3">
-            {options.map((option) => {
+            {defaultOptions.map((option) => {
               const colorSelector = isAllLoading
                 ? 'text-primary'
                 : filterOption === option || filterOption === 'all'
@@ -232,7 +257,7 @@ const Explorer = () => {
             <div className="relative w-full border border-gray-700 rounded-md">
               <Input
                 placeholder="Search..."
-                onChange={(e) => handleSearchChange(e.target.value)}
+                onChange={handleSearchChange}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     searchClickHandler();

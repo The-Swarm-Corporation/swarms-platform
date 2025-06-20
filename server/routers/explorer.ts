@@ -7,6 +7,7 @@ import { extractCategories } from '@/shared/utils/helpers';
 import { Tables } from '@/types_db';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { validateMarketplaceSubmission } from '@/shared/services/fraud-prevention';
 
 const BUCKET_NAME = 'images';
 
@@ -163,8 +164,10 @@ const explorerRouter = router({
       }
 
       if (includeTools) {
-        const { data, error } =
-          await buildQuery('swarms_cloud_tools').select('*');
+        const { data, error } = await buildQuery('swarms_cloud_tools').range(
+          offset,
+          offset + limit - 1,
+        );
         if (error) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
         }
@@ -226,6 +229,13 @@ const explorerRouter = router({
         filePath: z.string().optional(),
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
+        isFree: z.boolean().default(true),
+        price: z
+          .number()
+          .min(0.000001, 'Price must be at least 0.000001 SOL')
+          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .default(0),
+        sellerWalletAddress: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -238,8 +248,40 @@ const explorerRouter = router({
         throw 'Name should be at least 2 characters';
       }
 
-      // rate limiter - 1 prompt per minute
+      // Get user ID early for validation
       const user_id = ctx.session.data.user?.id ?? '';
+
+      // Validate marketplace fields
+      if (!input.isFree) {
+        if (!input.price || input.price <= 0) {
+          throw 'Price must be greater than 0 for paid prompts';
+        }
+        if (
+          !input.sellerWalletAddress ||
+          input.sellerWalletAddress.trim().length === 0
+        ) {
+          throw 'Wallet address is required for paid prompts';
+        }
+
+        // Fraud prevention validation for paid items
+        const validation = await validateMarketplaceSubmission(
+          user_id,
+          input.prompt,
+          'prompt',
+          input.name || '',
+          input.description || '',
+          input.isFree
+        );
+
+        if (!validation.isValid) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: validation.errors.join('. '),
+          });
+        }
+      }
+
+      // rate limiter - 1 prompt per minute
       const lastSubmits = await ctx.supabase
         .from('swarms_cloud_prompts')
         .select('*')
@@ -268,6 +310,9 @@ const explorerRouter = router({
             file_path: input.filePath || null,
             status: 'pending',
             category: input.category,
+            is_free: input.isFree,
+            price: input.price,
+            seller_wallet_address: input.sellerWalletAddress || null,
           } as Tables<'swarms_cloud_prompts'>,
         ]);
         if (prompts.error) {
@@ -293,6 +338,16 @@ const explorerRouter = router({
         filePath: z.string().optional(),
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
+        isFree: z.boolean().optional(),
+        price: z
+          .number()
+          .min(0.000001, 'Price must be at least 0.000001 SOL')
+          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .optional(),
+        sellerWalletAddress: z
+          .string()
+          .min(1, 'Wallet address is required for paid items')
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -308,18 +363,44 @@ const explorerRouter = router({
       const user_id = ctx.session.data.user?.id ?? '';
 
       try {
+        const updateData: Partial<Tables<'swarms_cloud_prompts'>> = {
+          name: input.name,
+          use_cases: input.useCases,
+          prompt: input.prompt,
+          description: input.description,
+          tags: input.tags,
+          category: input.category,
+          image_url: input.imageUrl || null,
+          file_path: input.filePath || null,
+        };
+
+        // Add marketplace fields if provided
+        if (input.isFree !== undefined) {
+          updateData.is_free = input.isFree;
+
+          // Validate marketplace fields when updating
+          if (!input.isFree) {
+            if (!input.price || input.price <= 0) {
+              throw 'Price must be greater than 0 for paid prompts';
+            }
+            if (
+              !input.sellerWalletAddress ||
+              input.sellerWalletAddress.trim().length === 0
+            ) {
+              throw 'Wallet address is required for paid prompts';
+            }
+          }
+        }
+        if (input.price !== undefined) {
+          updateData.price = input.price;
+        }
+        if (input.sellerWalletAddress !== undefined) {
+          updateData.seller_wallet_address = input.sellerWalletAddress || null;
+        }
+
         const prompt = await ctx.supabase
           .from('swarms_cloud_prompts')
-          .update({
-            name: input.name,
-            use_cases: input.useCases,
-            prompt: input.prompt,
-            description: input.description,
-            tags: input.tags,
-            category: input.category,
-            image_url: input.imageUrl || null,
-            file_path: input.filePath || null,
-          } as Tables<'swarms_cloud_prompts'>)
+          .update(updateData)
           .eq('user_id', user_id)
           .eq('id', input.id)
           .select('*');
@@ -426,6 +507,13 @@ const explorerRouter = router({
         filePath: z.string().optional(),
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
+        isFree: z.boolean().default(true),
+        price: z
+          .number()
+          .min(0.000001, 'Price must be at least 0.000001 SOL')
+          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .default(0),
+        sellerWalletAddress: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -438,8 +526,40 @@ const explorerRouter = router({
         throw 'Name should be at least 2 characters';
       }
 
-      // rate limiter - 1 agent per minute
+      // Get user ID early for validation
       const user_id = ctx.session.data.user?.id ?? '';
+
+      // Validate marketplace fields
+      if (!input.isFree) {
+        if (!input.price || input.price <= 0) {
+          throw 'Price must be greater than 0 for paid agents';
+        }
+        if (
+          !input.sellerWalletAddress ||
+          input.sellerWalletAddress.trim().length === 0
+        ) {
+          throw 'Wallet address is required for paid agents';
+        }
+
+        // Fraud prevention validation for paid items
+        const validation = await validateMarketplaceSubmission(
+          user_id,
+          input.agent,
+          'agent',
+          input.name || '',
+          input.description || '',
+          input.isFree
+        );
+
+        if (!validation.isValid) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: validation.errors.join('. '),
+          });
+        }
+      }
+
+      // rate limiter - 1 agent per minute
       const lastSubmits = await ctx.supabase
         .from('swarms_cloud_agents')
         .select('*')
@@ -473,6 +593,9 @@ const explorerRouter = router({
             file_path: input.filePath || null,
             status: 'pending',
             category: input.category,
+            is_free: input.isFree,
+            price: input.price,
+            seller_wallet_address: input.sellerWalletAddress || null,
           } as Tables<'swarms_cloud_agents'>,
         ]);
         if (agents.error) {
@@ -499,6 +622,16 @@ const explorerRouter = router({
         category: z.array(z.string()).optional(),
         imageUrl: z.string().optional(),
         filePath: z.string().optional(),
+        isFree: z.boolean().optional(),
+        price: z
+          .number()
+          .min(0.000001, 'Price must be at least 0.000001 SOL')
+          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .optional(),
+        sellerWalletAddress: z
+          .string()
+          .min(1, 'Wallet address is required for paid items')
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -514,20 +647,46 @@ const explorerRouter = router({
       const user_id = ctx.session.data.user?.id ?? '';
 
       try {
+        const updateData: Partial<Tables<'swarms_cloud_agents'>> = {
+          name: input.name,
+          description: input.description,
+          use_cases: input.useCases,
+          agent: input.agent,
+          requirements: input.requirements,
+          tags: input.tags,
+          language: input.language,
+          category: input.category,
+          image_url: input.imageUrl || null,
+          file_path: input.filePath || null,
+        };
+
+        // Add marketplace fields if provided
+        if (input.isFree !== undefined) {
+          updateData.is_free = input.isFree;
+
+          // Validate marketplace fields when updating
+          if (!input.isFree) {
+            if (!input.price || input.price <= 0) {
+              throw 'Price must be greater than 0 for paid agents';
+            }
+            if (
+              !input.sellerWalletAddress ||
+              input.sellerWalletAddress.trim().length === 0
+            ) {
+              throw 'Wallet address is required for paid agents';
+            }
+          }
+        }
+        if (input.price !== undefined) {
+          updateData.price = input.price;
+        }
+        if (input.sellerWalletAddress !== undefined) {
+          updateData.seller_wallet_address = input.sellerWalletAddress || null;
+        }
+
         const agent = await ctx.supabase
           .from('swarms_cloud_agents')
-          .update({
-            name: input.name,
-            description: input.description,
-            use_cases: input.useCases,
-            agent: input.agent,
-            requirements: input.requirements,
-            tags: input.tags,
-            language: input.language,
-            category: input.category,
-            image_url: input.imageUrl || null,
-            file_path: input.filePath || null,
-          } as Tables<'swarms_cloud_agents'>)
+          .update(updateData)
           .eq('user_id', user_id)
           .eq('id', input.id)
           .select('*');

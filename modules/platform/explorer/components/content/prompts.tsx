@@ -28,9 +28,12 @@ export default function Prompts({
 
   return (
     <div className="flex flex-col min-h-1/2 gap-2 pb-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold pb-2">Prompts</h1>
-        <Button
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+          <MessageSquare className="text-[#FF6B6B]" />
+          Prompts
+        </h2>
+                <Button
           onClick={handlePromptModal}
           disabled={isLoading}
           className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/60 hover:bg-[#FF6B6B]/30 text-[#FF6B6B] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FF6B6B]/25 group"
@@ -61,6 +64,12 @@ export default function Prompts({
                     className="w-full h-full"
                     link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
                     userId={prompt.user_id}
+                    is_free={prompt.is_free}
+                    price={prompt.price}
+                    seller_wallet_address={prompt.seller_wallet_address}
+                    usecases={prompt?.usecases}
+                    requirements={prompt?.requirements}
+                    tags={prompt?.tags?.split(',') || []}
                     itemType="prompt"
                   />
                 </div>

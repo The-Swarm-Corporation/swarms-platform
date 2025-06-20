@@ -1,12 +1,18 @@
 import { cn } from '@/shared/utils/cn';
 import { formatPrice, getTruncatedString } from '@/shared/utils/helpers';
-import { ReactNode, useState } from 'react';
-import { Share2, ShoppingCart, ExternalLink } from 'lucide-react';
+import { ReactNode, useCallback, useState } from 'react';
+import { Crown, Database, ExternalLink, Share2 } from 'lucide-react';
+import Avatar from '@/shared/components/avatar';
 import ShareModal from './share-modal';
 import ReactStars from 'react-rating-star-with-type';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import CardDetailsModal from './card-details-modal';
+import { useAuthContext } from '@/shared/components/ui/auth.provider';
+import { USDPriceDisplay } from '@/shared/components/marketplace/price-display';
+import usePurchaseStatus from '@/shared/hooks/use-purchase-status';
+import { Edit, CheckCircle, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 
 interface Props {
@@ -25,8 +31,14 @@ interface Props {
   id?: string;
   usersMap: any;
   reviewsMap: any;
+  is_free?: boolean;
+  price?: number | null;
+  seller_wallet_address?: string | null;
   itemType?: 'prompt' | 'agent' | 'tool';
   isPremium?: boolean;
+  usecases?: { title: string; description: string }[];
+  requirements?: Array<{ package: string; installation: string }>;
+  tags?: string[];
 }
 
 const InfoCard = ({
@@ -43,25 +55,49 @@ const InfoCard = ({
   link,
   usersMap,
   reviewsMap,
+  tags,
+  is_free,
+  price,
+  seller_wallet_address,
   itemType = 'prompt',
-  isPremium = false,
+  usecases,
+  requirements,
 }: Props) => {
   const review = reviewsMap?.[id as string];
   const user = usersMap?.[userId as string];
 
-  const [isShowShareModalOpen, setIsShowModalOpen] = useState<boolean>(false);
+  const { user: authUser } = useAuthContext();
+
+  const { showPremiumBadge } = usePurchaseStatus({
+    itemId: id || '',
+    itemType,
+    userId,
+    isFree: is_free,
+  });
+
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const router = useRouter();
 
-  const handleShowShareModal = (e: React.MouseEvent) => {
+  const handleShare = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsShowModalOpen(true);
+    setShowShareModal(true);
+  }, []);
+
+  const handleCardClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDetailsModal(true);
   };
 
-  const handleCloseModal = () => setIsShowModalOpen(false);
+  const handleViewClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
 
-  const handleCardClick = async () => {
-    await checkUserSession();
-    router.push(link);
+    if (authUser) {
+      router.push(link);
+    } else {
+      await checkUserSession();
+      router.push(link);
+    }
   };
 
   const renderPrice = (label: string, price: number) => (
@@ -107,126 +143,158 @@ const InfoCard = ({
 
   return (
     <div
-      onClick={handleCardClick}
       role="button"
       tabIndex={0}
       aria-label={title}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          handleCardClick();
-        }
-      }}
-      className={cn(
-        'relative flex flex-col h-full min-h-[240px] max-h-[280px] p-4 sm:p-6 rounded-md overflow-hidden group cursor-pointer',
-        'transition-all duration-300 ease-in-out',
-        'bg-black/95 border',
-        'hover:shadow-xl hover:shadow-current/30',
-        'hover:scale-[1.02] sm:hover:scale-[1.03] active:scale-[0.98]',
-        'backdrop-blur-sm',
-        'border-gray-800',
-        colors.bg,
-        className,
-      )}
+      className="relative group cursor-pointer h-full"
+      onClick={handleCardClick}
     >
-      {id && (
-        <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5">
-          <div className="mb-0.5">
-            <ReactStars
-              value={review?.rating}
-              isEdit={false}
-              count={1}
-              size={16}
-            />
-          </div>
-          <span className="text-sm font-bold text-white">
-            {review?.rating || 0}
-          </span>
-        </div>
-      )}
-
-      <div className="flex-1 flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <div
-            className={`flex items-center justify-center h-14 w-12 rounded-lg ${colors.bg} border border-current/30 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 shadow-sm`}
-          >
-            <div className={`${colors.icon} transition-colors`}>{icon}</div>
-          </div>
-          <div>
-            <span
-              className={`text-xs uppercase tracking-widest font-medium rounded-md ${colors.icon} border border-current/20`}
-            >
-              {itemType}
+      <div
+        className={cn(
+          'relative flex flex-col h-full min-h-[240px] max-h-[280px] p-4 sm:p-6 rounded-md overflow-hidden group cursor-pointer',
+          'transition-all duration-300 ease-in-out',
+          'bg-black/95 border',
+          'hover:shadow-xl hover:shadow-current/30',
+          'hover:scale-[1.02] sm:hover:scale-[1.03] active:scale-[0.98]',
+          'backdrop-blur-sm',
+          'border-gray-800',
+          colors.bg,
+          className,
+        )}
+      >
+        {id && (
+          <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5">
+            <div className="mb-0.5">
+              <ReactStars
+                value={review?.rating}
+                isEdit={false}
+                count={1}
+                size={16}
+              />
+            </div>
+            <span className="text-sm font-bold text-white">
+              {review?.rating || 0}
             </span>
-            <Link
-              href={`/users/${user?.username}`}
-              className={`flex items-center gap-2 transition-opacity mt-1`}
-            >
-              <div className="w-5 h-5 rounded-full overflow-hidden bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
-                {user?.avatar_url ? (
-                  <Image
-                    src={user.avatar_url}
-                    alt={user.username || 'User'}
-                    width={20}
-                    height={20}
-                    className="object-cover w-full h-full"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#ccc]">
-                    {user?.username?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                )}
-              </div>
-              <span
-                className={`text-xs font-semibold group-hover:${colors.icon}/80 transition-colors ${colors.icon}`}
-              >
-                {user?.username || 'Anonymous'}
-              </span>
-            </Link>
-          </div>
-        </div>
-
-        <h1 className="text-lg font-bold text-white group-hover:text-white/90 transition-colors line-clamp-1 leading-tight">
-          {title}
-        </h1>
-
-        <p className="text-sm text-white/70 group-hover:text-white/80 transition-colors line-clamp-2 flex-1">
-          {getTruncatedString(description, 80)}
-        </p>
-
-        {(input || output) && (
-          <div className="flex items-center gap-2 flex-wrap">
-            {input && renderPrice('Input', input)}
-            {output && renderPrice('Output', output)}
           </div>
         )}
-      </div>
 
-      <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/10">
-        <button
-          onClick={handleShowShareModal}
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${colors.button} hover:scale-105 active:scale-95`}
-          tabIndex={-1}
-        >
-          <Share2 className="h-4 w-4" />
-          <span>Share</span>
-        </button>
-        <button
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${colors.button} hover:scale-105 active:scale-95`}
-          tabIndex={-1}
-        >
-          <span>{isPremium ? 'Buy Now' : btnLabel || 'Learn More'}</span>
-          {isPremium ? (
-            <ShoppingCart className="h-4 w-4" />
-          ) : (
-            <ExternalLink className="h-4 w-4" />
+        <div className="flex-1 flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex items-center justify-center h-14 w-12 rounded-lg ${colors.bg} border border-current/30 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 shadow-sm`}
+            >
+              <div className={`${colors.icon} transition-colors`}>{icon}</div>
+            </div>
+            <div>
+              <span
+                className={`text-xs uppercase tracking-widest font-medium rounded-md ${colors.icon} border border-current/20`}
+              >
+                {itemType}
+              </span>
+              {user?.username && (
+                <Link
+                  href={`/users/${user?.username}`}
+                  className={`flex items-center gap-2 transition-opacity mt-1`}
+                >
+                  <div className="w-5 h-5 rounded-full overflow-hidden bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
+                    {user?.avatar_url ? (
+                      <Image
+                        src={user.avatar_url}
+                        alt={user.username || 'User'}
+                        width={20}
+                        height={20}
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#ccc]">
+                        {user?.username?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className={`text-xs font-semibold group-hover:${colors.icon}/80 transition-colors ${colors.icon}`}
+                  >
+                    {user?.username || 'Anonymous'}
+                  </span>
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <h1 className="text-lg font-bold text-white group-hover:text-white/90 transition-colors line-clamp-1 leading-tight">
+            {title}
+          </h1>
+
+          <p className="text-sm text-white/70 group-hover:text-white/80 transition-colors line-clamp-2 flex-1">
+            {getTruncatedString(description, 80)}
+          </p>
+
+          {(input || output) && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {input && renderPrice('Input', input)}
+              {output && renderPrice('Output', output)}
+            </div>
           )}
-        </button>
+        </div>
+
+        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/10">
+          <button
+            onClick={handleShare}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${colors.button} hover:scale-105 active:scale-95`}
+            tabIndex={-1}
+          >
+            <Share2 className="h-4 w-4" />
+            <span>Share</span>
+          </button>
+          <button
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${colors.button} hover:scale-105 active:scale-95 ${showPremiumBadge && price && price > 0 ? 'bg-[#4ECD78]/10 border-[0.5px] border-[#4ECD78]/20 hover:bg-[#4ECD78]/20 text-[#4ECD78]' : ''}`}
+            title={
+              showPremiumBadge && price && price > 0
+                ? `Buy this ${itemType} for ${formatPrice(price)}`
+                : `View item ${itemType}`
+            }
+            onClick={handleViewClick}
+          >
+            <span>
+              {showPremiumBadge && price && price > 0
+                ? 'Buy'
+                : btnLabel || 'Learn More'}{' '}
+            </span>
+            {showPremiumBadge && price && price > 0 ? (
+              <USDPriceDisplay solAmount={price} className="text-[#4ECD78]" />
+            ) : (
+              <ExternalLink className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
 
       <ShareModal
-        isOpen={isShowShareModalOpen}
-        onClose={handleCloseModal}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
         link={link}
+      />
+
+      <CardDetailsModal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        cardData={{
+          id,
+          title,
+          description,
+          tags,
+          user,
+          review,
+          is_free,
+          price,
+          seller_wallet_address,
+          link,
+          usecases,
+          requirements,
+          type: itemType,
+          icon: icon || <Database className="w-6 h-6" />,
+          handleRoute: handleViewClick,
+        }}
       />
     </div>
   );
