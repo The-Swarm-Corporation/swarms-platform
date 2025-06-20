@@ -15,9 +15,12 @@ import {
 import { explorerCategories, languageOptions } from '@/shared/utils/constants';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import MultiSelect from '@/shared/components/ui/multi-select';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useModelFileUpload } from '../hook/upload-file';
 import ModelFileUpload from './upload-image';
+import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
+import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
+import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
 
 interface Props {
   isOpen: boolean;
@@ -40,6 +43,10 @@ const AddAgentModal = ({
   const [language, setLanguage] = useState('python');
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFree, setIsFree] = useState(true);
+  const [price, setPrice] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
 
   const {
     image,
@@ -55,18 +62,25 @@ const AddAgentModal = ({
   const imageUploadRef = useRef<HTMLInputElement>(null);
 
   const validateAgent = trpc.explorer.validateAgent.useMutation();
-
-  const debouncedCheckPrompt = useMemo(() => {
-    const debouncedFn = debounce((value: string) => {
-      validateAgent.mutateAsync(value);
-    }, 400);
-    return debouncedFn;
-  }, []);
-
   const toast = useToast();
-  const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addAgent = trpc.explorer.addAgent.useMutation();
+  const checkTrustworthiness =
+    trpc.marketplace.checkUserTrustworthiness.useQuery(undefined, {
+      enabled: !isFree,
+      retry: false,
+    });
+
+  const validation = useMarketplaceValidation();
+
+  useEffect(() => {
+    validation.updateField('name', agentName);
+    validation.updateField('description', description);
+    validation.updateField('content', agent);
+    validation.updateField('price', price);
+    validation.updateField('walletAddress', walletAddress);
+    validation.updateField('tags', tags);
+  }, [agentName, description, agent, price, walletAddress, tags]);
 
   const handleCategoriesChange = (selectedCategories: string[]) => {
     setCategories(selectedCategories);
@@ -105,17 +119,19 @@ const AddAgentModal = ({
   };
 
   const submit = () => {
-    // Validate Agent
-    if (validateAgent.isPending) {
+    // Check if validation is in progress
+    if (isValidating || validateAgent.isPending) {
       toast.toast({
-        title: 'Validating Agent',
+        title: 'Please wait for validation to complete',
+        variant: 'destructive',
       });
       return;
     }
 
-    if (agentName.trim().length < 2) {
+    // Validate all fields using deferred validation
+    if (!validation.validateAll()) {
       toast.toast({
-        title: 'Name should be at least 2 characters long',
+        title: 'Please fix the errors in the form',
         variant: 'destructive',
       });
       return;
@@ -136,6 +152,34 @@ const AddAgentModal = ({
         variant: 'destructive',
       });
       return;
+    }
+
+    // Check trustworthiness for paid items
+    if (!isFree) {
+      if (checkTrustworthiness.isLoading) {
+        toast.toast({
+          title: 'Checking eligibility...',
+        });
+        return;
+      }
+
+      if (checkTrustworthiness.error) {
+        toast.toast({
+          title: 'Unable to verify eligibility',
+          description: 'Please try again later',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (checkTrustworthiness.data && !checkTrustworthiness.data.isEligible) {
+        toast.toast({
+          title: 'Not eligible for marketplace',
+          description: checkTrustworthiness.data.reason,
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     const trimTags = tags
@@ -166,16 +210,14 @@ const AddAgentModal = ({
           { package: 'requests', installation: 'pip3 install requests' },
         ],
         tags: trimTags,
+        isFree,
+        price: isFree ? 0 : parseFloat(price),
+        sellerWalletAddress: isFree ? '' : walletAddress,
       })
       .then(async () => {
         toast.toast({
           title: 'Agent added successfully 🎉',
         });
-
-        await Promise.all([
-          utils.explorer.getExplorerData.invalidate(),
-          utils.main.trending.invalidate(),
-        ]);
 
         onClose();
         onAddSuccessfully();
@@ -187,8 +229,35 @@ const AddAgentModal = ({
       })
       .catch((error) => {
         console.log({ error });
+
+        let errorMessage = 'An error has occurred';
+        let isApiFailure = false;
+
+        if (error?.message) {
+          if (error.message.includes('Fallback validation:')) {
+            errorMessage = error.message;
+            isApiFailure = true;
+          } else if (error.message.includes('Content quality score')) {
+            errorMessage = error.message;
+          } else if (error.message.includes('not eligible')) {
+            errorMessage = error.message;
+          } else if (
+            error.message.includes('API request failed') ||
+            error.message.includes('temporarily unavailable')
+          ) {
+            errorMessage = error.message;
+            isApiFailure = true;
+          } else {
+            errorMessage = error.message;
+          }
+        }
+
         toast.toast({
-          title: 'An error has occurred',
+          title: isApiFailure
+            ? 'Validation Service Issue'
+            : 'Submission Failed',
+          description: errorMessage,
+          variant: 'destructive',
         });
         setIsLoading(false);
       });
@@ -197,271 +266,324 @@ const AddAgentModal = ({
   if (!user) return null;
 
   return (
-    <Modal
-      className="w-full max-w-md md:max-w-4xl overflow-hidden border-2 border-red-500/50 rounded-none bg-background backdrop-blur-sm shadow-2xl shadow-red-500/20"
-      overlayClassName="backdrop-blur-md bg-background/60"
-      isOpen={isOpen}
-      onClose={onClose}
-      title=""
-      showHeader={false}
-      showClose={false}
-    >
-      <div className="absolute inset-0 bg-background">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,0,0,0.02)_1px,transparent_1px)] bg-[size:30px_30px]" />
-      </div>
-
-      <div className="relative z-10 flex flex-col h-[85vh] sm:h-[80vh] md:h-[75vh]">
-        <div className="relative bg-background/95 border-b-2 border-red-500/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
-          <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-red-500" />
-          <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-red-500" />
-
-          <div className="flex items-center justify-between mb-4">
-            <div />
-            <button
-              onClick={onClose}
-              className="group relative p-2 border border-red-500/30 hover:border-red-500 transition-all duration-300 bg-background/50 hover:bg-red-500/10"
-            >
-              <svg
-                className="w-5 h-5 text-muted-foreground group-hover:text-red-400 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-              <div className="absolute inset-0 bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </button>
-          </div>
-
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 tracking-wider">
-                AGENT SUBMISSION
-                <div className="h-1 w-20 sm:w-24 md:w-32 bg-gradient-to-r from-red-500 to-transparent mt-1" />
-              </h2>
-              <p className="text-muted-foreground text-xs sm:text-sm font-mono leading-relaxed max-w-2xl">
-                Share your agent with the community by filling out the details
-                below. Make sure to provide clear descriptions, categories and
-                appropriate tags below.
+    <WalletProvider>
+      <Modal
+        className="max-w-2xl"
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Add Agent"
+      >
+      <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
+        <div className="mb-4 p-3 bg-teal-500/10 border border-teal-500/30 rounded-lg font-mono">
+          <div className="flex items-start gap-2">
+            <span className="text-teal-500 text-lg">ℹ️</span>
+            <div className="text-sm">
+              <p className="text-teal-500 font-medium mb-1">
+                Quality Validation Notice
+              </p>
+              <p className="text-teal-500 text-xs leading-relaxed">
+                All agent submissions undergo automated quality validation to
+                maintain marketplace standards.
+                {!isFree && (
+                  <span className="text-yellow-300">
+                    {' '}
+                    Paid submissions require higher quality scores and
+                    contributor trustworthiness verification.
+                  </span>
+                )}
               </p>
             </div>
           </div>
         </div>
-
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
-          <div className="group">
-            <label className="flex items-center gap-3 mb-3">
-              <span className="text-red-400 font-mono text-xs">[01]</span>
-              <span className="font-medium text-foreground">NAME</span>
-              <span className="text-red-500 text-xs">*REQUIRED</span>
-              <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
-            </label>
-            <div className="relative">
-              <Input
-                value={agentName}
-                onChange={setAgentName}
-                placeholder="Enter unique agent designation..."
-                className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <div className="w-2 h-2 bg-red-500/50 rounded-full" />
-              </div>
-            </div>
-          </div>
-
-          <div className="group">
-            <label className="flex items-center gap-3 mb-3">
-              <span className="text-red-400 font-mono text-xs">[02]</span>
-              <span className="font-medium text-foreground">DESCRIPTION</span>
-              <span className="text-red-500 text-xs">*REQUIRED</span>
-              <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
-            </label>
-            <div className="relative">
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Define agent capabilities and operational parameters..."
-                className="w-full rounded-xl h-20 sm:h-24 p-3 sm:p-4 bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/80 outline-none"
-              />
-              <div className="absolute bottom-3 right-3 flex gap-1">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-1 h-1 bg-red-500/50 rounded-full"
-                    style={{
-                      animationDelay: `${i * 0.2}s`,
-                      animation: 'pulse 2s infinite',
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="group">
-            <label className="flex items-center gap-3 mb-3">
-              <span className="text-red-400 font-mono text-xs">[03]</span>
-              <span className="font-medium text-foreground">CODE</span>
-              <span className="text-red-500 text-xs">*REQUIRED</span>
-              <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
-            </label>
-            <div className="relative">
-              <textarea
-                value={agent}
-                onChange={(e) => {
-                  setAgent(e.target.value);
-                  debouncedCheckPrompt(e.target.value);
-                }}
-                required
-                placeholder="// Initialize agent code..."
-                className="w-full rounded-xl h-32 sm:h-40 md:h-48 p-3 sm:p-4 bg-background/80 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground resize-none font-mono text-xs sm:text-sm transition-all duration-300 hover:bg-background/90 outline-none"
-              />
-
-              <div className="absolute top-3 right-3 flex items-center gap-2">
-                {validateAgent.isPending ? (
-                  <div className="flex items-center gap-2">
-                    <LoadingSpinner />
-                    <span className="text-yellow-400 font-mono text-xs">
-                      ANALYZING...
-                    </span>
-                  </div>
-                ) : (
-                  agent.length > 0 &&
-                  validateAgent.data && (
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-2 h-2 rounded-full ${validateAgent.data.valid ? 'bg-green-500' : 'bg-red-500'}`}
-                      />
-                      <span
-                        className={`font-mono text-xs ${validateAgent.data.valid ? 'text-green-400' : 'text-red-400'}`}
-                      >
-                        {validateAgent.data.valid ? 'VALIDATED' : 'ERROR'}
-                      </span>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-
-            {agent.length > 0 &&
-              !validateAgent.isPending &&
-              validateAgent.data &&
-              !validateAgent.data.valid && (
-                <div className="mt-2 p-3 bg-red-500/10 border border-red-500/30 text-red-400 font-mono text-sm">
-                  <span className="text-red-500">[ERROR]</span>{' '}
-                  {validateAgent.data.error}
-                </div>
-              )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <div className="group">
-              <label className="flex items-center gap-3 mb-3">
-                <span className="text-red-400 font-mono text-xs">[04]</span>
-                <span className="font-medium text-foreground">LANGUAGE</span>
-                <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
-              </label>
-              <Select onValueChange={setLanguage} value={language}>
-                <SelectTrigger className="h-10 sm:h-12 bg-background/60 border border-red-500/30 focus:border-red-500 text-foreground font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80">
-                  <SelectValue placeholder="Select protocol..." />
-                </SelectTrigger>
-                <SelectContent className="bg-background border z-[9999] border-red-500/50 text-foreground">
-                  {languageOptions?.map((option) => (
-                    <SelectItem
-                      key={option}
-                      value={option}
-                      className="font-mono hover:bg-red-500/20"
-                    >
-                      {option.toUpperCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="group">
-              <label className="flex items-center gap-3 mb-3">
-                <span className="text-red-400 font-mono text-xs">[05]</span>
-                <span className="font-medium text-foreground">CLASSIFICATION</span>
-                <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
-              </label>
-              <MultiSelect
-                options={explorerCategories.map((category) => ({
-                  id: category.value,
-                  label: category.label,
-                }))}
-                selectedValues={categories}
-                onChange={handleCategoriesChange}
-                placeholder="Select categories..."
-                className="h-10 sm:h-12 bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
-              />
-            </div>
-          </div>
-
-          <ModelFileUpload
-            image={image}
-            imageUrl={imageUrl || ''}
-            filePath={filePath || ''}
-            isDeleteFile={isDeleteFile}
-            deleteImage={deleteImage}
-            modelType={modelType}
-            handleImageUpload={handleFileSelect}
-            handleDrop={handleDrop}
-            handleImageEditClick={handleImageUploadClick}
-            uploadRef={imageUploadRef}
-            uploadStatus={uploadStatus}
-            uploadProgress={uploadProgress}
-            preface="[06]"
-            title="ADD_IMAGE"
-          />
-
-          <div className="group">
-            <label className="flex items-center gap-3 mb-3">
-              <span className="text-red-400 font-mono text-xs">[07]</span>
-              <span className="font-medium text-foreground">TAGS</span>
-              <div className="flex-1 h-px bg-gradient-to-r from-red-500/30 to-transparent" />
-            </label>
+        <div className="flex flex-col gap-1">
+          <span>Name</span>
+          <div className="relative">
             <Input
-              value={tags}
-              onChange={setTags}
-              placeholder="ai, automation, tools, data-processing..."
-              className="bg-background/60 border-2 border-red-500/30 focus:border-red-500 text-foreground placeholder-muted-foreground h-10 sm:h-12 px-3 sm:px-4 font-mono text-sm sm:text-base transition-all duration-300 hover:bg-background/80"
+              value={agentName}
+              onChange={setAgentName}
+              placeholder="Enter name"
             />
           </div>
         </div>
 
-        <div className="relative bg-background/95 border-t-2 border-red-500/50 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
-          <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-red-500" />
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-red-500" />
+        <div className="flex flex-col gap-1">
+          <span>Description</span>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter description"
+            className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+          />
+        </div>
 
-          <div className="flex items-center justify-between">
-            <div />
-            <Button
-              disabled={addAgent.isPending || isLoading}
-              onClick={submit}
-              className="relative group px-4 sm:px-6 md:px-8 py-2 sm:py-3 bg-background border-2 border-red-500 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 font-mono font-bold tracking-wider overflow-hidden text-sm sm:text-base"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-              <span className="relative z-10">
-                {addAgent.isPending || isLoading
-                  ? 'DEPLOYING...'
-                  : 'DEPLOY_AGENT'}
-              </span>
-              {!addAgent.isPending && !isLoading && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                </div>
-              )}
-            </Button>
+        <div className="flex flex-col gap-1">
+          <span>Agent Code - (Add types and docstrings)</span>
+          <div className="relative">
+            <textarea
+              value={agent}
+              onChange={(v) => {
+                setAgent(v.target.value);
+              }}
+              onBlur={async () => {
+                validation.validateOnBlur('content');
+                if (agent.trim().length >= 5) {
+                  setIsValidating(true);
+                  try {
+                    await validateAgent.mutateAsync(agent);
+                  } finally {
+                    setIsValidating(false);
+                  }
+                }
+              }}
+              required
+              placeholder="Paste your agent's code here..."
+              className={`w-full h-40 p-3 border rounded-md bg-transparent outline-0 resize-none font-mono text-sm ${
+                validation.fields.content?.error
+                  ? 'border-red-500'
+                  : 'border-gray-300 focus:border-blue-500'
+              }`}
+            />
+
+            {validateAgent.isPending && (
+              <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                <LoadingSpinner />
+                <span className="text-blue-500 text-xs">Validating...</span>
+              </div>
+            )}
           </div>
+
+          {validation.fields.content?.error && (
+            <span className="text-red-500 text-sm">
+              {validation.fields.content.error}
+            </span>
+          )}
+
+          {agent.length > 0 &&
+            !validateAgent.isPending &&
+            validateAgent.data &&
+            !validateAgent.data.valid && (
+              <div className="mt-2 p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-600 dark:text-red-300 text-sm rounded">
+                <strong>Validation Error:</strong> {validateAgent.data.error}
+              </div>
+            )}
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <span>Language</span>
+          <Select onValueChange={setLanguage} value={language}>
+            <SelectTrigger className="w-1/2 cursor-pointer capitalize">
+              <SelectValue placeholder={language} />
+            </SelectTrigger>
+            <SelectContent className="capitalize">
+              {languageOptions?.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col gap-1 my-4">
+          <span>Categories</span>
+          <MultiSelect
+            options={explorerCategories.map((category) => ({
+              id: category.value,
+              label: category.label,
+            }))}
+            selectedValues={categories}
+            onChange={handleCategoriesChange}
+            placeholder="Select categories"
+          />
+        </div>
+
+        <ModelFileUpload
+          image={image}
+          imageUrl={imageUrl || ''}
+          filePath={filePath || ''}
+          isDeleteFile={isDeleteFile}
+          deleteImage={deleteImage}
+          modelType={modelType}
+          handleImageUpload={handleFileSelect}
+          handleDrop={handleDrop}
+          handleImageEditClick={handleImageUploadClick}
+          uploadRef={imageUploadRef}
+          uploadStatus={uploadStatus}
+          uploadProgress={uploadProgress}
+        />
+
+        <div className="flex flex-col gap-1">
+          <span>Tags</span>
+          <Input
+            value={tags}
+            onChange={setTags}
+            placeholder="AI, automation, tools, etc."
+          />
+        </div>
+
+        <div className="group flex flex-col gap-2">
+          <span className="font-medium text-sm text-gray-200">Pricing</span>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setIsFree(true)}
+                className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-sm ${
+                  isFree
+                    ? 'border-green-500 bg-green-500/10 text-green-400'
+                    : 'border-red-500/30 bg-background/60 text-muted-foreground hover:border-red-500/50'
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full ${isFree ? 'bg-green-500' : 'bg-red-500/30'}`}
+                />
+                Free
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsFree(false)}
+                className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-sm ${
+                  !isFree
+                    ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400'
+                    : 'border-red-500/30 bg-background/60 text-muted-foreground hover:border-red-500/50'
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full ${!isFree ? 'bg-yellow-500' : 'bg-red-500/30'}`}
+                />
+                Paid
+              </button>
+            </div>
+
+            {!isFree && (
+              <div className="space-y-4 p-4 border border-yellow-500/30 bg-yellow-500/5">
+                {/* Trustworthiness Status */}
+                {checkTrustworthiness.isLoading && (
+                  <div className="flex items-center gap-2 p-3 bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-lg">
+                    <LoadingSpinner />
+                    <span className="text-[#FF6B6B] text-sm">
+                      Checking marketplace eligibility...
+                    </span>
+                  </div>
+                )}
+
+                {checkTrustworthiness.data &&
+                  !checkTrustworthiness.data.isEligible && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-red-400 font-medium">
+                          ❌ Not Eligible for Marketplace
+                        </span>
+                      </div>
+                      <p className="text-red-300 text-sm">
+                        {checkTrustworthiness.data.reason}
+                      </p>
+                      {!checkTrustworthiness.data.isBypassUser && (
+                        <div className="mt-2 text-xs text-red-200">
+                          <p>
+                            Requirements: 2+ published items with 3.5+ average
+                            rating
+                          </p>
+                          <p>
+                            Your stats:{' '}
+                            {checkTrustworthiness.data.publishedCount}{' '}
+                            published,{' '}
+                            {checkTrustworthiness.data.averageRating.toFixed(1)}{' '}
+                            avg rating
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                {checkTrustworthiness.data &&
+                  checkTrustworthiness.data.isEligible && (
+                    <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-400 font-medium">
+                          ✅ Eligible for Marketplace
+                        </span>
+                      </div>
+                      {!checkTrustworthiness.data.isBypassUser && (
+                        <p className="text-green-300 text-sm mt-1">
+                          {checkTrustworthiness.data.publishedCount} published
+                          items,{' '}
+                          {checkTrustworthiness.data.averageRating.toFixed(1)}{' '}
+                          avg rating
+                        </p>
+                      )}
+                    </div>
+                  )}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Price (SOL) <span className="text-yellow-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={price}
+                    onChange={setPrice}
+                    onBlur={() => validation.validateOnBlur('price')}
+                    placeholder="0.00"
+                    min="0.000001"
+                    max="999"
+                    step="0.000001"
+                    className={`bg-background/40 border transition-colors duration-300 hover:bg-background/60 ${
+                      validation.fields.price?.error
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-yellow-500/30 focus:border-yellow-500'
+                    } text-foreground placeholder-muted-foreground`}
+                  />
+                  {validation.fields.price?.error && (
+                    <span className="text-red-500 text-sm mt-1">
+                      {validation.fields.price.error}
+                    </span>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">
+                    Range: 0.000001 - 999,999 SOL
+                  </p>
+                </div>
+
+                <SmartWalletInput
+                  value={walletAddress}
+                  onChange={setWalletAddress}
+                  onBlur={() => validation.validateOnBlur('walletAddress')}
+                  error={validation.fields.walletAddress?.error}
+                  disabled={addAgent.isPending || isLoading}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end mt-4">
+          <Button
+            disabled={
+              addAgent.isPending ||
+              isLoading ||
+              isValidating ||
+              validateAgent.isPending ||
+              (!isFree && checkTrustworthiness.isLoading) ||
+              (!isFree &&
+                checkTrustworthiness.data &&
+                !checkTrustworthiness.data.isEligible)
+            }
+            onClick={submit}
+            className="w-32"
+          >
+            {addAgent.isPending || isLoading
+              ? 'Submitting...'
+              : isValidating || validateAgent.isPending
+                ? 'Validating...'
+                : !isFree && checkTrustworthiness.isLoading
+                  ? 'Checking...'
+                  : 'Submit Agent'}
+          </Button>
         </div>
       </div>
     </Modal>
+    </WalletProvider>
   );
 };
 
