@@ -199,6 +199,7 @@ const AddToolModal = ({
               value={toolName}
               onChange={setToolName}
               placeholder="Enter name"
+              className="border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400"
             />
           </div>
         </div>
@@ -208,7 +209,7 @@ const AddToolModal = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter description"
-            className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+            className="w-full h-20 p-2 border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400 rounded-md bg-transparent outline-0 resize-none"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -222,7 +223,7 @@ const AddToolModal = ({
               }}
               required
               placeholder="Enter tool code here..."
-              className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+              className="w-full h-20 p-2 border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400 rounded-md bg-transparent outline-0 resize-none"
             />
             {validateTool.isPending ? (
               <div className="absolute right-2 top-2">
@@ -300,6 +301,7 @@ const AddToolModal = ({
             value={tags}
             onChange={setTags}
             placeholder="Tools, Search, etc."
+            className="border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400"
           />
         </div>
         <div className="flex justify-end mt-4">

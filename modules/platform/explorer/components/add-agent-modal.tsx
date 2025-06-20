@@ -21,6 +21,7 @@ import ModelFileUpload from './upload-image';
 import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
 import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
 import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
+import { solToUsd } from '@/shared/services/sol-price';
 
 interface Props {
   isOpen: boolean;
@@ -47,6 +48,8 @@ const AddAgentModal = ({
   const [price, setPrice] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [isValidating, setIsValidating] = useState(false);
+  const [usdPrice, setUsdPrice] = useState<number | null>(null);
+  const [isConvertingPrice, setIsConvertingPrice] = useState(false);
 
   const {
     image,
@@ -72,6 +75,25 @@ const AddAgentModal = ({
     });
 
   const validation = useMarketplaceValidation();
+
+  // Convert SOL to USD on price change
+  const convertPriceToUsd = async (solPrice: string) => {
+    if (!solPrice || isNaN(parseFloat(solPrice))) {
+      setUsdPrice(null);
+      return;
+    }
+
+    setIsConvertingPrice(true);
+    try {
+      const usd = await solToUsd(parseFloat(solPrice));
+      setUsdPrice(usd);
+    } catch (error) {
+      console.error('Failed to convert price:', error);
+      setUsdPrice(null);
+    } finally {
+      setIsConvertingPrice(false);
+    }
+  };
 
   useEffect(() => {
     validation.updateField('name', agentName);
@@ -302,6 +324,7 @@ const AddAgentModal = ({
               value={agentName}
               onChange={setAgentName}
               placeholder="Enter name"
+              className="border border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400"
             />
           </div>
         </div>
@@ -312,7 +335,7 @@ const AddAgentModal = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter description"
-            className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
+            className="w-full h-20 p-2 border border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400 rounded-md bg-transparent outline-0 resize-none"
           />
         </div>
 
@@ -340,7 +363,7 @@ const AddAgentModal = ({
               className={`w-full h-40 p-3 border rounded-md bg-transparent outline-0 resize-none font-mono text-sm ${
                 validation.fields.content?.error
                   ? 'border-red-500'
-                  : 'border-gray-300 focus:border-blue-500'
+                  : 'border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400'
               }`}
             />
 
@@ -418,6 +441,7 @@ const AddAgentModal = ({
             value={tags}
             onChange={setTags}
             placeholder="AI, automation, tools, etc."
+            className="border border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400"
           />
         </div>
 
@@ -524,7 +548,10 @@ const AddAgentModal = ({
                     type="number"
                     value={price}
                     onChange={setPrice}
-                    onBlur={() => validation.validateOnBlur('price')}
+                    onBlur={() => {
+                      validation.validateOnBlur('price');
+                      convertPriceToUsd(price);
+                    }}
                     placeholder="0.00"
                     min="0.000001"
                     max="999"
@@ -540,9 +567,28 @@ const AddAgentModal = ({
                       {validation.fields.price.error}
                     </span>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1 font-mono">
-                    Range: 0.000001 - 999,999 SOL
-                  </p>
+                  {price && !validation.fields.price?.error && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-muted-foreground font-mono">
+                        Range: 0.000001 - 999,999 SOL
+                      </p>
+                      {isConvertingPrice ? (
+                        <div className="flex items-center gap-1">
+                          <LoadingSpinner />
+                          <span className="text-xs text-muted-foreground">Converting...</span>
+                        </div>
+                      ) : usdPrice !== null ? (
+                        <span className="text-xs text-green-400 font-mono">
+                          ≈ ${usdPrice.toFixed(2)} USD
+                        </span>
+                      ) : null}
+                    </div>
+                  )}
+                  {!price && (
+                    <p className="text-xs text-muted-foreground mt-1 font-mono">
+                      Range: 0.000001 - 999,999 SOL
+                    </p>
+                  )}
                 </div>
 
                 <SmartWalletInput

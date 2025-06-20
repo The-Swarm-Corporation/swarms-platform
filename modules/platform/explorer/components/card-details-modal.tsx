@@ -13,12 +13,11 @@ import {
   Cpu,
   Database,
   X,
-  Plus,
   Wrench,
   CheckCircle,
   Edit,
-  DollarSign,
   ExternalLink,
+  Key,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
@@ -348,14 +347,11 @@ export default function CardDetailsModal({
               >
                 {showPremiumBadge && cardData.price && cardData.price > 0 ? (
                   <div className="flex items-center gap-1">
-                    <span>
-                      <DollarSign className="w-4 h-4" />
-                      Buy for
-                    </span>
+                    <span className="flex items-center">Buy</span>
 
                     <USDPriceDisplay
                       solAmount={cardData.price}
-                      className="text-[#4ECD78]"
+                      className="text-[#4ECD78] text-sm"
                     />
                   </div>
                 ) : (
@@ -372,23 +368,24 @@ export default function CardDetailsModal({
               className="font-mono hidden md:block"
             >
               {cardData.is_free ? (
-                <Badge className="bg-green-500/20 hover:bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                  FREE
+                <Badge className="bg-green-500/20 hover:bg-green-500/20 text-green-400 border-green-500/30 text-sm rounded-lg flex items-center gap-2 px-3 md:px-4 py-2">
+                  <Key className="w-4 h-4" />
+                  Free
                 </Badge>
               ) : showOwnerBadge ? (
-                <Badge className="bg-blue-500/20 hover:bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs flex items-center gap-1">
-                  <Edit className="w-3 h-3" />
-                  <span>AUTHOR</span>
+                <Badge className="bg-blue-500/20 hover:bg-blue-500/20 text-blue-400 border-blue-500/30 text-sm rounded-lg flex items-center gap-2 px-3 md:px-4 py-2">
+                  <Edit className="w-4 h-4" />
+                  <span>Author</span>
                 </Badge>
               ) : showPurchasedBadge ? (
-                <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/20 border-green-500/30 text-xs flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>PAID</span>
+                <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/20 border-green-500/30 text-sm rounded-lg flex items-center gap-2 px-3 md:px-4 py-2">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Paid</span>
                 </Badge>
               ) : (
-                <Badge className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20 border-yellow-500/30 text-xs flex items-center gap-1">
-                  <span>💎</span>
-                  <span>PREMIUM</span>
+                <Badge className="bg-purple-500/20 capitalize text-purple-400 hover:bg-purple-500/20 border-purple-500/30 text-sm rounded-lg flex items-center gap-2 px-3 md:px-4 py-2">
+                  <Crown className="w-4 h-4" />
+                  <span>Premium</span>
                 </Badge>
               )}
             </div>
