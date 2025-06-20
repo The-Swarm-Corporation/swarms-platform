@@ -30,8 +30,14 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { useWallet } from './wallet-provider';
 import { useConfig } from '@/shared/hooks/use-config';
 import PriceDisplay from './price-display';
-import { calculateCommission, validateCommissionCalculation } from '@/shared/utils/marketplace/commission';
-import { executeTransactionWithRetry, createEnhancedConnection } from '@/shared/utils/solana-transaction-utils';
+import {
+  calculateCommission,
+  validateCommissionCalculation,
+} from '@/shared/utils/marketplace/commission';
+import {
+  executeTransactionWithRetry,
+  createEnhancedConnection,
+} from '@/shared/utils/solana-transaction-utils';
 
 interface PurchaseModalProps {
   isOpen: boolean;
@@ -137,7 +143,6 @@ const PurchaseModal = ({
         throw new Error('Platform wallet address not configured');
       }
 
-      // Create enhanced connection with better timeout settings
       const connection = createEnhancedConnection(rpcUrl);
 
       const fromPubkey = new PublicKey(publicKey);
@@ -145,12 +150,10 @@ const PurchaseModal = ({
       const platformPubkey = new PublicKey(platformWalletAddress);
 
       const totalAmount = item.price * LAMPORTS_PER_SOL;
-      // Use precise commission calculation
       const commission = calculateCommission(item.price);
       const platformFee = Math.floor(commission.platformFee * LAMPORTS_PER_SOL);
       const sellerAmount = totalAmount - platformFee;
 
-      // Execute transaction with retry logic for blockhash issues
       const result = await executeTransactionWithRetry({
         connection,
         fromPubkey,
@@ -165,7 +168,6 @@ const PurchaseModal = ({
         throw new Error(result.error || 'Transaction failed');
       }
 
-      // Save transaction to database
       await createTransactionMutation.mutateAsync({
         sellerId: item.sellerId,
         itemId: item.id,
@@ -175,7 +177,6 @@ const PurchaseModal = ({
         buyerWalletAddress: publicKey,
         sellerWalletAddress: item.sellerWalletAddress,
       });
-
     } catch (error) {
       console.error('Purchase error:', error);
       toast({
@@ -187,15 +188,13 @@ const PurchaseModal = ({
     }
   };
 
-  // Calculate commission with proper precision using utility
   const commission = calculateCommission(item.price);
   const { platformFee, sellerAmount } = commission;
 
-  // Validate commission calculation
   const isCommissionValid = validateCommissionCalculation(
     item.price,
     platformFee,
-    sellerAmount
+    sellerAmount,
   );
 
   return (
@@ -224,29 +223,15 @@ const PurchaseModal = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Price:</span>
-                <span className="font-semibold">
-                  <PriceDisplay solAmount={item.price} size="sm" />
-                </span>
-              </div>
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Platform fee (10%):</span>
-                <span>
-                  <PriceDisplay solAmount={platformFee} size="sm" />
-                </span>
-              </div>
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>To seller (90%):</span>
-                <span>
-                  <PriceDisplay solAmount={sellerAmount} size="sm" />
-                </span>
-              </div>
               <hr />
               <div className="flex justify-between font-semibold">
-                <span>Total:</span>
+                <span>Amount to pay:</span>
                 <span>
-                  <PriceDisplay solAmount={item.price} size="sm" />
+                  <PriceDisplay
+                    showSOL={false}
+                    solAmount={item.price}
+                    className="font-bold text-base"
+                  />
                 </span>
               </div>
             </div>
@@ -299,7 +284,7 @@ const PurchaseModal = ({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+            <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
               <CheckCircle className="h-5 w-5 text-green-500" />
               <span className="text-sm">
                 Wallet connected: {publicKey?.slice(0, 8)}...
@@ -308,7 +293,7 @@ const PurchaseModal = ({
             <Button
               onClick={handlePurchase}
               disabled={isProcessing || !isCommissionValid}
-              className="w-full"
+              className="w-full bg-[#4ECD78]/10 border border-[#4ECD78]/20 hover:bg-[#4ECD78]/20 text-[#4ECD78]"
               size="lg"
             >
               {isProcessing ? (
@@ -319,7 +304,14 @@ const PurchaseModal = ({
               ) : (
                 <>
                   <CreditCard className="h-5 w-5 mr-2" />
-                  Purchase for <PriceDisplay solAmount={item.price} size="sm" className="inline" />
+                  <div className="flex items-center gap-2">
+                    <span>Purchase for</span>{' '}
+                    <PriceDisplay
+                      showSOL={false}
+                      solAmount={item.price}
+                      className="inline text-sm"
+                    />
+                  </div>
                 </>
               )}
             </Button>
@@ -327,7 +319,12 @@ const PurchaseModal = ({
         )}
 
         <div className="mt-6 text-center">
-          <Button variant="outline" onClick={onClose} disabled={isProcessing}>
+          <Button
+            variant="outline"
+            className="border border-[#40403F]"
+            onClick={onClose}
+            disabled={isProcessing}
+          >
             Cancel
           </Button>
         </div>
