@@ -2,7 +2,7 @@
 
 import { cn } from '@/shared/utils/cn';
 import Link from 'next/link';
-import { Bolt, CheckCircle, Gem, PackageOpen, Sparkles } from 'lucide-react';
+import { Bolt, CheckCircle, Gem, PackageOpen, Sparkles, ArrowRight, Star, Shield, Zap } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import useSubscription from '@/shared/hooks/subscription';
@@ -57,9 +57,21 @@ export default function PricingCard({
   }, [price, isAnnually]);
 
   const getPlanIcon = () => {
-    if (isPremium) return <Bolt />;
-    if (isFree) return <PackageOpen />;
-    return <Gem />;
+    if (isPremium) return <Zap className="w-6 h-6" />;
+    if (isFree) return <PackageOpen className="w-6 h-6" />;
+    return <Shield className="w-6 h-6" />;
+  };
+
+  const getPlanGradient = () => {
+    if (isPremium) return 'from-red-500/20 via-red-600/20 to-red-500/20';
+    if (isEnterprise) return 'from-green-500/20 via-green-600/20 to-green-500/20';
+    return 'from-white/5 via-white/10 to-white/5';
+  };
+
+  const getPlanBorder = () => {
+    if (isPremium) return 'border-red-500/30';
+    if (isEnterprise) return 'border-green-500/30';
+    return 'border-white/20';
   };
 
   const handlePaymentSession = async () => {
@@ -85,34 +97,39 @@ export default function PricingCard({
     if (isEnterprise) return null;
 
     return (
-      <div className="my-8 flex">
+      <div className="my-8">
         {showAnnualStrike && (
-          <sup className="text-sm font-bold text-white uppercase lg:text-xl line-through">
-            ${(price as any).annually}
-          </sup>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg font-semibold text-white/50 line-through">
+              ${(price as any).annually}
+            </span>
+            <span className="px-2 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-xs font-medium text-green-400">
+              Save ${Number((price as any).annually) - Number(displayPrice)}
+            </span>
+          </div>
         )}
-        <p className="flex items-end">
-          <span className="text-2xl font-bold text-white uppercase lg:text-5xl">
+        <div className="flex items-baseline gap-2">
+          <span className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
             ${displayPrice}
           </span>
           {!isLifetime && (
-            <span className="ml-1 text-sm font-medium text-white">
-              {isEnterprise ? '/user' : ''} <br />
+            <span className="text-lg font-medium text-white/60">
+              {isEnterprise ? '/user' : ''} 
               {isAnnually ? '/year' : '/month'}
             </span>
           )}
-        </p>
+        </div>
+        {isLifetime && (
+          <div className="flex items-center gap-2 mt-2">
+            <Star className="w-4 h-4 text-white" />
+            <span className="text-sm font-medium text-white">One-time payment</span>
+          </div>
+        )}
       </div>
     );
   };
 
   const renderActionButton = () => {
-    const sharedClasses = cn(
-      'items-center justify-between uppercase inline-flex w-full font-medium px-6 py-2.5 text-center',
-      'duration-200 border border-white/5 dark:border-white/10 rounded-xl h-14',
-      'focus:outline-none focus-visible:outline-black text-base focus-visible:ring-black',
-    );
-
     if (isEnterprise) {
       return (
         <Link
@@ -120,11 +137,15 @@ export default function PricingCard({
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
-            sharedClasses,
-            'text-white bg-white/10 dark:bg-white/5 hover:bg-white/10 hover:border-white/10 lg:mt-28',
+            'group relative w-full inline-flex items-center justify-center px-8 py-4 text-base font-semibold',
+            'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
+            'text-white rounded-2xl transition-all duration-300 transform hover:scale-[1.02]',
+            'shadow-lg hover:shadow-green-500/25 border border-green-500/30',
+            'focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 focus:ring-offset-black'
           )}
         >
-          {page === 'pricing' ? 'Get Started' : 'Contact us'}
+          <span>{page === 'pricing' ? 'Contact Sales' : 'Contact us'}</span>
+          <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
       );
     }
@@ -134,17 +155,20 @@ export default function PricingCard({
         <Button
           onClick={handlePaymentSession}
           className={cn(
-            sharedClasses,
-            'text-black bg-white hover:bg-white/20 hover:border-white hover:text-white',
+            'group relative w-full inline-flex items-center justify-center px-8 py-4 text-base font-semibold',
+            'bg-gradient-to-r from-red-600 via-red-700 to-red-800 hover:from-red-700 hover:to-red-900',
+            'text-white rounded-2xl transition-all duration-300 transform hover:scale-[1.02]',
+            'shadow-lg hover:shadow-red-600/25 border border-red-600/30',
+            'focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:ring-offset-2 focus:ring-offset-black'
           )}
           disabled={subscription.createSubscriptionPortalLoading}
           aria-disabled={subscription.createSubscriptionPortalLoading}
         >
           <span>{page === 'pricing' ? 'Get Started' : 'Subscribe'}</span>
-          {index === 1 && subscription.createSubscriptionPortalLoading && (
-            <span className="ml-2">
-              <LoadingSpinner />
-            </span>
+          {subscription.createSubscriptionPortalLoading ? (
+            <LoadingSpinner className="ml-2" />
+          ) : (
+            <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
           )}
         </Button>
       );
@@ -154,63 +178,104 @@ export default function PricingCard({
       <Link
         href="/"
         className={cn(
-          sharedClasses,
-          'text-white bg-white/10 dark:bg-white/5 hover:bg-white/10 hover:border-white/10',
+          'group relative w-full inline-flex items-center justify-center px-8 py-4 text-base font-semibold',
+          'bg-white/10 hover:bg-white/20 backdrop-blur-sm',
+          'text-white rounded-2xl transition-all duration-300 transform hover:scale-[1.02]',
+          'border border-white/20 hover:border-white/30',
+          'focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black'
         )}
       >
-        {page === 'pricing' ? 'Get Started' : 'Free Access'}
+        <span>{page === 'pricing' ? 'Get Started' : 'Free Access'}</span>
+        <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
       </Link>
     );
   };
 
   return (
-    <div className="max-w-sm">
-      <div className="flex flex-col">
-        <div
-          className={cn(
-            'p-8 shadow-2xl rounded-3xl bg-black ring-1 ring-white/10 border',
-            isPremium && 'bg-primary',
-          )}
-        >
-          <div className="flex items-center gap-3 text-white">
-            {getPlanIcon()}
-            <p className="text-base font-bold capitalize">{title}</p>
+    <div className="relative h-full">
+      <div className={cn(
+        'relative h-full p-8 rounded-3xl backdrop-blur-xl transition-all duration-500',
+        isPremium
+          ? 'bg-gradient-to-br from-red-900 via-red-950 to-black border-red-950 shadow-4xl'
+          : 'bg-white/5 border border-white/10 hover:border-white/20 shadow-2xl',
+        isEnterprise && 'bg-gradient-to-br from-green-500/10 via-green-600/10 to-green-500/10 border-green-500/20',
+      )}>
+        {/* Plan Badge */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              'p-2 rounded-xl',
+              isPremium && 'bg-red-900/60 border border-red-700',
+              isEnterprise && 'bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30',
+              isFree && 'bg-white/10 border border-white/20'
+            )}>
+              {getPlanIcon()}
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white">{title}</h3>
+              {isPremium && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Sparkles className="w-3 h-3 text-red-400" />
+                  <span className="text-xs font-medium text-red-400">Most Popular</span>
+                </div>
+              )}
+            </div>
           </div>
-          <p className="mt-3 text-sm font-medium text-white">
-            {isLifetime ? lifetime_description || description : description}{' '}
-            {page === 'account' && (
-              <Link
-                href="/pricing"
-                className={cn(
-                  'underline',
-                  isPremium ? 'text-black' : 'text-red-500',
-                )}
-              >
-                Learn more
-              </Link>
-            )}
-          </p>
-
-          {renderPriceSection()}
-          <div className="flex">{renderActionButton()}</div>
         </div>
 
-        {page === 'pricing' && (
-          <div className="px-8">
-            <p className="flex items-center gap-1 mt-4 text-base drop-shadow-lg font-semibold text-primary lg:mt-8">
-              <Sparkles size={12} /> {subtitle}:
-            </p>
-            <ul
-              className="order-last gap-4 mt-4 space-y-3 text-gray-700 dark:text-gray-300 list-none"
-              role="list"
+        {/* Description */}
+        <p className="text-white/70 text-sm leading-relaxed mb-6">
+          {isLifetime ? lifetime_description || description : description}
+          {page === 'account' && (
+            <Link
+              href="/pricing"
+              className={cn(
+                'ml-2 underline hover:no-underline transition-all',
+                isPremium ? 'text-red-200' : 'text-white',
+              )}
             >
+              Learn more
+            </Link>
+          )}
+        </p>
+
+        {/* Price */}
+        {renderPriceSection()}
+
+        {/* Action Button */}
+        <div className="mb-8">
+          {renderActionButton()}
+        </div>
+
+        {/* Features List */}
+        {page === 'pricing' && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-2">
+              <div className={cn(
+                "w-1 h-6 rounded-full",
+                isPremium && "bg-gradient-to-b from-red-500 to-red-700",
+                isEnterprise && "bg-gradient-to-b from-green-500 to-green-700",
+                isFree && "bg-gradient-to-b from-white to-white/60"
+              )} />
+              <h4 className="text-sm font-semibold text-white/90 uppercase tracking-wider">
+                {subtitle}
+              </h4>
+            </div>
+            <ul className="space-y-4">
               {Object.keys(content).map((key) => (
                 <li
                   key={key}
-                  className="flex items-center mt-4 font-medium drop-shadow-md gap-2 text-sm"
+                  className="flex items-start gap-3 text-sm text-white/80"
                 >
-                  <CheckCircle className="size-4 text-gray-500" />
-                  <span>{key}</span>
+                  <div className="flex-shrink-0 mt-0.5">
+                    <CheckCircle className={cn(
+                      "w-4 h-4",
+                      isPremium && "text-red-400",
+                      isEnterprise && "text-green-400",
+                      isFree && "text-white"
+                    )} />
+                  </div>
+                  <span className="leading-relaxed">{key}</span>
                 </li>
               ))}
             </ul>

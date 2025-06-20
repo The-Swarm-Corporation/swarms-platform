@@ -88,7 +88,7 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
       title="Share"
       className={`flex flex-col items-start justify-center max-sm:max-w-[320px] transition-all duration-300 ease-in-out ${
         isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-      } border-2 border-red-500 rounded-lg`}
+      } border-2 border-gray-800 rounded-lg`}
     >
       <div className="relative flex items-center pt-0.5 w-full">
         <div className="grow border-t border-gray-300 dark:border-zinc-800" />
@@ -127,7 +127,7 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
           />
           <Button 
             onClick={handleCopy}
-            className="ml-2 transition-all duration-200 hover:bg-red-600"
+            className="ml-2 transition-all duration-200 bg-blue-600 hover:bg-blue-900"
           >
             Copy
           </Button>

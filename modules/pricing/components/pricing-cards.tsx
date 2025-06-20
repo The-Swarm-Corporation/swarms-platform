@@ -5,7 +5,7 @@ import { cn } from '@/shared/utils/cn';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import PricingCard, { PricingCardProps } from './card';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Zap, Crown } from 'lucide-react';
 
 type PricingTab = 'annually' | 'monthly' | 'lifetime';
 
@@ -21,59 +21,100 @@ export default function PricingCards({
   const handleTabChange = (tab: PricingTab) => setActiveTab(tab);
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex items-center justify-center mt-6 p-1 bg-secondary rounded-md">
-        <Button
-          onClick={() => handleTabChange('monthly')}
-          className={cn(
-            'px-6 py-0 h-8 w-28 lg:w-32 text-sm font-medium capitalize focus:outline-none focus-visible:outline-black bg-transparent text-black dark:text-white',
-            'hover:bg-transparent, hover:text-primary rounded-md shadow-md',
-            activeTab === 'monthly' &&
-              'bg-primary text-white hover:text-white hover:bg-primary',
-          )}
-        >
-          Monthly
-        </Button>
-        <Button
-          onClick={() => handleTabChange('annually')}
-          className={cn(
-            'px-6 py-0 h-8 w-28 lg:w-32 text-sm font-medium capitalize focus:outline-none focus-visible:outline-black bg-transparent text-black dark:text-white',
-            'hover:bg-transparent, hover:text-primary rounded-md shadow-md',
-            activeTab === 'annually' &&
-              'bg-primary text-white hover:text-white hover:bg-primary',
-          )}
-        >
-          Annually{' '}
-          <span className="ml-2 bg-black p-1 px-2 text-xs text-white rounded-sm shadow-sm">
-            -15%
-          </span>
-        </Button>
-        <Button
-          onClick={() => handleTabChange('lifetime')}
-          className={cn(
-            'px-6 py-0 h-8 w-28 lg:w-32 text-sm font-medium capitalize focus:outline-none focus-visible:outline-black bg-transparent text-black dark:text-white',
-            'hover:bg-transparent, hover:text-primary rounded-md shadow-md',
-            activeTab === 'lifetime' &&
-              'bg-primary text-white hover:text-white hover:bg-primary',
-          )}
-        >
-          Lifetime{' '}
-          <span className="ml-2 bg-black p-1 px-2 rounded-sm shadow-sm">
-            <Sparkles className="w-4 h-4 text-yellow-600" />
-          </span>
-        </Button>
+    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-black">
+      {/* Header Section */}
+      <div className="text-center mb-16">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-sm font-medium text-white/80 mb-6">
+          <Sparkles className="w-4 h-4 text-white" />
+          Choose Your Plan
+        </div>
+        <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+          Pricing Plans
+        </h1>
+        <p className="text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+          Lower Operational Costs, Increase Productivity, and Automate Your Organization with Swarms.
+        </p>
       </div>
-      <div className="grid grid-cols-1 gap-8 mt-12 lg:gap-2 lg:grid-cols-3">
+
+      {/* Tab Selector */}
+      <div className="flex items-center justify-center mb-16">
+        <div className="relative p-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-md shadow-2xl">
+          <div className="flex items-center gap-1">
+            <Button
+              onClick={() => handleTabChange('monthly')}
+              className={cn(
+                'relative px-8 py-3 h-12 text-sm font-semibold transition-all duration-300',
+                'bg-transparent text-white/70 hover:text-white border-0',
+                'focus:outline-none focus:ring-0',
+                activeTab === 'monthly' && 'text-white bg-white/10',
+                activeTab !== 'monthly' && 'hover:bg-white/5'
+              )}
+            >
+              Monthly
+            </Button>
+            <Button
+              onClick={() => handleTabChange('annually')}
+              className={cn(
+                'relative px-8 py-3 h-12 text-sm font-semibold transition-all duration-300',
+                'bg-transparent text-white/70 hover:text-white border-0',
+                'focus:outline-none focus:ring-0',
+                activeTab === 'annually' && 'text-white bg-white/10',
+                activeTab !== 'annually' && 'hover:bg-white/5'
+              )}
+            >
+              <span className="relative z-10">Annually</span>
+              <span className="relative z-10 ml-2 bg-red-500 px-2 py-0.5 text-xs text-white rounded-full">
+                -15%
+              </span>
+            </Button>
+            <Button
+              onClick={() => handleTabChange('lifetime')}
+              className={cn(
+                'relative px-8 py-3 h-12 text-sm font-semibold transition-all duration-300',
+                'bg-transparent text-white/70 hover:text-white border-0',
+                'focus:outline-none focus:ring-0',
+                activeTab === 'lifetime' && 'text-white bg-white/10',
+                activeTab !== 'lifetime' && 'hover:bg-white/5'
+              )}
+            >
+              <span className="relative z-10">Lifetime</span>
+              <span className="relative z-10 ml-2 bg-white px-2 py-0.5 text-xs text-black rounded-full">
+                <Crown className="w-3 h-3" />
+              </span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Pricing Cards Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6">
         {pricingData.map((item, index) => (
-          <PricingCard
-            key={item.title}
-            {...(item as unknown as PricingCardProps)}
-            isAnnually={isAnnually}
-            index={index}
-            page={page}
-            isLifetime={isLifetime}
-          />
+          <div key={item.title} className="relative group">
+            {/* Card Glow Effect */}
+            <div className={cn(
+              "absolute -inset-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+              index === 1 ? "bg-red-500/10" : "bg-white/5"
+            )} />
+            
+            <PricingCard
+              {...(item as unknown as PricingCardProps)}
+              isAnnually={isAnnually}
+              index={index}
+              page={page}
+              isLifetime={isLifetime}
+            />
+          </div>
         ))}
+      </div>
+
+      {/* Bottom CTA */}
+      <div className="text-center mt-16">
+        <div className="inline-flex items-center gap-3 px-6 py-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
+          <Zap className="w-5 h-5 text-white" />
+          <span className="text-white/80 font-medium">
+            All plans include 24/7 support and 99.9% uptime guarantee
+          </span>
+        </div>
       </div>
     </div>
   );
