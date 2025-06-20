@@ -10,6 +10,9 @@ import {
   ChevronRight,
   Shield,
   Zap,
+  Users,
+  TrendingUp,
+  Calendar,
 } from 'lucide-react';
 
 import { Button } from '@/shared/components/ui/button';
@@ -96,194 +99,201 @@ export default function ReferralDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-black dark:bg-black dark:text-white transition-colors duration-200 cyberpunk-bg w-full">
-      <main className="container px-0 py-6 md:px-6 lg:px-8">
-        <div className="flex items-center mb-20">
-          <h2 className="text-3xl sm:text-4xl font-mono font-extrabold uppercase tracking-wider dark:text-white text-black">
+    <div className="min-h-screen bg-black/80 backdrop-blur-sm text-slate-100 w-full">
+      <main className="container px-4 py-8 md:px-6 lg:px-8 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
             Referral Dashboard
-          </h2>
-          <div className="ml-auto flex items-center">
-            <div className="text-xs font-mono dark:text-red-500/70 text-red-600/70 mr-2">
-              USER ID: 8731
-            </div>
-            <div className="h-4 w-4 rounded-sm border border-red-600 flex items-center justify-center">
-              <div className="h-2 w-2 bg-red-600 cyber-pulse"></div>
-            </div>
-          </div>
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400">
+            Track your referrals and earn rewards
+          </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card className="border-0 dark:bg-black/40 bg-white overflow-hidden shadow-lg dark:shadow-red-900/10 cyber-card">
-            <CardHeader className="bg-red-600 pb-2 cyber-header">
-              <CardTitle className="text-white text-center text-lg font-light tracking-wider flex items-center justify-center gap-2">
-                <Shield className="h-4 w-4" /> TOTAL SIGN UPS
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 dark:bg-black/80 bg-white relative">
-              <div className="absolute top-0 left-0 w-full h-full cyber-grid opacity-10"></div>
-              <p className="text-5xl font-black text-center dark:text-white text-black cyber-glow relative z-10">
-                {loadingStats ? '...' : stats?.totalSignups || 0}
-              </p>
-              <div className="text-xs text-center mt-2 font-mono dark:text-red-500/70 text-red-600/70">
-                {loadingStats ? '...' : formatChange(stats?.weeklyChange || 0)}{' '}
-                FROM LAST WEEK
+        {/* Stats Cards */}
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    Total Signups
+                  </p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                    {loadingStats ? '...' : stats?.totalSignups || 0}
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                    {loadingStats ? '...' : formatChange(stats?.weeklyChange || 0)} from last week
+                  </p>
+                </div>
+                <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                  <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 dark:bg-black/40 bg-white overflow-hidden shadow-lg dark:shadow-red-900/10 cyber-card">
-            <CardHeader className="bg-red-600 pb-2 cyber-header">
-              <CardTitle className="text-white text-center text-lg font-light tracking-wider flex items-center justify-center gap-2">
-                <Zap className="h-4 w-4" /> CREDITS EARNED
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 dark:bg-black/80 bg-white relative">
-              <div className="absolute top-0 left-0 w-full h-full cyber-grid opacity-10"></div>
-              <p className="text-5xl font-black text-center dark:text-white text-black cyber-glow relative z-10">
-                ${loadingStats ? '...' : stats?.totalCredits || 0}
-              </p>
-              <div className="text-xs text-center mt-2 font-mono dark:text-red-500/70 text-red-600/70">
-                CONVERSION RATE:{' '}
-                {loadingStats
-                  ? '...'
-                  : `${(stats?.conversionRate || 0).toFixed(1)}%`}
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    Credits Earned
+                  </p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                    ${loadingStats ? '...' : stats?.totalCredits || 0}
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                    {(stats?.conversionRate || 0).toFixed(1)}% conversion rate
+                  </p>
+                </div>
+                <div className="h-12 w-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                  <Zap className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 dark:bg-black/40 bg-white overflow-hidden shadow-lg dark:shadow-red-900/10 cyber-card">
-            <CardHeader className="bg-red-600 pb-2 cyber-header">
-              <CardTitle className="text-white text-center text-lg font-light tracking-wider flex items-center justify-center gap-2">
-                <ChevronRight className="h-4 w-4" /> ACTIVE REFERRALS
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 dark:bg-black/80 bg-white relative">
-              <div className="absolute top-0 left-0 w-full h-full cyber-grid opacity-10"></div>
-              <p className="text-5xl font-black text-center dark:text-white text-black cyber-glow relative z-10">
-                {loadingStats ? '...' : stats?.activeReferrals || 0}
-              </p>
-              <div className="text-xs text-center mt-2 font-mono dark:text-red-500/70 text-red-600/70">
-                RETENTION:{' '}
-                {loadingStats
-                  ? '...'
-                  : `${(stats?.retentionRate || 0).toFixed(1)}%`}
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    Active Referrals
+                  </p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                    {loadingStats ? '...' : stats?.activeReferrals || 0}
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                    {(stats?.retentionRate || 0).toFixed(1)}% retention rate
+                  </p>
+                </div>
+                <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="mt-8 border-0 dark:bg-black/40 bg-white overflow-hidden shadow-lg dark:shadow-red-900/10 cyber-card">
-          <CardHeader className="bg-red-600 pb-2 cyber-header">
-            <CardTitle className="text-white font-light tracking-wider flex items-center">
-              <div className="h-4 w-1 bg-white mr-2 skew-x-[-20deg]"></div>
-              SHARE YOUR REFERRAL LINK
-              <div className="cyber-lines ml-4"></div>
+        {/* Referral Link Section */}
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm mb-8">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+              Share Your Referral Link
             </CardTitle>
+            <p className="text-slate-600 dark:text-slate-400 text-sm">
+              Share this link with friends and earn rewards when they sign up
+            </p>
           </CardHeader>
-          <CardContent className="pt-6 relative">
-            <div className="absolute top-0 left-0 w-full h-full cyber-grid opacity-5"></div>
-            <div className="flex flex-col gap-4 relative z-10">
-              <div className="flex gap-2">
-                <Input
-                  value={referralLink}
-                  readOnly
-                  className="border-red-600/30 dark:border-red-900/50 bg-white dark:bg-black/90 text-black dark:text-white font-mono cyber-input"
-                />
-                <Button
-                  onClick={copyToClipboard}
-                  className="bg-red-600 hover:bg-red-700 text-white cyber-button"
-                >
-                  <Copy className="mr-2 h-4 w-4" />
-                  COPY
-                </Button>
-              </div>
+          <CardContent className="space-y-4">
+            <div className="flex gap-3">
+              <Input
+                value={referralLink}
+                readOnly
+                className="flex-1 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-sm"
+                placeholder="Loading referral link..."
+              />
+              <Button
+                onClick={copyToClipboard}
+                className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 text-white px-6"
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy
+              </Button>
+            </div>
 
-              <div className="flex flex-wrap gap-2 mt-2">
-                <Button
-                  onClick={() => shareToSocial('Twitter')}
-                  variant="outline"
-                  className="border-red-600/30 dark:border-red-900/50 hover:bg-red-950/10 dark:text-white text-black dark:hover:border-red-600 cyber-social"
-                >
-                  <Twitter className="mr-2 h-4 w-4 text-red-600" />
-                  Twitter
-                </Button>
-                <Button
-                  onClick={() => shareToSocial('Facebook')}
-                  variant="outline"
-                  className="border-red-600/30 dark:border-red-900/50 hover:bg-red-950/10 dark:text-white text-black dark:hover:border-red-600 cyber-social"
-                >
-                  <Facebook className="mr-2 h-4 w-4 text-red-600" />
-                  Facebook
-                </Button>
-                <Button
-                  onClick={() => shareToSocial('LinkedIn')}
-                  variant="outline"
-                  className="border-red-600/30 dark:border-red-900/50 hover:bg-red-950/10 dark:text-white text-black dark:hover:border-red-600 cyber-social"
-                >
-                  <Linkedin className="mr-2 h-4 w-4 text-red-600" />
-                  LinkedIn
-                </Button>
-                <Button
-                  onClick={() => shareToSocial('Instagram')}
-                  variant="outline"
-                  className="border-red-600/30 dark:border-red-900/50 hover:bg-red-950/10 dark:text-white text-black dark:hover:border-red-600 cyber-social"
-                >
-                  <Instagram className="mr-2 h-4 w-4 text-red-600" />
-                  Instagram
-                </Button>
-              </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={() => shareToSocial('Twitter')}
+                variant="outline"
+                size="sm"
+                className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+              >
+                <Twitter className="mr-2 h-4 w-4" />
+                Twitter
+              </Button>
+              <Button
+                onClick={() => shareToSocial('Facebook')}
+                variant="outline"
+                size="sm"
+                className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+              >
+                <Facebook className="mr-2 h-4 w-4" />
+                Facebook
+              </Button>
+              <Button
+                onClick={() => shareToSocial('LinkedIn')}
+                variant="outline"
+                size="sm"
+                className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+              >
+                <Linkedin className="mr-2 h-4 w-4" />
+                LinkedIn
+              </Button>
+              <Button
+                onClick={() => shareToSocial('Instagram')}
+                variant="outline"
+                size="sm"
+                className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+              >
+                <Instagram className="mr-2 h-4 w-4" />
+                Instagram
+              </Button>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="mt-8 border-0 dark:bg-black/40 bg-white overflow-hidden shadow-lg dark:shadow-red-900/10 cyber-card">
-          <CardHeader className="bg-red-600 pb-2 cyber-header">
-            <CardTitle className="text-white font-light tracking-wider flex items-center">
-              <div className="h-4 w-1 bg-white mr-2 skew-x-[-20deg]"></div>
-              REFERRAL ACTIVITY
-              <div className="cyber-lines ml-4"></div>
+        {/* Referral Activity */}
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+              Referral Activity
             </CardTitle>
+            <p className="text-slate-600 dark:text-slate-400 text-sm">
+              Track your referral performance and status
+            </p>
           </CardHeader>
-          <CardContent className="pt-6 px-0 md:px-6 relative">
-            <div className="absolute top-0 left-0 w-full h-full cyber-grid opacity-5"></div>
-            <Tabs defaultValue="all" className="relative z-10">
-              <TabsList className="grid w-full grid-cols-3 dark:bg-black/90 bg-gray-100 border-0 cyber-tabs">
+          <CardContent>
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                 <TabsTrigger
                   value="all"
-                  className="data-[state=active]:bg-red-600 data-[state=active]:text-white dark:text-white text-black rounded-none"
+                  className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100 text-slate-600 dark:text-slate-400"
                 >
-                  ALL
+                  All
                 </TabsTrigger>
                 <TabsTrigger
                   value="pending"
-                  className="data-[state=active]:bg-red-600 data-[state=active]:text-white dark:text-white text-black rounded-none"
+                  className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100 text-slate-600 dark:text-slate-400"
                 >
-                  PENDING
+                  Pending
                 </TabsTrigger>
                 <TabsTrigger
                   value="completed"
-                  className="data-[state=active]:bg-red-600 data-[state=active]:text-white dark:text-white text-black rounded-none"
+                  className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100 text-slate-600 dark:text-slate-400"
                 >
-                  COMPLETED
+                  Completed
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="all" className="mt-4">
-                <div className="cyber-table-container">
+              <TabsContent value="all" className="mt-6">
+                <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
                   <Table>
-                    <TableHeader className="dark:bg-red-950/20 bg-gray-100">
-                      <TableRow className="border-b-0">
-                        <TableHead className="font-bold dark:text-white text-black font-mono text-xs">
-                          NAME
+                    <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
+                      <TableRow className="border-slate-200 dark:border-slate-700">
+                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                          Name
                         </TableHead>
-                        <TableHead className="font-bold dark:text-white text-black font-mono text-xs">
-                          EMAIL
+                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                          Email
                         </TableHead>
-                        <TableHead className="font-bold dark:text-white text-black font-mono text-xs">
-                          DATE
+                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                          Date
                         </TableHead>
-                        <TableHead className="font-bold text-right dark:text-white text-black font-mono text-xs">
-                          STATUS
+                        <TableHead className="font-semibold text-right text-slate-900 dark:text-slate-100">
+                          Status
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -291,26 +301,26 @@ export default function ReferralDashboard() {
                       {(tableData || [])?.map((referral) => (
                         <TableRow
                           key={referral.id}
-                          className="border-b dark:border-red-900/20 border-gray-200 dark:hover:bg-red-950/10 hover:bg-gray-50 cyber-row"
+                          className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                         >
-                          <TableCell className="font-medium dark:text-white text-black text-xs md:text-sm">
+                          <TableCell className="font-medium text-slate-900 dark:text-slate-100">
                             {referral.name}
                           </TableCell>
-                          <TableCell className="dark:text-gray-300 text-gray-700 font-mono text-xs md:text-sm">
+                          <TableCell className="text-slate-600 dark:text-slate-400 font-mono text-sm">
                             {referral.email}
                           </TableCell>
-                          <TableCell className="dark:text-gray-300 text-gray-700 font-mono text-xs md:text-sm">
+                          <TableCell className="text-slate-600 dark:text-slate-400">
                             {referral.date}
                           </TableCell>
                           <TableCell className="text-right">
                             <span
-                              className={`px-2 py-1 text-xs font-medium cyber-status ${
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                 referral.status === 'Completed'
-                                  ? 'bg-green-900/20 text-green-500 dark:text-green-400 cyber-status-complete'
-                                  : 'bg-yellow-900/20 text-yellow-600 dark:text-yellow-500 cyber-status-pending'
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                  : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
                               }`}
                             >
-                              {referral.status.toUpperCase()}
+                              {referral.status}
                             </span>
                           </TableCell>
                         </TableRow>
@@ -320,22 +330,22 @@ export default function ReferralDashboard() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="pending" className="mt-4">
-                <div className="cyber-table-container">
+              <TabsContent value="pending" className="mt-6">
+                <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
                   <Table>
-                    <TableHeader className="dark:bg-red-950/20 bg-gray-100">
-                      <TableRow className="border-b-0">
-                        <TableHead className="font-bold dark:text-white text-black font-mono text-xs">
-                          NAME
+                    <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
+                      <TableRow className="border-slate-200 dark:border-slate-700">
+                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                          Name
                         </TableHead>
-                        <TableHead className="font-bold dark:text-white text-black font-mono text-xs">
-                          EMAIL
+                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                          Email
                         </TableHead>
-                        <TableHead className="font-bold dark:text-white text-black font-mono text-xs">
-                          DATE
+                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                          Date
                         </TableHead>
-                        <TableHead className="font-bold text-right dark:text-white text-black font-mono text-xs">
-                          STATUS
+                        <TableHead className="font-semibold text-right text-slate-900 dark:text-slate-100">
+                          Status
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -345,20 +355,20 @@ export default function ReferralDashboard() {
                         ?.map((referral) => (
                           <TableRow
                             key={referral.id}
-                            className="border-b dark:border-red-900/20 border-gray-200 dark:hover:bg-red-950/10 hover:bg-gray-50 cyber-row"
+                            className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                           >
-                            <TableCell className="font-medium dark:text-white text-black">
+                            <TableCell className="font-medium text-slate-900 dark:text-slate-100">
                               {referral.name}
                             </TableCell>
-                            <TableCell className="dark:text-gray-300 text-gray-700 font-mono text-sm">
+                            <TableCell className="text-slate-600 dark:text-slate-400 font-mono text-sm">
                               {referral.email}
                             </TableCell>
-                            <TableCell className="dark:text-gray-300 text-gray-700 font-mono text-sm">
+                            <TableCell className="text-slate-600 dark:text-slate-400">
                               {referral.date}
                             </TableCell>
                             <TableCell className="text-right">
-                              <span className="px-2 py-1 text-xs font-medium bg-yellow-900/20 text-yellow-600 dark:text-yellow-500 cyber-status cyber-status-pending">
-                                {referral.status.toUpperCase()}
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                                {referral.status}
                               </span>
                             </TableCell>
                           </TableRow>
@@ -368,22 +378,22 @@ export default function ReferralDashboard() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="completed" className="mt-4">
-                <div className="cyber-table-container">
+              <TabsContent value="completed" className="mt-6">
+                <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
                   <Table>
-                    <TableHeader className="dark:bg-red-950/20 bg-gray-100">
-                      <TableRow className="border-b-0">
-                        <TableHead className="font-bold dark:text-white text-black font-mono text-xs">
-                          NAME
+                    <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
+                      <TableRow className="border-slate-200 dark:border-slate-700">
+                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                          Name
                         </TableHead>
-                        <TableHead className="font-bold dark:text-white text-black font-mono text-xs">
-                          EMAIL
+                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                          Email
                         </TableHead>
-                        <TableHead className="font-bold dark:text-white text-black font-mono text-xs">
-                          DATE
+                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                          Date
                         </TableHead>
-                        <TableHead className="font-bold text-right dark:text-white text-black font-mono text-xs">
-                          STATUS
+                        <TableHead className="font-semibold text-right text-slate-900 dark:text-slate-100">
+                          Status
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -393,20 +403,20 @@ export default function ReferralDashboard() {
                         ?.map((referral) => (
                           <TableRow
                             key={referral.id}
-                            className="border-b dark:border-red-900/20 border-gray-200 dark:hover:bg-red-950/10 hover:bg-gray-50 cyber-row"
+                            className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                           >
-                            <TableCell className="font-medium dark:text-white text-black">
+                            <TableCell className="font-medium text-slate-900 dark:text-slate-100">
                               {referral.name}
                             </TableCell>
-                            <TableCell className="dark:text-gray-300 text-gray-700 font-mono text-sm">
+                            <TableCell className="text-slate-600 dark:text-slate-400 font-mono text-sm">
                               {referral.email}
                             </TableCell>
-                            <TableCell className="dark:text-gray-300 text-gray-700 font-mono text-sm">
+                            <TableCell className="text-slate-600 dark:text-slate-400">
                               {referral.date}
                             </TableCell>
                             <TableCell className="text-right">
-                              <span className="px-2 py-1 text-xs font-medium bg-green-900/20 text-green-500 dark:text-green-400 cyber-status cyber-status-complete">
-                                {referral.status.toUpperCase()}
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                {referral.status}
                               </span>
                             </TableCell>
                           </TableRow>
