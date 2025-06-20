@@ -20,9 +20,6 @@ type EditModal = {
   useCases: { title: string; description: string }[];
   imageUrl?: string;
   filePath?: string;
-  isFree?: boolean;
-  price?: number;
-  sellerWalletAddress?: string;
 };
 
 interface AgentEditModal extends EditModal {
@@ -48,10 +45,6 @@ interface InputState {
   language?: string;
   category: string[];
   requirements?: { package: string; installation: string }[];
-  // Marketplace fields
-  isFree: boolean;
-  price: number;
-  sellerWalletAddress: string;
 }
 
 export default function useEditModal({
@@ -71,10 +64,6 @@ export default function useEditModal({
     language: 'python',
     category: [],
     requirements: [{ package: '', installation: '' }],
-    // Marketplace fields
-    isFree: true,
-    price: 0,
-    sellerWalletAddress: '',
   });
 
   const {
@@ -136,10 +125,6 @@ export default function useEditModal({
           entityType === 'agent' || entityType === 'tool'
             ? entityData.requirements
             : [{ package: '', installation: '' }],
-        // Marketplace fields
-        isFree: entityData.is_free ?? true,
-        price: entityData.price ?? 0,
-        sellerWalletAddress: entityData.seller_wallet_address ?? '',
       });
     }
   }, [entityData, entityType]);
@@ -277,9 +262,6 @@ export default function useEditModal({
             imageUrl: imageUrl || undefined,
             filePath: imageUrl && filePath ? filePath : undefined,
             requirements: inputState.requirements!,
-            isFree: inputState.isFree,
-            price: inputState.price,
-            sellerWalletAddress: inputState.sellerWalletAddress,
           }
         : entityType === 'tool'
           ? {
@@ -304,9 +286,6 @@ export default function useEditModal({
               prompt: inputState.uniqueField,
               imageUrl: imageUrl || undefined,
               filePath: imageUrl && filePath ? filePath : undefined,
-              isFree: inputState.isFree,
-              price: inputState.price,
-              sellerWalletAddress: inputState.sellerWalletAddress,
             };
 
     // Edit entity
