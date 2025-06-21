@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Heart, Sparkles, Rocket, X, Search, Calendar, Zap, AlertCircle, RefreshCcw, Maximize2, Minimize2, ExternalLink, Brain } from 'lucide-react';
+import { Heart, Sparkles, Rocket, X, Search, Calendar, Zap, AlertCircle, RefreshCcw, Maximize2, Minimize2, ExternalLink, Brain, ChartBarIncreasing, Play, Info, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/shared/utils/cn';
 
@@ -10,56 +10,101 @@ const AUTONOMOUS_APPS = [
     id: 'health',
     title: 'Health',
     description: 'Your personal healthcare assistant powered by AI',
+    longDescription: 'A comprehensive healthcare platform that provides personalized medical advice, symptom analysis, and health monitoring. Features include AI-powered diagnosis, medication reminders, and integration with wearable devices.',
     domain: 'mcsplatform.swarms.world',
     url: 'https://mcsplatform.swarms.world',
     icon: <Heart size={32} className="text-blue-500" />,
     color: 'blue',
+    category: 'Healthcare',
+    features: ['AI Diagnosis', 'Health Monitoring', 'Medication Reminders', 'Wearable Integration'],
+    tags: ['medical', 'ai', 'healthcare', 'wellness']
   },
   {
     id: 'create',
     title: 'create',
     description: 'Multi-Agent Based Media Generation Engine',
+    longDescription: 'An advanced content creation platform that uses multiple AI agents to generate high-quality media content. From text to images, videos, and interactive content, this platform revolutionizes digital content creation.',
     domain: 'createnow.xyz',
     url: 'https://createnow.xyz',
     icon: <Sparkles size={32} className="text-purple-500" />,
     color: 'purple',
+    category: 'Content Creation',
+    features: ['Multi-Agent AI', 'Media Generation', 'Content Automation', 'Creative Tools'],
+    tags: ['content', 'ai', 'media', 'creation']
   },
   {
     id: 'zap',
     title: 'Zap',
     description: 'Lightning-fast social payments on Solana',
+    longDescription: 'A decentralized payment platform built on Solana blockchain that enables instant, low-cost transactions. Perfect for social payments, tipping, and micro-transactions with enhanced security and transparency.',
     domain: 'v0-solana-social-pay-app.vercel.app',
     url: 'https://v0-solana-social-pay-app.vercel.app',
     icon: <Zap size={32} className="text-yellow-500" />,
     color: 'yellow',
+    category: 'Finance',
+    features: ['Instant Payments', 'Low Fees', 'Blockchain Security', 'Social Integration'],
+    tags: ['crypto', 'payments', 'solana', 'finance']
   },
   {
     id: 'SSI',
     title: 'SSI.fun',
     description: 'Build, Deploy, and Tokenize your Applications on Solana',
+    longDescription: 'A comprehensive platform for building, deploying, and monetizing applications on the Solana blockchain. Includes tools for smart contract development, token creation, and application deployment.',
     domain: 'ssi.fun',
     url: 'https://ssi.fun',
     icon: <Brain size={32} className="text-green-500" />,
     color: 'green',
+    category: 'Development',
+    features: ['Smart Contracts', 'Token Creation', 'App Deployment', 'Blockchain Tools'],
+    tags: ['blockchain', 'development', 'solana', 'defi']
   },
-  
+  {
+    id: 'WhiteRock',
+    title: 'WhiteRock',
+    description: 'Cursor for Equity Analysis',
+    longDescription: 'An AI-powered financial analysis platform that provides deep insights into equity markets. Features include real-time data analysis, predictive modeling, and comprehensive reporting tools for investment decisions.',
+    domain: 'whiterock.swarms.world',
+    url: 'https://whiterock.swarms.world',
+    icon: <ChartBarIncreasing size={32} className="text-green-500" />,
+    color: 'green',
+    category: 'Finance',
+    features: ['Equity Analysis', 'Real-time Data', 'Predictive Modeling', 'Investment Insights'],
+    tags: ['finance', 'analysis', 'investment', 'ai']
+  }
+];
+
+const CATEGORIES = [
+  { id: 'all', name: 'All Apps', count: AUTONOMOUS_APPS.length },
+  { id: 'healthcare', name: 'Healthcare', count: AUTONOMOUS_APPS.filter(app => app.category === 'Healthcare').length },
+  { id: 'content-creation', name: 'Content Creation', count: AUTONOMOUS_APPS.filter(app => app.category === 'Content Creation').length },
+  { id: 'finance', name: 'Finance', count: AUTONOMOUS_APPS.filter(app => app.category === 'Finance').length },
+  { id: 'development', name: 'Development', count: AUTONOMOUS_APPS.filter(app => app.category === 'Development').length },
 ];
 
 export default function AutonomousAppsPage() {
   const [selectedApp, setSelectedApp] = useState<typeof AUTONOMOUS_APPS[0] | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [infoApp, setInfoApp] = useState<typeof AUTONOMOUS_APPS[0] | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const filteredApps = AUTONOMOUS_APPS.filter(app =>
-    app.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.domain.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredApps = AUTONOMOUS_APPS.filter(app => {
+    const matchesSearch = app.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.domain.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesCategory = selectedCategory === 'all' || 
+      app.category.toLowerCase().replace(' ', '-') === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   useEffect(() => {
     if (selectedApp) {
@@ -105,6 +150,21 @@ export default function AutonomousAppsPage() {
     }
   };
 
+  const openInfoModal = (app: typeof AUTONOMOUS_APPS[0]) => {
+    setInfoApp(app);
+    setShowInfoModal(true);
+  };
+
+  const closeInfoModal = () => {
+    setShowInfoModal(false);
+    setInfoApp(null);
+  };
+
+  const launchApp = (app: typeof AUTONOMOUS_APPS[0]) => {
+    setSelectedApp(app);
+    closeInfoModal();
+  };
+
   return (
     <div className="min-h-screen bg-black text-white px-8 py-12 pb-60">
       <div className="max-w-6xl mx-auto">
@@ -120,8 +180,9 @@ export default function AutonomousAppsPage() {
           </div>
         </div>
 
-        {/* Search Box */}
-        <div className="mb-12">
+        {/* Search and Filter Section */}
+        <div className="mb-12 space-y-6">
+          {/* Search Box */}
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
@@ -131,6 +192,28 @@ export default function AutonomousAppsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-black/50 border border-blue-800/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
+          </div>
+
+          {/* Category Filter */}
+          <div className="flex items-center gap-2 mb-4">
+            <Filter size={20} className="text-gray-400" />
+            <span className="text-gray-400 text-sm">Filter by:</span>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {CATEGORIES.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                  selectedCategory === category.id
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+                    : "bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-gray-700/50"
+                )}
+              >
+                {category.name} ({category.count})
+              </button>
+            ))}
           </div>
         </div>
 
@@ -160,7 +243,7 @@ export default function AutonomousAppsPage() {
             </a>
           </div>
 
-          {/* Pre-built Apps */}
+          {/* Apps Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {filteredApps.map((app) => (
               <motion.div
@@ -168,8 +251,7 @@ export default function AutonomousAppsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="relative flex flex-col p-6 rounded-lg border border-blue-800/30 bg-gradient-to-br from-black/60 to-blue-950/40 hover:from-blue-950/60 hover:to-black/80 transition-all duration-200 group cursor-pointer"
-                onClick={() => setSelectedApp(app)}
+                className="relative flex flex-col p-6 rounded-lg border border-blue-800/30 bg-gradient-to-br from-black/60 to-blue-950/40 hover:from-blue-950/60 hover:to-black/80 transition-all duration-200 group"
               >
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-blue-900/40 shadow-inner">
@@ -181,15 +263,52 @@ export default function AutonomousAppsPage() {
                   </div>
                 </div>
                 <p className="text-gray-300 mb-4">{app.description}</p>
-                <div className="mt-auto">
+                
+                {/* Category Badge */}
+                <div className="mb-4">
                   <span className={`text-xs uppercase tracking-widest text-${app.color}-500 bg-${app.color}-900/10 px-2 py-1 rounded`}>
-                    Pre-built App
+                    {app.category}
                   </span>
                 </div>
+
+                {/* Action Buttons */}
+                <div className="mt-auto flex gap-2">
+                  <button
+                    onClick={() => openInfoModal(app)}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition-colors text-sm"
+                  >
+                    <Info size={16} />
+                    <span>Learn More</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedApp(app)}
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-sm"
+                  >
+                    <Play size={16} />
+                    <span>Launch</span>
+                  </button>
+                </div>
+                
                 <div className="absolute inset-0 pointer-events-none rounded-lg border border-blue-700/10" style={{boxShadow:'0 0 32px 0 rgba(37,99,235,0.08)'}} />
               </motion.div>
             ))}
           </div>
+
+          {/* No Results */}
+          {filteredApps.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-400 text-lg">No apps found matching your criteria.</p>
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                }}
+                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
         </div>
 
         {/* App Store CTA */}
@@ -208,6 +327,109 @@ export default function AutonomousAppsPage() {
             <span>Book a Call</span>
           </a>
         </div>
+
+        {/* Info Modal */}
+        <AnimatePresence>
+          {showInfoModal && infoApp && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={closeInfoModal}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="relative bg-gray-900 rounded-lg border border-blue-800/30 overflow-hidden max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div className="p-6 border-b border-blue-800/30">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-gray-800/80 to-gray-700/80 border border-blue-900/40">
+                        {infoApp.icon}
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-100">{infoApp.title}</h2>
+                        <p className="text-gray-400">{infoApp.domain}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={closeInfoModal}
+                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                      <X size={24} className="text-gray-400" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs uppercase tracking-widest text-${infoApp.color}-500 bg-${infoApp.color}-900/10 px-2 py-1 rounded`}>
+                      {infoApp.category}
+                    </span>
+                    <span className="text-xs text-gray-500">Pre-built App</span>
+                  </div>
+                </div>
+
+                {/* Modal Content */}
+                <div className="p-6 space-y-6">
+                  {/* Description */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-200 mb-2">About</h3>
+                    <p className="text-gray-300 leading-relaxed">{infoApp.longDescription}</p>
+                  </div>
+
+                  {/* Features */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-200 mb-3">Key Features</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {infoApp.features.map((feature, index) => (
+                        <div key={index} className="flex items-center gap-2 text-gray-300">
+                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                          <span className="text-sm">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-200 mb-3">Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {infoApp.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-gray-800/50 text-gray-300 text-xs rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-6 border-t border-blue-800/30 flex gap-3">
+                  <button
+                    onClick={() => launchApp(infoApp)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors font-semibold"
+                  >
+                    <Play size={20} />
+                    <span>Launch App</span>
+                  </button>
+                  <button
+                    onClick={() => window.open(infoApp.url, '_blank')}
+                    className="flex items-center gap-2 px-4 py-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition-colors"
+                  >
+                    <ExternalLink size={20} />
+                    <span>Open in New Tab</span>
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* App Modal */}
         <AnimatePresence>
