@@ -198,16 +198,18 @@ export function PremiumPriceBadge({
 export function USDPriceDisplay({
   solAmount,
   className,
+  showBracket = true,
 }: {
   solAmount: number;
   className?: string;
+  showBracket?: boolean;
 }) {
   return (
     <PriceDisplay
       solAmount={solAmount}
       showSOL={false}
       showUSD
-      showBracket
+      showBracket={showBracket}
       size="sm"
       className={className}
     />

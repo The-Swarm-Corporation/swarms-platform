@@ -306,57 +306,7 @@ const MarketplaceWalletContent = ({ user }: { user: User | null }) => {
                 </div>
               </div>
 
-              {/* Miniature Transaction History */}
-              {user && (
-                <div className="bg-black/60 border border-red-500/30 rounded-lg p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-red-400">Recent Transactions</h3>
-                    <Link href="/platform/account/transactions">
-                      <button className="text-sm text-red-400 hover:text-red-300 underline">
-                        View All
-                      </button>
-                    </Link>
-                  </div>
 
-                  {transactionsLoading ? (
-                    <div className="flex justify-center items-center p-4">
-                      <Loader2 className="h-6 w-6 animate-spin text-red-400" />
-                    </div>
-                  ) : recentTransactions.length > 0 ? (
-                    <div className="space-y-3">
-                      {recentTransactions.map((transaction: any) => (
-                        <div key={transaction.id} className="flex justify-between items-center p-3 bg-black/40 rounded-lg border border-red-500/20">
-                          <div>
-                            <p className="text-sm font-medium text-gray-300 capitalize">
-                              {transaction.item_type} {transaction.buyer_id === user.id ? 'Purchase' : 'Sale'}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {formatDistanceToNow(new Date(transaction.created_at), { addSuffix: true })}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-red-400">
-                              <CompactPriceDisplay solAmount={transaction.amount} />
-                            </p>
-                            <p className={`text-xs capitalize ${
-                              transaction.status === 'completed' ? 'text-green-400' :
-                              transaction.status === 'pending' ? 'text-yellow-400' : 'text-red-400'
-                            }`}>
-                              {transaction.status}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <History className="h-12 w-12 mx-auto mb-4 text-gray-600" />
-                      <p className="text-gray-400">No transactions yet</p>
-                      <p className="text-sm text-gray-500">Your marketplace transactions will appear here</p>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </div>
