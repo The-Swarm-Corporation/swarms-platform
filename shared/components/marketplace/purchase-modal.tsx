@@ -20,10 +20,7 @@ import {
   Download,
 } from 'lucide-react';
 import {
-  Connection,
   PublicKey,
-  Transaction,
-  SystemProgram,
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 import { trpc } from '@/shared/utils/trpc/trpc';
@@ -63,10 +60,30 @@ const PurchaseModal = ({
   const { publicKey, isConnected, connect } = useWallet();
   const { rpcUrl, platformWalletAddress } = useConfig();
   const [isProcessing, setIsProcessing] = useState(false);
+  const utils = trpc.useUtils();
 
   const createTransactionMutation =
     trpc.marketplace.createTransaction.useMutation({
-      onSuccess: () => {
+      onSuccess: async () => {
+        try {
+          // Invalidate purchase check cache to immediately update access
+          await utils.marketplace.checkUserPurchase.invalidate({
+            itemId: item.id,
+            itemType: item.type,
+          });
+
+          // Add a small delay to ensure database consistency
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // Force a refetch to ensure we have the latest data
+          await utils.marketplace.checkUserPurchase.refetch({
+            itemId: item.id,
+            itemType: item.type,
+          });
+        } catch (error) {
+          console.warn('Cache invalidation failed:', error);
+        }
+
         toast({
           description: 'Purchase completed successfully!',
           style: { backgroundColor: '#10B981', color: 'white' },

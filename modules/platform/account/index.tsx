@@ -22,7 +22,7 @@ import Link from 'next/link';
 import { AUTH } from '@/shared/utils/constants';
 import ThemeToggle from '@/shared/components/theme-toggle';
 import CryptoWallet from './components/crypto-wallet';
-import { UserCircle, CreditCard, Wallet, Palette, Store } from 'lucide-react';
+import { UserCircle, CreditCard, Wallet, Receipt, Palette, Store } from 'lucide-react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -30,6 +30,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import MarketplaceWallet from './components/marketplace-wallet';
+import PurchasesOverview from './components/purchases-overview';
 
 export default function Account() {
   const { user } = useAuthContext();
@@ -72,6 +73,10 @@ export default function Account() {
           <TabsTrigger value="crypto" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
             Crypto
+          </TabsTrigger>
+          <TabsTrigger value="purchases" className="flex items-center gap-2">
+            <Receipt className="h-4 w-4" />
+            Purchases
           </TabsTrigger>
           <TabsTrigger value="theme" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
@@ -187,6 +192,20 @@ export default function Account() {
                   </TabsContent>
                 </Tabs>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="purchases" className="space-y-4">
+          <Card>
+            <CardHeader className="max-md:px-0">
+              <CardTitle>Recent Transactions</CardTitle>
+              <CardDescription>
+                Overview of your recent purchases and sales
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="max-md:px-0">
+              {user && <PurchasesOverview user={user} />}
             </CardContent>
           </Card>
         </TabsContent>

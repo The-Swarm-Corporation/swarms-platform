@@ -50,6 +50,9 @@ const AccessRestrictionContent = ({
     },
     {
       enabled: !!user?.id && !item.is_free,
+      staleTime: 0,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
     },
   );
 
@@ -75,6 +78,17 @@ const AccessRestrictionContent = ({
       </MessageScreen>
     );
   }
+
+  // Debug logging to help identify issues
+  console.log('Access check:', {
+    userId: user?.id,
+    itemId: item.id,
+    itemType: item.type,
+    hasPurchased: purchaseData?.hasPurchased,
+    isLoading: isPurchaseLoading,
+    isOwner: user?.id === item.user_id,
+    isFree: item.is_free
+  });
 
   if (!purchaseData?.hasPurchased) {
     return (
@@ -180,8 +194,31 @@ const AccessRestrictionContent = ({
             sellerWalletAddress: item.seller_wallet_address,
             sellerId: item.user_id,
           }}
-          onPurchaseSuccess={() => {
+          onPurchaseSuccess={async () => {
             setShowPurchaseModal(false);
+
+            // Retry mechanism to ensure purchase status is updated
+            const retryRefetch = async (attempts = 3) => {
+              for (let i = 0; i < attempts; i++) {
+                try {
+                  await refetchPurchase();
+                  const result = await refetchPurchase();
+                  if (result.data?.hasPurchased) {
+                    break;
+                  }
+                  if (i < attempts - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                  }
+                } catch (error) {
+                  console.warn(`Refetch attempt ${i + 1} failed:`, error);
+                  if (i < attempts - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                  }
+                }
+              }
+            };
+
+            await retryRefetch();
           }}
         />
       </div>

@@ -18,10 +18,10 @@ export function usePurchaseStatus({
 }: UsePurchaseStatusProps) {
   const { user } = useAuthContext();
 
-  // Check if user has purchased this item
   const {
     data: purchaseData,
     isLoading: isPurchaseLoading,
+    refetch: refetchPurchase,
   } = trpc.marketplace.checkUserPurchase.useQuery(
     {
       itemId,
@@ -29,6 +29,9 @@ export function usePurchaseStatus({
     },
     {
       enabled: !!user?.id && !isFree,
+      staleTime: 0,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
     },
   );
 
@@ -49,6 +52,7 @@ export function usePurchaseStatus({
     showOwnerBadge,
     showPurchasedBadge,
     isPurchaseLoading,
+    refetchPurchase, // Expose refetch function for manual refresh
   };
 }
 

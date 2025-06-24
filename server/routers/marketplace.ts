@@ -7,7 +7,10 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { checkUserTrustworthiness } from '@/shared/services/fraud-prevention';
-import { calculateCommission, validateCommissionCalculation } from '@/shared/utils/marketplace/commission';
+import {
+  calculateCommission,
+  validateCommissionCalculation,
+} from '@/shared/utils/marketplace/commission';
 
 const transactionLimiter = new RateLimiterMemory({
   points: 5,
@@ -96,7 +99,7 @@ const marketplaceRouter = router({
     .input(
       z.object({
         itemId: z.string(),
-        itemType: z.enum(['prompt', 'agent']),
+        itemType: z.enum(['prompt', 'agent', 'tool']),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -177,7 +180,6 @@ const marketplaceRouter = router({
       const commission = calculateCommission(amount);
       const { platformFee, sellerAmount } = commission;
 
-      // Validate commission calculation
       if (!validateCommissionCalculation(amount, platformFee, sellerAmount)) {
         console.error('Commission calculation validation failed', {
           amount,
@@ -191,6 +193,58 @@ const marketplaceRouter = router({
         });
       }
 
+      let solPriceAtTime = 100; // Fallback price
+      let amountUsd: number;
+      let platformFeeUsd: number;
+      let sellerAmountUsd: number;
+
+      try {
+        const baseUrl =
+          process.env.NEXTAUTH_URL ||
+          process.env.SITE_URL ||
+          'https://swarms.world';
+        const priceResponse = await fetch(`${baseUrl}/api/sol-price`, {
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json();
+          solPriceAtTime = priceData.price || 100;
+          console.log(`✅ Successfully fetched SOL price: $${solPriceAtTime}`);
+        } else {
+          console.warn(
+            `⚠️ Internal SOL price API returned status: ${priceResponse.status}`,
+          );
+          // Fallback to direct CoinGecko call
+          const directResponse = await fetch(
+            process.env.COIN_GECKO_API ||
+              'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',
+            {
+              headers: {
+                Accept: 'application/json',
+                'User-Agent': 'Swarms-Platform/1.0',
+              },
+            },
+          );
+
+          if (directResponse.ok) {
+            const directData = await directResponse.json();
+            solPriceAtTime = directData.solana?.usd || 100;
+            console.log(
+              `✅ Fallback: fetched SOL price directly: $${solPriceAtTime}`,
+            );
+          }
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch SOL price for transaction:', error);
+      }
+
+      amountUsd = amount * solPriceAtTime;
+      platformFeeUsd = platformFee * solPriceAtTime;
+      sellerAmountUsd = sellerAmount * solPriceAtTime;
+
       const { data: transaction, error: transactionError } = await ctx.supabase
         .from('marketplace_transactions')
         .insert({
@@ -199,8 +253,12 @@ const marketplaceRouter = router({
           item_id: itemId,
           item_type: itemType,
           amount,
+          amount_usd: amountUsd,
           platform_fee: platformFee,
+          platform_fee_usd: platformFeeUsd,
           seller_amount: sellerAmount,
+          seller_amount_usd: sellerAmountUsd,
+          sol_price_at_time: solPriceAtTime,
           transaction_signature: transactionSignature,
           status: 'completed',
           buyer_wallet_address: buyerWalletAddress,
@@ -258,13 +316,7 @@ const marketplaceRouter = router({
 
       let query = ctx.supabase
         .from('marketplace_transactions')
-        .select(
-          `
-          *,
-          buyer:users!marketplace_transactions_buyer_id_fkey(full_name, email),
-          seller:users!marketplace_transactions_seller_id_fkey(full_name, email)
-        `,
-        )
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (type === 'purchases') {
@@ -284,7 +336,59 @@ const marketplaceRouter = router({
         });
       }
 
-      return data;
+      return data || [];
+    }),
+
+  getItemNames: userProcedure
+    .input(
+      z.object({
+        itemIds: z.array(
+          z.object({
+            id: z.string(),
+            type: z.enum(['prompt', 'agent']),
+          }),
+        ),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { itemIds } = input;
+      const itemNames = new Map<string, string>();
+
+      // Get prompt names
+      const promptIds = itemIds
+        .filter((item) => item.type === 'prompt')
+        .map((item) => item.id);
+      if (promptIds.length > 0) {
+        const { data: prompts } = await ctx.supabase
+          .from('swarms_cloud_prompts')
+          .select('id, name')
+          .in('id', promptIds);
+
+        prompts?.forEach((prompt) => {
+          if (prompt.name) {
+            itemNames.set(prompt.id, prompt.name);
+          }
+        });
+      }
+
+      // Get agent names
+      const agentIds = itemIds
+        .filter((item) => item.type === 'agent')
+        .map((item) => item.id);
+      if (agentIds.length > 0) {
+        const { data: agents } = await ctx.supabase
+          .from('swarms_cloud_agents')
+          .select('id, name')
+          .in('id', agentIds);
+
+        agents?.forEach((agent) => {
+          if (agent.name) {
+            itemNames.set(agent.id, agent.name);
+          }
+        });
+      }
+
+      return Object.fromEntries(itemNames);
     }),
 
   getMarketplaceStats: publicProcedure.query(async ({ ctx }) => {

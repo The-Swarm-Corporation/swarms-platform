@@ -8,6 +8,7 @@ import { Tables } from '@/types_db';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { validateMarketplaceSubmission } from '@/shared/services/fraud-prevention';
+import { checkDailyLimit } from '@/shared/utils/api/daily-rate-limit';
 
 const BUCKET_NAME = 'images';
 
@@ -251,6 +252,15 @@ const explorerRouter = router({
       // Get user ID early for validation
       const user_id = ctx.session.data.user?.id ?? '';
 
+      // Check daily rate limits
+      const dailyLimitCheck = await checkDailyLimit(user_id, 'prompt', !input.isFree);
+      if (!dailyLimitCheck.allowed) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: dailyLimitCheck.reason || 'Daily limit exceeded',
+        });
+      }
+
       // Validate marketplace fields
       if (!input.isFree) {
         if (!input.price || input.price <= 0) {
@@ -318,6 +328,7 @@ const explorerRouter = router({
         if (prompts.error) {
           throw prompts.error;
         }
+
         return true;
       } catch (e) {
         console.error(e);
@@ -529,6 +540,15 @@ const explorerRouter = router({
       // Get user ID early for validation
       const user_id = ctx.session.data.user?.id ?? '';
 
+      // Check daily rate limits
+      const dailyLimitCheck = await checkDailyLimit(user_id, 'agent', !input.isFree);
+      if (!dailyLimitCheck.allowed) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: dailyLimitCheck.reason || 'Daily limit exceeded',
+        });
+      }
+
       // Validate marketplace fields
       if (!input.isFree) {
         if (!input.price || input.price <= 0) {
@@ -601,6 +621,7 @@ const explorerRouter = router({
         if (agents.error) {
           throw agents.error;
         }
+
         return true;
       } catch (e) {
         console.error(e);
@@ -1433,6 +1454,8 @@ const explorerRouter = router({
       // Return top 9 users
       return sortedUsers.slice(0, 9);
     }),
+
+
 });
 
 export default explorerRouter;

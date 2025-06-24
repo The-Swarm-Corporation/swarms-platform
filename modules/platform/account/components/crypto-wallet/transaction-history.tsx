@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { formatDistance } from 'date-fns';
 import { Loader2, ExternalLink, ChevronLeft, ChevronRight, History, TrendingUp } from 'lucide-react';
@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/ui/table';
-import { Button } from '@/shared/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TransactionHistory = ({ userId }: { userId: string }) => {

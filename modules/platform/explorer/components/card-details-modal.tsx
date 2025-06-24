@@ -324,16 +324,18 @@ export default function CardDetailsModal({
                 Share
               </button>
 
-              {/* Edit Price button for owners */}
-              {showOwnerBadge && cardData.price && cardData.price > 0 && (
+              {/* {showOwnerBadge && cardData.price && cardData.price > 0 && (
                 <button
                   onClick={() => setShowEditPrice(true)}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-500 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center"
+                  className={cn(
+                  'flex items-center gap-2 px-3 md:px-4 py-2 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center',
+                  colors.button,
+                )}
                 >
                   <Edit className="w-4 h-4" />
                   Edit Price
                 </button>
-              )}
+              )} */}
 
               <button
                 onClick={cardData.handleRoute}
@@ -399,7 +401,6 @@ export default function CardDetailsModal({
         link={cardData.link || ''}
       />
 
-      {/* Edit Price Modal for owners */}
       {showOwnerBadge && cardData.price && (
         <EditPriceModal
           isOpen={showEditPrice}
@@ -411,8 +412,7 @@ export default function CardDetailsModal({
             currentPrice: cardData.price,
           }}
           onPriceUpdated={() => {
-            // Refresh the data or trigger a refetch
-            window.location.reload(); // Simple approach for now
+            window.location.reload();
           }}
         />
       )}
