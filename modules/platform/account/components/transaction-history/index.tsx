@@ -69,8 +69,14 @@ const TransactionHistory = () => {
     from: '',
     to: '',
   });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState({
+    all: { currentPage: 1, itemsPerPage: 10 },
+    marketplace: { currentPage: 1, itemsPerPage: 10 },
+    credit: { currentPage: 1, itemsPerPage: 10 },
+    subscription: { currentPage: 1, itemsPerPage: 10 },
+  });
+
+
 
   const {
     data: marketplaceTransactions,
@@ -395,8 +401,18 @@ const TransactionHistory = () => {
     }
   };
 
-  const renderTransactionTable = (transactions: UnifiedTransaction[]) => {
+  const renderTransactionTable = (
+    transactions: UnifiedTransaction[],
+    tabType: 'all' | 'marketplace' | 'credit' | 'subscription'
+  ) => {
     const filteredTransactions = filterAndSortTransactions(transactions);
+
+    if (!pagination[tabType]) {
+      return <div>Error: Invalid tab type</div>;
+    }
+
+    const currentPage = pagination[tabType].currentPage;
+    const itemsPerPage = pagination[tabType].itemsPerPage;
 
     const totalItems = filteredTransactions.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -407,8 +423,11 @@ const TransactionHistory = () => {
       endIndex,
     );
 
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(1);
+    if (totalPages > 0 && currentPage > totalPages) {
+      setPagination(prev => ({
+        ...prev,
+        [tabType]: { ...prev[tabType], currentPage: 1 }
+      }));
       return null;
     }
 
@@ -649,8 +668,11 @@ const TransactionHistory = () => {
               <select
                 value={itemsPerPage}
                 onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
+                  const newItemsPerPage = Number(e.target.value);
+                  setPagination(prev => ({
+                    ...prev,
+                    [tabType]: { currentPage: 1, itemsPerPage: newItemsPerPage }
+                  }));
                 }}
                 className="px-2 py-1 border border-input bg-background rounded text-xs sm:text-sm"
               >
@@ -666,7 +688,12 @@ const TransactionHistory = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                onClick={() => {
+                  setPagination(prev => ({
+                    ...prev,
+                    [tabType]: { ...prev[tabType], currentPage: Math.max(1, prev[tabType].currentPage - 1) }
+                  }));
+                }}
                 disabled={currentPage === 1}
                 className="text-xs sm:text-sm px-2 sm:px-3"
               >
@@ -692,7 +719,12 @@ const TransactionHistory = () => {
                       key={pageNum}
                       variant={currentPage === pageNum ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setCurrentPage(pageNum)}
+                      onClick={() => {
+                        setPagination(prev => ({
+                          ...prev,
+                          [tabType]: { ...prev[tabType], currentPage: pageNum }
+                        }));
+                      }}
                       className="w-6 h-6 sm:w-8 sm:h-8 p-0 text-xs"
                     >
                       {pageNum}
@@ -704,9 +736,12 @@ const TransactionHistory = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                }
+                onClick={() => {
+                  setPagination(prev => ({
+                    ...prev,
+                    [tabType]: { ...prev[tabType], currentPage: Math.min(totalPages, prev[tabType].currentPage + 1) }
+                  }));
+                }}
                 disabled={currentPage === totalPages}
                 className="text-xs sm:text-sm px-2 sm:px-3"
               >
@@ -1041,7 +1076,7 @@ const TransactionHistory = () => {
                   </div>
                 </div>
               ) : (
-                renderTransactionTable(allTransactions)
+                renderTransactionTable(allTransactions, 'all')
               )}
             </CardContent>
           </Card>
@@ -1083,7 +1118,7 @@ const TransactionHistory = () => {
                   </div>
                 </div>
               ) : (
-                renderTransactionTable(marketplaceOnly)
+                renderTransactionTable(marketplaceOnly, 'marketplace')
               )}
             </CardContent>
           </Card>
@@ -1121,7 +1156,7 @@ const TransactionHistory = () => {
                   </div>
                 </div>
               ) : (
-                renderTransactionTable(creditOnly)
+                renderTransactionTable(creditOnly, 'credit')
               )}
             </CardContent>
           </Card>
@@ -1163,7 +1198,7 @@ const TransactionHistory = () => {
                   </div>
                 </div>
               ) : (
-                renderTransactionTable(subscriptionOnly)
+                renderTransactionTable(subscriptionOnly, 'subscription')
               )}
             </CardContent>
           </Card>

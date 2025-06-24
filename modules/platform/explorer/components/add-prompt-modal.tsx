@@ -120,6 +120,38 @@ const AddPromptModal = ({
     await uploadImage(file, modelType);
   };
 
+  const resetForm = () => {
+    setPromptName('');
+    setDescription('');
+    setPrompt('');
+    setTags('');
+    setCategories([]);
+    setIsFree(true);
+    setPrice('');
+    setWalletAddress('');
+    setUsdPrice(null);
+    setIsLoading(false);
+    setIsValidating(false);
+    setIsConvertingPrice(false);
+
+    validation.reset();
+
+    validatePrompt.reset();
+  };
+
+  const [justSubmitted, setJustSubmitted] = useState(false);
+
+  const handleClose = () => {
+    onClose();
+  };
+
+  useEffect(() => {
+    if (isOpen && justSubmitted) {
+      resetForm();
+      setJustSubmitted(false);
+    }
+  }, [isOpen, justSubmitted]);
+
   const handleDrop = async (e: React.DragEvent) => {
     if (uploadStatus === 'uploading') return;
 
@@ -232,17 +264,19 @@ const AddPromptModal = ({
           title: 'Prompt added successfully 🎉',
         });
 
-        onClose();
-
         //celeberate the confetti
         launchConfetti();
 
         onAddSuccessfully();
-        // Reset form
-        setPromptName('');
-        setDescription('');
-        setPrompt('');
-        setTags('');
+
+        // Mark that we just submitted successfully
+        setJustSubmitted(true);
+
+        // Reset form to initial state
+        resetForm();
+
+        // Close modal after reset
+        onClose();
       })
       .catch((error) => {
         console.log({ error });
@@ -287,7 +321,7 @@ const AddPromptModal = ({
       <Modal
         className="max-w-2xl"
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={handleClose}
         title="Add Prompt"
       >
       <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
@@ -606,7 +640,16 @@ const AddPromptModal = ({
           </div>
         </div>
 
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-between mt-4">
+          <Button
+            variant="outline"
+            onClick={resetForm}
+            disabled={addPrompt.isPending || isLoading}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            Clear Form
+          </Button>
+
           <Button
             disabled={
               addPrompt.isPending ||

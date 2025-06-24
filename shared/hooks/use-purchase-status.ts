@@ -5,7 +5,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 
 interface UsePurchaseStatusProps {
   itemId: string;
-  itemType: 'prompt' | 'agent';
+  itemType: 'prompt' | 'agent' | 'tool';
   userId?: string;
   isFree?: boolean;
 }
