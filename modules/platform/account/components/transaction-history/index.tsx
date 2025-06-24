@@ -537,7 +537,8 @@ const TransactionHistory = () => {
                           {transaction.currency === 'SOL' ? (
                             <USDPriceDisplay
                               solAmount={transaction.amount}
-                              className="font-semibold"
+                              className="font-semibold text-sm"
+                              showBracket={false}
                             />
                           ) : (
                             `$${transaction.amount.toFixed(2)}`
@@ -550,6 +551,7 @@ const TransactionHistory = () => {
                               <USDPriceDisplay
                                 solAmount={transaction.platform_fee}
                                 className="text-orange-600 dark:text-orange-400"
+                                showBracket={false}
                               />
                             </div>
                           )}

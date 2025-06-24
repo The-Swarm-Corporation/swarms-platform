@@ -4,18 +4,24 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/shared/utils/cn';
 import { Loader2 } from 'lucide-react';
 
-// Simple SOL price fetching function
 async function getSolPrice(): Promise<number> {
   try {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_COIN_GECKO_API ||
-        'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',
-    );
+    const response = await fetch('/api/sol-price', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const data = await response.json();
-    return data.solana?.usd || 100; // Fallback to $100
+    return data.price || 100;
   } catch (error) {
     console.error('Failed to fetch SOL price:', error);
-    return 100; // Fallback price
+    return 100;
   }
 }
 
@@ -80,10 +86,11 @@ export default function PriceDisplay({
           setUsdAmount(usd);
         }
       } catch (err) {
+        console.warn('Price fetch failed, using fallback:', err);
         if (mounted) {
-          setError(
-            err instanceof Error ? err.message : 'Failed to fetch price',
-          );
+          const fallbackUsd = solAmount * 100;
+          setUsdAmount(fallbackUsd);
+          setError(null);
         }
       } finally {
         if (mounted) {
@@ -244,7 +251,6 @@ export function LargePriceDisplay({
   return <PriceDisplay solAmount={solAmount} size="lg" className={className} />;
 }
 
-// Button price display with box brackets for info-card and card-details
 export function ButtonPriceDisplay({
   solAmount,
   className,
@@ -266,9 +272,10 @@ export function ButtonPriceDisplay({
           setUsdAmount(usd);
         }
       } catch (error) {
-        console.error('Failed to fetch USD price:', error);
+        console.warn('Price fetch failed, using fallback:', error);
         if (mounted) {
-          setUsdAmount(null);
+          const fallbackUsd = solAmount * 100;
+          setUsdAmount(fallbackUsd);
         }
       } finally {
         if (mounted) {
@@ -289,7 +296,6 @@ export function ButtonPriceDisplay({
     };
   }, [solAmount]);
 
-  // Smart number formatting that removes trailing zeros
   const formatNumber = (amount: number, decimals: number) => {
     return parseFloat(amount.toFixed(decimals)).toString();
   };
@@ -303,7 +309,6 @@ export function ButtonPriceDisplay({
   }
 
   if (usdAmount === null) {
-    // Fallback to SOL only if USD fails
     const formattedSol = formatNumber(solAmount, 3);
     return (
       <span className={cn('text-xs font-medium', className)}>
@@ -312,7 +317,6 @@ export function ButtonPriceDisplay({
     );
   }
 
-  // Show USD price in box brackets
   const formattedUsd = formatNumber(usdAmount, 2);
   return (
     <span className={cn('text-xs font-medium', className)}>
@@ -321,7 +325,6 @@ export function ButtonPriceDisplay({
   );
 }
 
-// Hook for getting live SOL price
 export function useSolPrice() {
   const [price, setPrice] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -366,7 +369,6 @@ export function useSolPrice() {
   return { price, loading, error };
 }
 
-// Hook for converting SOL to USD
 export function useSolToUsd(solAmount: number) {
   const [usdAmount, setUsdAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -385,10 +387,11 @@ export function useSolToUsd(solAmount: number) {
           setUsdAmount(usd);
         }
       } catch (err) {
+        console.warn('Price conversion failed, using fallback:', err);
         if (mounted) {
-          setError(
-            err instanceof Error ? err.message : 'Failed to convert price',
-          );
+          const fallbackUsd = solAmount * 100;
+          setUsdAmount(fallbackUsd);
+          setError(null);
         }
       } finally {
         if (mounted) {

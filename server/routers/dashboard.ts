@@ -75,13 +75,12 @@ const dashboardRouter = router({
     return totalCount;
   }),
 
-  // Add new procedure for adding USD balance
   addCryptoTransactionCredit: userProcedure
     .input(
       z.object({
         amountUsd: z.number().positive(),
         transactionHash: z.string(),
-        swarmsAmount: z.number().min(0), // Allow 0 for SOL transactions
+        swarmsAmount: z.number().min(0),
       })
     )
     .mutation(async ({ ctx, input }: { ctx: any, input: any }) => {
@@ -97,23 +96,12 @@ const dashboardRouter = router({
       }
 
       try {
-        // Debug RPC connection
-        console.log('Connecting to Solana RPC:', process.env.RPC_URL);
         const connection = new Connection(process.env.RPC_URL!);
         
-        // Debug transaction verification
         console.log('Verifying transaction:', input.transactionHash);
         const transaction = await connection.getTransaction(input.transactionHash, {
           maxSupportedTransactionVersion: 0,
           commitment: 'confirmed'
-        });
-        console.log('Transaction:', transaction);
-        console.log('Transaction details:', {
-          exists: !!transaction,
-          error: transaction?.meta?.err,
-          balances: transaction?.meta?.postTokenBalances,
-          postBalances: transaction?.meta?.postBalances,
-          preBalances: transaction?.meta?.preBalances
         });
 
         if (!transaction || transaction.meta?.err) {
@@ -123,26 +111,22 @@ const dashboardRouter = router({
           });
         }
 
-        // Check if this is a SWARMS token transaction or SOL transaction
         const isSwarmsTransaction = input.swarmsAmount > 0;
         let isValidDestination = false;
 
         if (isSwarmsTransaction) {
-          // Verify SWARMS token transfer to DAO treasury
           isValidDestination = transaction?.meta?.postTokenBalances?.some(
             balance => balance.owner === process.env.DAO_TREASURY_ADDRESS
-          );
+          ) || false;
         } else {
-          // Verify SOL transfer to DAO treasury
-          // Check if the DAO treasury address received SOL
           const daoAddress = process.env.DAO_TREASURY_ADDRESS;
-          if (daoAddress && transaction?.transaction?.message?.accountKeys) {
-            const daoIndex = transaction.transaction.message.accountKeys.findIndex(
+          if (daoAddress && transaction?.transaction?.message) {
+            const accountKeys = transaction.transaction.message.getAccountKeys();
+            const daoIndex = accountKeys.keySegments().flat().findIndex(
               (key: any) => key.toString() === daoAddress
             );
             
             if (daoIndex !== -1) {
-              // Check if SOL balance increased for DAO treasury
               const preBalance = transaction.meta?.preBalances?.[daoIndex] || 0;
               const postBalance = transaction.meta?.postBalances?.[daoIndex] || 0;
               isValidDestination = postBalance > preBalance;
@@ -157,7 +141,6 @@ const dashboardRouter = router({
           });
         }
 
-        // Get current credits
         const currentCredits = await ctx.supabase
           .from('swarms_cloud_users_credits')
           .select('credit')
@@ -172,12 +155,10 @@ const dashboardRouter = router({
           });
         }
 
-        // Convert USD to credits (1:1 ratio, adjust as needed)
         const USD_TO_CREDITS_RATIO = 1;
         const creditsToAdd = input.amountUsd * USD_TO_CREDITS_RATIO;
         const newCreditBalance = (currentCredits.data?.credit || 0) + creditsToAdd;
 
-        // Update credits
         const updateResult = await ctx.supabase
           .from('swarms_cloud_users_credits')
           .update({
@@ -193,7 +174,6 @@ const dashboardRouter = router({
           });
         }
 
-        // Log the transaction with lowercase status
         const transactionResult = await ctx.supabase
           .from('credit_transactions')
           .insert({
@@ -211,7 +191,6 @@ const dashboardRouter = router({
           console.error('Error logging transaction:', transactionResult.error, {
             attemptedStatus: 'completed',
           });
-          // Don't throw here as the credit update was successful
         }
 
         return {
@@ -253,6 +232,48 @@ const dashboardRouter = router({
       }
 
       return data;
+    }),
+
+  getAllUserTransactions: userProcedure
+    .input(z.object({
+      userId: z.string(),
+      limit: z.number().optional().default(50),
+      offset: z.number().optional().default(0),
+    }))
+    .query(async ({ ctx, input }: { ctx: any, input: any }) => {
+      const { userId, limit, offset } = input;
+
+      const { data: marketplaceData, error: marketplaceError } = await ctx.supabase
+        .from('marketplace_transactions')
+        .select(`
+          *,
+          buyer:users!marketplace_transactions_buyer_id_fkey(full_name, email),
+          seller:users!marketplace_transactions_seller_id_fkey(full_name, email)
+        `)
+        .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+        .range(offset, offset + limit - 1);
+
+      const { data: creditData, error: creditError } = await ctx.supabase
+        .from('credit_transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+        .range(offset, offset + limit - 1);
+
+      if (marketplaceError || creditError) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch transactions',
+        });
+      }
+
+      return {
+        marketplace: marketplaceData || [],
+        credit: creditData || [],
+      };
     }),
 });
 

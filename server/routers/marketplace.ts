@@ -258,13 +258,7 @@ const marketplaceRouter = router({
 
       let query = ctx.supabase
         .from('marketplace_transactions')
-        .select(
-          `
-          *,
-          buyer:users!marketplace_transactions_buyer_id_fkey(full_name, email),
-          seller:users!marketplace_transactions_seller_id_fkey(full_name, email)
-        `,
-        )
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (type === 'purchases') {
@@ -284,7 +278,51 @@ const marketplaceRouter = router({
         });
       }
 
-      return data;
+      return data || [];
+    }),
+
+  getItemNames: userProcedure
+    .input(z.object({
+      itemIds: z.array(z.object({
+        id: z.string(),
+        type: z.enum(['prompt', 'agent'])
+      }))
+    }))
+    .query(async ({ ctx, input }) => {
+      const { itemIds } = input;
+      const itemNames = new Map<string, string>();
+
+      // Get prompt names
+      const promptIds = itemIds.filter(item => item.type === 'prompt').map(item => item.id);
+      if (promptIds.length > 0) {
+        const { data: prompts } = await ctx.supabase
+          .from('swarms_cloud_prompts')
+          .select('id, name')
+          .in('id', promptIds);
+
+        prompts?.forEach(prompt => {
+          if (prompt.name) {
+            itemNames.set(prompt.id, prompt.name);
+          }
+        });
+      }
+
+      // Get agent names
+      const agentIds = itemIds.filter(item => item.type === 'agent').map(item => item.id);
+      if (agentIds.length > 0) {
+        const { data: agents } = await ctx.supabase
+          .from('swarms_cloud_agents')
+          .select('id, name')
+          .in('id', agentIds);
+
+        agents?.forEach(agent => {
+          if (agent.name) {
+            itemNames.set(agent.id, agent.name);
+          }
+        });
+      }
+
+      return Object.fromEntries(itemNames);
     }),
 
   getMarketplaceStats: publicProcedure.query(async ({ ctx }) => {
