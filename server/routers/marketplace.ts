@@ -177,7 +177,6 @@ const marketplaceRouter = router({
       const commission = calculateCommission(amount);
       const { platformFee, sellerAmount } = commission;
 
-      // Validate commission calculation
       if (!validateCommissionCalculation(amount, platformFee, sellerAmount)) {
         console.error('Commission calculation validation failed', {
           amount,
@@ -191,6 +190,33 @@ const marketplaceRouter = router({
         });
       }
 
+      // Fetch current SOL price for USD conversion at time of transaction
+      let solPriceAtTime = 100; // Fallback price
+      let amountUsd = null;
+      let platformFeeUsd = null;
+      let sellerAmountUsd = null;
+
+      try {
+        const priceResponse = await fetch(
+          process.env.COIN_GECKO_API ||
+            'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd'
+        );
+
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json();
+          solPriceAtTime = priceData.solana?.usd || 100;
+
+          amountUsd = amount * solPriceAtTime;
+          platformFeeUsd = platformFee * solPriceAtTime;
+          sellerAmountUsd = sellerAmount * solPriceAtTime;
+        }
+      } catch (error) {
+        console.warn('Failed to fetch SOL price for transaction, using fallback:', error);
+        amountUsd = amount * solPriceAtTime;
+        platformFeeUsd = platformFee * solPriceAtTime;
+        sellerAmountUsd = sellerAmount * solPriceAtTime;
+      }
+
       const { data: transaction, error: transactionError } = await ctx.supabase
         .from('marketplace_transactions')
         .insert({
@@ -199,8 +225,12 @@ const marketplaceRouter = router({
           item_id: itemId,
           item_type: itemType,
           amount,
+          amount_usd: amountUsd,
           platform_fee: platformFee,
+          platform_fee_usd: platformFeeUsd,
           seller_amount: sellerAmount,
+          seller_amount_usd: sellerAmountUsd,
+          sol_price_at_time: solPriceAtTime,
           transaction_signature: transactionSignature,
           status: 'completed',
           buyer_wallet_address: buyerWalletAddress,

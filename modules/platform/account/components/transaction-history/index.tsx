@@ -31,11 +31,12 @@ import {
   ArrowUpDown,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { USDPriceDisplay } from '@/shared/components/marketplace/price-display';
 import { useState } from 'react';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { cn } from '@/shared/utils/cn';
+import { HistoricalPriceDisplay } from '@/shared/components/marketplace/historical-price-display';
+
 interface UnifiedTransaction {
   id: string;
   type: 'marketplace' | 'credit' | 'subscription';
@@ -50,6 +51,8 @@ interface UnifiedTransaction {
   item_type?: string;
   item_name?: string;
   platform_fee?: number;
+  platform_fee_usd?: number;
+  sol_price_at_time?: number;
 }
 
 const TransactionHistory = () => {
@@ -146,6 +149,7 @@ const TransactionHistory = () => {
 
         if (isUserBuyer || isUserSeller) {
           const solAmount = isUserBuyer ? tx.amount : tx.seller_amount;
+          const usdAmount = isUserBuyer ? tx.amount_usd : tx.seller_amount_usd;
           const itemName = getItemName(tx.item_id, tx.item_type);
 
           allTransactions.push({
@@ -153,6 +157,7 @@ const TransactionHistory = () => {
             type: 'marketplace',
             subtype: isUserBuyer ? 'purchase' : 'sale',
             amount: solAmount,
+            amount_usd: usdAmount || undefined,
             currency: 'SOL',
             status: tx.status,
             created_at: tx.created_at,
@@ -161,6 +166,8 @@ const TransactionHistory = () => {
             item_type: tx.item_type,
             item_name: itemName,
             platform_fee: tx.platform_fee,
+            platform_fee_usd: tx.platform_fee_usd || undefined,
+            sol_price_at_time: tx.sol_price_at_time || undefined,
           });
         }
       });
@@ -290,7 +297,10 @@ const TransactionHistory = () => {
     return filtered;
   };
 
-  const exportTransactions = async (transactions: UnifiedTransaction[], tabName: string = 'all') => {
+  const exportTransactions = async (
+    transactions: UnifiedTransaction[],
+    tabName: string = 'all',
+  ) => {
     try {
       const filteredTransactions = filterAndSortTransactions(transactions);
 
@@ -310,36 +320,56 @@ const TransactionHistory = () => {
         item_name: transaction.item_name || transaction.description,
         amount: transaction.amount,
         currency: transaction.currency,
-        amount_usd: transaction.currency === 'SOL' ? 'Calculated at export time' : transaction.amount,
+        amount_usd:
+          transaction.amount_usd ||
+          (transaction.currency === 'USD'
+            ? transaction.amount
+            : 'Historical data not available'),
         status: transaction.status,
         date: format(parseISO(transaction.created_at), 'yyyy-MM-dd HH:mm:ss'),
         description: transaction.description,
         transaction_signature: transaction.transaction_signature || '',
         item_type: transaction.item_type || '',
         platform_fee: transaction.platform_fee || '',
+        platform_fee_usd:
+          transaction.platform_fee_usd || 'Historical data not available',
+        sol_price_at_time:
+          transaction.sol_price_at_time || 'Historical data not available',
       }));
 
       const currentDate = format(new Date(), 'yyyy-MM-dd');
-      const filterSuffix = searchTerm || selectedStatus !== 'all' || selectedType !== 'all' || selectedItemType !== 'all' || dateRange.from || dateRange.to ? '-filtered' : '';
+      const filterSuffix =
+        searchTerm ||
+        selectedStatus !== 'all' ||
+        selectedType !== 'all' ||
+        selectedItemType !== 'all' ||
+        dateRange.from ||
+        dateRange.to
+          ? '-filtered'
+          : '';
       const filename = `transaction-history-${tabName}-${currentDate}${filterSuffix}.json`;
 
-      const json = JSON.stringify({
-        exported_at: new Date().toISOString(),
-        total_transactions: exportData.length,
-        filters_applied: {
-          search_term: searchTerm || null,
-          status: selectedStatus !== 'all' ? selectedStatus : null,
-          type: selectedType !== 'all' ? selectedType : null,
-          item_type: selectedItemType !== 'all' ? selectedItemType : null,
-          date_range: {
-            from: dateRange.from || null,
-            to: dateRange.to || null,
+      const json = JSON.stringify(
+        {
+          exported_at: new Date().toISOString(),
+          total_transactions: exportData.length,
+          filters_applied: {
+            search_term: searchTerm || null,
+            status: selectedStatus !== 'all' ? selectedStatus : null,
+            type: selectedType !== 'all' ? selectedType : null,
+            item_type: selectedItemType !== 'all' ? selectedItemType : null,
+            date_range: {
+              from: dateRange.from || null,
+              to: dateRange.to || null,
+            },
+            sort_by: sortBy,
+            sort_order: sortOrder,
           },
-          sort_by: sortBy,
-          sort_order: sortOrder,
+          transactions: exportData,
         },
-        transactions: exportData,
-      }, null, 2);
+        null,
+        2,
+      );
 
       const blob = new Blob([json], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -474,7 +504,9 @@ const TransactionHistory = () => {
                       <Icon className={colorClass} size={18} />
                       <div className="space-y-1">
                         <p className="font-medium text-xs sm:text-sm">
-                          <span>{transaction.item_name || transaction.description}</span>
+                          <span>
+                            {transaction.item_name || transaction.description}
+                          </span>
                         </p>
                         {transaction.transaction_signature && (
                           <p className="text-xs text-muted-foreground font-mono">
@@ -499,7 +531,12 @@ const TransactionHistory = () => {
                       </div>
                     </td>
                     <td className="p-2 sm:p-4 hidden sm:table-cell">
-                      <span className={cn("inline-flex items-center capitalize px-2 py-1 rounded-full text-sm font-medium bg-blue-50 dark:bg-blue-900/20", colorClass)}>
+                      <span
+                        className={cn(
+                          'inline-flex items-center capitalize px-2 py-1 rounded-full text-sm font-medium bg-blue-50 dark:bg-blue-900/20',
+                          colorClass,
+                        )}
+                      >
                         {transaction.type === 'marketplace'
                           ? transaction.subtype
                           : transaction.type}
@@ -535,8 +572,9 @@ const TransactionHistory = () => {
                       <div>
                         <div className="font-semibold text-xs sm:text-sm">
                           {transaction.currency === 'SOL' ? (
-                            <USDPriceDisplay
+                            <HistoricalPriceDisplay
                               solAmount={transaction.amount}
+                              historicalUsd={transaction.amount_usd}
                               className="font-semibold text-sm"
                               showBracket={false}
                             />
@@ -548,8 +586,9 @@ const TransactionHistory = () => {
                           transaction.subtype === 'sale' && (
                             <div className="text-xs text-orange-600 dark:text-orange-400">
                               Fee:{' '}
-                              <USDPriceDisplay
+                              <HistoricalPriceDisplay
                                 solAmount={transaction.platform_fee}
+                                historicalUsd={transaction.platform_fee_usd}
                                 className="text-orange-600 dark:text-orange-400"
                                 showBracket={false}
                               />
@@ -760,6 +799,13 @@ const TransactionHistory = () => {
                 <ShoppingCart className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              $
+              {marketplaceOnly
+                .reduce((sum, t) => sum + (t.amount_usd || 0), 0)
+                .toFixed(2)}{' '}
+              total value
+            </p>
           </CardContent>
         </Card>
 
@@ -1016,7 +1062,9 @@ const TransactionHistory = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => exportTransactions(marketplaceOnly, 'marketplace')}
+                  onClick={() =>
+                    exportTransactions(marketplaceOnly, 'marketplace')
+                  }
                   className="px-3 py-2 border border-[#40403F] bg-background rounded-md text-sm"
                 >
                   <Download className="h-4 w-4 mr-2" />
@@ -1094,7 +1142,9 @@ const TransactionHistory = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => exportTransactions(subscriptionOnly, 'subscriptions')}
+                  onClick={() =>
+                    exportTransactions(subscriptionOnly, 'subscriptions')
+                  }
                   className="px-3 py-2 border border-[#40403F] bg-background rounded-md text-sm"
                 >
                   <Download className="h-4 w-4 mr-2" />

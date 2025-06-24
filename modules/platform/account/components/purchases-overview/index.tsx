@@ -15,8 +15,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { USDPriceDisplay } from '@/shared/components/marketplace/price-display';
 import Link from 'next/link';
+import { HistoricalPriceDisplay } from '@/shared/components/marketplace/historical-price-display';
 
 interface PurchasesOverviewProps {
   user: User | null;
@@ -27,6 +27,7 @@ interface Transaction {
   type: 'marketplace' | 'credit' | 'subscription';
   subtype: 'purchase' | 'sale' | 'credit_purchase' | 'subscription_payment';
   amount: number;
+  amount_usd?: number;
   currency: 'SOL' | 'USD';
   status: string;
   created_at: string;
@@ -106,6 +107,7 @@ const PurchasesOverview = ({ user }: PurchasesOverviewProps) => {
 
         if (isUserBuyer || isUserSeller) {
           const solAmount = isUserBuyer ? tx.amount : tx.seller_amount;
+          const usdAmount = isUserBuyer ? tx.amount_usd : tx.seller_amount_usd;
           const itemName = getItemName(tx.item_id, tx.item_type);
 
           allTransactions.push({
@@ -113,6 +115,7 @@ const PurchasesOverview = ({ user }: PurchasesOverviewProps) => {
             type: 'marketplace',
             subtype: isUserBuyer ? 'purchase' : 'sale',
             amount: solAmount,
+            amount_usd: usdAmount || undefined,
             currency: 'SOL',
             status: tx.status,
             created_at: tx.created_at,
@@ -189,36 +192,6 @@ const PurchasesOverview = ({ user }: PurchasesOverviewProps) => {
     }
   };
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-      case 'active':
-        return 'default';
-      case 'pending':
-        return 'secondary';
-      case 'failed':
-      case 'cancelled':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
-
-  const getStatusBadgeClass = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-      case 'active':
-        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
-      case 'pending':
-        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-      case 'failed':
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800';
-    }
-  };
-
   if (!user) return null;
 
   return (
@@ -264,7 +237,6 @@ const PurchasesOverview = ({ user }: PurchasesOverviewProps) => {
         </div>
       </div>
 
-      {/* Recent Transactions */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Purchase Summary</h3>
@@ -310,8 +282,9 @@ const PurchasesOverview = ({ user }: PurchasesOverviewProps) => {
                   <div className="text-right">
                     <div className="font-medium">
                       {transaction.currency === 'SOL' ? (
-                        <USDPriceDisplay
+                        <HistoricalPriceDisplay
                           solAmount={transaction.amount}
+                          historicalUsd={transaction.amount_usd}
                           showBracket={false}
                           className="font-medium text-base"
                         />

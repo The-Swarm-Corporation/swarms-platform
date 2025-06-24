@@ -783,6 +783,131 @@ export type Database = {
           },
         ]
       }
+      email_queue: {
+        Row: {
+          attempts: number
+          created_at: string
+          delivered_at: string | null
+          from_email: string
+          html_content: string
+          id: string
+          last_error: string | null
+          max_attempts: number
+          next_attempt_at: string
+          notification_id: string | null
+          priority: number
+          processing_time_ms: number | null
+          reply_to: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["email_status"]
+          subject: string
+          template_data: Json | null
+          template_name: string | null
+          text_content: string | null
+          to_email: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          from_email?: string
+          html_content: string
+          id?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string
+          notification_id?: string | null
+          priority?: number
+          processing_time_ms?: number | null
+          reply_to?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["email_status"]
+          subject: string
+          template_data?: Json | null
+          template_name?: string | null
+          text_content?: string | null
+          to_email: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          from_email?: string
+          html_content?: string
+          id?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string
+          notification_id?: string | null
+          priority?: number
+          processing_time_ms?: number | null
+          reply_to?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["email_status"]
+          subject?: string
+          template_data?: Json | null
+          template_name?: string | null
+          text_content?: string | null
+          to_email?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_queue_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          html_template: string
+          id: string
+          is_active: boolean
+          name: string
+          optional_variables: string[]
+          required_variables: string[]
+          subject_template: string
+          text_template: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          html_template: string
+          id?: string
+          is_active?: boolean
+          name: string
+          optional_variables?: string[]
+          required_variables?: string[]
+          subject_template: string
+          text_template?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          html_template?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          optional_variables?: string[]
+          required_variables?: string[]
+          subject_template?: string
+          text_template?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       failed_pool_creations: {
         Row: {
           bonding_curve_address: string | null
@@ -880,6 +1005,7 @@ export type Database = {
       marketplace_transactions: {
         Row: {
           amount: number
+          amount_usd: number | null
           buyer_id: string
           buyer_wallet_address: string
           created_at: string
@@ -887,14 +1013,18 @@ export type Database = {
           item_id: string
           item_type: string
           platform_fee: number
+          platform_fee_usd: number | null
           seller_amount: number
+          seller_amount_usd: number | null
           seller_id: string
           seller_wallet_address: string
+          sol_price_at_time: number | null
           status: string
           transaction_signature: string
         }
         Insert: {
           amount: number
+          amount_usd?: number | null
           buyer_id: string
           buyer_wallet_address: string
           created_at?: string
@@ -902,14 +1032,18 @@ export type Database = {
           item_id: string
           item_type: string
           platform_fee: number
+          platform_fee_usd?: number | null
           seller_amount: number
+          seller_amount_usd?: number | null
           seller_id: string
           seller_wallet_address: string
+          sol_price_at_time?: number | null
           status?: string
           transaction_signature: string
         }
         Update: {
           amount?: number
+          amount_usd?: number | null
           buyer_id?: string
           buyer_wallet_address?: string
           created_at?: string
@@ -917,9 +1051,12 @@ export type Database = {
           item_id?: string
           item_type?: string
           platform_fee?: number
+          platform_fee_usd?: number | null
           seller_amount?: number
+          seller_amount_usd?: number | null
           seller_id?: string
           seller_wallet_address?: string
+          sol_price_at_time?: number | null
           status?: string
           transaction_signature?: string
         }
@@ -1134,6 +1271,139 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          account_notifications: boolean
+          created_at: string
+          email_enabled: boolean
+          email_frequency: string
+          id: string
+          language: string
+          marketing_notifications: boolean
+          marketplace_notifications: boolean
+          organization_notifications: boolean
+          quiet_hours_enabled: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          system_notifications: boolean
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_notifications?: boolean
+          created_at?: string
+          email_enabled?: boolean
+          email_frequency?: string
+          id?: string
+          language?: string
+          marketing_notifications?: boolean
+          marketplace_notifications?: boolean
+          organization_notifications?: boolean
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          system_notifications?: boolean
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_notifications?: boolean
+          created_at?: string
+          email_enabled?: boolean
+          email_frequency?: string
+          id?: string
+          language?: string
+          marketing_notifications?: boolean
+          marketplace_notifications?: boolean
+          organization_notifications?: boolean
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          system_notifications?: boolean
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          email_id: string | null
+          email_sent: boolean | null
+          email_sent_at: string | null
+          id: string
+          item_id: string | null
+          item_type: string | null
+          message: string
+          read_at: string | null
+          recipient_email: string
+          status: Database["public"]["Enums"]["notification_status"]
+          title: string
+          transaction_id: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          email_id?: string | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          id?: string
+          item_id?: string | null
+          item_type?: string | null
+          message: string
+          read_at?: string | null
+          recipient_email: string
+          status?: Database["public"]["Enums"]["notification_status"]
+          title: string
+          transaction_id?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          email_id?: string | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          id?: string
+          item_id?: string | null
+          item_type?: string | null
+          message?: string
+          read_at?: string | null
+          recipient_email?: string
+          status?: Database["public"]["Enums"]["notification_status"]
+          title?: string
+          transaction_id?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       prices: {
         Row: {
@@ -4017,7 +4287,24 @@ export type Database = {
     }
     Enums: {
       credit_plan: "default" | "invoice"
+      email_status:
+        | "queued"
+        | "sending"
+        | "sent"
+        | "delivered"
+        | "failed"
+        | "bounced"
       model_type: "text" | "vision"
+      notification_status: "pending" | "sent" | "failed" | "read"
+      notification_type:
+        | "marketplace_purchase"
+        | "marketplace_sale"
+        | "marketplace_commission"
+        | "system_alert"
+        | "account_update"
+        | "organization_invite"
+        | "credit_update"
+        | "subscription_update"
       organization_member_invite_status:
         | "waiting"
         | "joined"
@@ -4156,7 +4443,26 @@ export const Constants = {
   public: {
     Enums: {
       credit_plan: ["default", "invoice"],
+      email_status: [
+        "queued",
+        "sending",
+        "sent",
+        "delivered",
+        "failed",
+        "bounced",
+      ],
       model_type: ["text", "vision"],
+      notification_status: ["pending", "sent", "failed", "read"],
+      notification_type: [
+        "marketplace_purchase",
+        "marketplace_sale",
+        "marketplace_commission",
+        "system_alert",
+        "account_update",
+        "organization_invite",
+        "credit_update",
+        "subscription_update",
+      ],
       organization_member_invite_status: [
         "waiting",
         "joined",
