@@ -1,9 +1,9 @@
-import { AuthApiGuard } from '@/shared/utils/api/auth-guard';
 import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
+import { HybridAuthGuard } from '@/shared/utils/api/hybrid-auth-guard';
+import { validateMarketplaceSubmission } from '@/shared/services/fraud-prevention';
 
-//schema
 const promptSchema = z.object({
   id: z.string(),
   name: z.string().min(2, { message: 'Name should be at least 2 characters' }),
@@ -22,9 +22,20 @@ const promptSchema = z.object({
     )
     .min(1, { message: 'At least one use case is required' }),
   tags: z.string().optional(),
+  is_free: z.boolean().optional(),
+  price: z.number().min(0, 'Price must be non-negative').optional(),
+  category: z.array(z.string()).optional(),
+  status: z.enum(['pending', 'approved', 'rejected']).optional(),
+}).refine((data) => {
+  if (data.is_free === false && (!data.price || data.price <= 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Paid prompts must have a price greater than 0',
+  path: ['price'],
 });
 
-// Function to handle editing a prompt
 const editPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
@@ -32,26 +43,33 @@ const editPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    const apiKey = req.headers.authorization?.split(' ')[1];
-    if (!apiKey) {
-      return res.status(401).json({ error: 'API Key is missing' });
+    const authGuard = new HybridAuthGuard(req);
+    const authResult = await authGuard.authenticate();
+
+    if (!authResult.isAuthenticated || !authResult.userId) {
+      return res.status(authResult.status).json({
+        error: 'Authentication required to edit prompt',
+        message: authResult.message,
+        hint: 'Provide API key in Authorization header or authenticate via Supabase',
+        auth_methods: ['API Key (Bearer token)', 'Supabase session']
+      });
     }
 
-    const guard = new AuthApiGuard({ apiKey });
-    const isAuthenticated = await guard.isAuthenticated();
-    if (isAuthenticated.status !== 200) {
-      return res
-        .status(isAuthenticated.status)
-        .json({ error: isAuthenticated.message });
-    }
-
-    const user_id = guard.getUserId();
-    if (!user_id) {
-      return res.status(404).json({ error: 'User is missing' });
-    }
+    const user_id = authResult.userId;
 
     const input = promptSchema.parse(req.body);
-    const { id, name, prompt, description, useCases, tags } = input;
+    const {
+      id,
+      name,
+      prompt,
+      description,
+      useCases,
+      tags,
+      is_free,
+      price,
+      category,
+      status
+    } = input;
 
     if (!id) {
       return res.status(404).json({
@@ -59,7 +77,6 @@ const editPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
       });
     }
 
-    //check that prompt is for the authenticated user
     const { data: existingPrompt, error: existingPromptError } =
       await supabaseAdmin
         .from('swarms_cloud_prompts')
@@ -75,16 +92,51 @@ const editPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
       });
     }
 
-    //update the prompt
+    const contentChanged =
+      prompt !== existingPrompt.prompt ||
+      name !== existingPrompt.name ||
+      description !== existingPrompt.description;
+
+    const wasFree = existingPrompt.is_free;
+    const willBePaid = is_free === false || (!is_free && !wasFree);
+
+    if (contentChanged && willBePaid) {
+      const validationResult = await validateMarketplaceSubmission(
+        user_id,
+        prompt,
+        'prompt',
+        name,
+        description || '',
+        false // isPaid
+      );
+
+      if (!validationResult.isValid) {
+        return res.status(400).json({
+          error: 'Marketplace validation failed',
+          message: 'Content changes require validation for paid items',
+          errors: validationResult.errors,
+          trustworthiness: validationResult.trustworthiness,
+          contentQuality: validationResult.contentQuality,
+        });
+      }
+    }
+
+    const updateData: any = {
+      name,
+      use_cases: useCases,
+      prompt,
+      description,
+      tags,
+    };
+
+    if (is_free !== undefined) updateData.is_free = is_free;
+    if (price !== undefined) updateData.price = price;
+    if (category !== undefined) updateData.category = category;
+    if (status !== undefined) updateData.status = status;
+
     const { data: updatedPrompt, error: updateError } = await supabaseAdmin
       .from('swarms_cloud_prompts')
-      .update({
-        name,
-        use_cases: useCases,
-        prompt,
-        description,
-        tags,
-      })
+      .update(updateData)
       .eq('user_id', user_id)
       .eq('id', id)
       .select('*');

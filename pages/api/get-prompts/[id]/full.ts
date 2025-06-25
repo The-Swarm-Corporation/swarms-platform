@@ -2,11 +2,11 @@ import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { HybridAuthGuard } from '@/shared/utils/api/hybrid-auth-guard';
 
-interface PromptData {
+interface FullPromptData {
   id: string;
   name: string;
   description: string;
-  prompt?: string;
+  prompt: string;
   use_cases: any;
   tags: string;
   is_free: boolean;
@@ -18,9 +18,7 @@ interface PromptData {
   created_at: string;
 }
 
-async function checkPromptAccess(promptId: string, userId?: string): Promise<boolean> {
-  if (!userId) return false;
-
+async function checkPromptAccess(promptId: string, userId: string): Promise<boolean> {
   const { data: purchase } = await supabaseAdmin
     .from('marketplace_transactions')
     .select('id')
@@ -33,7 +31,7 @@ async function checkPromptAccess(promptId: string, userId?: string): Promise<boo
   return !!purchase;
 }
 
-const getPromptById = async (req: NextApiRequest, res: NextApiResponse) => {
+const getFullPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
@@ -46,8 +44,16 @@ const getPromptById = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     const authGuard = new HybridAuthGuard(req);
-    const authResult = await authGuard.optionalAuthenticate();
-    const userId = authResult.userId;
+    const authResult = await authGuard.authenticate();
+
+    if (!authResult.isAuthenticated || !authResult.userId) {
+      return res.status(authResult.status).json({
+        error: 'Authentication required for full content access',
+        message: authResult.message,
+        hint: 'Provide API key in Authorization header or use /preview endpoint for public data',
+        auth_methods: ['API Key (Bearer token)', 'Supabase session']
+      });
+    }
 
     const { data: prompt, error } = await supabaseAdmin
       .from('swarms_cloud_prompts')
@@ -61,20 +67,34 @@ const getPromptById = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return res.status(404).json({ error: 'Prompt not found' });
+        return res.status(404).json({ error: 'Prompt not found or not approved' });
       }
       throw error;
     }
 
-    const isOwner = userId && prompt.user_id === userId;
+    const isOwner = prompt.user_id === authResult.userId;
     const isFree = prompt.is_free;
-    const hasPurchased = userId ? await checkPromptAccess(id, userId) : false;
+    const hasPurchased = await checkPromptAccess(id, authResult.userId);
     const hasAccess = isFree || isOwner || hasPurchased;
 
-    const responseData: PromptData = {
+    if (!hasAccess) {
+      return res.status(403).json({
+        error: 'Access denied',
+        message: 'You must purchase this prompt to access full content',
+        prompt_info: {
+          id: prompt.id,
+          name: prompt.name,
+          price: prompt.price,
+          is_free: prompt.is_free,
+        },
+      });
+    }
+
+    const fullData: FullPromptData = {
       id: prompt.id,
       name: prompt.name || '',
       description: prompt.description || '',
+      prompt: prompt.prompt || '',
       use_cases: prompt.use_cases,
       tags: prompt.tags || '',
       is_free: prompt.is_free,
@@ -86,26 +106,15 @@ const getPromptById = async (req: NextApiRequest, res: NextApiResponse) => {
       created_at: prompt.created_at,
     };
 
-    if (hasAccess) {
-      responseData.prompt = prompt.prompt || '';
-    }
-
-    const response = {
-      ...responseData,
-      access_info: {
-        has_access: hasAccess,
-        is_owner: isOwner,
-        is_free: isFree,
-        has_purchased: hasPurchased,
-        requires_purchase: !isFree && !isOwner && !hasPurchased,
-      },
-    };
-
-    return res.status(200).json(response);
+    return res.status(200).json({
+      ...fullData,
+      access_granted: true,
+      access_reason: isOwner ? 'author' : isFree ? 'free' : 'paid',
+    });
   } catch (e) {
-    console.error('Error fetching prompt:', e);
-    return res.status(500).json({ error: 'Could not fetch prompt' });
+    console.error('Error fetching full prompt:', e);
+    return res.status(500).json({ error: 'Could not fetch full prompt content' });
   }
 };
 
-export default getPromptById;
+export default getFullPrompt;

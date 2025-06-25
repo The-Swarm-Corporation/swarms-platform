@@ -35,6 +35,7 @@ import {
   executeTransactionWithRetry,
   createEnhancedConnection,
 } from '@/shared/utils/solana-transaction-utils';
+import { launchConfetti } from '@/shared/utils/helpers';
 
 interface PurchaseModalProps {
   isOpen: boolean;
@@ -72,10 +73,9 @@ const PurchaseModal = ({
             itemType: item.type,
           });
 
-          // Add a small delay to ensure database consistency
+          // Small delay to ensure database consistency
           await new Promise(resolve => setTimeout(resolve, 500));
 
-          // Force a refetch to ensure we have the latest data
           await utils.marketplace.checkUserPurchase.refetch({
             itemId: item.id,
             itemType: item.type,
@@ -88,6 +88,9 @@ const PurchaseModal = ({
           description: 'Purchase completed successfully!',
           style: { backgroundColor: '#10B981', color: 'white' },
         });
+
+        launchConfetti();
+
         onPurchaseSuccess();
         onClose();
       },
