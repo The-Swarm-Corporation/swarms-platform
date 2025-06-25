@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { trpc } from '@/shared/utils/trpc/trpc';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -30,6 +31,7 @@ interface AccessRestrictionProps {
     type: 'prompt' | 'agent';
   };
   children: React.ReactNode;
+
 }
 
 const AccessRestrictionContent = ({
@@ -37,6 +39,7 @@ const AccessRestrictionContent = ({
   children,
 }: AccessRestrictionProps) => {
   const { user } = useAuthContext();
+  const router = useRouter();
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
   const {
@@ -78,17 +81,6 @@ const AccessRestrictionContent = ({
       </MessageScreen>
     );
   }
-
-  // Debug logging to help identify issues
-  console.log('Access check:', {
-    userId: user?.id,
-    itemId: item.id,
-    itemType: item.type,
-    hasPurchased: purchaseData?.hasPurchased,
-    isLoading: isPurchaseLoading,
-    isOwner: user?.id === item.user_id,
-    isFree: item.is_free
-  });
 
   if (!purchaseData?.hasPurchased) {
     return (
@@ -219,6 +211,8 @@ const AccessRestrictionContent = ({
             };
 
             await retryRefetch();
+
+            router.push(`/${item.type}/${item.id}`);
           }}
         />
       </div>
