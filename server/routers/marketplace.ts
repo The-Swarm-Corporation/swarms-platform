@@ -127,7 +127,8 @@ const marketplaceRouter = router({
         sellerId: z.string(),
         itemId: z.string(),
         itemType: z.enum(['prompt', 'agent']),
-        amount: z.number(),
+        amount_usd: z.number(), // USD amount from database
+        amount_sol: z.number(), // SOL amount actually paid
         transactionSignature: z.string(),
         buyerWalletAddress: z.string(),
         sellerWalletAddress: z.string(),
@@ -138,7 +139,8 @@ const marketplaceRouter = router({
         sellerId,
         itemId,
         itemType,
-        amount,
+        amount_usd,
+        amount_sol,
         transactionSignature,
         buyerWalletAddress,
         sellerWalletAddress,
@@ -177,12 +179,14 @@ const marketplaceRouter = router({
       }
 
       // Calculate platform fee with proper decimal precision using utility
-      const commission = calculateCommission(amount);
+      // Commission is calculated on SOL amount (what was actually paid)
+      const commission = calculateCommission(amount_sol);
       const { platformFee, sellerAmount } = commission;
 
-      if (!validateCommissionCalculation(amount, platformFee, sellerAmount)) {
+      if (!validateCommissionCalculation(amount_sol, platformFee, sellerAmount)) {
         console.error('Commission calculation validation failed', {
-          amount,
+          amount_sol,
+          amount_usd,
           platformFee,
           sellerAmount,
           expected: commission,
@@ -194,9 +198,6 @@ const marketplaceRouter = router({
       }
 
       let solPriceAtTime = 100; // Fallback price
-      let amountUsd: number;
-      let platformFeeUsd: number;
-      let sellerAmountUsd: number;
 
       try {
         const baseUrl =
@@ -212,7 +213,6 @@ const marketplaceRouter = router({
         if (priceResponse.ok) {
           const priceData = await priceResponse.json();
           solPriceAtTime = priceData.price || 100;
-          console.log(`✅ Successfully fetched SOL price: $${solPriceAtTime}`);
         } else {
           console.warn(
             `⚠️ Internal SOL price API returned status: ${priceResponse.status}`,
@@ -232,18 +232,15 @@ const marketplaceRouter = router({
           if (directResponse.ok) {
             const directData = await directResponse.json();
             solPriceAtTime = directData.solana?.usd || 100;
-            console.log(
-              `✅ Fallback: fetched SOL price directly: $${solPriceAtTime}`,
-            );
           }
         }
       } catch (error) {
         console.error('❌ Failed to fetch SOL price for transaction:', error);
       }
 
-      amountUsd = amount * solPriceAtTime;
-      platformFeeUsd = platformFee * solPriceAtTime;
-      sellerAmountUsd = sellerAmount * solPriceAtTime;
+      // Calculate USD amounts for commission (based on SOL amounts actually paid)
+      const platformFeeUsd = platformFee * solPriceAtTime;
+      const sellerAmountUsd = sellerAmount * solPriceAtTime;
 
       const { data: transaction, error: transactionError } = await ctx.supabase
         .from('marketplace_transactions')
@@ -252,8 +249,8 @@ const marketplaceRouter = router({
           seller_id: sellerId,
           item_id: itemId,
           item_type: itemType,
-          amount,
-          amount_usd: amountUsd,
+          amount: amount_sol, // SOL amount actually paid
+          amount_usd: amount_usd, // USD amount from item price
           platform_fee: platformFee,
           platform_fee_usd: platformFeeUsd,
           seller_amount: sellerAmount,
@@ -441,6 +438,67 @@ const marketplaceRouter = router({
       });
     }
   }),
+
+  updateItemPrice: userProcedure
+    .input(
+      z.object({
+        itemId: z.string(),
+        itemType: z.enum(['prompt', 'agent']),
+        price_usd: z
+          .number()
+          .min(0.01, 'Price must be at least $0.01 USD')
+          .max(999999, 'Price cannot exceed $999,999 USD'),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { itemId, itemType, price_usd } = input;
+      const userId = ctx.session.data.user?.id;
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
+
+      try {
+        const tableName = itemType === 'prompt' ? 'swarms_cloud_prompts' : 'swarms_cloud_agents';
+
+        const { data, error } = await ctx.supabase
+          .from(tableName)
+          .update({ price_usd })
+          .eq('id', itemId)
+          .eq('user_id', userId)
+          .select('id')
+          .single();
+
+        if (error) {
+          console.error('Price update error:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to update price',
+          });
+        }
+
+        if (!data) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Item not found or you do not have permission to edit it',
+          });
+        }
+
+        return { success: true };
+      } catch (error) {
+        console.error('Price update error:', error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update price',
+        });
+      }
+    }),
 });
 
 export default marketplaceRouter;

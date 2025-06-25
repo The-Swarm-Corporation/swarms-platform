@@ -66,7 +66,7 @@ export default function Agents({
                       link={makeUrl(PUBLIC.AGENT, { id: agent.id })}
                       userId={agent.user_id}
                       is_free={agent.is_free}
-                      price={agent.price}
+                      price_usd={agent.price_usd}
                       seller_wallet_address={agent.seller_wallet_address}
                       usecases={agent?.usecases}
                       requirements={agent?.requirements}

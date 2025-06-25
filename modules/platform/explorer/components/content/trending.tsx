@@ -71,7 +71,7 @@ export default function Trending({
                             ? trend?.is_free
                             : true
                         }
-                        price={trend.price}
+                        price_usd={trend.price_usd}
                         seller_wallet_address={trend.seller_wallet_address}
                         itemType={itemType}
                       />

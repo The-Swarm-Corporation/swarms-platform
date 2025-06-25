@@ -1,9 +1,8 @@
-import { AuthApiGuard } from '@/shared/utils/api/auth-guard';
 import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
+import { HybridAuthGuard } from '@/shared/utils/api/hybrid-auth-guard';
 
-// Define a schema using Zod for validation
 const TelemetryDataSchema = z.object({
   data: z.any(), // We only validate the data field as required
 });
@@ -15,49 +14,41 @@ const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    const authorizationHeader = req.headers.authorization;
-    if (!authorizationHeader) {
-      return res.status(401).json({
-        error: 'Authorization header is missing',
-        link: 'https://swarms.world/platform/api-keys',
+    const authGuard = new HybridAuthGuard(req);
+    const authResult = await authGuard.authenticate();
+
+    if (!authResult.isAuthenticated || !authResult.userId) {
+      return res.status(authResult.status).json({
+        error: 'Authentication required to log agent usage',
+        message: authResult.message,
+        hint: 'Provide API key in Authorization header or authenticate via Supabase',
+        auth_methods: ['API Key (Bearer token)', 'Supabase session']
       });
     }
 
-    const apiKey = authorizationHeader.split(' ')[1];
-    if (!apiKey) {
-      return res.status(401).json({
-        error: 'API Key is missing in Authorization header',
-        link: 'https://swarms.world/platform/api-keys',
-      });
-    }
-
-    const guard = new AuthApiGuard({ apiKey });
-    const isAuthenticated = await guard.isAuthenticated();
-    if (isAuthenticated.status !== 200) {
-      return res
-        .status(isAuthenticated.status)
-        .json({ error: isAuthenticated.message });
-    }
-
-    const user_id = guard.getUserId();
-    if (!user_id) {
-      return res.status(404).json({ error: 'User is missing' });
-    }
+    const user_id = authResult.userId;
 
     const telemetryData = TelemetryDataSchema.parse(req.body);
 
     const { data } = telemetryData;
 
+    // Get source IP (using modern approach)
     const sourceIp =
-      req.headers['x-forwarded-for'] || req.connection.remoteAddress || null;
+      req.headers['x-forwarded-for'] ||
+      req.headers['x-real-ip'] ||
+      req.socket?.remoteAddress ||
+      null;
     console.log('Source IP:', sourceIp);
+
+    const apiKey = req.headers.authorization?.split(' ')[1] || null;
 
     const { error } = await supabaseAdmin
       .from('swarms_framework_schema')
       .insert([
         {
           data: data || null,
-          swarms_api_key: apiKey, // Use the API key from the Authorization header
+          swarms_api_key: apiKey,
+          user_id: user_id,
         },
       ]);
 

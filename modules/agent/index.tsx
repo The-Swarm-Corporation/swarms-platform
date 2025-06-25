@@ -31,6 +31,7 @@ const Agent = async ({ id }: { id: string }) => {
         name: agent.name ?? '',
         description: agent.description ?? '',
         price: agent.price ?? 0,
+        price_usd: agent.price_usd ?? 0,
         is_free: agent.is_free ?? true,
         seller_wallet_address: agent.seller_wallet_address ?? '',
         user_id: agent.user_id ?? '',

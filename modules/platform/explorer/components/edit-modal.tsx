@@ -14,9 +14,10 @@ import useEditModal from '@/shared/hooks/edit-modal';
 import { Plus } from 'lucide-react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import MultiSelect from '@/shared/components/ui/multi-select';
-import { useModelFileUpload } from '../hook/upload-file';
-import { useRef } from 'react';
+
+import { useRef, useState, useCallback } from 'react';
 import ModelFileUpload from './upload-image';
+import { solToUsd } from '@/shared/services/sol-price';
 
 interface EditExplorerModalProps {
   isOpen: boolean;
@@ -48,7 +49,6 @@ function EditExplorerModal({
     handleCategoriesChange,
 
     //upload
-
     image,
     imageUrl,
     filePath,
@@ -57,7 +57,31 @@ function EditExplorerModal({
     isDeleteFile,
     uploadImage,
     deleteImage,
+
+    hasContentChanged,
+    checkTrustworthiness,
   } = useEditModal({ entityId, entityType, onClose, onEditSuccessfully });
+
+  const [usdPrice, setUsdPrice] = useState<number | null>(null);
+  const [isConvertingPrice, setIsConvertingPrice] = useState(false);
+
+  const convertPriceToUsd = useCallback(async (solPrice: string) => {
+    if (!solPrice || isNaN(parseFloat(solPrice))) {
+      setUsdPrice(null);
+      return;
+    }
+
+    setIsConvertingPrice(true);
+    try {
+      const usd = await solToUsd(parseFloat(solPrice));
+      setUsdPrice(usd);
+    } catch (error) {
+      console.error('Failed to convert price:', error);
+      setUsdPrice(null);
+    } finally {
+      setIsConvertingPrice(false);
+    }
+  }, []);
 
   const imageUploadRef = useRef<HTMLInputElement>(null);
 
@@ -271,9 +295,9 @@ function EditExplorerModal({
                     onChange={() =>
                       setInputState({ ...inputState, isFree: true, price: 0 })
                     }
-                    className="w-4 h-4 text-red-500 border-red-500/30 focus:ring-red-500"
+                    className="w-4 h-4 text-blue-500 border-blue-500/30 focus:ring-blue-500"
                   />
-                  <span className="font-mono text-sm text-foreground">
+                  <span className="font-mono text-sm text-blue-400">
                     Free
                   </span>
                 </label>
@@ -285,9 +309,9 @@ function EditExplorerModal({
                     onChange={() =>
                       setInputState({ ...inputState, isFree: false })
                     }
-                    className="w-4 h-4 text-red-500 border-red-500/30 focus:ring-red-500"
+                    className="w-4 h-4 text-green-500 border-green-500/30 focus:ring-green-500"
                   />
-                  <span className="font-mono text-sm text-foreground">
+                  <span className="font-mono text-sm text-green-400">
                     Paid
                   </span>
                 </label>
@@ -305,14 +329,22 @@ function EditExplorerModal({
                       max="999999"
                       step="0.000001"
                       value={inputState.price}
-                      onChange={(value) =>
+                      onChange={(value) => {
+                        const price = parseFloat(value) || 0;
                         setInputState({
                           ...inputState,
-                          price: parseFloat(value) || 0,
-                        })
-                      }
+                          price,
+                        });
+                        convertPriceToUsd(value);
+                      }}
                       placeholder="0.000001"
                     />
+                    {usdPrice !== null && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        ≈ ${usdPrice.toFixed(2)} USD
+                        {isConvertingPrice && ' (converting...)'}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-mono text-red-400 mb-2">
@@ -329,6 +361,66 @@ function EditExplorerModal({
                       placeholder="Your Solana wallet address..."
                     />
                   </div>
+                </div>
+              )}
+
+              {!inputState.isFree && (
+                <div className="space-y-3">
+                  {hasContentChanged && (
+                    <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-yellow-400 font-medium">
+                          ⚠️ Content Changes Detected
+                        </span>
+                      </div>
+                      <p className="text-yellow-300 text-sm">
+                        Your content has been modified. Marketplace validation will be required for paid items.
+                      </p>
+                    </div>
+                  )}
+
+                  {checkTrustworthiness.data &&
+                    !checkTrustworthiness.data.isEligible && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-red-400 font-medium">
+                            ❌ Not Eligible for Marketplace
+                          </span>
+                        </div>
+                        <p className="text-red-300 text-sm">
+                          {checkTrustworthiness.data.reason}
+                        </p>
+                        {!checkTrustworthiness.data.isBypassUser && (
+                          <div className="mt-2 text-xs text-red-200">
+                            <p>
+                              Requirements: 2+ published items with 3.5+ average
+                              rating
+                            </p>
+                            <p>
+                              Your stats:{' '}
+                              {checkTrustworthiness.data.publishedCount}{' '}
+                              published,{' '}
+                              {checkTrustworthiness.data.averageRating.toFixed(1)}{' '}
+                              avg rating
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                  {checkTrustworthiness.data &&
+                    checkTrustworthiness.data.isEligible && hasContentChanged && (
+                      <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-green-400 font-medium">
+                            ✅ Eligible for Marketplace
+                          </span>
+                        </div>
+                        <p className="text-green-300 text-sm">
+                          Content changes will be validated before publishing.
+                        </p>
+                      </div>
+                    )}
                 </div>
               )}
             </div>

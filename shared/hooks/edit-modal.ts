@@ -48,7 +48,6 @@ interface InputState {
   language?: string;
   category: string[];
   requirements?: { package: string; installation: string }[];
-  // Marketplace fields
   isFree: boolean;
   price: number;
   sellerWalletAddress: string;
@@ -71,11 +70,13 @@ export default function useEditModal({
     language: 'python',
     category: [],
     requirements: [{ package: '', installation: '' }],
-    // Marketplace fields
     isFree: true,
     price: 0,
     sellerWalletAddress: '',
   });
+
+  // Store original data for smart change detection
+  const [originalData, setOriginalData] = useState<InputState | null>(null);
 
   const {
     imageUrl,
@@ -103,6 +104,25 @@ export default function useEditModal({
         ? trpc.explorer.updateTool.useMutation()
         : trpc.explorer.updatePrompt.useMutation();
 
+  const hasContentChanged = useMemo(() => {
+    if (!originalData) return false;
+
+    return (
+      inputState.name !== originalData.name ||
+      inputState.description !== originalData.description ||
+      inputState.uniqueField !== originalData.uniqueField
+    );
+  }, [inputState, originalData]);
+
+
+  const checkTrustworthiness = trpc.marketplace.checkUserTrustworthiness.useQuery(
+    undefined,
+    {
+      enabled: !inputState.isFree && hasContentChanged,
+      retry: false,
+    }
+  );
+
   const fetchEntityData =
     entityType === 'agent'
       ? trpc.explorer.getAgentById.useQuery(entityId)
@@ -116,7 +136,8 @@ export default function useEditModal({
     if (entityData) {
       setImageUrl(entityData.image_url ?? '');
       setFilePath(entityData.file_path ?? '');
-      setInputState({
+
+      const loadedData = {
         name: entityData.name ?? '',
         description: entityData.description ?? '',
         tags: entityData.tags ?? '',
@@ -136,11 +157,14 @@ export default function useEditModal({
           entityType === 'agent' || entityType === 'tool'
             ? entityData.requirements
             : [{ package: '', installation: '' }],
-        // Marketplace fields
         isFree: entityData.is_free ?? true,
         price: entityData.price ?? 0,
         sellerWalletAddress: entityData.seller_wallet_address ?? '',
-      });
+      };
+
+      setInputState(loadedData);
+      // Store original data for change detection
+      setOriginalData(loadedData);
     }
   }, [entityData, entityType]);
 
@@ -149,7 +173,7 @@ export default function useEditModal({
       validateMutation.mutateAsync(value);
     }, 400);
     return debouncedFn;
-  }, []);
+  }, [validateMutation]);
 
   const handleCategoriesChange = (selectedCategories: string[]) => {
     setInputState((prev) => ({
@@ -237,6 +261,33 @@ export default function useEditModal({
       return;
     }
 
+    if (!inputState.isFree && hasContentChanged) {
+      if (checkTrustworthiness.isLoading) {
+        toast.toast({
+          title: 'Checking eligibility...',
+        });
+        return;
+      }
+
+      if (checkTrustworthiness.error) {
+        toast.toast({
+          title: 'Unable to verify eligibility',
+          description: 'Please try again later',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (checkTrustworthiness.data && !checkTrustworthiness.data.isEligible) {
+        toast.toast({
+          title: 'Not eligible for marketplace',
+          description: checkTrustworthiness.data.reason,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     const trimTags = inputState.tags
       .split(',')
       .map((tag) => tag.trim())
@@ -262,7 +313,6 @@ export default function useEditModal({
       }
     }
 
-    // Prepare data based on entityType
     const data: AgentEditModal | PromptEditModal | ToolEditModal =
       entityType === 'agent'
         ? {
@@ -314,6 +364,25 @@ export default function useEditModal({
       toast.toast({
         title: `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} edited successfully 🎉`,
       });
+
+      // Reset form to initial state
+      setInputState({
+        name: '',
+        description: '',
+        tags: '',
+        useCases: [{ title: '', description: '' }],
+        uniqueField: '',
+        language: 'python',
+        category: [],
+        requirements: [{ package: '', installation: '' }],
+        isFree: true,
+        price: 0,
+        sellerWalletAddress: '',
+      });
+      setOriginalData(null);
+      setImageUrl('');
+      setFilePath('');
+
       onClose();
       onEditSuccessfully();
     });
@@ -339,5 +408,8 @@ export default function useEditModal({
     isDeleteFile,
     uploadImage,
     deleteImage,
+    // Smart change detection
+    hasContentChanged,
+    checkTrustworthiness,
   };
 }

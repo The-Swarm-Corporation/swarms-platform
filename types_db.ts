@@ -1686,6 +1686,7 @@ export type Database = {
           language: string | null
           name: string | null
           price: number | null
+          price_usd: number | null
           requirements: Json | null
           search_type: string
           seller_wallet_address: string | null
@@ -1706,6 +1707,7 @@ export type Database = {
           language?: string | null
           name?: string | null
           price?: number | null
+          price_usd?: number | null
           requirements?: Json | null
           search_type?: string
           seller_wallet_address?: string | null
@@ -1726,6 +1728,7 @@ export type Database = {
           language?: string | null
           name?: string | null
           price?: number | null
+          price_usd?: number | null
           requirements?: Json | null
           search_type?: string
           seller_wallet_address?: string | null
@@ -2753,6 +2756,7 @@ export type Database = {
           is_free: boolean
           name: string | null
           price: number | null
+          price_usd: number | null
           prompt: string | null
           search_type: string
           seller_wallet_address: string | null
@@ -2771,6 +2775,7 @@ export type Database = {
           is_free?: boolean
           name?: string | null
           price?: number | null
+          price_usd?: number | null
           prompt?: string | null
           search_type?: string
           seller_wallet_address?: string | null
@@ -2789,6 +2794,7 @@ export type Database = {
           is_free?: boolean
           name?: string | null
           price?: number | null
+          price_usd?: number | null
           prompt?: string | null
           search_type?: string
           seller_wallet_address?: string | null

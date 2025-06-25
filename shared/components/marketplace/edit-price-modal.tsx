@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
@@ -8,7 +8,7 @@ import Modal from '@/shared/components/modal';
 import { DollarSign, Loader2, Save } from 'lucide-react';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import PriceDisplay from './price-display';
+import { getSolPrice } from '@/shared/services/sol-price';
 
 interface EditPriceModalProps {
   isOpen: boolean;
@@ -17,7 +17,7 @@ interface EditPriceModalProps {
     id: string;
     name: string;
     type: 'prompt' | 'agent' | 'tool';
-    currentPrice: number;
+    currentPrice: number; // USD price
   };
   onPriceUpdated: () => void;
 }
@@ -31,6 +31,8 @@ const EditPriceModal = ({
   const { toast } = useToast();
   const [newPrice, setNewPrice] = useState(item.currentPrice.toString());
   const [isUpdating, setIsUpdating] = useState(false);
+  const [solEquivalent, setSolEquivalent] = useState<number | null>(null);
+  const [isLoadingSolPrice, setIsLoadingSolPrice] = useState(false);
 
   const updatePriceMutation = trpc.marketplace.updateItemPrice.useMutation({
     onSuccess: () => {
@@ -52,18 +54,18 @@ const EditPriceModal = ({
 
   const handleUpdatePrice = async () => {
     const price = parseFloat(newPrice);
-    
-    if (isNaN(price) || price < 0) {
+
+    if (isNaN(price) || price < 0.01) {
       toast({
-        description: 'Please enter a valid price',
+        description: 'Please enter a valid price (minimum $0.01)',
         variant: 'destructive',
       });
       return;
     }
 
-    if (price > 999) {
+    if (price > 999999) {
       toast({
-        description: 'Maximum price is 999 SOL',
+        description: 'Maximum price is $999,999 USD',
         variant: 'destructive',
       });
       return;
@@ -74,8 +76,8 @@ const EditPriceModal = ({
     try {
       await updatePriceMutation.mutateAsync({
         itemId: item.id,
-        itemType: item.type,
-        price: price,
+        itemType: item.type as any,
+        price_usd: price,
       });
     } catch (error) {
       console.error('Price update error:', error);
@@ -90,6 +92,30 @@ const EditPriceModal = ({
   };
 
   const priceNumber = parseFloat(newPrice) || 0;
+
+  // Convert USD to SOL when price changes
+  useEffect(() => {
+    const convertUsdToSol = async () => {
+      if (priceNumber <= 0) {
+        setSolEquivalent(null);
+        return;
+      }
+
+      setIsLoadingSolPrice(true);
+      try {
+        const currentSolPrice = await getSolPrice();
+        const solAmount = priceNumber / currentSolPrice;
+        setSolEquivalent(solAmount);
+      } catch (error) {
+        console.error('Failed to convert USD to SOL:', error);
+        setSolEquivalent(null);
+      } finally {
+        setIsLoadingSolPrice(false);
+      }
+    };
+
+    convertUsdToSol();
+  }, [priceNumber]);
 
   return (
     <Modal
@@ -110,20 +136,20 @@ const EditPriceModal = ({
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="price">Price (SOL)</Label>
+            <Label htmlFor="price">Price (USD)</Label>
             <Input
               id="price"
               type="number"
-              min="0"
-              max="999"
-              step="0.0001"
+              min="0.01"
+              max="999999"
+              step="0.01"
               value={newPrice}
               onChange={(e) => setNewPrice(e.target.value)}
-              placeholder="Enter price in SOL"
+              placeholder="Enter price in USD"
               disabled={isUpdating}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Maximum price: 999 SOL
+              Minimum: $0.01 USD • Maximum: $999,999 USD
             </p>
           </div>
 
@@ -134,20 +160,34 @@ const EditPriceModal = ({
                 <div className="flex justify-between">
                   <span>Your price:</span>
                   <span className="font-medium">
-                    <PriceDisplay solAmount={priceNumber} size="sm" />
+                    ${priceNumber.toFixed(2)} USD
                   </span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Platform fee (10%):</span>
                   <span>
-                    <PriceDisplay solAmount={priceNumber * 0.1} size="sm" />
+                    ${(priceNumber * 0.1).toFixed(2)} USD
                   </span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>You receive (90%):</span>
                   <span>
-                    <PriceDisplay solAmount={priceNumber * 0.9} size="sm" />
+                    ${(priceNumber * 0.9).toFixed(2)} USD
                   </span>
+                </div>
+                <div className="border-t border-muted-foreground/20 pt-2 mt-2">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>SOL equivalent:</span>
+                    <span>
+                      {isLoadingSolPrice ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : solEquivalent !== null ? (
+                        `${solEquivalent.toFixed(4)} SOL`
+                      ) : (
+                        'Loading...'
+                      )}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -6,15 +6,15 @@ import Input from '@/shared/components/ui/Input/Input';
 import MultiSelect from '@/shared/components/ui/multi-select';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { explorerCategories } from '@/shared/utils/constants';
-import { debounce, launchConfetti } from '@/shared/utils/helpers';
+import { launchConfetti } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { useMemo, useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useModelFileUpload } from '../hook/upload-file';
 import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
 import ModelFileUpload from './upload-image';
 import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
 import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
-import { solToUsd } from '@/shared/services/sol-price';
+import { getSolPrice } from '@/shared/services/sol-price';
 
 interface Props {
   isOpen: boolean;
@@ -38,10 +38,10 @@ const AddPromptModal = ({
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFree, setIsFree] = useState(true);
-  const [price, setPrice] = useState('');
+  const [priceUsd, setPriceUsd] = useState(''); // USD price input
   const [walletAddress, setWalletAddress] = useState('');
   const [isValidating, setIsValidating] = useState(false);
-  const [usdPrice, setUsdPrice] = useState<number | null>(null);
+  const [solPrice, setSolPrice] = useState<number | null>(null); // SOL equivalent preview
   const [isConvertingPrice, setIsConvertingPrice] = useState(false);
 
   const {
@@ -64,7 +64,7 @@ const AddPromptModal = ({
   };
 
   const toast = useToast();
-  const utils = trpc.useUtils();
+
 
   const addPrompt = trpc.explorer.addPrompt.useMutation();
   const checkTrustworthiness =
@@ -75,20 +75,21 @@ const AddPromptModal = ({
 
   const validation = useMarketplaceValidation();
 
-  // Convert SOL to USD on price change
-  const convertPriceToUsd = async (solPrice: string) => {
-    if (!solPrice || isNaN(parseFloat(solPrice))) {
-      setUsdPrice(null);
+  // Convert USD to SOL on price change
+  const convertUsdToSol = async (usdPrice: string) => {
+    if (!usdPrice || isNaN(parseFloat(usdPrice))) {
+      setSolPrice(null);
       return;
     }
 
     setIsConvertingPrice(true);
     try {
-      const usd = await solToUsd(parseFloat(solPrice));
-      setUsdPrice(usd);
+      const currentSolPrice = await getSolPrice();
+      const solEquivalent = parseFloat(usdPrice) / currentSolPrice;
+      setSolPrice(solEquivalent);
     } catch (error) {
-      console.error('Failed to convert price:', error);
-      setUsdPrice(null);
+      console.error('Failed to convert USD to SOL:', error);
+      setSolPrice(null);
     } finally {
       setIsConvertingPrice(false);
     }
@@ -98,10 +99,10 @@ const AddPromptModal = ({
     validation.updateField('name', promptName);
     validation.updateField('description', description);
     validation.updateField('content', prompt);
-    validation.updateField('price', price);
+    validation.updateField('price', priceUsd);
     validation.updateField('walletAddress', walletAddress);
     validation.updateField('tags', tags);
-  }, [promptName, description, prompt, price, walletAddress, tags]);
+  }, [promptName, description, prompt, priceUsd, walletAddress, tags]);
 
   const handleImageUploadClick = () => {
     imageUploadRef.current?.click();
@@ -127,9 +128,9 @@ const AddPromptModal = ({
     setTags('');
     setCategories([]);
     setIsFree(true);
-    setPrice('');
+    setPriceUsd('');
     setWalletAddress('');
-    setUsdPrice(null);
+    setSolPrice(null);
     setIsLoading(false);
     setIsValidating(false);
     setIsConvertingPrice(false);
@@ -256,7 +257,7 @@ const AddPromptModal = ({
         ],
         tags: trimTags,
         isFree,
-        price: isFree ? 0 : parseFloat(price),
+        price_usd: isFree ? 0 : parseFloat(priceUsd),
         sellerWalletAddress: isFree ? '' : walletAddress,
       })
       .then(async () => {
@@ -266,16 +267,9 @@ const AddPromptModal = ({
 
         //celeberate the confetti
         launchConfetti();
-
         onAddSuccessfully();
-
-        // Mark that we just submitted successfully
         setJustSubmitted(true);
-
-        // Reset form to initial state
         resetForm();
-
-        // Close modal after reset
         onClose();
       })
       .catch((error) => {
@@ -493,12 +487,12 @@ const AddPromptModal = ({
                 onClick={() => setIsFree(true)}
                 className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-sm ${
                   isFree
-                    ? 'border-green-500 bg-green-500/10 text-green-400'
-                    : 'border-red-500/30 bg-background/60 text-muted-foreground hover:border-red-500/50'
+                    ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                    : 'border-gray-500/30 bg-background/60 text-muted-foreground hover:border-gray-500/50'
                 }`}
               >
                 <div
-                  className={`w-2 h-2 rounded-full ${isFree ? 'bg-green-500' : 'bg-red-500/30'}`}
+                  className={`w-2 h-2 rounded-full ${isFree ? 'bg-blue-500' : 'bg-gray-500/30'}`}
                 />
                 Free
               </button>
@@ -508,19 +502,19 @@ const AddPromptModal = ({
                 onClick={() => setIsFree(false)}
                 className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-sm ${
                   !isFree
-                    ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400'
-                    : 'border-red-500/30 bg-background/60 text-muted-foreground hover:border-red-500/50'
+                    ? 'border-green-500 bg-green-500/10 text-green-400'
+                    : 'border-gray-500/30 bg-background/60 text-muted-foreground hover:border-gray-500/50'
                 }`}
               >
                 <div
-                  className={`w-2 h-2 rounded-full ${!isFree ? 'bg-yellow-500' : 'bg-red-500/30'}`}
+                  className={`w-2 h-2 rounded-full ${!isFree ? 'bg-green-500' : 'bg-gray-500/30'}`}
                 />
                 Paid
               </button>
             </div>
 
             {!isFree && (
-              <div className="space-y-4 p-4 border border-yellow-500/30 bg-yellow-500/5">
+              <div className="space-y-4 p-4 border border-green-500/30 bg-green-500/5">
                 {checkTrustworthiness.isLoading && (
                   <div className="flex items-center gap-2 p-3 bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-lg">
                     <LoadingSpinner />
@@ -579,24 +573,24 @@ const AddPromptModal = ({
                   )}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Price (SOL) <span className="text-yellow-500">*</span>
+                    Price (USD) <span className="text-yellow-500">*</span>
                   </label>
                   <Input
                     type="number"
-                    value={price}
-                    onChange={setPrice}
+                    value={priceUsd}
+                    onChange={setPriceUsd}
                     onBlur={() => {
                       validation.validateOnBlur('price');
-                      convertPriceToUsd(price);
+                      convertUsdToSol(priceUsd);
                     }}
-                    placeholder="0.00"
-                    min="0.000001"
-                    max="999"
-                    step="0.000001"
+                    placeholder="10.00"
+                    min="0.01"
+                    max="999999"
+                    step="0.01"
                     className={`bg-background/40 border transition-colors duration-300 hover:bg-background/60 ${
                       validation.fields.price?.error
                         ? 'border-red-500 focus:border-red-500'
-                        : 'border-yellow-500/30 focus:border-yellow-500'
+                        : 'border-green-500/30 focus:border-green-500'
                     } text-foreground placeholder-muted-foreground`}
                   />
                   {validation.fields.price?.error && (
@@ -604,26 +598,26 @@ const AddPromptModal = ({
                       {validation.fields.price.error}
                     </span>
                   )}
-                  {price && !validation.fields.price?.error && (
+                  {priceUsd && !validation.fields.price?.error && (
                     <div className="flex items-center gap-2 mt-1">
                       <p className="text-xs text-muted-foreground font-mono">
-                        Range: 0.000001 - 999,999 SOL
+                        Range: $0.01 - $999,999 USD
                       </p>
                       {isConvertingPrice ? (
                         <div className="flex items-center gap-1">
                           <LoadingSpinner />
                           <span className="text-xs text-muted-foreground">Converting...</span>
                         </div>
-                      ) : usdPrice !== null ? (
+                      ) : solPrice !== null ? (
                         <span className="text-xs text-green-400 font-mono">
-                          ≈ ${usdPrice.toFixed(2)} USD
+                          ≈ {solPrice.toFixed(6)} SOL (at current rate)
                         </span>
                       ) : null}
                     </div>
                   )}
-                  {!price && (
+                  {!priceUsd && (
                     <p className="text-xs text-muted-foreground mt-1 font-mono">
-                      Range: 0.000001 - 999,999 SOL
+                      Range: $0.01 - $999,999 USD
                     </p>
                   )}
                 </div>

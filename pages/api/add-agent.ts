@@ -1,9 +1,11 @@
-import { AuthApiGuard } from '@/shared/utils/api/auth-guard';
 import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
+import { HybridAuthGuard } from '@/shared/utils/api/hybrid-auth-guard';
+import { checkDailyLimit } from '@/shared/utils/api/daily-rate-limit';
+import { validateMarketplaceSubmission } from '@/shared/services/fraud-prevention';
+import { getSolPrice } from '@/shared/services/sol-price';
 
-// Input validation schema
 const createAgentSchema = z.object({
   name: z.string().min(2, 'Name should be at least 2 characters'),
   agent: z
@@ -26,6 +28,18 @@ const createAgentSchema = z.object({
   tags: z.string().min(2, {
     message: 'Tags should be at least 1 characters and separated by commas',
   }),
+  is_free: z.boolean().default(true),
+  price_usd: z.number().min(0, 'Price must be non-negative').optional(),
+  category: z.string().optional(),
+  status: z.enum(['pending', 'approved', 'rejected']).default('pending'),
+}).refine((data) => {
+  if (!data.is_free && (!data.price_usd || data.price_usd <= 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Paid agents must have a USD price greater than 0',
+  path: ['price_usd'],
 });
 
 const addAgent = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -35,54 +49,82 @@ const addAgent = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    const apiKey = req.headers.authorization?.split(' ')[1];
-    if (!apiKey) {
-      return res.status(401).json({
-        error: 'API Key is missing, go to link to create one',
-        link: 'https://swarms.world/platform/api-keys',
+    const authGuard = new HybridAuthGuard(req);
+    const authResult = await authGuard.authenticate();
+
+    if (!authResult.isAuthenticated || !authResult.userId) {
+      return res.status(authResult.status).json({
+        error: 'Authentication required to create agent',
+        message: authResult.message,
+        hint: 'Provide API key in Authorization header or authenticate via Supabase',
+        auth_methods: ['API Key (Bearer token)', 'Supabase session']
       });
     }
 
-    const guard = new AuthApiGuard({ apiKey });
-    const isAuthenticated = await guard.isAuthenticated();
-    if (isAuthenticated.status !== 200) {
-      return res
-        .status(isAuthenticated.status)
-        .json({ error: isAuthenticated.message });
-    }
-
-    const user_id = guard.getUserId();
-    if (!user_id) {
-      return res.status(404).json({ error: 'User is missing' });
-    }
+    const user_id = authResult.userId;
 
     const input = createAgentSchema.parse(req.body);
-    const { name, agent, description, useCases, tags, requirements, language } =
-      input;
+    const {
+      name,
+      agent,
+      description,
+      useCases,
+      tags,
+      requirements,
+      language,
+      is_free,
+      price_usd,
+      category,
+      status
+    } = input;
 
-    // Rate limiting logic
-    const { data: lastSubmits, error: lastSubmitsError } = await supabaseAdmin
-      .from('swarms_cloud_agents')
-      .select('*')
-      .eq('user_id', user_id)
-      .order('created_at', { ascending: false })
-      .limit(1);
+    const dailyLimitCheck = await checkDailyLimit(user_id, 'agent', !is_free);
+    if (!dailyLimitCheck.allowed) {
+      return res.status(429).json({
+        error: 'Daily limit exceeded',
+        message: dailyLimitCheck.reason,
+        currentUsage: dailyLimitCheck.currentUsage,
+        limits: dailyLimitCheck.limits,
+        resetTime: dailyLimitCheck.resetTime,
+      });
+    }
 
-    if (lastSubmitsError) throw lastSubmitsError;
+    if (!is_free) {
+      const validationResult = await validateMarketplaceSubmission(
+        user_id,
+        agent,
+        'agent',
+        name,
+        description || '',
+        false // isPaid
+      );
 
-    if (lastSubmits.length > 0) {
-      const lastSubmit = lastSubmits[0];
-      const lastSubmitTime = new Date(lastSubmit.created_at);
-      const currentTime = new Date();
-      const diffMinutes =
-        (currentTime.getTime() - lastSubmitTime.getTime()) / (1000 * 60);
-      if (diffMinutes < 1) {
-        return res
-          .status(429)
-          .json({ error: 'You can only submit one agent per minute' });
+      if (!validationResult.isValid) {
+        return res.status(400).json({
+          error: 'Marketplace validation failed',
+          errors: validationResult.errors,
+          trustworthiness: validationResult.trustworthiness,
+          contentQuality: validationResult.contentQuality,
+        });
       }
     }
 
+    // Convert USD to SOL for storage (snapshot at creation time)
+    let price_sol = 0;
+    if (!is_free && price_usd && price_usd > 0) {
+      try {
+        const currentSolPrice = await getSolPrice();
+        price_sol = price_usd / currentSolPrice;
+      } catch (error) {
+        console.error('Failed to get SOL price for agent creation:', error);
+        return res.status(500).json({
+          error: 'Unable to convert USD to SOL',
+          message: 'Price conversion service is temporarily unavailable. Please try again later.',
+        });
+      }
+    }
+
+    // Check for duplicate agent content
     const { data: recentAgents, error: recentAgentsError } = await supabaseAdmin
       .from('swarms_cloud_agents')
       .select('*')
@@ -111,7 +153,11 @@ const addAgent = async (req: NextApiRequest, res: NextApiResponse) => {
         requirements,
         language,
         tags: trimTags,
-        status: 'pending',
+        is_free: is_free ?? true,
+        price_usd: price_usd || null,
+        price: price_sol || null,
+        category: category || null,
+        status: status || 'pending',
       },
     ]);
 

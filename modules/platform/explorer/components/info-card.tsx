@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import CardDetailsModal from './card-details-modal';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
-import { USDPriceDisplay } from '@/shared/components/marketplace/price-display';
+
 import usePurchaseStatus from '@/shared/hooks/use-purchase-status';
 import { Edit, CheckCircle, DollarSign } from 'lucide-react';
 import Link from 'next/link';
@@ -32,7 +32,7 @@ interface Props {
   usersMap: any;
   reviewsMap: any;
   is_free?: boolean;
-  price?: number | null;
+  price_usd?: number | null;
   seller_wallet_address?: string | null;
   itemType?: 'prompt' | 'agent' | 'tool';
   isPremium?: boolean;
@@ -57,7 +57,7 @@ const InfoCard = ({
   reviewsMap,
   tags,
   is_free,
-  price,
+  price_usd,
   seller_wallet_address,
   itemType = 'prompt',
   usecases,
@@ -250,24 +250,26 @@ const InfoCard = ({
             className={cn(
               `flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 hover:scale-105 active:scale-95`,
               colors.button,
-              showPremiumBadge && price && price > 0
+              showPremiumBadge && price_usd && price_usd > 0
                 ? 'bg-[#4ECD78]/10 border-[0.5px] border-[#4ECD78]/20 hover:bg-[#4ECD78]/20 text-[#4ECD78]'
                 : '',
             )}
             title={
-              showPremiumBadge && price && price > 0
-                ? `Buy this ${itemType} for ${formatPrice(price)}`
+              showPremiumBadge && price_usd && price_usd > 0
+                ? `Buy this ${itemType} for $${price_usd?.toFixed(2) || '0.00'}`
                 : `View item ${itemType}`
             }
             onClick={handleViewClick}
           >
             <span>
-              {showPremiumBadge && price && price > 0
+              {showPremiumBadge && price_usd && price_usd > 0
                 ? 'Buy'
                 : btnLabel || 'Learn More'}{' '}
             </span>
-            {showPremiumBadge && price && price > 0 ? (
-              <USDPriceDisplay solAmount={price} className="text-[#4ECD78] text-sm" />
+            {showPremiumBadge && price_usd && price_usd > 0 ? (
+              <span className="text-[#4ECD78] text-sm font-medium">
+                [${price_usd?.toFixed(2) || '0.00'}]
+              </span>
             ) : (
               <ExternalLink className="h-4 w-4" />
             )}
@@ -292,7 +294,7 @@ const InfoCard = ({
           user,
           review,
           is_free,
-          price,
+          price_usd,
           seller_wallet_address,
           link,
           usecases,
