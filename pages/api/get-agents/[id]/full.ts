@@ -12,7 +12,8 @@ interface FullAgentData {
   requirements?: string;
   language?: string;
   is_free: boolean;
-  price: number;
+  price: number; // SOL price (legacy)
+  price_usd: number; // USD price (primary)
   file_path?: string;
   category?: string;
   status: string;
@@ -20,9 +21,6 @@ interface FullAgentData {
   created_at: string;
 }
 
-/**
- * Check if user has access to paid agent content
- */
 async function checkAgentAccess(agentId: string, userId: string): Promise<boolean> {
   const { data: purchase } = await supabaseAdmin
     .from('marketplace_transactions')
@@ -36,10 +34,6 @@ async function checkAgentAccess(agentId: string, userId: string): Promise<boolea
   return !!purchase;
 }
 
-/**
- * Authenticated endpoint - returns full agent content with access control
- * Requires authentication and proper access permissions
- */
 const getFullAgent = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
@@ -52,7 +46,6 @@ const getFullAgent = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(400).json({ error: 'Invalid agent ID' });
     }
 
-    // Require authentication for full content (API key or Supabase)
     const authGuard = new HybridAuthGuard(req);
     const authResult = await authGuard.authenticate();
 
@@ -65,12 +58,11 @@ const getFullAgent = async (req: NextApiRequest, res: NextApiResponse) => {
       });
     }
 
-    // Fetch full agent data
     const { data: agent, error } = await supabaseAdmin
       .from('swarms_cloud_agents')
       .select(`
         id, name, description, agent, use_cases, tags, requirements, language,
-        is_free, price, file_path, category, status,
+        is_free, price, price_usd, file_path, category, status,
         user_id, created_at
       `)
       .eq('id', id)
@@ -83,7 +75,6 @@ const getFullAgent = async (req: NextApiRequest, res: NextApiResponse) => {
       throw error;
     }
 
-    // Apply strict access control
     const isOwner = agent.user_id === authResult.userId;
     const isFree = agent.is_free;
     const hasPurchased = await checkAgentAccess(id, authResult.userId);
@@ -113,6 +104,7 @@ const getFullAgent = async (req: NextApiRequest, res: NextApiResponse) => {
       language: agent.language || undefined,
       is_free: agent.is_free,
       price: agent.price || 0,
+      price_usd: agent.price_usd || 0,
       file_path: agent.file_path || undefined,
       category: agent.category as string,
       status: agent.status || 'pending',

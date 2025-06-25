@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { HybridAuthGuard } from '@/shared/utils/api/hybrid-auth-guard';
 import { validateMarketplaceSubmission } from '@/shared/services/fraud-prevention';
+import { getSolPrice } from '@/shared/services/sol-price';
 
 const promptSchema = z.object({
   id: z.string(),
@@ -23,17 +24,17 @@ const promptSchema = z.object({
     .min(1, { message: 'At least one use case is required' }),
   tags: z.string().optional(),
   is_free: z.boolean().optional(),
-  price: z.number().min(0, 'Price must be non-negative').optional(),
+  price_usd: z.number().min(0, 'Price must be non-negative').optional(),
   category: z.array(z.string()).optional(),
   status: z.enum(['pending', 'approved', 'rejected']).optional(),
 }).refine((data) => {
-  if (data.is_free === false && (!data.price || data.price <= 0)) {
+  if (data.is_free === false && (!data.price_usd || data.price_usd <= 0)) {
     return false;
   }
   return true;
 }, {
-  message: 'Paid prompts must have a price greater than 0',
-  path: ['price'],
+  message: 'Paid prompts must have a USD price greater than 0',
+  path: ['price_usd'],
 });
 
 const editPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -66,7 +67,7 @@ const editPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
       useCases,
       tags,
       is_free,
-      price,
+      price_usd,
       category,
       status
     } = input;
@@ -121,6 +122,23 @@ const editPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     }
 
+    // Convert USD to SOL if price_usd is being updated
+    let price_sol: number | undefined;
+    if (price_usd !== undefined && price_usd > 0) {
+      try {
+        const currentSolPrice = await getSolPrice();
+        price_sol = price_usd / currentSolPrice;
+      } catch (error) {
+        console.error('Failed to get SOL price for prompt edit:', error);
+        return res.status(500).json({
+          error: 'Unable to convert USD to SOL',
+          message: 'Price conversion service is temporarily unavailable. Please try again later.',
+        });
+      }
+    } else if (price_usd === 0 || (is_free === true)) {
+      price_sol = 0;
+    }
+
     const updateData: any = {
       name,
       use_cases: useCases,
@@ -130,7 +148,8 @@ const editPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
     };
 
     if (is_free !== undefined) updateData.is_free = is_free;
-    if (price !== undefined) updateData.price = price;
+    if (price_usd !== undefined) updateData.price_usd = price_usd;
+    if (price_sol !== undefined) updateData.price = price_sol;
     if (category !== undefined) updateData.category = category;
     if (status !== undefined) updateData.status = status;
 

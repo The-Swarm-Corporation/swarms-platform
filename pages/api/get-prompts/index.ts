@@ -14,7 +14,8 @@ interface PromptListItem {
   use_cases: UseCase[];
   tags: string;
   is_free: boolean;
-  price: number;
+  price: number; // SOL price (legacy)
+  price_usd: number; // USD price (primary)
   category?: string;
   status: string;
   user_id: string;
@@ -70,7 +71,7 @@ const getAllPrompts = async (req: NextApiRequest, res: NextApiResponse) => {
       .from('swarms_cloud_prompts')
       .select(`
         id, name, description, use_cases, tags,
-        is_free, price, category, status,
+        is_free, price, price_usd, category, status,
         user_id, created_at
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
@@ -145,6 +146,7 @@ const getAllPrompts = async (req: NextApiRequest, res: NextApiResponse) => {
         tags: prompt.tags || '',
         is_free: prompt.is_free,
         price: prompt.price || 0,
+        price_usd: prompt.price_usd || 0,
         category: prompt.category as string,
         status: prompt.status || 'pending',
         user_id: prompt.user_id,

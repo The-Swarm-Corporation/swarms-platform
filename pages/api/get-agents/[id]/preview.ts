@@ -10,7 +10,8 @@ interface AgentPreview {
   requirements?: string;
   language?: string;
   is_free: boolean;
-  price: number;
+  price: number; // SOL price (legacy)
+  price_usd: number; // USD price (primary)
   category?: string;
   status: string;
   user_id: string;
@@ -33,7 +34,7 @@ const getAgentPreview = async (req: NextApiRequest, res: NextApiResponse) => {
       .from('swarms_cloud_agents')
       .select(`
         id, name, description, use_cases, tags, requirements, language,
-        is_free, price, category, status,
+        is_free, price, price_usd, category, status,
         user_id, created_at
       `)
       .eq('id', id)
@@ -56,6 +57,7 @@ const getAgentPreview = async (req: NextApiRequest, res: NextApiResponse) => {
       language: agent.language || undefined,
       is_free: agent.is_free,
       price: agent.price || 0,
+      price_usd: agent.price_usd || 0,
       category: agent.category as string,
       status: agent.status || 'pending',
       user_id: agent.user_id || '',

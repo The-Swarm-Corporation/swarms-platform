@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { HybridAuthGuard } from '@/shared/utils/api/hybrid-auth-guard';
 import { checkDailyLimit } from '@/shared/utils/api/daily-rate-limit';
 import { validateMarketplaceSubmission } from '@/shared/services/fraud-prevention';
+import { getSolPrice } from '@/shared/services/sol-price';
 
 const createAgentSchema = z.object({
   name: z.string().min(2, 'Name should be at least 2 characters'),
@@ -28,17 +29,17 @@ const createAgentSchema = z.object({
     message: 'Tags should be at least 1 characters and separated by commas',
   }),
   is_free: z.boolean().default(true),
-  price: z.number().min(0, 'Price must be non-negative').optional(),
+  price_usd: z.number().min(0, 'Price must be non-negative').optional(),
   category: z.string().optional(),
   status: z.enum(['pending', 'approved', 'rejected']).default('pending'),
 }).refine((data) => {
-  if (!data.is_free && (!data.price || data.price <= 0)) {
+  if (!data.is_free && (!data.price_usd || data.price_usd <= 0)) {
     return false;
   }
   return true;
 }, {
-  message: 'Paid agents must have a price greater than 0',
-  path: ['price'],
+  message: 'Paid agents must have a USD price greater than 0',
+  path: ['price_usd'],
 });
 
 const addAgent = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -72,7 +73,7 @@ const addAgent = async (req: NextApiRequest, res: NextApiResponse) => {
       requirements,
       language,
       is_free,
-      price,
+      price_usd,
       category,
       status
     } = input;
@@ -108,6 +109,21 @@ const addAgent = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     }
 
+    // Convert USD to SOL for storage (snapshot at creation time)
+    let price_sol = 0;
+    if (!is_free && price_usd && price_usd > 0) {
+      try {
+        const currentSolPrice = await getSolPrice();
+        price_sol = price_usd / currentSolPrice;
+      } catch (error) {
+        console.error('Failed to get SOL price for agent creation:', error);
+        return res.status(500).json({
+          error: 'Unable to convert USD to SOL',
+          message: 'Price conversion service is temporarily unavailable. Please try again later.',
+        });
+      }
+    }
+
     // Check for duplicate agent content
     const { data: recentAgents, error: recentAgentsError } = await supabaseAdmin
       .from('swarms_cloud_agents')
@@ -138,7 +154,8 @@ const addAgent = async (req: NextApiRequest, res: NextApiResponse) => {
         language,
         tags: trimTags,
         is_free: is_free ?? true,
-        price: price || null,
+        price_usd: price_usd || null,
+        price: price_sol || null,
         category: category || null,
         status: status || 'pending',
       },

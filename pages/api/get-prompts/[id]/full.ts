@@ -10,7 +10,8 @@ interface FullPromptData {
   use_cases: any;
   tags: string;
   is_free: boolean;
-  price: number;
+  price: number; // SOL price (legacy)
+  price_usd: number; // USD price (primary)
   file_path?: string;
   category?: string;
   status: string;
@@ -59,7 +60,7 @@ const getFullPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
       .from('swarms_cloud_prompts')
       .select(`
         id, name, description, prompt, use_cases, tags,
-        is_free, price, file_path, category, status,
+        is_free, price, price_usd, file_path, category, status,
         user_id, created_at
       `)
       .eq('id', id)
@@ -99,6 +100,7 @@ const getFullPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
       tags: prompt.tags || '',
       is_free: prompt.is_free,
       price: prompt.price || 0,
+      price_usd: prompt.price_usd || 0,
       file_path: prompt.file_path || undefined,
       category: prompt.category as string,
       status: prompt.status || 'pending',

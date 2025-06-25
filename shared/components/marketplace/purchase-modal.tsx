@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -19,14 +19,11 @@ import {
   Loader2,
   Download,
 } from 'lucide-react';
-import {
-  PublicKey,
-  LAMPORTS_PER_SOL,
-} from '@solana/web3.js';
+import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useWallet } from './wallet-provider';
 import { useConfig } from '@/shared/hooks/use-config';
-import PriceDisplay from './price-display';
+
 import {
   calculateCommission,
   validateCommissionCalculation,
@@ -36,6 +33,7 @@ import {
   createEnhancedConnection,
 } from '@/shared/utils/solana-transaction-utils';
 import { launchConfetti } from '@/shared/utils/helpers';
+import { getSolPrice } from '@/shared/services/sol-price';
 
 interface PurchaseModalProps {
   isOpen: boolean;
@@ -43,7 +41,7 @@ interface PurchaseModalProps {
   item: {
     id: string;
     name: string;
-    price: number;
+    price_usd?: number; // USD price from database (optional for safety)
     type: 'prompt' | 'agent';
     sellerWalletAddress: string;
     sellerId: string;
@@ -61,6 +59,28 @@ const PurchaseModal = ({
   const { publicKey, isConnected, connect } = useWallet();
   const { rpcUrl, platformWalletAddress } = useConfig();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [solPrice, setSolPrice] = useState<number | null>(null);
+  const [priceError, setPriceError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchSolPrice();
+      setIsSuccess(false);
+    }
+  }, [isOpen]);
+
+  const fetchSolPrice = async () => {
+    try {
+      setPriceError(null);
+      const currentPrice = await getSolPrice();
+      setSolPrice(currentPrice);
+    } catch (error) {
+      console.error('Failed to fetch SOL price:', error);
+      setPriceError('Unable to fetch current SOL price. Please try again.');
+      setSolPrice(null);
+    }
+  };
   const utils = trpc.useUtils();
 
   const createTransactionMutation =
@@ -74,7 +94,7 @@ const PurchaseModal = ({
           });
 
           // Small delay to ensure database consistency
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500));
 
           await utils.marketplace.checkUserPurchase.refetch({
             itemId: item.id,
@@ -89,10 +109,13 @@ const PurchaseModal = ({
           style: { backgroundColor: '#10B981', color: 'white' },
         });
 
+        setIsSuccess(true);
         launchConfetti();
 
-        onPurchaseSuccess();
-        onClose();
+        setTimeout(() => {
+          onPurchaseSuccess();
+          onClose();
+        }, 2000);
       },
       onError: (error) => {
         toast({
@@ -147,9 +170,30 @@ const PurchaseModal = ({
       return;
     }
 
+    if (!solPrice) {
+      toast({
+        title: 'Price unavailable',
+        description: 'Unable to get current SOL price. Please try again.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
+      // Convert USD to SOL at current market rate
+      if (!item.price_usd || item.price_usd <= 0) {
+        toast({
+          title: 'Invalid price',
+          description: 'Item price is not available',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const solAmount = item.price_usd / solPrice;
+
       const { solana } = window as any;
       if (!solana) {
         throw new Error('Phantom wallet not found');
@@ -169,8 +213,8 @@ const PurchaseModal = ({
       const toPubkey = new PublicKey(item.sellerWalletAddress);
       const platformPubkey = new PublicKey(platformWalletAddress);
 
-      const totalAmount = item.price * LAMPORTS_PER_SOL;
-      const commission = calculateCommission(item.price);
+      const totalAmount = solAmount * LAMPORTS_PER_SOL;
+      const commission = calculateCommission(solAmount);
       const platformFee = Math.floor(commission.platformFee * LAMPORTS_PER_SOL);
       const sellerAmount = totalAmount - platformFee;
 
@@ -192,7 +236,8 @@ const PurchaseModal = ({
         sellerId: item.sellerId,
         itemId: item.id,
         itemType: item.type,
-        amount: item.price,
+        amount_usd: item.price_usd || 0, // USD amount from database
+        amount_sol: solAmount, // SOL amount actually paid
         transactionSignature: result.signature,
         buyerWalletAddress: publicKey,
         sellerWalletAddress: item.sellerWalletAddress,
@@ -208,11 +253,13 @@ const PurchaseModal = ({
     }
   };
 
-  const commission = calculateCommission(item.price);
+  const currentSolAmount =
+    solPrice && item.price_usd ? item.price_usd / solPrice : 0;
+  const commission = calculateCommission(currentSolAmount);
   const { platformFee, sellerAmount } = commission;
 
   const isCommissionValid = validateCommissionCalculation(
-    item.price,
+    currentSolAmount,
     platformFee,
     sellerAmount,
   );
@@ -226,15 +273,29 @@ const PurchaseModal = ({
       className="w-full max-w-md"
     >
       <div className="p-6">
-        <div className="text-center mb-6">
-          <CreditCard className="h-12 w-12 mx-auto mb-4 text-primary" />
-          <h2 className="text-2xl font-bold mb-2">Purchase {item.type}</h2>
-          <p className="text-muted-foreground">
-            Complete your purchase to access this premium {item.type}
-          </p>
-        </div>
+        {isSuccess ? (
+          <div className="text-center mb-6">
+            <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+            <h2 className="text-2xl font-bold mb-2 text-green-600">Purchase Successful! 🎉</h2>
+            <p className="text-muted-foreground">
+              Congratulations! You now have access to this premium {item.type}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Redirecting you to the content...
+            </p>
+          </div>
+        ) : (
+          <div className="text-center mb-6">
+            <CreditCard className="h-12 w-12 mx-auto mb-4 text-primary" />
+            <h2 className="text-2xl font-bold mb-2">Purchase {item.type}</h2>
+            <p className="text-muted-foreground">
+              Complete your purchase to access this premium {item.type}
+            </p>
+          </div>
+        )}
 
-        <Card className="mb-6">
+        {!isSuccess && (
+          <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-lg">{item.name}</CardTitle>
             <CardDescription>
@@ -246,19 +307,27 @@ const PurchaseModal = ({
               <hr />
               <div className="flex justify-between font-semibold">
                 <span>Amount to pay:</span>
-                <span>
-                  <PriceDisplay
-                    showSOL={false}
-                    solAmount={item.price}
-                    className="font-bold text-base"
-                  />
+                <span className="font-bold text-base">
+                  ${item.price_usd?.toFixed(2) || '0.00'}
                 </span>
               </div>
+              {priceError && (
+                <div className="p-2 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-xs">
+                  {priceError}
+                </div>
+              )}
+              {/* {solPrice && item.price_usd && (
+                <div className="text-xs text-muted-foreground text-center">
+                  ≈ {(item.price_usd / solPrice).toFixed(4)} SOL at current rate
+                </div>
+              )} */}
             </div>
           </CardContent>
         </Card>
+        )}
 
-        {/* Commission validation warning */}
+        {!isSuccess && (
+          <>
         {!isCommissionValid && (
           <div className="mb-4 p-3 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
             <div className="flex items-center gap-2">
@@ -325,12 +394,9 @@ const PurchaseModal = ({
                 <>
                   <CreditCard className="h-5 w-5 mr-2" />
                   <div className="flex items-center gap-2">
-                    <span>Purchase for</span>{' '}
-                    <PriceDisplay
-                      showSOL={false}
-                      solAmount={item.price}
-                      className="inline text-sm"
-                    />
+                    <span>
+                      Purchase for ${item.price_usd?.toFixed(2) || '0.00'}
+                    </span>
                   </div>
                 </>
               )}
@@ -348,6 +414,8 @@ const PurchaseModal = ({
             Cancel
           </Button>
         </div>
+          </>
+        )}
       </div>
     </Modal>
   );

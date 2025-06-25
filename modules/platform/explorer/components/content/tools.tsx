@@ -67,7 +67,7 @@ export default function Tools({
                       usecases={tool?.usecases}
                       requirements={tool?.requirements}
                       is_free={tool.is_free}
-                      price={tool.price}
+                      price_usd={tool.price_usd}
                       seller_wallet_address={tool.seller_wallet_address}
                       itemType="tool"
                       tags={tool?.tags?.split(',') || []}

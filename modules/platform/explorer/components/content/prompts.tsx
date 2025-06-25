@@ -65,7 +65,7 @@ export default function Prompts({
                     link={makeUrl(PUBLIC.PROMPT, { id: prompt.id })}
                     userId={prompt.user_id}
                     is_free={prompt.is_free}
-                    price={prompt.price}
+                    price_usd={prompt.price_usd}
                     seller_wallet_address={prompt.seller_wallet_address}
                     usecases={prompt?.usecases}
                     requirements={prompt?.requirements}

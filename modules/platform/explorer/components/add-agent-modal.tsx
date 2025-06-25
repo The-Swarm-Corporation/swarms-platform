@@ -15,13 +15,13 @@ import {
 import { explorerCategories, languageOptions } from '@/shared/utils/constants';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import MultiSelect from '@/shared/components/ui/multi-select';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { useModelFileUpload } from '../hook/upload-file';
 import ModelFileUpload from './upload-image';
 import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
 import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
 import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
-import { solToUsd } from '@/shared/services/sol-price';
+import { getSolPrice } from '@/shared/services/sol-price';
 
 interface Props {
   isOpen: boolean;
@@ -45,10 +45,10 @@ const AddAgentModal = ({
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFree, setIsFree] = useState(true);
-  const [price, setPrice] = useState('');
+  const [priceUsd, setPriceUsd] = useState(''); // USD price input
   const [walletAddress, setWalletAddress] = useState('');
   const [isValidating, setIsValidating] = useState(false);
-  const [usdPrice, setUsdPrice] = useState<number | null>(null);
+  const [solPrice, setSolPrice] = useState<number | null>(null); // SOL equivalent preview
   const [isConvertingPrice, setIsConvertingPrice] = useState(false);
 
   const {
@@ -76,20 +76,21 @@ const AddAgentModal = ({
 
   const validation = useMarketplaceValidation();
 
-  // Convert SOL to USD on price change
-  const convertPriceToUsd = async (solPrice: string) => {
-    if (!solPrice || isNaN(parseFloat(solPrice))) {
-      setUsdPrice(null);
+  // Convert USD to SOL on price change
+  const convertUsdToSol = async (usdPrice: string) => {
+    if (!usdPrice || isNaN(parseFloat(usdPrice))) {
+      setSolPrice(null);
       return;
     }
 
     setIsConvertingPrice(true);
     try {
-      const usd = await solToUsd(parseFloat(solPrice));
-      setUsdPrice(usd);
+      const currentSolPrice = await getSolPrice();
+      const solEquivalent = parseFloat(usdPrice) / currentSolPrice;
+      setSolPrice(solEquivalent);
     } catch (error) {
-      console.error('Failed to convert price:', error);
-      setUsdPrice(null);
+      console.error('Failed to convert USD to SOL:', error);
+      setSolPrice(null);
     } finally {
       setIsConvertingPrice(false);
     }
@@ -99,10 +100,11 @@ const AddAgentModal = ({
     validation.updateField('name', agentName);
     validation.updateField('description', description);
     validation.updateField('content', agent);
-    validation.updateField('price', price);
+    validation.updateField('price', priceUsd);
     validation.updateField('walletAddress', walletAddress);
     validation.updateField('tags', tags);
-  }, [agentName, description, agent, price, walletAddress, tags]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentName, description, agent, priceUsd, walletAddress, tags]);
 
   const handleCategoriesChange = (selectedCategories: string[]) => {
     setCategories(selectedCategories);
@@ -126,7 +128,7 @@ const AddAgentModal = ({
   };
 
   // Complete form reset function
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setAgentName('');
     setDescription('');
     setAgent('');
@@ -134,9 +136,9 @@ const AddAgentModal = ({
     setLanguage('python');
     setCategories([]);
     setIsFree(true);
-    setPrice('');
+    setPriceUsd('');
     setWalletAddress('');
-    setUsdPrice(null);
+    setSolPrice(null);
     setIsLoading(false);
     setIsValidating(false);
     setIsConvertingPrice(false);
@@ -144,7 +146,8 @@ const AddAgentModal = ({
     validation.reset();
 
     validateAgent.reset();
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - validation methods should be stable
 
   const [justSubmitted, setJustSubmitted] = useState(false);
 
@@ -157,7 +160,7 @@ const AddAgentModal = ({
       resetForm();
       setJustSubmitted(false);
     }
-  }, [isOpen, justSubmitted]);
+  }, [isOpen, justSubmitted, resetForm]);
 
   const handleDrop = async (e: React.DragEvent) => {
     if (uploadStatus === 'uploading') return;
@@ -267,7 +270,7 @@ const AddAgentModal = ({
         ],
         tags: trimTags,
         isFree,
-        price: isFree ? 0 : parseFloat(price),
+        price_usd: isFree ? 0 : parseFloat(priceUsd),
         sellerWalletAddress: isFree ? '' : walletAddress,
       })
       .then(async () => {
@@ -277,13 +280,10 @@ const AddAgentModal = ({
 
         onAddSuccessfully();
 
-        // Mark that we just submitted successfully
         setJustSubmitted(true);
 
-        // Reset form to initial state
         resetForm();
 
-        // Close modal after reset
         onClose();
       })
       .catch((error) => {
@@ -579,20 +579,20 @@ const AddAgentModal = ({
                   )}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Price (SOL) <span className="text-yellow-500">*</span>
+                    Price (USD) <span className="text-yellow-500">*</span>
                   </label>
                   <Input
                     type="number"
-                    value={price}
-                    onChange={setPrice}
+                    value={priceUsd}
+                    onChange={setPriceUsd}
                     onBlur={() => {
                       validation.validateOnBlur('price');
-                      convertPriceToUsd(price);
+                      convertUsdToSol(priceUsd);
                     }}
-                    placeholder="0.00"
-                    min="0.000001"
-                    max="999"
-                    step="0.000001"
+                    placeholder="10.00"
+                    min="0.01"
+                    max="999999"
+                    step="0.01"
                     className={`bg-background/40 border transition-colors duration-300 hover:bg-background/60 ${
                       validation.fields.price?.error
                         ? 'border-red-500 focus:border-red-500'
@@ -604,26 +604,26 @@ const AddAgentModal = ({
                       {validation.fields.price.error}
                     </span>
                   )}
-                  {price && !validation.fields.price?.error && (
+                  {priceUsd && !validation.fields.price?.error && (
                     <div className="flex items-center gap-2 mt-1">
                       <p className="text-xs text-muted-foreground font-mono">
-                        Range: 0.000001 - 999,999 SOL
+                        Range: $0.01 - $999,999 USD
                       </p>
                       {isConvertingPrice ? (
                         <div className="flex items-center gap-1">
                           <LoadingSpinner />
                           <span className="text-xs text-muted-foreground">Converting...</span>
                         </div>
-                      ) : usdPrice !== null ? (
+                      ) : solPrice !== null ? (
                         <span className="text-xs text-green-400 font-mono">
-                          ≈ ${usdPrice.toFixed(2)} USD
+                          ≈ {solPrice.toFixed(6)} SOL (at current rate)
                         </span>
                       ) : null}
                     </div>
                   )}
-                  {!price && (
+                  {!priceUsd && (
                     <p className="text-xs text-muted-foreground mt-1 font-mono">
-                      Range: 0.000001 - 999,999 SOL
+                      Range: $0.01 - $999,999 USD
                     </p>
                   )}
                 </div>

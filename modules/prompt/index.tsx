@@ -27,6 +27,7 @@ const Prompt = async ({ id }: { id: string }) => {
           name: prompt.name ?? '',
           description: prompt.description ?? '',
           price: prompt.price ?? 0,
+          price_usd: prompt.price_usd ?? 0,
           is_free: prompt.is_free ?? true,
           seller_wallet_address: prompt.seller_wallet_address ?? '',
           user_id: prompt.user_id ?? '',

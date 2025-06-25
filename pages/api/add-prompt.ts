@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { HybridAuthGuard } from '@/shared/utils/api/hybrid-auth-guard';
 import { checkDailyLimit } from '@/shared/utils/api/daily-rate-limit';
 import { validateMarketplaceSubmission } from '@/shared/services/fraud-prevention';
+import { getSolPrice } from '@/shared/services/sol-price';
 
 const promptSchema = z.object({
   name: z.string().min(2, { message: 'Name should be at least 2 characters' }),
@@ -25,17 +26,17 @@ const promptSchema = z.object({
     message: 'Tags should be at least 1 characters and separated by commas',
   }),
   is_free: z.boolean().default(true),
-  price: z.number().min(0, 'Price must be non-negative').optional(),
+  price_usd: z.number().min(0, 'Price must be non-negative').optional(),
   category: z.string().optional(),
   status: z.enum(['pending', 'approved', 'rejected']).default('pending'),
 }).refine((data) => {
-  if (!data.is_free && (!data.price || data.price <= 0)) {
+  if (!data.is_free && (!data.price_usd || data.price_usd <= 0)) {
     return false;
   }
   return true;
 }, {
-  message: 'Paid prompts must have a price greater than 0',
-  path: ['price'],
+  message: 'Paid prompts must have a USD price greater than 0',
+  path: ['price_usd'],
 });
 
 const addPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -67,7 +68,7 @@ const addPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
       useCases,
       tags,
       is_free,
-      price,
+      price_usd,
       category,
       status
     } = input;
@@ -103,7 +104,20 @@ const addPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     }
 
-
+    // Convert USD to SOL for storage (snapshot at creation time)
+    let price_sol = 0;
+    if (!is_free && price_usd && price_usd > 0) {
+      try {
+        const currentSolPrice = await getSolPrice();
+        price_sol = price_usd / currentSolPrice;
+      } catch (error) {
+        console.error('Failed to get SOL price for prompt creation:', error);
+        return res.status(500).json({
+          error: 'Unable to convert USD to SOL',
+          message: 'Price conversion service is temporarily unavailable. Please try again later.',
+        });
+      }
+    }
 
     //check for existing prompt
     const { data: existingPrompts, error: existingPromptsError } =
@@ -133,9 +147,9 @@ const addPrompt = async (req: NextApiRequest, res: NextApiResponse) => {
         description,
         user_id,
         tags: trimTags,
-        // Marketplace fields
         is_free: is_free ?? true,
-        price: price || null,
+        price_usd: price_usd || null,
+        price: price_sol || null,
         category: category || null,
         status: status || 'pending',
       },

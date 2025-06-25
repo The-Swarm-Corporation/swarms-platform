@@ -48,7 +48,6 @@ interface InputState {
   language?: string;
   category: string[];
   requirements?: { package: string; installation: string }[];
-  // Marketplace fields
   isFree: boolean;
   price: number;
   sellerWalletAddress: string;
@@ -71,7 +70,6 @@ export default function useEditModal({
     language: 'python',
     category: [],
     requirements: [{ package: '', installation: '' }],
-    // Marketplace fields
     isFree: true,
     price: 0,
     sellerWalletAddress: '',
@@ -106,7 +104,17 @@ export default function useEditModal({
         ? trpc.explorer.updateTool.useMutation()
         : trpc.explorer.updatePrompt.useMutation();
 
-  // Trustworthiness check for paid items (only when content changes)
+  const hasContentChanged = useMemo(() => {
+    if (!originalData) return false;
+
+    return (
+      inputState.name !== originalData.name ||
+      inputState.description !== originalData.description ||
+      inputState.uniqueField !== originalData.uniqueField
+    );
+  }, [inputState, originalData]);
+
+
   const checkTrustworthiness = trpc.marketplace.checkUserTrustworthiness.useQuery(
     undefined,
     {
@@ -149,7 +157,6 @@ export default function useEditModal({
           entityType === 'agent' || entityType === 'tool'
             ? entityData.requirements
             : [{ package: '', installation: '' }],
-        // Marketplace fields
         isFree: entityData.is_free ?? true,
         price: entityData.price ?? 0,
         sellerWalletAddress: entityData.seller_wallet_address ?? '',
@@ -167,17 +174,6 @@ export default function useEditModal({
     }, 400);
     return debouncedFn;
   }, [validateMutation]);
-
-  // Smart change detection function
-  const hasContentChanged = useMemo(() => {
-    if (!originalData) return false;
-
-    return (
-      inputState.name !== originalData.name ||
-      inputState.description !== originalData.description ||
-      inputState.uniqueField !== originalData.uniqueField
-    );
-  }, [inputState, originalData]);
 
   const handleCategoriesChange = (selectedCategories: string[]) => {
     setInputState((prev) => ({
@@ -265,7 +261,6 @@ export default function useEditModal({
       return;
     }
 
-    // Smart change detection - only check trustworthiness if content changed AND item is/will be paid
     if (!inputState.isFree && hasContentChanged) {
       if (checkTrustworthiness.isLoading) {
         toast.toast({
@@ -318,7 +313,6 @@ export default function useEditModal({
       }
     }
 
-    // Prepare data based on entityType
     const data: AgentEditModal | PromptEditModal | ToolEditModal =
       entityType === 'agent'
         ? {

@@ -8,17 +8,14 @@ interface PromptPreview {
   use_cases: any;
   tags: string;
   is_free: boolean;
-  price: number;
+  price: number; // SOL price (legacy)
+  price_usd: number; // USD price (primary)
   category?: string;
   status: string;
   user_id: string;
   created_at: string;
 }
 
-/**
- * Public preview endpoint - returns limited prompt data without full content
- * No authentication required, safe for public consumption
- */
 const getPromptPreview = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
@@ -31,12 +28,11 @@ const getPromptPreview = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(400).json({ error: 'Invalid prompt ID' });
     }
 
-    // Fetch prompt preview data only (no sensitive content)
     const { data: prompt, error } = await supabaseAdmin
       .from('swarms_cloud_prompts')
       .select(`
         id, name, description, use_cases, tags,
-        is_free, price, category, status,
+        is_free, price, price_usd, category, status,
         user_id, created_at
       `)
       .eq('id', id)
@@ -49,7 +45,6 @@ const getPromptPreview = async (req: NextApiRequest, res: NextApiResponse) => {
       throw error;
     }
 
-    // Prepare safe preview response
     const previewData: PromptPreview = {
       id: prompt.id,
       name: prompt.name || '',
@@ -58,6 +53,7 @@ const getPromptPreview = async (req: NextApiRequest, res: NextApiResponse) => {
       tags: prompt.tags || '',
       is_free: prompt.is_free,
       price: prompt.price || 0,
+      price_usd: prompt.price_usd || 0,
       category: prompt.category as string,
       status: prompt.status || 'pending',
       user_id: prompt.user_id || '',

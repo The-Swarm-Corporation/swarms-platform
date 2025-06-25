@@ -21,7 +21,8 @@ interface AgentListItem {
   requirements?: Requirement[];
   language?: string;
   is_free: boolean;
-  price: number;
+  price: number; // SOL price (legacy)
+  price_usd: number; // USD price (primary)
   category?: string;
   status: string;
   user_id: string;
@@ -53,7 +54,6 @@ const getAllAgents = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    // Optional authentication for enhanced features
     const authGuard = new HybridAuthGuard(req);
     await authGuard.optionalAuthenticate();
 
@@ -71,17 +71,15 @@ const getAllAgents = async (req: NextApiRequest, res: NextApiResponse) => {
       limit = '20'
     } = req.query;
 
-    // Parse pagination parameters
     const pageNum = Math.max(1, parseInt(page as string) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit as string) || 20)); // Max 100 items
     const offset = (pageNum - 1) * limitNum;
 
-    // Build query with marketplace fields
     let query = supabaseAdmin
       .from('swarms_cloud_agents')
       .select(`
         id, name, description, use_cases, tags, requirements, language,
-        is_free, price, category, status,
+        is_free, price, price_usd, category, status,
         user_id, created_at
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
@@ -161,6 +159,7 @@ const getAllAgents = async (req: NextApiRequest, res: NextApiResponse) => {
         language: agent.language || undefined,
         is_free: agent.is_free,
         price: agent.price || 0,
+        price_usd: agent.price_usd || 0,
         category: agent.category as string,
         status: agent.status || 'pending',
         user_id: agent.user_id || '',

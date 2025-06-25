@@ -16,14 +16,14 @@ import {
 import PurchaseModal from './purchase-modal';
 import { WalletProvider } from './wallet-provider';
 import MessageScreen from '../chat/components/message-screen';
-import PriceDisplay from './price-display';
 
 interface AccessRestrictionProps {
   item: {
     id: string;
     name: string;
     description: string;
-    price: number;
+    price: number; // SOL price (legacy)
+    price_usd?: number; // USD price (primary)
     is_free: boolean;
     seller_wallet_address: string;
     user_id: string;
@@ -125,8 +125,8 @@ const AccessRestrictionContent = ({
                   <span className="text-gray-600 dark:text-gray-300 font-medium">
                     One-time payment
                   </span>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    <PriceDisplay showSOL={false} solAmount={item.price} />
+                  <div className="font-bold text-gray-900 dark:text-white">
+                    ${item.price_usd?.toFixed(2) || '0.00'}
                   </div>
                 </div>
               </div>
@@ -163,11 +163,9 @@ const AccessRestrictionContent = ({
                 >
                   <CreditCard className="h-4 w-4 mr-2" />
                   Purchase for{' '}
-                  <PriceDisplay
-                    showSOL={false}
-                    solAmount={item.price}
-                    className="ml-1"
-                  />
+                  <span className="ml-1 font-medium">
+                    ${item.price_usd?.toFixed(2) || '0.00'}
+                  </span>
                 </Button>
 
                 <Button
@@ -189,7 +187,7 @@ const AccessRestrictionContent = ({
           item={{
             id: item.id,
             name: item.name,
-            price: item.price,
+            price_usd: item.price_usd,
             type: item.type,
             sellerWalletAddress: item.seller_wallet_address,
             sellerId: item.user_id,

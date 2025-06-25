@@ -218,7 +218,6 @@ const explorerRouter = router({
       };
     }),
 
-  // Add prompt
   addPrompt: userProcedure
     .input(
       z.object({
@@ -231,10 +230,10 @@ const explorerRouter = router({
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
         isFree: z.boolean().default(true),
-        price: z
+        price_usd: z
           .number()
-          .min(0.000001, 'Price must be at least 0.000001 SOL')
-          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .min(0.01, 'Price must be at least $0.01 USD')
+          .max(999999, 'Price cannot exceed $999,999 USD')
           .default(0),
         sellerWalletAddress: z.string().optional(),
       }),
@@ -249,7 +248,6 @@ const explorerRouter = router({
         throw 'Name should be at least 2 characters';
       }
 
-      // Get user ID early for validation
       const user_id = ctx.session.data.user?.id ?? '';
 
       // Check daily rate limits
@@ -263,7 +261,7 @@ const explorerRouter = router({
 
       // Validate marketplace fields
       if (!input.isFree) {
-        if (!input.price || input.price <= 0) {
+        if (!input.price_usd || input.price_usd <= 0) {
           throw 'Price must be greater than 0 for paid prompts';
         }
         if (
@@ -321,7 +319,7 @@ const explorerRouter = router({
             status: 'pending',
             category: input.category,
             is_free: input.isFree,
-            price: input.price,
+            price_usd: input.price_usd,
             seller_wallet_address: input.sellerWalletAddress || null,
           } as Tables<'swarms_cloud_prompts'>,
         ]);
@@ -519,10 +517,10 @@ const explorerRouter = router({
         tags: z.string().optional(),
         category: z.array(z.string()).optional(),
         isFree: z.boolean().default(true),
-        price: z
+        price_usd: z
           .number()
-          .min(0.000001, 'Price must be at least 0.000001 SOL')
-          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .min(0.01, 'Price must be at least $0.01 USD')
+          .max(999999, 'Price cannot exceed $999,999 USD')
           .default(0),
         sellerWalletAddress: z.string().optional(),
       }),
@@ -551,7 +549,7 @@ const explorerRouter = router({
 
       // Validate marketplace fields
       if (!input.isFree) {
-        if (!input.price || input.price <= 0) {
+        if (!input.price_usd || input.price_usd <= 0) {
           throw 'Price must be greater than 0 for paid agents';
         }
         if (
@@ -614,7 +612,7 @@ const explorerRouter = router({
             status: 'pending',
             category: input.category,
             is_free: input.isFree,
-            price: input.price,
+            price_usd: input.price_usd,
             seller_wallet_address: input.sellerWalletAddress || null,
           } as Tables<'swarms_cloud_agents'>,
         ]);

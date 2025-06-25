@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Modal from '@/shared/components/modal';
 import { Badge } from '@/shared/components/ui/badge';
-import Avatar from '@/shared/components/avatar';
 import ReactStars from 'react-rating-star-with-type';
 import {
   Crown,
@@ -20,11 +19,10 @@ import {
   Key,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
-import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import ShareModal from './share-modal';
 import MarkdownComponent from '@/shared/components/markdown';
 import { DialogTitle } from '@/shared/components/ui/dialog';
-import { USDPriceDisplay } from '@/shared/components/marketplace/price-display';
+
 import usePurchaseStatus from '@/shared/hooks/use-purchase-status';
 import EditPriceModal from '@/shared/components/marketplace/edit-price-modal';
 import Image from 'next/image';
@@ -41,7 +39,7 @@ interface CardDetailsModalProps {
     user?: any;
     review?: any;
     is_free?: boolean;
-    price?: number | null;
+    price_usd?: number | null; // USD price from database
     seller_wallet_address?: string | null;
     link?: string;
     type: 'prompt' | 'agent' | 'tool';
@@ -62,7 +60,6 @@ export default function CardDetailsModal({
 }: CardDetailsModalProps) {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showEditPrice, setShowEditPrice] = useState(false);
-  const toast = useToast();
 
   const {
     isOwner,
@@ -101,7 +98,6 @@ export default function CardDetailsModal({
     }
   };
 
-  // Get item colors based on type (matching info-card styling)
   const getItemColors = () => {
     switch (cardData.type) {
       case 'agent':
@@ -342,19 +338,18 @@ export default function CardDetailsModal({
                 className={cn(
                   'flex items-center gap-2 px-3 md:px-4 py-2 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center',
                   colors.button,
-                  showPremiumBadge && cardData.price && cardData.price > 0
+                  showPremiumBadge && cardData.price_usd && cardData.price_usd > 0
                     ? 'bg-[#4ECD78]/10 border-[0.5px] border-[#4ECD78]/20 hover:bg-[#4ECD78]/20 text-[#4ECD78]'
                     : '',
                 )}
               >
-                {showPremiumBadge && cardData.price && cardData.price > 0 ? (
+                {showPremiumBadge && cardData.price_usd && cardData.price_usd > 0 ? (
                   <div className="flex items-center gap-1">
                     <span className="flex items-center">Buy</span>
 
-                    <USDPriceDisplay
-                      solAmount={cardData.price}
-                      className="text-[#4ECD78] text-sm"
-                    />
+                    <span className="text-[#4ECD78] text-sm font-medium">
+                      [${cardData.price_usd?.toFixed(2) || '0.00'}]
+                    </span>
                   </div>
                 ) : (
                   <>
@@ -401,7 +396,7 @@ export default function CardDetailsModal({
         link={cardData.link || ''}
       />
 
-      {showOwnerBadge && cardData.price && (
+      {showOwnerBadge && cardData.price_usd && (
         <EditPriceModal
           isOpen={showEditPrice}
           onClose={() => setShowEditPrice(false)}
@@ -409,7 +404,7 @@ export default function CardDetailsModal({
             id: cardData.id || '',
             name: cardData.title,
             type: cardData.type,
-            currentPrice: cardData.price,
+            currentPrice: cardData.price_usd,
           }}
           onPriceUpdated={() => {
             window.location.reload();
