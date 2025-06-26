@@ -38,7 +38,6 @@ const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
       req.headers['x-real-ip'] ||
       req.socket?.remoteAddress ||
       null;
-    console.log('Source IP:', sourceIp);
 
     const apiKey = req.headers.authorization?.split(' ')[1] || null;
 
@@ -48,15 +47,12 @@ const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
         {
           data: data || null,
           swarms_api_key: apiKey,
-          user_id: user_id,
         },
       ]);
 
     if (error) {
       throw new Error(`Supabase insert error: ${error.message}`);
     }
-
-    console.log('Telemetry data successfully stored in Supabase');
 
     return res.status(200).json({
       message: 'Telemetry data received and stored successfully',
