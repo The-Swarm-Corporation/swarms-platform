@@ -338,12 +338,16 @@ export default function CardDetailsModal({
                 className={cn(
                   'flex items-center gap-2 px-3 md:px-4 py-2 text-foreground rounded-lg transition-colors text-sm md:text-base w-full sm:w-auto justify-center',
                   colors.button,
-                  showPremiumBadge && cardData.price_usd && cardData.price_usd > 0
+                  showPremiumBadge &&
+                    cardData.price_usd &&
+                    cardData.price_usd > 0
                     ? 'bg-[#4ECD78]/10 border-[0.5px] border-[#4ECD78]/20 hover:bg-[#4ECD78]/20 text-[#4ECD78]'
                     : '',
                 )}
               >
-                {showPremiumBadge && cardData.price_usd && cardData.price_usd > 0 ? (
+                {showPremiumBadge &&
+                cardData.price_usd &&
+                cardData.price_usd > 0 ? (
                   <div className="flex items-center gap-1">
                     <span className="flex items-center">Buy</span>
 
@@ -364,15 +368,15 @@ export default function CardDetailsModal({
               title={`${cardData.is_free ? 'Free' : 'Premium'} • ${cardData.type}`}
               className="font-mono hidden md:block"
             >
-              {cardData.is_free ? (
-                <Badge className="bg-green-500/20 hover:bg-green-500/20 text-green-400 border-green-500/30 text-sm rounded-lg flex items-center gap-2 px-3 md:px-4 py-2">
-                  <Key className="w-4 h-4" />
-                  Free
-                </Badge>
-              ) : showOwnerBadge ? (
+              {isOwner ? (
                 <Badge className="bg-blue-500/20 hover:bg-blue-500/20 text-blue-400 border-blue-500/30 text-sm rounded-lg flex items-center gap-2 px-3 md:px-4 py-2">
                   <Edit className="w-4 h-4" />
                   <span>Author</span>
+                </Badge>
+              ) : cardData.is_free ? (
+                <Badge className="bg-green-500/20 hover:bg-green-500/20 text-green-400 border-green-500/30 text-sm rounded-lg flex items-center gap-2 px-3 md:px-4 py-2">
+                  <Key className="w-4 h-4" />
+                  Free
                 </Badge>
               ) : showPurchasedBadge ? (
                 <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/20 border-green-500/30 text-sm rounded-lg flex items-center gap-2 px-3 md:px-4 py-2">

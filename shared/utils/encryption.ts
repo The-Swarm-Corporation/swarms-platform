@@ -37,11 +37,7 @@ export function encrypt(text: string): { encryptedData: string; iv: string } {
 export function decrypt(encryptedData: string, iv: string): string {
   // Handle case where encryptedData might be a stringified Buffer object
   let actualEncryptedData = encryptedData;
-  
-  console.log('Encrypted data:', encryptedData);
-  console.log('IV:', iv);
-  
-  
+
   try {
     // If it's a stringified Buffer object, parse and convert it
     if (typeof encryptedData === 'string' && encryptedData.includes('"type":"Buffer"')) {

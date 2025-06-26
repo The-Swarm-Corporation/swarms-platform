@@ -11,6 +11,7 @@ import {
   calculateCommission,
   validateCommissionCalculation,
 } from '@/shared/utils/marketplace/commission';
+import { generateAccessToken } from '@/shared/utils/access-tokens';
 
 const transactionLimiter = new RateLimiterMemory({
   points: 5,
@@ -183,7 +184,9 @@ const marketplaceRouter = router({
       const commission = calculateCommission(amount_sol);
       const { platformFee, sellerAmount } = commission;
 
-      if (!validateCommissionCalculation(amount_sol, platformFee, sellerAmount)) {
+      if (
+        !validateCommissionCalculation(amount_sol, platformFee, sellerAmount)
+      ) {
         console.error('Commission calculation validation failed', {
           amount_sol,
           amount_usd,
@@ -462,7 +465,10 @@ const marketplaceRouter = router({
       }
 
       try {
-        const tableName = itemType === 'prompt' ? 'swarms_cloud_prompts' : 'swarms_cloud_agents';
+        const tableName =
+          itemType === 'prompt'
+            ? 'swarms_cloud_prompts'
+            : 'swarms_cloud_agents';
 
         const { data, error } = await ctx.supabase
           .from(tableName)
@@ -496,6 +502,37 @@ const marketplaceRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update price',
+        });
+      }
+    }),
+
+  generateAccessToken: userProcedure
+    .input(
+      z.object({
+        itemId: z.string(),
+        itemType: z.enum(['prompt', 'agent']),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { itemId, itemType } = input;
+      const userId = ctx.session.data?.user?.id;
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
+
+      try {
+        const token = generateAccessToken(itemId, itemType, userId);
+
+        return { token };
+      } catch (error) {
+        console.error('Error generating access token:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to generate access token',
         });
       }
     }),

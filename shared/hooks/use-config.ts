@@ -10,34 +10,66 @@ interface AppConfig {
   solanaNetwork: string;
 }
 
+// Cache config globally to prevent repeated API calls
+let cachedConfig: AppConfig | null = null;
+let configPromise: Promise<AppConfig> | null = null;
+
 export const useConfig = () => {
-  const [config, setConfig] = useState<AppConfig | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [config, setConfig] = useState<AppConfig | null>(cachedConfig);
+  const [isLoading, setIsLoading] = useState(!cachedConfig);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('/api/config');
+    if (cachedConfig) {
+      setConfig(cachedConfig);
+      setIsLoading(false);
+      return;
+    }
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch config: ${response.status}`);
-        }
+    if (configPromise) {
+      configPromise
+        .then((data) => {
+          setConfig(data);
+          setError(null);
+        })
+        .catch((err) => {
+          setError(err instanceof Error ? err.message : 'Failed to fetch config');
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+      return;
+    }
 
-        const data = await response.json();
+    const fetchConfig = async (): Promise<AppConfig> => {
+      const response = await fetch('/api/config');
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch config: ${response.status}`);
+      }
+
+      const data = await response.json();
+      cachedConfig = data; // Cache the result
+      return data;
+    };
+
+    setIsLoading(true);
+    configPromise = fetchConfig();
+
+    configPromise
+      .then((data) => {
         setConfig(data);
         setError(null);
-      } catch (err) {
+      })
+      .catch((err) => {
         console.error('Error fetching config:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch config');
         setConfig(null);
-      } finally {
+      })
+      .finally(() => {
         setIsLoading(false);
-      }
-    };
-
-    fetchConfig();
+        configPromise = null; // Clear the promise
+      });
   }, []);
 
   return {
