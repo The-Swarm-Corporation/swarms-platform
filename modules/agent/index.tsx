@@ -5,14 +5,32 @@ import { redirect } from 'next/navigation';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import AgentPlayground from './components/agent-playground';
 import AccessRestriction from '@/shared/components/marketplace/access-restriction';
+import { generateAccessToken } from '@/shared/utils/access-tokens';
+import { checkUserAccess } from '@/shared/utils/access-control';
 
 const Agent = async ({ id }: { id: string }) => {
-  await checkUserSession();
+  const session = await checkUserSession();
 
   const agent = await trpcApi.explorer.getAgentById.query(id);
   if (!agent) {
     redirect('/404');
   }
+
+  if (!agent.is_free) {
+    if (session?.id && agent.user_id === session.id) {
+      // User owns the agent - allow access
+    } else if (!session?.id) {
+      redirect('/');
+    } else {
+      const accessCheck = await checkUserAccess(id, 'agent', session.id);
+
+      if (!accessCheck.hasAccess) {
+        const accessToken = generateAccessToken(id, 'agent', session.id);
+        redirect(`/access/agent/${accessToken}`);
+      }
+    }
+  }
+
   const tags = agent?.tags?.split(',') || [];
   const usecases = (agent?.use_cases ?? []) as {
     title: string;

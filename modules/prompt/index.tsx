@@ -4,14 +4,32 @@ import { trpcApi } from '@/shared/utils/trpc/trpc';
 import { redirect } from 'next/navigation';
 import AccessRestriction from '@/shared/components/marketplace/access-restriction';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
+import { generateAccessToken } from '@/shared/utils/access-tokens';
+import { checkUserAccess } from '@/shared/utils/access-control';
 
 const Prompt = async ({ id }: { id: string }) => {
-  await checkUserSession();
+  const session = await checkUserSession();
 
   const prompt = await trpcApi.explorer.getPromptById.query(id);
   if (!prompt) {
     redirect('/404');
   }
+
+  if (!prompt.is_free) {
+    if (session?.id && prompt.user_id === session.id) {
+      // User owns the prompt - allow access
+    } else if (!session?.id) {
+      redirect('/');
+    } else {
+      const accessCheck = await checkUserAccess(id, 'prompt', session.id);
+
+      if (!accessCheck.hasAccess) {
+        const accessToken = generateAccessToken(id, 'prompt', session.id);
+        redirect(`/access/prompt/${accessToken}`);
+      }
+    }
+  }
+
   const tags = prompt?.tags?.split(',') || [];
   const usecases = (prompt?.use_cases ?? []) as {
     title: string;

@@ -84,8 +84,6 @@ const dashboardRouter = router({
       })
     )
     .mutation(async ({ ctx, input }: { ctx: any, input: any }) => {
-      console.log('Starting addCryptoTransactionCredit with input:', input);
-      
       const user = ctx.session.data.user;
       if (!user) {
         console.error('No user found in session');
@@ -98,7 +96,6 @@ const dashboardRouter = router({
       try {
         const connection = new Connection(process.env.RPC_URL!);
         
-        console.log('Verifying transaction:', input.transactionHash);
         const transaction = await connection.getTransaction(input.transactionHash, {
           maxSupportedTransactionVersion: 0,
           commitment: 'confirmed'

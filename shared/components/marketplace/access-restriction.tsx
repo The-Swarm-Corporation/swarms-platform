@@ -16,6 +16,7 @@ import {
 import PurchaseModal from './purchase-modal';
 import { WalletProvider } from './wallet-provider';
 import MessageScreen from '../chat/components/message-screen';
+import { useRouter } from 'next/navigation';
 
 interface AccessRestrictionProps {
   item: {
@@ -37,6 +38,7 @@ const AccessRestrictionContent = ({
   children,
 }: AccessRestrictionProps) => {
   const { user } = useAuthContext();
+  const router = useRouter();
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
   const {
@@ -78,17 +80,6 @@ const AccessRestrictionContent = ({
       </MessageScreen>
     );
   }
-
-  // Debug logging to help identify issues
-  console.log('Access check:', {
-    userId: user?.id,
-    itemId: item.id,
-    itemType: item.type,
-    hasPurchased: purchaseData?.hasPurchased,
-    isLoading: isPurchaseLoading,
-    isOwner: user?.id === item.user_id,
-    isFree: item.is_free
-  });
 
   if (!purchaseData?.hasPurchased) {
     return (
@@ -217,6 +208,8 @@ const AccessRestrictionContent = ({
             };
 
             await retryRefetch();
+
+            router.push(`/${item.type}/${item.id}`)
           }}
         />
       </div>

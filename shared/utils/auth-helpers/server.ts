@@ -186,7 +186,7 @@ export async function signInWithPassword(formData: FormData) {
   });
 
   if (error) {
-    console.log('Supabase Auth Error:', error.message);
+    console.error('Supabase Auth Error:', error.message);
     redirectPath = getErrorRedirect(
       '/signin/password_signin',
       'Sign in failed.',

@@ -248,14 +248,6 @@ const explorerRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      console.log('🎯 TRPC addPrompt mutation called:', {
-        name: input.name,
-        prompt: input.prompt?.substring(0, 50) + '...',
-        isFree: input.isFree,
-        userId: ctx.session.data.user?.id,
-        timestamp: new Date().toISOString()
-      });
-
       if (!input.prompt) {
         throw 'Prompt is required';
       }

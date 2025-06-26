@@ -218,7 +218,6 @@ class StorageManager {
     swarm: Omit<StoredSwarm, "id" | "createdAt" | "lastRun" | "runCount" | "averageExecutionTime" | "successRate">,
   ) {
     try {
-      console.log("Adding swarm:", swarm)
       const swarms = this.getSwarms()
 
       // Validate required fields
@@ -254,7 +253,6 @@ class StorageManager {
         tags: swarm.tags || [],
       }
 
-      console.log("Created new swarm:", newSwarm)
       swarms.push(newSwarm)
       localStorage.setItem(this.SWARMS_KEY, JSON.stringify(swarms))
 
@@ -263,7 +261,6 @@ class StorageManager {
         totalSwarms: stats.totalSwarms + 1,
       })
 
-      console.log("Swarm added successfully:", newSwarm.id)
       return newSwarm
     } catch (error) {
       console.error("Failed to add swarm:", error)

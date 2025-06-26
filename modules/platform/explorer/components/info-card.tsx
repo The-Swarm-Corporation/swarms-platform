@@ -1,8 +1,7 @@
 import { cn } from '@/shared/utils/cn';
 import { formatPrice, getTruncatedString } from '@/shared/utils/helpers';
 import { ReactNode, useCallback, useState } from 'react';
-import { Crown, Database, ExternalLink, Share2 } from 'lucide-react';
-import Avatar from '@/shared/components/avatar';
+import { Database, ExternalLink, Share2 } from 'lucide-react';
 import ShareModal from './share-modal';
 import ReactStars from 'react-rating-star-with-type';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
@@ -12,7 +11,7 @@ import CardDetailsModal from './card-details-modal';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 
 import usePurchaseStatus from '@/shared/hooks/use-purchase-status';
-import { Edit, CheckCircle, DollarSign } from 'lucide-react';
+import { trpc } from '@/shared/utils/trpc/trpc';
 import Link from 'next/link';
 
 interface Props {
@@ -67,7 +66,7 @@ const InfoCard = ({
   const user = usersMap?.[userId as string];
 
   const { user: authUser } = useAuthContext();
-
+  const generateToken = trpc.marketplace.generateAccessToken.useMutation();
   const { showPremiumBadge } = usePurchaseStatus({
     itemId: id || '',
     itemType,
@@ -92,10 +91,29 @@ const InfoCard = ({
   const handleViewClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (authUser) {
-      router.push(link);
-    } else {
+    if (!authUser) {
       await checkUserSession();
+      return;
+    }
+
+    if (
+      showPremiumBadge &&
+      price_usd &&
+      price_usd > 0 &&
+      id &&
+      (itemType === 'prompt' || itemType === 'agent')
+    ) {
+      try {
+        const result = await generateToken.mutateAsync({
+          itemId: id,
+          itemType: itemType as 'prompt' | 'agent',
+        });
+        router.push(`/access/${itemType}/${result.token}`);
+      } catch (error) {
+        console.error('Failed to generate access token:', error);
+        router.push(link);
+      }
+    } else {
       router.push(link);
     }
   };
