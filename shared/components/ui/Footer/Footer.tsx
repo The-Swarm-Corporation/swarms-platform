@@ -57,11 +57,9 @@ export default function Footer() {
   ];
 
   const companyLinks = [
-    { name: 'About', href: '/about', icon: <Building2 className="h-4 w-4" /> },
-    { name: 'Contact', href: 'mailto:contact@swarms.ai', icon: <Mail className="h-4 w-4" /> },
-    { name: 'Support', href: '/support', icon: <HelpCircle className="h-4 w-4" /> },
-    { name: 'Privacy Policy', href: '/privacy', icon: <Shield className="h-4 w-4" /> },
-    { name: 'Terms of Service', href: '/terms', icon: <FileText className="h-4 w-4" /> },
+    { name: 'About', href: 'https://swarms.ai', icon: <Building2 className="h-4 w-4" /> },
+    { name: 'Contact', href: 'mailto:kye@swarms.world', icon: <Mail className="h-4 w-4" /> },
+    { name: 'Support', href: 'https://discord.gg/NHfAfHf9zs', icon: <HelpCircle className="h-4 w-4" /> },
   ];
 
   return (
