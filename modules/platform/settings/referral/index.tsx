@@ -113,64 +113,64 @@ export default function ReferralDashboard() {
 
         {/* Stats Cards */}
         <div className="grid gap-6 md:grid-cols-3 mb-8">
-          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-800 bg-black shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  <p className="text-sm font-medium text-slate-400 mb-1">
                     Total Signups
                   </p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                  <p className="text-3xl font-bold text-slate-100">
                     {loadingStats ? '...' : stats?.totalSignups || 0}
                   </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                  <p className="text-sm text-slate-500 mt-1">
                     {loadingStats ? '...' : formatChange(stats?.weeklyChange || 0)} from last week
                   </p>
                 </div>
-                <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                  <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <div className="h-12 w-12 bg-blue-900/30 rounded-lg flex items-center justify-center">
+                  <Users className="h-6 w-6 text-blue-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-800 bg-black shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  <p className="text-sm font-medium text-slate-400 mb-1">
                     Credits Earned
                   </p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                  <p className="text-3xl font-bold text-slate-100">
                     ${loadingStats ? '...' : stats?.totalCredits || 0}
                   </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                  <p className="text-sm text-slate-500 mt-1">
                     {(stats?.conversionRate || 0).toFixed(1)}% conversion rate
                   </p>
                 </div>
-                <div className="h-12 w-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                  <Zap className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <div className="h-12 w-12 bg-green-900/30 rounded-lg flex items-center justify-center">
+                  <Zap className="h-6 w-6 text-green-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-800 bg-black shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  <p className="text-sm font-medium text-slate-400 mb-1">
                     Active Referrals
                   </p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                  <p className="text-3xl font-bold text-slate-100">
                     {loadingStats ? '...' : stats?.activeReferrals || 0}
                   </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                  <p className="text-sm text-slate-500 mt-1">
                     {(stats?.retentionRate || 0).toFixed(1)}% retention rate
                   </p>
                 </div>
-                <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                <div className="h-12 w-12 bg-purple-900/30 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6 text-purple-400" />
                 </div>
               </div>
             </CardContent>
@@ -178,12 +178,12 @@ export default function ReferralDashboard() {
         </div>
 
         {/* Referral Link Section */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm mb-8">
+        <Card className="border border-gray-800 bg-black shadow-sm mb-8">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            <CardTitle className="text-xl font-semibold text-slate-100">
               Share Your Referral Link
             </CardTitle>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">
+            <p className="text-slate-400 text-sm">
               Share this link with friends and earn rewards when they sign up
             </p>
           </CardHeader>
@@ -192,12 +192,12 @@ export default function ReferralDashboard() {
               <Input
                 value={referralLink}
                 readOnly
-                className="flex-1 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-sm"
+                className="flex-1 bg-gray-900 border-gray-700 text-slate-100 font-mono text-sm"
                 placeholder="Loading referral link..."
               />
               <Button
                 onClick={copyToClipboard}
-                className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 text-white px-6"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-900 px-6"
               >
                 <Copy className="mr-2 h-4 w-4" />
                 Copy
@@ -209,7 +209,7 @@ export default function ReferralDashboard() {
                 onClick={() => shareToSocial('Twitter')}
                 variant="outline"
                 size="sm"
-                className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                className="border-gray-700 hover:bg-gray-900 text-slate-300"
               >
                 <Twitter className="mr-2 h-4 w-4" />
                 Twitter
@@ -218,7 +218,7 @@ export default function ReferralDashboard() {
                 onClick={() => shareToSocial('Facebook')}
                 variant="outline"
                 size="sm"
-                className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                className="border-gray-700 hover:bg-gray-900 text-slate-300"
               >
                 <Facebook className="mr-2 h-4 w-4" />
                 Facebook
@@ -227,7 +227,7 @@ export default function ReferralDashboard() {
                 onClick={() => shareToSocial('LinkedIn')}
                 variant="outline"
                 size="sm"
-                className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                className="border-gray-700 hover:bg-gray-900 text-slate-300"
               >
                 <Linkedin className="mr-2 h-4 w-4" />
                 LinkedIn
@@ -236,7 +236,7 @@ export default function ReferralDashboard() {
                 onClick={() => shareToSocial('Instagram')}
                 variant="outline"
                 size="sm"
-                className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                className="border-gray-700 hover:bg-gray-900 text-slate-300"
               >
                 <Instagram className="mr-2 h-4 w-4" />
                 Instagram
@@ -246,53 +246,53 @@ export default function ReferralDashboard() {
         </Card>
 
         {/* Referral Activity */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+        <Card className="border border-gray-800 bg-black shadow-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            <CardTitle className="text-xl font-semibold text-slate-100">
               Referral Activity
             </CardTitle>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">
+            <p className="text-slate-400 text-sm">
               Track your referral performance and status
             </p>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="all" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-900 border border-gray-700">
                 <TabsTrigger
                   value="all"
-                  className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100 text-slate-600 dark:text-slate-400"
+                  className="data-[state=active]:bg-black data-[state=active]:text-slate-100 data-[state=active]:shadow-sm text-slate-400"
                 >
                   All
                 </TabsTrigger>
                 <TabsTrigger
                   value="pending"
-                  className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100 text-slate-600 dark:text-slate-400"
+                  className="data-[state=active]:bg-black data-[state=active]:text-slate-100 data-[state=active]:shadow-sm text-slate-400"
                 >
                   Pending
                 </TabsTrigger>
                 <TabsTrigger
                   value="completed"
-                  className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100 text-slate-600 dark:text-slate-400"
+                  className="data-[state=active]:bg-black data-[state=active]:text-slate-100 data-[state=active]:shadow-sm text-slate-400"
                 >
                   Completed
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="all" className="mt-6">
-                <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="rounded-lg border border-gray-700 overflow-hidden">
                   <Table>
-                    <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
-                      <TableRow className="border-slate-200 dark:border-slate-700">
-                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                    <TableHeader className="bg-gray-900/50">
+                      <TableRow className="border-gray-700">
+                        <TableHead className="font-semibold text-slate-100">
                           Name
                         </TableHead>
-                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                        <TableHead className="font-semibold text-slate-100">
                           Email
                         </TableHead>
-                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                        <TableHead className="font-semibold text-slate-100">
                           Date
                         </TableHead>
-                        <TableHead className="font-semibold text-right text-slate-900 dark:text-slate-100">
+                        <TableHead className="font-semibold text-right text-slate-100">
                           Status
                         </TableHead>
                       </TableRow>
@@ -301,23 +301,23 @@ export default function ReferralDashboard() {
                       {(tableData || [])?.map((referral) => (
                         <TableRow
                           key={referral.id}
-                          className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                          className="border-gray-700 hover:bg-gray-900/50"
                         >
-                          <TableCell className="font-medium text-slate-900 dark:text-slate-100">
+                          <TableCell className="font-medium text-slate-100">
                             {referral.name}
                           </TableCell>
-                          <TableCell className="text-slate-600 dark:text-slate-400 font-mono text-sm">
+                          <TableCell className="text-slate-400 font-mono text-sm">
                             {referral.email}
                           </TableCell>
-                          <TableCell className="text-slate-600 dark:text-slate-400">
+                          <TableCell className="text-slate-400">
                             {referral.date}
                           </TableCell>
                           <TableCell className="text-right">
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                 referral.status === 'Completed'
-                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                  : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                  ? 'bg-green-900/30 text-green-400'
+                                  : 'bg-yellow-900/30 text-yellow-400'
                               }`}
                             >
                               {referral.status}
@@ -331,20 +331,20 @@ export default function ReferralDashboard() {
               </TabsContent>
 
               <TabsContent value="pending" className="mt-6">
-                <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="rounded-lg border border-gray-700 overflow-hidden">
                   <Table>
-                    <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
-                      <TableRow className="border-slate-200 dark:border-slate-700">
-                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                    <TableHeader className="bg-gray-900/50">
+                      <TableRow className="border-gray-700">
+                        <TableHead className="font-semibold text-slate-100">
                           Name
                         </TableHead>
-                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                        <TableHead className="font-semibold text-slate-100">
                           Email
                         </TableHead>
-                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                        <TableHead className="font-semibold text-slate-100">
                           Date
                         </TableHead>
-                        <TableHead className="font-semibold text-right text-slate-900 dark:text-slate-100">
+                        <TableHead className="font-semibold text-right text-slate-100">
                           Status
                         </TableHead>
                       </TableRow>
@@ -355,19 +355,19 @@ export default function ReferralDashboard() {
                         ?.map((referral) => (
                           <TableRow
                             key={referral.id}
-                            className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            className="border-gray-700 hover:bg-gray-900/50"
                           >
-                            <TableCell className="font-medium text-slate-900 dark:text-slate-100">
+                            <TableCell className="font-medium text-slate-100">
                               {referral.name}
                             </TableCell>
-                            <TableCell className="text-slate-600 dark:text-slate-400 font-mono text-sm">
+                            <TableCell className="text-slate-400 font-mono text-sm">
                               {referral.email}
                             </TableCell>
-                            <TableCell className="text-slate-600 dark:text-slate-400">
+                            <TableCell className="text-slate-400">
                               {referral.date}
                             </TableCell>
                             <TableCell className="text-right">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-900/30 text-yellow-400">
                                 {referral.status}
                               </span>
                             </TableCell>
@@ -379,20 +379,20 @@ export default function ReferralDashboard() {
               </TabsContent>
 
               <TabsContent value="completed" className="mt-6">
-                <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="rounded-lg border border-gray-700 overflow-hidden">
                   <Table>
-                    <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
-                      <TableRow className="border-slate-200 dark:border-slate-700">
-                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                    <TableHeader className="bg-gray-900/50">
+                      <TableRow className="border-gray-700">
+                        <TableHead className="font-semibold text-slate-100">
                           Name
                         </TableHead>
-                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                        <TableHead className="font-semibold text-slate-100">
                           Email
                         </TableHead>
-                        <TableHead className="font-semibold text-slate-900 dark:text-slate-100">
+                        <TableHead className="font-semibold text-slate-100">
                           Date
                         </TableHead>
-                        <TableHead className="font-semibold text-right text-slate-900 dark:text-slate-100">
+                        <TableHead className="font-semibold text-right text-slate-100">
                           Status
                         </TableHead>
                       </TableRow>
@@ -403,19 +403,19 @@ export default function ReferralDashboard() {
                         ?.map((referral) => (
                           <TableRow
                             key={referral.id}
-                            className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            className="border-gray-700 hover:bg-gray-900/50"
                           >
-                            <TableCell className="font-medium text-slate-900 dark:text-slate-100">
+                            <TableCell className="font-medium text-slate-100">
                               {referral.name}
                             </TableCell>
-                            <TableCell className="text-slate-600 dark:text-slate-400 font-mono text-sm">
+                            <TableCell className="text-slate-400 font-mono text-sm">
                               {referral.email}
                             </TableCell>
-                            <TableCell className="text-slate-600 dark:text-slate-400">
+                            <TableCell className="text-slate-400">
                               {referral.date}
                             </TableCell>
                             <TableCell className="text-right">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400">
                                 {referral.status}
                               </span>
                             </TableCell>
