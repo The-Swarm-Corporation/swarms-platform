@@ -54,6 +54,8 @@ const logAgent = async (req: NextApiRequest, res: NextApiResponse) => {
       throw new Error(`Supabase insert error: ${error.message}`);
     }
 
+    console.log('Telemetry data successfully stored in Supabase');
+
     return res.status(200).json({
       message: 'Telemetry data received and stored successfully',
       data,
