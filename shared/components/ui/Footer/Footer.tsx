@@ -60,6 +60,7 @@ export default function Footer() {
     { name: 'About', href: 'https://swarms.ai', icon: <Building2 className="h-4 w-4" /> },
     { name: 'Contact', href: 'mailto:kye@swarms.world', icon: <Mail className="h-4 w-4" /> },
     { name: 'Support', href: 'https://discord.gg/NHfAfHf9zs', icon: <HelpCircle className="h-4 w-4" /> },
+    { name: 'Hiring', href: 'https://swarms.ai/hiring', icon: <Users className="h-4 w-4" /> },
   ];
 
   return (
