@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Leaderboard } from '@/modules/platform/explorer/components/content/leaderboard';
+import { Leaderboard } from '@/modules/platform/leaderboard/leaderboard';
 import { Input } from '@/shared/components/ui/input';
 import { Search, LayoutGrid, Table } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';

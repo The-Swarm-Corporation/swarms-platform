@@ -1395,78 +1395,190 @@ const explorerRouter = router({
     }),
   getTopUsers: publicProcedure
     .input(
-      z.object({ category: z.enum(['total', 'prompts', 'agents', 'tools']) }),
+      z.object({
+        category: z.enum(['total', 'prompts', 'agents', 'tools']).default('total'),
+        limit: z.number().min(1).max(50).default(10)
+      }),
     )
     .query(async ({ input, ctx }) => {
-      const { category } = input;
+      const { category, limit } = input;
+      const startTime = Date.now();
 
-      // Get all users with their items
-      const { data: users, error: usersError } = await ctx.supabase
-        .from('users')
-        .select('id, username, full_name, avatar_url');
+      try {
+        const { data: rpcResult, error: rpcError } = await ctx.supabase
+          .rpc('get_top_users_optimized', {
+            category_filter: category,
+            result_limit: limit
+          });
 
-      if (usersError) throw usersError;
-      if (!users) return [];
-
-      // Get all prompts
-      const { data: prompts, error: promptsError } = await ctx.supabase
-        .from('swarms_cloud_prompts')
-        .select('*');
-
-      if (promptsError) throw promptsError;
-      if (!prompts) return [];
-
-      // Get all agents
-      const { data: agents, error: agentsError } = await ctx.supabase
-        .from('swarms_cloud_agents')
-        .select('*');
-
-      if (agentsError) throw agentsError;
-      if (!agents) return [];
-
-      // Get all tools
-      const { data: tools, error: toolsError } = await ctx.supabase
-        .from('swarms_cloud_tools')
-        .select('*');
-
-      if (toolsError) throw toolsError;
-      if (!tools) return [];
-
-      // Map items to users
-      const usersWithItems = users.map((user) => ({
-        id: user.id,
-        username: user.username,
-        full_name: user.full_name,
-        avatar_url: user.avatar_url,
-        prompts: prompts.filter((p) => p.user_id === user.id),
-        agents: agents.filter((a) => a.user_id === user.id),
-        tools: tools.filter((t) => t.user_id === user.id),
-      }));
-
-      // Sort users based on the selected category
-      const sortedUsers = usersWithItems.sort((a, b) => {
-        const aTotal = a.prompts.length + a.agents.length + a.tools.length;
-        const bTotal = b.prompts.length + b.agents.length + b.tools.length;
-
-        switch (category) {
-          case 'total':
-            return bTotal - aTotal;
-          case 'prompts':
-            return b.prompts.length - a.prompts.length;
-          case 'agents':
-            return b.agents.length - a.agents.length;
-          case 'tools':
-            return b.tools.length - a.tools.length;
-          default:
-            return 0;
+        if (rpcError) {
+          console.warn('RPC function failed, falling back to manual aggregation:', rpcError);
+          return getTopUsersFallback(ctx, category, limit);
         }
-      });
 
-      // Return top 9 users
-      return sortedUsers.slice(0, 9);
+        if (!rpcResult || rpcResult.length === 0) {
+          console.log(`getTopUsers (RPC) completed in ${Date.now() - startTime}ms, returned 0 users for category: ${category}`);
+          return [];
+        }
+
+        const userIds = rpcResult.map((row: any) => row.result_user_id);
+
+        const [usersResult, promptsResult, agentsResult, toolsResult] = await Promise.all([
+          ctx.supabase
+            .from('users')
+            .select('id, username, full_name, avatar_url')
+            .in('id', userIds)
+            .not('username', 'is', null)
+            .neq('username', ''),
+          ctx.supabase
+            .from('swarms_cloud_prompts')
+            .select('id, user_id, name, created_at')
+            .in('user_id', userIds)
+            .order('created_at', { ascending: false }),
+          ctx.supabase
+            .from('swarms_cloud_agents')
+            .select('id, user_id, name, created_at')
+            .in('user_id', userIds)
+            .order('created_at', { ascending: false }),
+          ctx.supabase
+            .from('swarms_cloud_tools')
+            .select('id, user_id, name, created_at')
+            .in('user_id', userIds)
+            .order('created_at', { ascending: false })
+        ]);
+
+        if (usersResult.error) throw usersResult.error;
+        if (promptsResult.error) throw promptsResult.error;
+        if (agentsResult.error) throw agentsResult.error;
+        if (toolsResult.error) throw toolsResult.error;
+
+        const users = usersResult.data || [];
+        const prompts = promptsResult.data || [];
+        const agents = agentsResult.data || [];
+        const tools = toolsResult.data || [];
+
+        // Build result maintaining the order from RPC function
+        const result = rpcResult
+          .map((row: any) => {
+            const user = users.find((u: any) => u.id === row.result_user_id);
+            if (!user) return null;
+
+            return {
+              id: user.id,
+              username: user.username,
+              full_name: user.full_name,
+              avatar_url: user.avatar_url,
+              prompts: prompts.filter((p: any) => p.user_id === user.id),
+              agents: agents.filter((a: any) => a.user_id === user.id),
+              tools: tools.filter((t: any) => t.user_id === user.id),
+            };
+          })
+          .filter(Boolean);
+
+        const endTime = Date.now();
+        console.log(`getTopUsers (RPC) completed in ${endTime - startTime}ms, returned ${result.length}/${limit} users for category: ${category}`);
+
+        return result;
+
+      } catch (error) {
+        console.error('getTopUsers (RPC) failed, falling back to manual aggregation:', error);
+        return getTopUsersFallback(ctx, category, limit);
+      }
     }),
 
 
 });
+
+// Optimized function for manual aggregation
+async function getTopUsersFallback(ctx: any, category: string, limit: number) {
+  const startTime = Date.now();
+  // Get all content with user_id to find active users
+  const [promptsResult, agentsResult, toolsResult] = await Promise.all([
+    ctx.supabase
+      .from('swarms_cloud_prompts')
+      .select('id, user_id, name, created_at'),
+    ctx.supabase
+      .from('swarms_cloud_agents')
+      .select('id, user_id, name, created_at'),
+    ctx.supabase
+      .from('swarms_cloud_tools')
+      .select('id, user_id, name, created_at')
+  ]);
+
+  if (promptsResult.error) throw promptsResult.error;
+  if (agentsResult.error) throw agentsResult.error;
+  if (toolsResult.error) throw toolsResult.error;
+
+  const prompts = promptsResult.data || [];
+  const agents = agentsResult.data || [];
+  const tools = toolsResult.data || [];
+
+  // Get unique user IDs who have created content
+  const allUserIds = new Set([
+    ...prompts.map((p: any) => p.user_id),
+    ...agents.map((a: any) => a.user_id),
+    ...tools.map((t: any) => t.user_id)
+  ]);
+
+  const uniqueUserIds = Array.from(allUserIds);
+
+  if (uniqueUserIds.length === 0) return [];
+
+  // Get user details for active users only (filter out users without usernames)
+  const { data: users, error: usersError } = await ctx.supabase
+    .from('users')
+    .select('id, username, full_name, avatar_url')
+    .in('id', uniqueUserIds)
+    .not('username', 'is', null)
+    .neq('username', '');
+
+  if (usersError) throw usersError;
+  if (!users) return [];
+
+  // Map items to users and calculate stats
+  const usersWithItems = users.map((user: any) => {
+    const userPrompts = prompts.filter((p: any) => p.user_id === user.id);
+    const userAgents = agents.filter((a: any) => a.user_id === user.id);
+    const userTools = tools.filter((t: any) => t.user_id === user.id);
+
+    return {
+      id: user.id,
+      username: user.username,
+      full_name: user.full_name,
+      avatar_url: user.avatar_url,
+      prompts: userPrompts,
+      agents: userAgents,
+      tools: userTools,
+      totalItems: userPrompts.length + userAgents.length + userTools.length,
+    };
+  });
+
+  // Filter out users with no content
+  const activeUsers = usersWithItems.filter((user: any) => user.totalItems > 0);
+
+  // Sort users based on the selected category
+  const sortedUsers = activeUsers.sort((a: any, b: any) => {
+    switch (category) {
+      case 'total':
+        return b.totalItems - a.totalItems;
+      case 'prompts':
+        return b.prompts.length - a.prompts.length;
+      case 'agents':
+        return b.agents.length - a.agents.length;
+      case 'tools':
+        return b.tools.length - a.tools.length;
+      default:
+        return b.totalItems - a.totalItems;
+    }
+  });
+
+  // Return top N users
+  const result = sortedUsers.slice(0, limit);
+
+  const endTime = Date.now();
+  console.log(`getTopUsers completed in ${endTime - startTime}ms, returned ${result.length} users for category: ${category}`);
+
+  return result;
+}
 
 export default explorerRouter;
