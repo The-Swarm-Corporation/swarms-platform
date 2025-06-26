@@ -53,7 +53,7 @@ export default function Footer() {
     { name: 'GitHub', href: SWARMS_GITHUB, icon: <Github className="h-4 w-4" /> },
     { name: 'Discord', href: DISCORD, icon: <Discord /> },
     { name: 'Twitter', href: 'https://twitter.com/swarms_corp', icon: <Twitter className="h-4 w-4" /> },
-    { name: 'LinkedIn', href: 'https://linkedin.com/company/swarms-ai', icon: <Linkedin className="h-4 w-4" /> },
+    { name: 'LinkedIn', href: 'https://linkedin.com/company/The-Swarm-Corporation', icon: <Linkedin className="h-4 w-4" /> },
   ];
 
   const companyLinks = [

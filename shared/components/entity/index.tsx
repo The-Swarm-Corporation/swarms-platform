@@ -234,6 +234,87 @@ export default function EntityComponent({
       contentToCopy = prompt;
     } else if (selectedTab === 'txt') {
       contentToCopy = stripMarkdown(prompt ?? '');
+    } else if (selectedTab === 'framework') {
+      contentToCopy = `import time
+from swarms import Agent
+
+# Put your api key in the .env file like OPENAI_API_KEY=""
+
+
+# Initialize the agent
+agent = Agent(
+    agent_name="${name || 'Custom-Agent'}",
+    agent_description="${description?.replace(/"/g, '\\"') || 'Custom agent for specific tasks'}",
+    system_prompt="""${prompt?.replace(/"/g, '\\"') || ''}""",
+    max_loops=1,
+    model_name="gpt-4o-mini",
+    dynamic_temperature_enabled=True,
+    output_type="all",
+    max_tokens=16384,
+    # dashboard=True
+)
+
+# Run the agent with your task
+out = agent.run("Your task description here")
+
+time.sleep(10)
+print(out)`;
+    } else if (selectedTab === 'api') {
+      contentToCopy = `import os
+import requests
+from dotenv import load_dotenv
+
+# Load API key from environment
+load_dotenv()
+API_KEY = os.getenv("SWARMS_API_KEY")
+BASE_URL = "https://api.swarms.world"
+
+# Configure headers with your API key
+headers = {
+    "x-api-key": API_KEY,
+    "Content-Type": "application/json"
+}
+
+def run_single_agent(agent_config, task):
+    """
+    Run a single agent with the AgentCompletion format.
+    """
+    payload = {
+        "agent_config": agent_config,
+        "task": task
+    }
+
+    try:
+        response = requests.post(
+            f"{BASE_URL}/v1/agent/completions", 
+            headers=headers, 
+            json=payload
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error making request: {e}")
+        return None
+
+# Agent configuration using this prompt
+agent_config = {
+    "agent_name": "${name || 'Custom-Agent'}",
+    "description": "${description?.replace(/"/g, '\\"') || 'Custom agent for specific tasks'}",
+    "system_prompt": """${prompt?.replace(/"/g, '\\"') || ''}""",
+    "model_name": "gpt-4o",
+    "role": "worker",
+    "max_loops": 2,
+    "max_tokens": 8192,
+    "temperature": 0.5,
+    "auto_generate_prompt": False,
+}
+
+# Your task
+task = "Your task description here"
+
+# Run the agent
+result = run_single_agent(agent_config, task)
+print(result)`;
     } else {
       contentToCopy = prompt;
     }
@@ -252,6 +333,91 @@ export default function EntityComponent({
       contentToDownload = stripMarkdown(prompt ?? '');
       filename = `${name ?? 'prompt'}.txt`;
       filetype = 'text/plain';
+    } else if (selectedTab === 'framework') {
+      contentToDownload = `import time
+from swarms import Agent
+
+# Put your api key in the .env file like OPENAI_API_KEY=""
+
+
+# Initialize the agent
+agent = Agent(
+    agent_name="${name || 'Custom-Agent'}",
+    agent_description="${description?.replace(/"/g, '\\"') || 'Custom agent for specific tasks'}",
+    system_prompt="""${prompt?.replace(/"/g, '\\"') || ''}""",
+    max_loops=1,
+    model_name="gpt-4o-mini",
+    dynamic_temperature_enabled=True,
+    output_type="all",
+    max_tokens=16384,
+    # dashboard=True
+)
+
+# Run the agent with your task
+out = agent.run("Your task description here")
+
+time.sleep(10)
+print(out)`;
+      filename = `${name ?? 'prompt'}_framework.py`;
+      filetype = 'text/python';
+    } else if (selectedTab === 'api') {
+      contentToDownload = `import os
+import requests
+from dotenv import load_dotenv
+
+# Load API key from environment
+load_dotenv()
+API_KEY = os.getenv("SWARMS_API_KEY")
+BASE_URL = "https://api.swarms.world"
+
+# Configure headers with your API key
+headers = {
+    "x-api-key": API_KEY,
+    "Content-Type": "application/json"
+}
+
+def run_single_agent(agent_config, task):
+    """
+    Run a single agent with the AgentCompletion format.
+    """
+    payload = {
+        "agent_config": agent_config,
+        "task": task
+    }
+
+    try:
+        response = requests.post(
+            f"{BASE_URL}/v1/agent/completions", 
+            headers=headers, 
+            json=payload
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error making request: {e}")
+        return None
+
+# Agent configuration using this prompt
+agent_config = {
+    "agent_name": "${name || 'Custom-Agent'}",
+    "description": "${description?.replace(/"/g, '\\"') || 'Custom agent for specific tasks'}",
+    "system_prompt": """${prompt?.replace(/"/g, '\\"') || ''}""",
+    "model_name": "gpt-4o",
+    "role": "worker",
+    "max_loops": 2,
+    "max_tokens": 8192,
+    "temperature": 0.5,
+    "auto_generate_prompt": False,
+}
+
+# Your task
+task = "Your task description here"
+
+# Run the agent
+result = run_single_agent(agent_config, task)
+print(result)`;
+      filename = `${name ?? 'prompt'}_api.py`;
+      filetype = 'text/python';
     } else {
       contentToDownload = stripMarkdown(prompt ?? '');
       filename = `${name ?? 'prompt'}.csv`;
@@ -259,9 +425,11 @@ export default function EntityComponent({
     }
     const toastText = filetype.includes('markdown')
       ? 'Downloaded as markdown'
-      : filetype.includes('csv')
-        ? 'Downloaded as csv'
-        : 'Download as plain text';
+      : filetype.includes('python')
+        ? 'Downloaded as Python file'
+        : filetype.includes('csv')
+          ? 'Downloaded as csv'
+          : 'Download as plain text';
     downloadFile(contentToDownload ?? '', filename, filetype);
     toast.toast({ description: toastText });
   };
@@ -534,6 +702,111 @@ export default function EntityComponent({
                     >
                       Download as Markdown (.md)
                     </button>
+                    <button
+                      onClick={() => {
+                        const frameworkCode = `import time
+from swarms import Agent
+
+# Put your api key in the .env file like OPENAI_API_KEY=""
+
+
+# Initialize the agent
+agent = Agent(
+    agent_name="${name || 'Custom-Agent'}",
+    agent_description="${description?.replace(/"/g, '\\"') || 'Custom agent for specific tasks'}",
+    system_prompt="""${prompt?.replace(/"/g, '\\"') || ''}""",
+    max_loops=1,
+    model_name="gpt-4o-mini",
+    dynamic_temperature_enabled=True,
+    output_type="all",
+    max_tokens=16384,
+    # dashboard=True
+)
+
+# Run the agent with your task
+out = agent.run("Your task description here")
+
+time.sleep(10)
+print(out)`;
+                        downloadFile(
+                          frameworkCode,
+                          `${name ?? 'prompt'}_framework.py`,
+                          'text/python',
+                        );
+                        toast.toast({ description: 'Downloaded as Framework Python file' });
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
+                    >
+                      Download as Framework (.py)
+                    </button>
+                    <button
+                      onClick={() => {
+                        const apiCode = `import os
+import requests
+from dotenv import load_dotenv
+
+# Load API key from environment
+load_dotenv()
+API_KEY = os.getenv("SWARMS_API_KEY")
+BASE_URL = "https://api.swarms.world"
+
+# Configure headers with your API key
+headers = {
+    "x-api-key": API_KEY,
+    "Content-Type": "application/json"
+}
+
+def run_single_agent(agent_config, task):
+    """
+    Run a single agent with the AgentCompletion format.
+    """
+    payload = {
+        "agent_config": agent_config,
+        "task": task
+    }
+
+    try:
+        response = requests.post(
+            f"{BASE_URL}/v1/agent/completions", 
+            headers=headers, 
+            json=payload
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error making request: {e}")
+        return None
+
+# Agent configuration using this prompt
+agent_config = {
+    "agent_name": "${name || 'Custom-Agent'}",
+    "description": "${description?.replace(/"/g, '\\"') || 'Custom agent for specific tasks'}",
+    "system_prompt": """${prompt?.replace(/"/g, '\\"') || ''}""",
+    "model_name": "gpt-4o",
+    "role": "worker",
+    "max_loops": 2,
+    "max_tokens": 8192,
+    "temperature": 0.5,
+    "auto_generate_prompt": False,
+}
+
+# Your task
+task = "Your task description here"
+
+# Run the agent
+result = run_single_agent(agent_config, task)
+print(result)`;
+                        downloadFile(
+                          apiCode,
+                          `${name ?? 'prompt'}_api.py`,
+                          'text/python',
+                        );
+                        toast.toast({ description: 'Downloaded as API Python file' });
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
+                    >
+                      Download as API (.py)
+                    </button>
                   </div>
                 </div>
               </div>
@@ -545,9 +818,21 @@ export default function EntityComponent({
                 onValueChange={(value) => setSelectedTab(value)}
               >
                 <TabsList className="flex justify-start w-auto">
-                  <TabsTrigger value={'preview'}>Preview</TabsTrigger>
-                  <TabsTrigger value={'md'}>Markdown</TabsTrigger>
-                  <TabsTrigger value={'txt'}>Text</TabsTrigger>
+                  <TabsTrigger value={'preview'} className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm">
+                    Preview
+                  </TabsTrigger>
+                  <TabsTrigger value={'md'} className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm">
+                    Markdown
+                  </TabsTrigger>
+                  <TabsTrigger value={'txt'} className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm">
+                    Text
+                  </TabsTrigger>
+                  <TabsTrigger value={'framework'} className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm">
+                    Framework
+                  </TabsTrigger>
+                  <TabsTrigger value={'api'} className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm">
+                    API
+                  </TabsTrigger>
                 </TabsList>
                 <div className="p-4 rounded-xl overflow-hidden !bg-gray-500/10">
                   <TabsContent className="m-0" value={'preview'}>
@@ -569,6 +854,102 @@ export default function EntityComponent({
                     <pre className="whitespace-pre-wrap">
                       {stripMarkdown(prompt)}
                     </pre>
+                  </TabsContent>
+                  <TabsContent className="m-0" value={'framework'}>
+                    <SyntaxHighlighter
+                      PreTag={CustomPre}
+                      style={dracula}
+                      language="python"
+                      wrapLongLines
+                    >
+{`import time
+from swarms import Agent
+
+# Put your api key in the .env file like OPENAI_API_KEY=""
+
+# Initialize the agent
+agent = Agent(
+    agent_name="${name || 'Custom-Agent'}",
+    agent_description="""${(description || 'Custom agent for specific tasks').replace(/"""/g, '\"\"\"').replace(/^\n+/, '')}""",
+    system_prompt="""${prompt?.replace(/"/g, '\\"') || ''}""",
+    max_loops=1,
+    model_name="gpt-4o-mini",
+    dynamic_temperature_enabled=True,
+    output_type="all",
+    max_tokens=16384,
+    # dashboard=True
+)
+
+# Run the agent with your task
+out = agent.run("Your task description here")
+
+time.sleep(10)
+print(out)`}
+                    </SyntaxHighlighter>
+                  </TabsContent>
+                  <TabsContent className="m-0" value={'api'}>
+                    <SyntaxHighlighter
+                      PreTag={CustomPre}
+                      style={dracula}
+                      language="python"
+                      wrapLongLines
+                    >
+{`import os
+import requests
+from dotenv import load_dotenv
+
+# Load API key from environment
+load_dotenv()
+API_KEY = os.getenv("SWARMS_API_KEY")
+BASE_URL = "https://api.swarms.world"
+
+# Configure headers with your API key
+headers = {
+    "x-api-key": API_KEY,
+    "Content-Type": "application/json"
+}
+
+def run_single_agent(agent_config, task):
+    """
+    Run a single agent with the AgentCompletion format.
+    """
+    payload = {
+        "agent_config": agent_config,
+        "task": task
+    }
+
+    try:
+        response = requests.post(
+            f"{BASE_URL}/v1/agent/completions", 
+            headers=headers, 
+            json=payload
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error making request: {e}")
+        return None
+
+# Agent configuration using this prompt
+agent_config = {
+    "agent_name": "${name || 'Custom-Agent'}",
+    "description": """${(description || 'Custom agent for specific tasks').replace(/"""/g, '\"\"\"').replace(/^\n+/, '')}""",
+    "system_prompt": """${prompt?.replace(/"/g, '\\"') || ''}""",
+    "model_name": "gpt-4o",
+    "role": "worker",
+    "max_loops": 2,
+    "max_tokens": 8192,
+    "temperature": 0.5,
+    "auto_generate_prompt": False,
+}
+
+# Your task
+task = "Your task description here"
+
+# Run the agent
+result = run_single_agent(agent_config, task)
+print(result)`}
+                    </SyntaxHighlighter>
                   </TabsContent>
                 </div>
               </Tabs>
