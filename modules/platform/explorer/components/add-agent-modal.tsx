@@ -22,6 +22,7 @@ import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation
 import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
 import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
 import { getSolPrice } from '@/shared/services/sol-price';
+import { launchConfetti } from '@/shared/utils/helpers';
 
 interface Props {
   isOpen: boolean;
@@ -278,6 +279,8 @@ const AddAgentModal = ({
           title: 'Agent added successfully 🎉',
         });
 
+        launchConfetti();
+
         onAddSuccessfully();
 
         setJustSubmitted(true);
@@ -289,36 +292,40 @@ const AddAgentModal = ({
       .catch((error) => {
         console.log({ error });
 
-        let errorMessage = 'An error has occurred';
+        let errorMessage = 'Unable to submit your agent. Please try again.';
         let isApiFailure = false;
 
         if (error?.message) {
-          if (error.message.includes('Fallback validation:')) {
+          if (error.message.includes('validation system') || error.message.includes('temporarily')) {
             errorMessage = error.message;
             isApiFailure = true;
-          } else if (error.message.includes('Content quality score')) {
+          } else if (error.message.includes('quality standards') || error.message.includes('needs improvement')) {
             errorMessage = error.message;
-          } else if (error.message.includes('not eligible')) {
+          } else if (error.message.includes('paid content') || error.message.includes('highly-rated items')) {
             errorMessage = error.message;
-          } else if (
-            error.message.includes('API request failed') ||
-            error.message.includes('temporarily unavailable')
-          ) {
+          } else if (error.message.includes('Daily limit')) {
             errorMessage = error.message;
-            isApiFailure = true;
+          } else if (error.message.includes('Price must be')) {
+            errorMessage = 'Please enter a valid price for paid agents (minimum $0.01).';
+          } else if (error.message.includes('Wallet address')) {
+            errorMessage = 'Please enter a valid wallet address for paid agents.';
+          } else if (error.message.includes('already exists')) {
+            errorMessage = 'This agent already exists. Please create something unique.';
           } else {
-            errorMessage = error.message;
+            errorMessage = 'Unable to submit your agent. Please check your content and try again.';
           }
         }
 
         toast.toast({
           title: isApiFailure
-            ? 'Validation Service Issue'
+            ? 'Service Temporarily Unavailable'
             : 'Submission Failed',
           description: errorMessage,
           variant: 'destructive',
         });
         setIsLoading(false);
+
+        addAgent.reset();
       });
   };
 
@@ -383,6 +390,9 @@ const AddAgentModal = ({
               value={agent}
               onChange={(v) => {
                 setAgent(v.target.value);
+                if (validateAgent.data) {
+                  validateAgent.reset();
+                }
               }}
               onBlur={async () => {
                 validation.validateOnBlur('content');
@@ -390,6 +400,8 @@ const AddAgentModal = ({
                   setIsValidating(true);
                   try {
                     await validateAgent.mutateAsync(agent);
+                  } catch (error) {
+                    validateAgent.reset();
                   } finally {
                     setIsValidating(false);
                   }
