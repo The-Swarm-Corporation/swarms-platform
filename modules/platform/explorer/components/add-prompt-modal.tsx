@@ -38,10 +38,10 @@ const AddPromptModal = ({
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFree, setIsFree] = useState(true);
-  const [priceUsd, setPriceUsd] = useState(''); // USD price input
+  const [priceUsd, setPriceUsd] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [isValidating, setIsValidating] = useState(false);
-  const [solPrice, setSolPrice] = useState<number | null>(null); // SOL equivalent preview
+  const [solPrice, setSolPrice] = useState<number | null>(null);
   const [isConvertingPrice, setIsConvertingPrice] = useState(false);
 
   const {
@@ -298,7 +298,6 @@ const AddPromptModal = ({
           } else if (error.message.includes('already exists')) {
             errorMessage = 'This prompt already exists. Please create something unique.';
           } else {
-            // For any other technical errors, show a user-friendly message
             errorMessage = 'Unable to submit your prompt. Please check your content and try again.';
           }
         }
