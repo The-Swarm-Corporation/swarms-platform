@@ -218,16 +218,10 @@ export default function AppsPage() {
             placeholder="Search apps..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full max-w-md bg-black text-white placeholder-gray-500 rounded-md px-4 py-3 focus:outline-none border border-transparent focus:border-transparent focus:ring-0 shadow-none"
+            className="w-full max-w-md bg-black text-white placeholder-gray-500 rounded-md px-4 py-3 focus:outline-none border border-gray-700 focus:border-gray-600 focus:ring-0 shadow-none"
             style={{
-              borderWidth: '1px',
-              borderImage: 'linear-gradient(90deg, #60a5fa 0%, #38bdf8 100%) 1',
-              boxShadow: '0 0 0 1.5px rgba(56,189,248,0.18)',
-              transition: 'box-shadow 0.3s, border-image 0.3s',
-              animation: 'search-glow 1.2s infinite alternate',
+              transition: 'border-color 0.3s',
             }}
-            onFocus={e => e.target.style.boxShadow = '0 0 0 3px rgba(56,189,248,0.32)'}
-            onBlur={e => e.target.style.boxShadow = '0 0 0 1.5px rgba(56,189,248,0.18)'}
           />
         </div>
 
@@ -242,12 +236,12 @@ export default function AppsPage() {
             {TEMPLATES.map((tpl) => (
               <button
                 key={tpl.id}
-                className="flex-1 flex items-center gap-5 px-8 py-7 rounded-2xl border border-blue-800 bg-gradient-to-br from-black/60 to-blue-950/40 hover:from-blue-950/60 hover:to-black/80 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-lg group min-w-[240px] max-w-full"
+                className="flex-1 flex items-center gap-5 px-8 py-7 rounded-2xl border border-gray-800 bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-lg group min-w-[240px] max-w-full"
                 onClick={() => handleTemplateSelect(tpl.apps)}
                 type="button"
                 style={{ minHeight: '110px' }}
               >
-                <span className="flex items-center justify-center w-20 h-14 rounded-md bg-blue-900/30 group-hover:bg-blue-800/40 transition-all border border-blue-700/30 shadow-inner">
+                <span className="flex items-center justify-center w-20 h-14 rounded-md bg-gray-900 group-hover:bg-gray-800 transition-all border border-gray-700 shadow-inner">
                   {tpl.icon}
                 </span>
                 <span className="flex flex-col items-start justify-center text-left w-full">
@@ -271,20 +265,19 @@ export default function AppsPage() {
                     key={app.id}
                     onClick={() => handleAppClick(app.id)}
                     className={cn(
-                      'relative flex flex-col items-start p-6 rounded-md border border-blue-700/60',
-                      'bg-[rgba(15,20,30,0.85)] backdrop-blur-md shadow-lg',
-                      'hover:shadow-[0_0_16px_2px_rgba(37,99,235,0.25)] hover:border-blue-500/80 transition-all duration-200',
+                      'relative flex flex-col items-start p-6 rounded-md border border-gray-800',
+                      'bg-black shadow-lg',
+                      'hover:shadow-lg hover:border-gray-700 transition-all duration-200',
                       'group cursor-pointer',
                       'overflow-hidden',
                     )}
-                    style={{ boxShadow: '0 2px 24px 0 rgba(0,0,0,0.7), 0 0 0 1px #1e293b22' }}
                   >
                     <div className="flex items-center gap-4 mb-4 w-full">
-                      <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-blue-900/40 shadow-inner">
+                      <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-900 border border-gray-700 shadow-inner">
                         {app.icon}
                       </div>
                       <button
-                        className="ml-auto rounded-full p-1 bg-black/30 border border-blue-700/40 hover:bg-blue-900/30 transition"
+                        className="ml-auto rounded-full p-1 bg-gray-900 border border-gray-700 hover:bg-gray-800 transition"
                         aria-label={starred.includes(app.id) ? 'Unstar app' : 'Star app'}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -301,7 +294,6 @@ export default function AppsPage() {
                     <h3 className="text-xl font-semibold mb-1 text-gray-100 tracking-wide drop-shadow-sm" style={{letterSpacing: '0.03em'}}>{app.title}</h3>
                     <p className="text-gray-400 mb-3 text-sm leading-relaxed min-h-[40px]">{app.description}</p>
                     <span className="text-xs uppercase tracking-widest text-blue-500 bg-blue-900/10 px-2 py-1 rounded shadow-sm mt-auto">{cat}</span>
-                    <div className="absolute inset-0 pointer-events-none rounded-md border border-blue-700/10" style={{boxShadow:'0 0 32px 0 rgba(37,99,235,0.08)'}} />
                   </div>
                 ))}
               </div>
