@@ -21,7 +21,6 @@ export interface ContentQualityResult {
 export async function checkUserTrustworthiness(
   userId: string,
 ): Promise<UserTrustworthinessResult> {
-  console.log('checkUserTrustworthiness', userId);
   try {
     const bypassUserId = process.env.PREVENT_DEFAULT_ADD_MODEL_USER_ID;
     const bypassHypenatedUserId =
@@ -42,13 +41,11 @@ export async function checkUserTrustworthiness(
       supabaseAdmin
         .from('swarms_cloud_prompts')
         .select('id, created_at')
-        .eq('user_id', userId)
-        .eq('status', 'approved'),
+        .eq('user_id', userId),
       supabaseAdmin
         .from('swarms_cloud_agents')
         .select('id, created_at')
-        .eq('user_id', userId)
-        .eq('status', 'approved'),
+        .eq('user_id', userId),
     ]);
 
     if (promptsResult.error || agentsResult.error) {
@@ -57,26 +54,24 @@ export async function checkUserTrustworthiness(
 
     const prompts = promptsResult.data || [];
     const agents = agentsResult.data || [];
-    const totalPublished = prompts.length + agents.length;
-
-    if (totalPublished < 2) {
-      return {
-        isEligible: false,
-        reason: `You need at least 2 published items to list on marketplace. You have ${totalPublished}.`,
-        publishedCount: totalPublished,
-        averageRating: 0,
-        isBypassUser: false,
-      };
-    }
-
     const allItemIds = [
       ...prompts.map((p) => p.id),
       ...agents.map((a) => a.id),
     ];
 
+    if (allItemIds.length === 0) {
+      return {
+        isEligible: false,
+        reason: 'You need to have created content before listing on marketplace.',
+        publishedCount: 0,
+        averageRating: 0,
+        isBypassUser: false,
+      };
+    }
+
     const ratingsResult = await supabaseAdmin
       .from('swarms_cloud_reviews')
-      .select('rating, model_id')
+      .select('rating, model_id, model_type')
       .in('model_id', allItemIds)
       .neq('user_id', userId);
 
@@ -86,13 +81,25 @@ export async function checkUserTrustworthiness(
 
     const ratings = ratingsResult.data || [];
 
-    if (ratings.length === 0) {
+    const highQualityRatings = ratings.filter(review =>
+      review.rating !== null &&
+      review.rating !== undefined &&
+      review.rating >= 4
+    );
+
+    // Get unique items that have 4+ ratings
+    const itemsWithHighRatings = new Set(
+      highQualityRatings.map(review => review.model_id)
+    );
+
+    const qualityItemsCount = itemsWithHighRatings.size;
+
+    if (qualityItemsCount < 2) {
       return {
         isEligible: false,
-        reason:
-          'Your published items need at least one rating from other users to be eligible for marketplace listing.',
-        publishedCount: totalPublished,
-        averageRating: 0,
+        reason: `To create paid content, you need at least 2 items with ratings of 4+ stars from other users. You currently have ${qualityItemsCount} highly-rated items. Keep creating quality free content to build your reputation!`,
+        publishedCount: allItemIds.length,
+        averageRating: ratings.length > 0 ? ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / ratings.length : 0,
         isBypassUser: false,
       };
     }
@@ -101,21 +108,11 @@ export async function checkUserTrustworthiness(
       (sum, review) => sum + (review?.rating || 0),
       0,
     );
-    const averageRating = totalRating / ratings.length;
-
-    if (averageRating < 3.5) {
-      return {
-        isEligible: false,
-        reason: `Your average rating (${averageRating.toFixed(1)}) must be at least 3.5 to list on marketplace.`,
-        publishedCount: totalPublished,
-        averageRating,
-        isBypassUser: false,
-      };
-    }
+    const averageRating = ratings.length > 0 ? totalRating / ratings.length : 0;
 
     return {
       isEligible: true,
-      publishedCount: totalPublished,
+      publishedCount: allItemIds.length,
       averageRating,
       isBypassUser: false,
     };
@@ -140,13 +137,11 @@ export async function validateContentFallback(
       supabaseAdmin
         .from('swarms_cloud_prompts')
         .select('id, created_at')
-        .eq('user_id', userId)
-        .eq('status', 'approved'),
+        .eq('user_id', userId),
       supabaseAdmin
         .from('swarms_cloud_agents')
         .select('id, created_at')
-        .eq('user_id', userId)
-        .eq('status', 'approved'),
+        .eq('user_id', userId),
     ]);
 
     if (promptsResult.error || agentsResult.error) {
@@ -155,32 +150,38 @@ export async function validateContentFallback(
 
     const prompts = promptsResult.data || [];
     const agents = agentsResult.data || [];
-    const totalApproved = prompts.length + agents.length;
-
-    if (totalApproved < 2) {
-      return {
-        isValid: false,
-        reason: `Fallback validation: You need at least 2 approved submissions to continue. You have ${totalApproved}. Quality validation service is temporarily unavailable.`,
-        usedFallback: true,
-      };
-    }
-
-    if (isFree) {
-      return {
-        isValid: true,
-        reason: 'Fallback validation: Content approved based on your history of quality submissions.',
-        usedFallback: true,
-      };
-    }
-
     const allItemIds = [
       ...prompts.map(p => p.id),
       ...agents.map(a => a.id),
     ];
 
+    if (allItemIds.length === 0) {
+      return {
+        isValid: false,
+        reason: 'Fallback validation: You need to have created content before submitting. Quality validation service is temporarily unavailable.',
+        usedFallback: true,
+      };
+    }
+
+    if (isFree) {
+      if (allItemIds.length < 1) {
+        return {
+          isValid: false,
+          reason: 'Our validation system is temporarily down. Since this is your first submission, please try again in a few minutes when the system is back online.',
+          usedFallback: true,
+        };
+      }
+
+      return {
+        isValid: true,
+        reason: 'Content approved based on your submission history. Our validation system will be back online shortly.',
+        usedFallback: true,
+      };
+    }
+
     const ratingsResult = await supabaseAdmin
       .from('swarms_cloud_reviews')
-      .select('rating, model_id')
+      .select('rating, model_id, model_type')
       .in('model_id', allItemIds)
       .neq('user_id', userId);
 
@@ -190,38 +191,33 @@ export async function validateContentFallback(
 
     const ratings = ratingsResult.data || [];
 
-    if (ratings.length === 0) {
+    const highQualityRatings = ratings.filter(review =>
+      review.rating !== null &&
+      review.rating !== undefined &&
+      review.rating >= 4
+    );
+
+    // Get unique items that have 4+ ratings
+    const itemsWithHighRatings = new Set(
+      highQualityRatings.map(review => review.model_id)
+    );
+
+    const qualityItemsCount = itemsWithHighRatings.size;
+
+    if (qualityItemsCount < 2) {
       return {
         isValid: false,
-        reason: 'Fallback validation: Your approved items need at least one rating from other users for paid submissions. Quality validation service is temporarily unavailable.',
+        reason: `To create paid content, you need at least 2 items with 4+ star ratings. You currently have ${qualityItemsCount} highly-rated items. Our validation system is temporarily down - please try again later.`,
         usedFallback: true,
       };
     }
 
-    const validRatings = ratings.filter(review => review.rating !== null && review.rating !== undefined);
-
-    if (validRatings.length === 0) {
-      return {
-        isValid: false,
-        reason: 'Fallback validation: Your approved items need valid ratings from other users for paid submissions. Quality validation service is temporarily unavailable.',
-        usedFallback: true,
-      };
-    }
-
-    const totalRating = validRatings.reduce((sum, review) => sum + (review.rating || 0), 0);
-    const averageRating = totalRating / validRatings.length;
-
-    if (averageRating < 3.5) {
-      return {
-        isValid: false,
-        reason: `Fallback validation: Your average rating (${averageRating.toFixed(1)}) must be at least 3.5 for paid submissions. Quality validation service is temporarily unavailable.`,
-        usedFallback: true,
-      };
-    }
+    const totalRating = ratings.reduce((sum, review) => sum + (review.rating || 0), 0);
+    const averageRating = ratings.length > 0 ? totalRating / ratings.length : 0;
 
     return {
       isValid: true,
-      reason: `Fallback validation: Content approved based on your quality history (${totalApproved} approved items, ${averageRating.toFixed(1)} avg rating).`,
+      reason: `Fallback validation: Content approved based on your quality history (${qualityItemsCount} items with 4+ ratings, ${averageRating.toFixed(1)} avg rating).`,
       usedFallback: true,
     };
 
@@ -230,7 +226,7 @@ export async function validateContentFallback(
 
     return {
       isValid: false,
-      reason: 'Unable to validate content quality. Both primary and fallback validation systems are unavailable. Please try again later.',
+      reason: 'Our validation system is experiencing issues. Please try submitting your content again in a few minutes.',
       usedFallback: true,
     };
   }
@@ -254,8 +250,8 @@ export async function validateContentQuality(
       throw new Error('Simulated API failure for testing');
     }
 
-    const minScore = isFree ? 4 : 6;
-    const qualityLevel = isFree ? 'basic' : 'high';
+    const minScore = isFree ? 5 : 8;
+    const qualityLevel = isFree ? 'medium' : 'high';
 
     const validationPrompt =
       type === 'prompt'
@@ -320,16 +316,14 @@ Respond with ONLY a number (1-10) followed by a dash and brief constructive feed
       throw new Error(`API request failed: ${response.status}`);
     }
 
-    const result = await response.json();
+    const apiResult = await response.json();
 
     let apiResponse = '';
-    if (result.outputs && result.outputs.length > 0) {
-      apiResponse = result.outputs[0].content || '';
+    if (apiResult.outputs && apiResult.outputs.length > 0) {
+      apiResponse = apiResult.outputs[0].content || '';
     } else {
-      apiResponse = result.response || result.content || '';
+      apiResponse = apiResult.response || apiResult.content || '';
     }
-
-    console.log('API Response:', { result, apiResponse });
 
     const scoreMatch = apiResponse.match(/^(\d+(?:\.\d+)?)\s*[-–—]\s*(.+)/);
     const score = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
@@ -342,20 +336,19 @@ Respond with ONLY a number (1-10) followed by a dash and brief constructive feed
       score,
       reason: isValid
         ? 'Content meets quality standards'
-        : `Content quality score (${score}/10) is below minimum requirement (${minScore}/10). Feedback: ${feedback}`,
+        : `Your ${type} needs improvement to meet our quality standards. Score: ${score}/10 (minimum: ${minScore}/10). ${feedback}`,
       apiResponse: feedback,
     };
   } catch (error) {
     console.error('Error validating content quality:', error);
 
     if (userId) {
-      console.log('API failed, using fallback validation for user:', userId);
       return await validateContentFallback(userId, isFree);
     }
 
     return {
       isValid: false,
-      reason: 'Quality validation service is temporarily unavailable and user history cannot be verified. Please try again later.',
+      reason: 'Our quality validation system is temporarily unavailable. Please try submitting again in a few minutes.',
       apiResponse: error instanceof Error ? error.message : 'Unknown error',
       usedFallback: true,
     };

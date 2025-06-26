@@ -89,27 +89,24 @@ const addAgent = async (req: NextApiRequest, res: NextApiResponse) => {
       });
     }
 
-    if (!is_free) {
-      const validationResult = await validateMarketplaceSubmission(
-        user_id,
-        agent,
-        'agent',
-        name,
-        description || '',
-        false // isPaid
-      );
+    const validationResult = await validateMarketplaceSubmission(
+      user_id,
+      agent,
+      'agent',
+      name,
+      description || '',
+      is_free
+    );
 
-      if (!validationResult.isValid) {
-        return res.status(400).json({
-          error: 'Marketplace validation failed',
-          errors: validationResult.errors,
-          trustworthiness: validationResult.trustworthiness,
-          contentQuality: validationResult.contentQuality,
-        });
-      }
+    if (!validationResult.isValid) {
+      return res.status(400).json({
+        error: 'Content validation failed',
+        errors: validationResult.errors,
+        trustworthiness: validationResult.trustworthiness,
+        contentQuality: validationResult.contentQuality,
+      });
     }
 
-    // Convert USD to SOL for storage (snapshot at creation time)
     let price_sol = 0;
     if (!is_free && price_usd && price_usd > 0) {
       try {

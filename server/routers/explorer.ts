@@ -232,13 +232,30 @@ const explorerRouter = router({
         isFree: z.boolean().default(true),
         price_usd: z
           .number()
-          .min(0.01, 'Price must be at least $0.01 USD')
+          .min(0, 'Price must be non-negative')
           .max(999999, 'Price cannot exceed $999,999 USD')
-          .default(0),
+          .optional(),
         sellerWalletAddress: z.string().optional(),
+      })
+      .refine((data) => {
+        if (!data.isFree && (!data.price_usd || data.price_usd < 0.01)) {
+          return false;
+        }
+        return true;
+      }, {
+        message: 'Paid prompts must have a price of at least $0.01 USD',
+        path: ['price_usd'],
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      console.log('🎯 TRPC addPrompt mutation called:', {
+        name: input.name,
+        prompt: input.prompt?.substring(0, 50) + '...',
+        isFree: input.isFree,
+        userId: ctx.session.data.user?.id,
+        timestamp: new Date().toISOString()
+      });
+
       if (!input.prompt) {
         throw 'Prompt is required';
       }
@@ -259,7 +276,6 @@ const explorerRouter = router({
         });
       }
 
-      // Validate marketplace fields
       if (!input.isFree) {
         if (!input.price_usd || input.price_usd <= 0) {
           throw 'Price must be greater than 0 for paid prompts';
@@ -270,23 +286,22 @@ const explorerRouter = router({
         ) {
           throw 'Wallet address is required for paid prompts';
         }
+      }
 
-        // Fraud prevention validation for paid items
-        const validation = await validateMarketplaceSubmission(
-          user_id,
-          input.prompt,
-          'prompt',
-          input.name || '',
-          input.description || '',
-          input.isFree
-        );
+      const validation = await validateMarketplaceSubmission(
+        user_id,
+        input.prompt,
+        'prompt',
+        input.name || '',
+        input.description || '',
+        input.isFree
+      );
 
-        if (!validation.isValid) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: validation.errors.join('. '),
-          });
-        }
+      if (!validation.isValid) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: validation.errors.join('. '),
+        });
       }
 
       // rate limiter - 1 prompt per minute
@@ -519,10 +534,19 @@ const explorerRouter = router({
         isFree: z.boolean().default(true),
         price_usd: z
           .number()
-          .min(0.01, 'Price must be at least $0.01 USD')
+          .min(0, 'Price must be non-negative')
           .max(999999, 'Price cannot exceed $999,999 USD')
-          .default(0),
+          .optional(),
         sellerWalletAddress: z.string().optional(),
+      })
+      .refine((data) => {
+        if (!data.isFree && (!data.price_usd || data.price_usd < 0.01)) {
+          return false;
+        }
+        return true;
+      }, {
+        message: 'Paid agents must have a price of at least $0.01 USD',
+        path: ['price_usd'],
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -535,7 +559,6 @@ const explorerRouter = router({
         throw 'Name should be at least 2 characters';
       }
 
-      // Get user ID early for validation
       const user_id = ctx.session.data.user?.id ?? '';
 
       // Check daily rate limits
@@ -547,7 +570,6 @@ const explorerRouter = router({
         });
       }
 
-      // Validate marketplace fields
       if (!input.isFree) {
         if (!input.price_usd || input.price_usd <= 0) {
           throw 'Price must be greater than 0 for paid agents';
@@ -558,23 +580,22 @@ const explorerRouter = router({
         ) {
           throw 'Wallet address is required for paid agents';
         }
+      }
 
-        // Fraud prevention validation for paid items
-        const validation = await validateMarketplaceSubmission(
-          user_id,
-          input.agent,
-          'agent',
-          input.name || '',
-          input.description || '',
-          input.isFree
-        );
+      const validation = await validateMarketplaceSubmission(
+        user_id,
+        input.agent,
+        'agent',
+        input.name || '',
+        input.description || '',
+        input.isFree
+      );
 
-        if (!validation.isValid) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: validation.errors.join('. '),
-          });
-        }
+      if (!validation.isValid) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: validation.errors.join('. '),
+        });
       }
 
       // rate limiter - 1 agent per minute

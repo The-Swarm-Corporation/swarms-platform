@@ -138,6 +138,8 @@ const AddPromptModal = ({
     validation.reset();
 
     validatePrompt.reset();
+
+    setIsValidating(false);
   };
 
   const [justSubmitted, setJustSubmitted] = useState(false);
@@ -169,7 +171,10 @@ const AddPromptModal = ({
   };
 
   const submit = () => {
-    // Check if validation is in progress
+    if (validatePrompt.isPending) {
+      return;
+    }
+
     if (isValidating || validatePrompt.isPending) {
       toast.toast({
         title: 'Please wait for validation to complete',
@@ -178,7 +183,6 @@ const AddPromptModal = ({
       return;
     }
 
-    // Validate all fields using deferred validation
     if (!validation.validateAll()) {
       toast.toast({
         title: 'Please fix the errors in the form',
@@ -204,7 +208,6 @@ const AddPromptModal = ({
       return;
     }
 
-    // Check trustworthiness for paid items
     if (!isFree) {
       if (checkTrustworthiness.isLoading) {
         toast.toast({
@@ -275,36 +278,41 @@ const AddPromptModal = ({
       .catch((error) => {
         console.log({ error });
 
-        let errorMessage = 'An error has occurred';
+        let errorMessage = 'Unable to submit your prompt. Please try again.';
         let isApiFailure = false;
 
         if (error?.message) {
-          if (error.message.includes('Fallback validation:')) {
+          if (error.message.includes('validation system') || error.message.includes('temporarily')) {
             errorMessage = error.message;
             isApiFailure = true;
-          } else if (error.message.includes('Content quality score')) {
+          } else if (error.message.includes('quality standards') || error.message.includes('needs improvement')) {
             errorMessage = error.message;
-          } else if (error.message.includes('not eligible')) {
+          } else if (error.message.includes('paid content') || error.message.includes('highly-rated items')) {
             errorMessage = error.message;
-          } else if (
-            error.message.includes('API request failed') ||
-            error.message.includes('temporarily unavailable')
-          ) {
+          } else if (error.message.includes('Daily limit')) {
             errorMessage = error.message;
-            isApiFailure = true;
+          } else if (error.message.includes('Price must be')) {
+            errorMessage = 'Please enter a valid price for paid prompts (minimum $0.01).';
+          } else if (error.message.includes('Wallet address')) {
+            errorMessage = 'Please enter a valid wallet address for paid prompts.';
+          } else if (error.message.includes('already exists')) {
+            errorMessage = 'This prompt already exists. Please create something unique.';
           } else {
-            errorMessage = error.message;
+            // For any other technical errors, show a user-friendly message
+            errorMessage = 'Unable to submit your prompt. Please check your content and try again.';
           }
         }
 
         toast.toast({
           title: isApiFailure
-            ? 'Validation Service Issue'
+            ? 'Service Temporarily Unavailable'
             : 'Submission Failed',
           description: errorMessage,
           variant: 'destructive',
         });
         setIsLoading(false);
+
+        addPrompt.reset();
       });
   };
 
@@ -381,6 +389,9 @@ const AddPromptModal = ({
               value={prompt}
               onChange={(v) => {
                 setPrompt(v.target.value);
+                if (validatePrompt.data) {
+                  validatePrompt.reset();
+                }
               }}
               onBlur={async () => {
                 validation.validateOnBlur('content');
@@ -388,6 +399,8 @@ const AddPromptModal = ({
                   setIsValidating(true);
                   try {
                     await validatePrompt.mutateAsync(prompt);
+                  } catch (error) {
+                    validatePrompt.reset();
                   } finally {
                     setIsValidating(false);
                   }
