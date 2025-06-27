@@ -4,7 +4,7 @@ import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Pencil, Share, Star, FileDown, Bookmark, Info, MessageSquare, Download, Code, Stars, Bot } from 'lucide-react'; // Use available icons
+import { Copy, Pencil, Share, Star, FileDown, Bookmark, Info, MessageSquare, Download, Code, Stars, Bot, ExternalLink } from 'lucide-react'; // Use available icons
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '@/shared/components/avatar';
@@ -434,6 +434,29 @@ print(result)`;
     toast.toast({ description: toastText });
   };
 
+  const handleExportToAI = (platform: 'chatgpt' | 'claude') => {
+    if (!prompt) return;
+    
+    const encodedPrompt = encodeURIComponent(prompt);
+    const encodedDescription = encodeURIComponent(description || '');
+    const encodedName = encodeURIComponent(name || '');
+    
+    let url: string;
+    
+    if (platform === 'chatgpt') {
+      url = `https://chatgpt.com/?hints=search&q=${encodedPrompt}`;
+    } else {
+      url = `https://claude.ai/new?q=${encodedPrompt}`;
+    }
+    
+    // Open in new tab
+    window.open(url, '_blank', 'noopener,noreferrer');
+    
+    toast.toast({ 
+      description: `Opened ${platform === 'chatgpt' ? 'ChatGPT' : 'Claude'} in new tab` 
+    });
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 mt-8">
       {/* Header Section */}
@@ -562,6 +585,36 @@ print(result)`;
                 username={user?.data?.username || undefined}
                 tags={tags}
               />
+              {prompt && (
+                <div className="relative group">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 border-indigo-600"
+                  >
+                    <ExternalLink className="h-4 w-4 text-white" />
+                    Export to AI
+                  </Button>
+                  <div className="absolute right-0 top-full mt-2 w-48 rounded-lg bg-zinc-800/95 border border-zinc-700/50 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => handleExportToAI('chatgpt')}
+                        className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        Export to ChatGPT
+                      </button>
+                      <button
+                        onClick={() => handleExportToAI('claude')}
+                        className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
+                      >
+                        <Bot className="w-4 h-4" />
+                        Export to Claude
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -650,7 +703,7 @@ print(result)`;
                 Main Prompt
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
-                Copy this prompt or download it to use in ChatGPT, Claude, or in your agent code.
+                Copy this prompt, download it, or export it directly to ChatGPT or Claude to use in your conversations.
               </p>
             </div>
           </div>
