@@ -4280,6 +4280,16 @@ export type Database = {
         Args: { user_id: string; amount: number }
         Returns: undefined
       }
+      get_top_users_optimized: {
+        Args: { category_filter?: string; result_limit?: number }
+        Returns: {
+          result_user_id: string
+          total_count: number
+          prompts_count: number
+          agents_count: number
+          tools_count: number
+        }[]
+      }
       get_user_id_by_email: {
         Args: { email: string }
         Returns: {
