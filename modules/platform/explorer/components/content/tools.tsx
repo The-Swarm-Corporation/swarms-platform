@@ -43,7 +43,7 @@ export default function Tools({
       </div>
       <div>
         {isLoading && !isFetchingTools ? (
-          <ExplorerSkeletonLoaders />
+          <ExplorerSkeletonLoaders itemType="tool" />
         ) : (
           <>
             {filteredTools.length > 0 ? (
@@ -83,7 +83,7 @@ export default function Tools({
 
             {isFetchingTools && (
               <div className="mt-4">
-                <ExplorerSkeletonLoaders />
+                <ExplorerSkeletonLoaders itemType="tool" />
               </div>
             )}
 
