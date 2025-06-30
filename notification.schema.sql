@@ -1,5 +1,4 @@
--- Comprehensive Notification System for Swarms Platform
--- Handles all notification types with enterprise-grade features
+-- Notification System
 
 -- Notification types enum
 CREATE TYPE notification_type AS ENUM (
