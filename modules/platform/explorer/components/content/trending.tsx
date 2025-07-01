@@ -32,7 +32,7 @@ export default function Trending({
       </div>
       <div>
         {isLoading && !isFetchingTrending ? (
-          <ExplorerSkeletonLoaders />
+          <ExplorerSkeletonLoaders itemType="trending" />
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -87,7 +87,7 @@ export default function Trending({
 
             {isFetchingTrending && (
               <div className="mt-4">
-                <ExplorerSkeletonLoaders />
+                <ExplorerSkeletonLoaders itemType="trending" />
               </div>
             )}
 

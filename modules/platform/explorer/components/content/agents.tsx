@@ -44,7 +44,7 @@ export default function Agents({
       </div>
       <div>
         {isLoading && !isFetchingAgents ? (
-          <ExplorerSkeletonLoaders />
+          <ExplorerSkeletonLoaders itemType="agent" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAgents.length > 0 ? (
@@ -99,7 +99,7 @@ export default function Agents({
 
         {isFetchingAgents && (
           <div className="mt-4">
-            <ExplorerSkeletonLoaders />
+            <ExplorerSkeletonLoaders itemType="agent" />
           </div>
         )}
 

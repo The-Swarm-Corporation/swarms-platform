@@ -44,7 +44,7 @@ export default function Prompts({
       </div>
       <div>
         {isLoading && !isFetchingPrompts ? (
-          <ExplorerSkeletonLoaders />
+          <ExplorerSkeletonLoaders itemType="prompt" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPrompts.length > 0 ? (
@@ -84,7 +84,7 @@ export default function Prompts({
 
         {isFetchingPrompts && (
           <div className="mt-4">
-            <ExplorerSkeletonLoaders />
+            <ExplorerSkeletonLoaders itemType="prompt" />
           </div>
         )}
 
