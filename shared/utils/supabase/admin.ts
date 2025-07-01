@@ -429,11 +429,15 @@ const getUserCredit = async (uuid: string) => {
     .from('swarms_cloud_users_credits')
     .select('credit, free_credit, credit_count, referral_credits')
     .eq('user_id', uuid)
-    .single();
-  if (error) {
+    .maybeSingle();
+
+  // If error and it's not a "no rows" error, throw
+  if (error && error.code !== 'PGRST116') {
     console.error(error.message);
     throw new Error(`Failed to fetch user credit: ${error.message}`);
   }
+
+  // Return default values if no record found
   return {
     credit: data?.credit ?? 0,
     free_credit: data?.free_credit ?? 0,
