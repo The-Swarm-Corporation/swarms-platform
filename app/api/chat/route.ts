@@ -3,35 +3,74 @@ import {
   getUserCredit,
   getUserPromptChat,
 } from '@/shared/utils/supabase/admin';
+import { estimateTokensAndCost } from '@/shared/utils/helpers';
 
 export const runtime = 'edge';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: Request) {
-  const {
-    message,
-    systemPrompt,
-    model = 'gpt-4o',
-    userId,
-    promptId,
-  } = await req.json();
+  let message, systemPrompt, model, userId, promptId;
 
-  const estimateTokens = (text: string) => Math.ceil(text.length / 4);
+  try {
+    const body = await req.json();
+    message = body.message;
+    systemPrompt = body.systemPrompt;
+    model = body.model || 'gpt-4o';
+    userId = body.userId;
+    promptId = body.promptId;
 
-  const inputCostPerThousand = 0.005; // $5 per million tokens = $0.005 per 1,000
-  const outputCostPerThousand = 0.01; // $10 per million tokens = $0.01 per 1,000
+    if (!message || !systemPrompt || !userId || !promptId) {
+      return new Response(JSON.stringify({
+        error: 'Missing required parameters',
+        required: ['message', 'systemPrompt', 'userId', 'promptId']
+      }), {
+        status: 400,
+      });
+    }
+  } catch (error) {
+    return new Response(JSON.stringify({
+      error: 'Invalid JSON payload'
+    }), {
+      status: 400,
+    });
+  }
 
-  const userTokens = estimateTokens(message);
-  const systemTokens = estimateTokens(systemPrompt);
-  const totalInputTokens = userTokens + systemTokens;
+  const inputText = systemPrompt + message;
+  let initialCostEstimate, estimatedInputCost;
 
-  const estimatedInputCost = (totalInputTokens / 1000) * inputCostPerThousand;
+  try {
+    initialCostEstimate = estimateTokensAndCost(inputText, '', 1);
+    estimatedInputCost = initialCostEstimate.inputCost + initialCostEstimate.agentCost;
+  } catch (error) {
+    console.error('Error estimating initial cost:', error);
+    return new Response(JSON.stringify({
+      error: 'Failed to estimate cost',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }), {
+      status: 500,
+    });
+  }
 
-  const [{ credit, free_credit, referral_credits }, pastMessages] = await Promise.all([
-    getUserCredit(userId),
-    getUserPromptChat(userId, promptId),
-  ]);
+  let credit, free_credit, referral_credits, pastMessages;
+
+  try {
+    const results = await Promise.all([
+      getUserCredit(userId),
+      getUserPromptChat(userId, promptId),
+    ]);
+
+    ({ credit, free_credit, referral_credits } = results[0]);
+    pastMessages = results[1];
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    return new Response(JSON.stringify({
+      error: 'Failed to fetch user data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }), {
+      status: 500,
+    });
+  }
   const totalCredit = credit + free_credit + referral_credits;
 
   if (totalCredit < estimatedInputCost) {
@@ -53,13 +92,16 @@ export async function POST(req: Request) {
   ];
 
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('System API key not configured');
+    }
+
     const response = await openai.chat.completions.create({
       model,
       messages: messages as any,
       stream: true,
     });
 
-    let usedOutputTokens = 0;
     let completeResponse = '';
     const textEncoder = new TextEncoder();
 
@@ -68,7 +110,6 @@ export async function POST(req: Request) {
         try {
           for await (const chunk of response) {
             const text = chunk.choices[0]?.delta?.content || '';
-            usedOutputTokens += estimateTokens(text);
             completeResponse += text;
             controller.enqueue(textEncoder.encode(text));
           }
@@ -83,8 +124,14 @@ export async function POST(req: Request) {
       },
     });
 
-    const outputCost = (usedOutputTokens / 1000) * outputCostPerThousand;
-    const totalCost = estimatedInputCost + outputCost;
+    let totalCost = 0;
+    try {
+      const finalCostEstimate = estimateTokensAndCost(inputText, completeResponse, 1); // No createdAt = no night discount
+      totalCost = finalCostEstimate.totalCost;
+    } catch (error) {
+      console.error('Error calculating final cost:', error);
+      totalCost = estimatedInputCost;
+    }
 
     return new Response(stream, {
       headers: {
@@ -93,8 +140,27 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+    console.error('Chat API Error:', error);
+
+    let errorMessage = 'Internal Server Error';
+    if (error instanceof Error) {
+      if (error.message.includes('401') || error.message.includes('API key')) {
+        errorMessage = 'System API key is invalid or expired. Please contact support.';
+      } else if (error.message.includes('403')) {
+        errorMessage = 'System API access denied. Please contact support.';
+      } else if (error.message.includes('429') || error.message.includes('rate limit')) {
+        errorMessage = 'Rate limit exceeded, please try again later';
+      } else if (error.message.includes('model')) {
+        errorMessage = 'Invalid model specified or model not available';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+
+    return new Response(JSON.stringify({
+      error: errorMessage,
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }), {
       status: 500,
     });
   }

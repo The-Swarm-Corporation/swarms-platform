@@ -80,12 +80,27 @@ export default function usePromptChat({
     }
   }, [fetchMessages.data, user]);
 
+  const prevMessagesLength = useRef(0);
+  const isInitialLoad = useRef(true);
+  const hasUserInteracted = useRef(false);
+
   useEffect(() => {
-    if (latestMessageRef.current) {
+    if (
+      !isInitialLoad.current &&
+      hasUserInteracted.current &&
+      latestMessageRef.current &&
+      messages.length > prevMessagesLength.current
+    ) {
       latestMessageRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
       });
+    }
+
+    prevMessagesLength.current = messages.length;
+
+    if (isInitialLoad.current && messages.length >= 0) {
+      isInitialLoad.current = false;
     }
   }, [messages]);
 
@@ -101,6 +116,8 @@ export default function usePromptChat({
     if (!input.trim() || isLoading) return;
     setIsLoading(true);
     setIsStreaming(true);
+
+    hasUserInteracted.current = true;
 
     const newUserMessage = {
       text: input,

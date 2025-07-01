@@ -50,7 +50,6 @@ export const estimateTokensAndCost = (
   const inputTokens = estimateTokens(input);
   const outputTokens = estimateTokens(output);
 
-  // Use the new pricing formula
   return estimateTokenCost(inputTokens, outputTokens, numberOfAgents, createdAt);
 };
 
