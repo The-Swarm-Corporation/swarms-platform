@@ -128,7 +128,6 @@ const AddAgentModal = ({
     await uploadImage(file, modelType);
   };
 
-  // Complete form reset function
   const resetForm = useCallback(() => {
     setAgentName('');
     setDescription('');
@@ -148,7 +147,7 @@ const AddAgentModal = ({
 
     validateAgent.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty deps - validation methods should be stable
+  }, []);
 
   const [justSubmitted, setJustSubmitted] = useState(false);
 
@@ -179,7 +178,6 @@ const AddAgentModal = ({
   };
 
   const submit = () => {
-    // Check if validation is in progress
     if (isValidating || validateAgent.isPending) {
       toast.toast({
         title: 'Please wait for validation to complete',
@@ -188,10 +186,22 @@ const AddAgentModal = ({
       return;
     }
 
-    // Validate all fields using deferred validation
-    if (!validation.validateAll()) {
+    try {
+      const validationResult = validation.validateAll();
+      if (!validationResult.isValid) {
+        const firstError = validationResult.errors[0];
+        toast.toast({
+          title: 'Form Validation Error',
+          description: firstError || 'Please check all required fields',
+          variant: 'destructive',
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('Validation error:', error);
       toast.toast({
-        title: 'Please fix the errors in the form',
+        title: 'Validation Error',
+        description: 'Please check all fields and try again',
         variant: 'destructive',
       });
       return;
@@ -214,7 +224,6 @@ const AddAgentModal = ({
       return;
     }
 
-    // Check trustworthiness for paid items
     if (!isFree) {
       if (checkTrustworthiness.isLoading) {
         toast.toast({
