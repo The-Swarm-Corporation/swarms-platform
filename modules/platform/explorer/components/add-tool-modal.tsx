@@ -61,6 +61,7 @@ const AddToolModal = ({
       validateTool.mutateAsync(value);
     }, 400);
     return debouncedFn;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCategoriesChange = (selectedCategories: string[]) => {
@@ -68,7 +69,6 @@ const AddToolModal = ({
   };
 
   const toast = useToast();
-  const utils = trpc.useUtils(); // For immediate cache invalidation
 
   const addTool = trpc.explorer.addTool.useMutation();
 
@@ -113,9 +113,83 @@ const AddToolModal = ({
       return;
     }
 
+    // Form validation
+    if (!toolName || toolName.trim().length === 0) {
+      toast.toast({
+        title: 'Form Validation Error',
+        description: 'Tool name is required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (toolName.trim().length < 2) {
       toast.toast({
-        title: 'Name should be at least 2 characters long',
+        title: 'Form Validation Error',
+        description: 'Tool name must be at least 2 characters long',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (toolName.length > 100) {
+      toast.toast({
+        title: 'Form Validation Error',
+        description: 'Tool name cannot exceed 100 characters',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!description || description.trim().length === 0) {
+      toast.toast({
+        title: 'Form Validation Error',
+        description: 'Description is required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (description.trim().length < 10) {
+      toast.toast({
+        title: 'Form Validation Error',
+        description: 'Description must be at least 10 characters long',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (description.length > 1000) {
+      toast.toast({
+        title: 'Form Validation Error',
+        description: 'Description cannot exceed 1,000 characters',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!tool || tool.trim().length === 0) {
+      toast.toast({
+        title: 'Form Validation Error',
+        description: 'Tool code is required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (tool.trim().length < 5) {
+      toast.toast({
+        title: 'Form Validation Error',
+        description: 'Tool code must be at least 5 characters long',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (tool.length > 50000) {
+      toast.toast({
+        title: 'Form Validation Error',
+        description: 'Tool code cannot exceed 50,000 characters',
         variant: 'destructive',
       });
       return;
@@ -132,10 +206,37 @@ const AddToolModal = ({
 
     if (categories.length === 0) {
       toast.toast({
-        title: 'Please select at least one category',
+        title: 'Form Validation Error',
+        description: 'Please select at least one category',
         variant: 'destructive',
       });
       return;
+    }
+
+    // Validate tags if provided
+    if (tags && tags.trim().length > 0) {
+      const tagList = tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      if (tagList.length > 10) {
+        toast.toast({
+          title: 'Form Validation Error',
+          description: 'Maximum 10 tags allowed',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (tagList.some((tag) => tag.length > 50)) {
+        toast.toast({
+          title: 'Form Validation Error',
+          description: 'Each tag must be 50 characters or less',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     const trimTags = tags

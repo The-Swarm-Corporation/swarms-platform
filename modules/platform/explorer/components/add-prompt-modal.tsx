@@ -8,7 +8,7 @@ import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { explorerCategories } from '@/shared/utils/constants';
 import { launchConfetti } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { useModelFileUpload } from '../hook/upload-file';
 import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
 import ModelFileUpload from './upload-image';
@@ -102,6 +102,7 @@ const AddPromptModal = ({
     validation.updateField('price', priceUsd);
     validation.updateField('walletAddress', walletAddress);
     validation.updateField('tags', tags);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promptName, description, prompt, priceUsd, walletAddress, tags]);
 
   const handleImageUploadClick = () => {
@@ -121,7 +122,7 @@ const AddPromptModal = ({
     await uploadImage(file, modelType);
   };
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setPromptName('');
     setDescription('');
     setPrompt('');
@@ -140,7 +141,8 @@ const AddPromptModal = ({
     validatePrompt.reset();
 
     setIsValidating(false);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [justSubmitted, setJustSubmitted] = useState(false);
 
@@ -153,7 +155,7 @@ const AddPromptModal = ({
       resetForm();
       setJustSubmitted(false);
     }
-  }, [isOpen, justSubmitted]);
+  }, [isOpen, justSubmitted, resetForm]);
 
   const handleDrop = async (e: React.DragEvent) => {
     if (uploadStatus === 'uploading') return;
@@ -183,9 +185,22 @@ const AddPromptModal = ({
       return;
     }
 
-    if (!validation.validateAll()) {
+    try {
+      const validationResult = validation.validateAll();
+      if (!validationResult.isValid) {
+        const firstError = validationResult.errors[0];
+        toast.toast({
+          title: 'Form Validation Error',
+          description: firstError || 'Please check all required fields',
+          variant: 'destructive',
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('Validation error:', error);
       toast.toast({
-        title: 'Please fix the errors in the form',
+        title: 'Validation Error',
+        description: 'Please check all fields and try again',
         variant: 'destructive',
       });
       return;

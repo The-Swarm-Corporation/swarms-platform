@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { debounce } from 'lodash';
 
 export interface ValidationRule {
   required?: boolean;
@@ -47,8 +46,10 @@ export function useDeferredValidation(
       const rule = rules[fieldName];
       if (!rule) return { isValid: true };
 
+      const capitalizedFieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+
       if (rule.required && (!value || value.trim().length === 0)) {
-        return { isValid: false, error: `${fieldName} is required` };
+        return { isValid: false, error: `${capitalizedFieldName} is required` };
       }
 
       if (!value && !rule.required) {
@@ -58,21 +59,21 @@ export function useDeferredValidation(
       if (rule.minLength && value.length < rule.minLength) {
         return {
           isValid: false,
-          error: `${fieldName} must be at least ${rule.minLength} characters`,
+          error: `${capitalizedFieldName} must be at least ${rule.minLength} characters`,
         };
       }
 
       if (rule.maxLength && value.length > rule.maxLength) {
         return {
           isValid: false,
-          error: `${fieldName} must be no more than ${rule.maxLength} characters`,
+          error: `${capitalizedFieldName} must be no more than ${rule.maxLength} characters`,
         };
       }
 
       if (rule.pattern && !rule.pattern.test(value)) {
         return {
           isValid: false,
-          error: `${fieldName} format is invalid`,
+          error: `${capitalizedFieldName} format is invalid`,
         };
       }
 
@@ -167,25 +168,35 @@ export function useDeferredValidation(
     [fields],
   );
 
-  const validateAll = useCallback((): boolean => {
+  const validateAll = useCallback((): { isValid: boolean; errors: string[] } => {
     let isValid = true;
+    const errors: string[] = [];
     const newFields = { ...fields };
 
     Object.keys(newFields).forEach((fieldName) => {
-      const validation = validateField(fieldName, newFields[fieldName].value);
-      newFields[fieldName] = {
-        ...newFields[fieldName],
-        touched: true,
-        error: validation.error,
-      };
+      try {
+        const fieldValue = newFields[fieldName]?.value || '';
+        const validation = validateField(fieldName, fieldValue);
 
-      if (!validation.isValid) {
+        newFields[fieldName] = {
+          ...newFields[fieldName],
+          touched: true,
+          error: validation.error,
+        };
+
+        if (!validation.isValid && validation.error) {
+          isValid = false;
+          errors.push(validation.error);
+        }
+      } catch (error) {
+        console.error(`Validation error for field ${fieldName}:`, error);
         isValid = false;
+        errors.push(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} validation failed`);
       }
     });
 
     setFields(newFields);
-    return isValid;
+    return { isValid, errors };
   }, [fields, validateField]);
 
   const getFieldProps = useCallback(
@@ -256,34 +267,66 @@ export function useMarketplaceValidation() {
       required: true,
       minLength: 2,
       maxLength: 100,
+      custom: (value: string) => {
+        if (!value || value.trim().length === 0) return 'Name is required';
+        if (value.trim().length < 2) return 'Name must be at least 2 characters long';
+        if (value.length > 100) return 'Name cannot exceed 100 characters';
+        return null;
+      },
     },
     description: {
       required: true,
       minLength: 10,
-      maxLength: 500,
+      maxLength: 1000,
+      custom: (value: string) => {
+        if (!value || value.trim().length === 0) return 'Description is required';
+        if (value.trim().length < 10) return 'Description must be at least 10 characters long';
+        if (value.length > 1000) return 'Description cannot exceed 1,000 characters';
+        return null;
+      },
     },
     content: {
       required: true,
       minLength: 5,
-      maxLength: 10000,
+      maxLength: 50000,
+      custom: (value: string) => {
+        if (!value || value.trim().length === 0) return 'Code content is required';
+        if (value.trim().length < 5) return 'Code must be at least 5 characters long';
+        if (value.length > 50000) return 'Code cannot exceed 50,000 characters';
+        return null;
+      },
     },
     price: {
       custom: (value: string) => {
-        if (!value) return null;
-        const num = parseFloat(value);
-        if (isNaN(num)) return 'Price must be a valid number';
-        if (num < 0.000001) return 'Price must be at least 0.000001 SOL';
-        if (num > 999) return 'Price cannot exceed 999 SOL';
+        if (!value || value.trim().length === 0) return null;
+
+        const cleanValue = value.replace(/[^\d.]/g, '');
+        const num = parseFloat(cleanValue);
+
+        if (isNaN(num) || !isFinite(num)) return 'Price must be a valid number';
+        if (num < 0.01) return 'Price must be at least $0.01 USD';
+        if (num > 999999) return 'Price cannot exceed $999,999 USD';
+
+        const decimalPlaces = (cleanValue.split('.')[1] || '').length;
+        if (decimalPlaces > 2) return 'Price can have at most 2 decimal places';
+
         return null;
       },
     },
     walletAddress: {
       custom: (value: string) => {
-        if (!value) return null;
+        if (!value || value.trim().length === 0) return null;
 
-        if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value)) {
-          return 'Invalid Solana wallet address';
+        const trimmedValue = value.trim();
+
+        if (trimmedValue.length < 32 || trimmedValue.length > 44) {
+          return 'Solana wallet address must be 32-44 characters long';
         }
+
+        if (!/^[1-9A-HJ-NP-Za-km-z]+$/.test(trimmedValue)) {
+          return 'Please enter a valid Solana wallet address (base58 format)';
+        }
+
         return null;
       },
     },
@@ -291,15 +334,28 @@ export function useMarketplaceValidation() {
       required: true,
       minLength: 2,
       custom: (value: string) => {
-        const tags = value
-          .split(',')
-          .map((t) => t.trim())
-          .filter(Boolean);
-        if (tags.length === 0) return 'At least one tag is required';
-        if (tags.length > 10) return 'Maximum 10 tags allowed';
-        if (tags.some((tag) => tag.length > 20))
-          return 'Each tag must be 20 characters or less';
-        return null;
+        if (!value || value.trim().length === 0) return 'Tags are required';
+
+        try {
+          const tags = value
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean);
+
+          if (tags.length === 0) return 'At least one tag is required';
+          if (tags.length > 10) return 'Maximum 10 tags allowed';
+
+          const invalidTag = tags.find((tag) => tag.length > 50);
+          if (invalidTag) return `Tag "${invalidTag}" exceeds 50 characters`;
+
+          const uniqueTags = new Set(tags.map(tag => tag.toLowerCase()));
+          if (uniqueTags.size !== tags.length) return 'Duplicate tags are not allowed';
+
+          return null;
+        } catch (error) {
+          console.error('Tags validation error:', error);
+          return 'Invalid tags format';
+        }
       },
     },
   };
