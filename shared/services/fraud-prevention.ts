@@ -302,7 +302,7 @@ Respond with ONLY a number (1-10) followed by a dash and brief constructive feed
             description: 'Validates content quality for marketplace',
             system_prompt:
               'You are a quality validator for a marketplace. Evaluate content objectively and provide scores with brief explanations.',
-            model_name: 'gpt-4o',
+            model_name: 'claude-3-5-sonnet-20240620',
             temperature: 0.1,
             max_tokens: 150,
             auto_generate_prompt: false,
