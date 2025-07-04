@@ -18,8 +18,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://swarms.world/';
 
 
 const meta = {
-  title: 'Swarms Platform - The Leading AI Agent & Prompt Marketplace',
-  description: 'Discover, share, and monetize AI Agents, Prompts, and Tools on the Swarms Platform. Join the largest marketplace for AI solutions, collaborate with creators, and build the future of AI together.',
+  title: 'The Swarms Marketplace - The Leading Agent Marketplace',
+  description: 'Share, discover, and monetize autonomous agents, custom prompts, and specialized tools on the Swarms Marketplace.',
   cardImage: `${siteUrl}/og.png`,
   robots: 'index, follow',
   favicon: `${siteUrl}/favicon.svg`,
