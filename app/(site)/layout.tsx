@@ -14,27 +14,52 @@ export const viewport: Viewport = {
 };
 
 const meta = {
-  title: 'Swarms',
-  description: '',
+  title: 'Swarms Platform - The Leading AI Agent & Prompt Marketplace',
+  description: 'Discover, share, and monetize AI Agents, Prompts, and Tools on the Swarms Platform. Join the largest marketplace for AI solutions, collaborate with creators, and build the future of AI together.',
   cardImage: '/og.png',
-  robots: 'follow, index',
+  robots: 'index, follow',
   favicon: '/favicon.svg',
   url: getURL(),
+  keywords: [
+    'AI agents',
+    'AI marketplace',
+    'prompt engineering',
+    'AI tools',
+    'machine learning',
+    'artificial intelligence',
+    'swarms platform',
+    'AI development',
+    'AI solutions',
+    'prompt marketplace',
+    'agent marketplace',
+  ].join(', '),
 };
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: meta.title,
     description: meta.description,
+    keywords: meta.keywords,
     referrer: 'origin-when-cross-origin',
+    authors: [{ name: 'Swarms Platform Team' }],
+    creator: 'Swarms Platform',
+    publisher: 'Swarms Platform',
     robots: meta.robots,
     icons: { icon: meta.favicon },
     metadataBase: new URL(meta.url),
+    alternates: {
+      canonical: meta.url,
+    },
     openGraph: {
       url: meta.url,
       title: meta.title,
       description: meta.description,
-      images: [meta.cardImage],
+      images: [{
+        url: meta.cardImage,
+        width: 1200,
+        height: 630,
+        alt: 'Swarms Platform - AI Agent & Prompt Marketplace'
+      }],
       type: 'website',
       siteName: meta.title,
     },
@@ -42,7 +67,19 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: meta.title,
       description: meta.description,
-      images: [meta.cardImage],
+      site: '@swarms_corp',
+      creator: '@swarms_corp',
+      images: [{
+        url: meta.cardImage,
+        width: 1200,
+        height: 630,
+        alt: 'Swarms Platform - AI Agent & Prompt Marketplace'
+      }],
+    },
+    other: {
+      'apple-mobile-web-app-capable': 'yes',
+      'apple-mobile-web-app-title': 'Swarms Platform',
+      'format-detection': 'telephone=no',
     },
   };
 }

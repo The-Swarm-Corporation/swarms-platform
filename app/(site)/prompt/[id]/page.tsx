@@ -24,23 +24,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: seoData.title,
       description: seoData.description,
-      url: `${url}prompt/${prompt?.id}`,
+      url: `${url}${prompt?.id}`,
       images: [
         {
-          url: prompt?.image_url || '/og.png',
+          url: '/og.png',
           width: 1200,
           height: 630,
         },
       ],
     },
-    twitter: {
-      card: 'summary_large_image',
-      title: seoData.title,
-      description: seoData.description,
-      images: [prompt?.image_url || '/og.png'],
-    },
     alternates: {
-      canonical: `${url}prompt/${prompt?.id}`,
+      canonical: `${url}${prompt?.id}`,
     },
   };
 }
