@@ -22,7 +22,7 @@ const meta = {
   description: 'Discover, share, and monetize AI Agents, Prompts, and Tools on the Swarms Platform. Join the largest marketplace for AI solutions, collaborate with creators, and build the future of AI together.',
   cardImage: `${siteUrl}/og.png`,
   robots: 'index, follow',
-  favicon: '/favicon.svg',
+  favicon: `${siteUrl}/favicon.svg`,
   url: getURL(),
   keywords: [
     'AI agents',
