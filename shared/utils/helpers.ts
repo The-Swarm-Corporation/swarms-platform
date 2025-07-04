@@ -523,3 +523,29 @@ export const extractCategories = (agents: any[]): string[] => {
 
   return Object.keys(tagGroups).sort();
 };
+
+export const optimizeAgentKeywords = (agent: any) => {
+  if (!agent) {
+    return {
+      title: 'Agent Not Found',
+      description: 'The requested agent could not be found.',
+      keywords: ['agent', 'not found', 'error'],
+    };
+  }
+
+  const title = `${agent.name} - Swarms Agent`;
+  const description = agent.description || `Explore ${agent.name} agent and its capabilities`;
+  const keywords = [
+    'swarms',
+    'agent',
+    agent.name,
+    ...(agent.tags ? agent.tags.split(',').map((tag: string) => tag.trim()) : []),
+    ...(agent.category || []),
+  ];
+
+  return {
+    title,
+    description,
+    keywords,
+  };
+};
