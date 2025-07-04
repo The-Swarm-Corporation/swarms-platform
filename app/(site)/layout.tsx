@@ -13,10 +13,14 @@ export const viewport: Viewport = {
   ],
 };
 
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://swarms.world/';
+
+
 const meta = {
   title: 'Swarms Platform - The Leading AI Agent & Prompt Marketplace',
   description: 'Discover, share, and monetize AI Agents, Prompts, and Tools on the Swarms Platform. Join the largest marketplace for AI solutions, collaborate with creators, and build the future of AI together.',
-  cardImage: '/og.png',
+  cardImage: `${siteUrl}/og.png`,
   robots: 'index, follow',
   favicon: '/favicon.svg',
   url: getURL(),
@@ -70,7 +74,7 @@ export async function generateMetadata(): Promise<Metadata> {
       site: '@swarms_corp',
       creator: '@swarms_corp',
       images: [{
-        url: meta.cardImage,
+        url: `${siteUrl}/og.png`,
         width: 1200,
         height: 630,
         alt: 'Swarms Platform - AI Agent & Prompt Marketplace'
