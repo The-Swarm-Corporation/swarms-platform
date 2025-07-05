@@ -19,15 +19,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!tool) {
     return {
       title: 'Tool Not Found | Swarms Marketplace',
-      description: 'The requested tool could not be found on the Swarms Marketplace.',
+      description:
+        'The requested tool could not be found on the Swarms Marketplace.',
     };
   }
 
   const seoData = optimizeToolKeywords(tool);
 
-    const dynamicImage = tool?.image_url?.startsWith('http')
-    ? `${tool?.image_url}?v=${tool?.created_at || tool?.id}`
-    : `${url}${tool?.image_url}?v=${tool?.created_at || tool?.id}`;
+  const dynamicImage = tool?.image_url
+    ? tool.image_url.startsWith('http')
+      ? `${tool.image_url}?v=${tool.created_at || tool.id}`
+      : `${url}${tool.image_url.replace(/^\/+/, '')}?v=${tool.created_at || tool.id}`
+    : `${url}og.png?v=2`;
 
   return {
     title: seoData.title,
@@ -44,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: 'Swarms Marketplace',
       images: [
         {
-          url: dynamicImage || `${url}og.png?v=2`,
+          url: dynamicImage,
           width: 1200,
           height: 630,
           alt: `${tool?.name} - AI Tool`,
@@ -59,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: seoData.description,
       images: [
         {
-          url: dynamicImage || `${url}og.png?v=2`,
+          url: dynamicImage,
           width: 1200,
           height: 630,
           alt: `${tool?.name} - AI Tool`,
@@ -84,9 +87,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const Tool = async ({
-  params,
-}: any) => {
+const Tool = async ({ params }: any) => {
   const resolvedParams = await params;
   return <ToolModule id={resolvedParams.id} />;
 };

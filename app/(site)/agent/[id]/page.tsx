@@ -27,9 +27,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const seoData = optimizeAgentKeywords(agent);
 
-  const dynamicImage = agent?.image_url?.startsWith('http')
-    ? `${agent?.image_url}?v=${agent?.created_at || agent?.id}`
-    : `${url}${agent?.image_url}?v=${agent?.created_at || agent?.id}`;
+  const dynamicImage = agent?.image_url
+    ? agent.image_url.startsWith('http')
+      ? `${agent.image_url}?v=${agent.created_at || agent.id}`
+      : `${url}${agent.image_url.replace(/^\/+/, '')}?v=${agent.created_at || agent.id}`
+    : `${url}og.png?v=2`;
 
   return {
     title: seoData.title,
@@ -46,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: 'Swarms Marketplace',
       images: [
         {
-          url: dynamicImage || `${url}og.png?v=2`,
+          url: dynamicImage,
           width: 1200,
           height: 630,
           alt: `${agent?.name} - AI Agent`,
@@ -61,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: seoData.description,
       images: [
         {
-          url: dynamicImage || `${url}og.png?v=2`,
+          url: dynamicImage,
           width: 1200,
           height: 630,
           alt: `${agent?.name} - AI Agent`,

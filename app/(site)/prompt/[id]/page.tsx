@@ -26,9 +26,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const seoData = optimizePromptKeywords(prompt);
 
-  const dynamicImage = prompt?.image_url?.startsWith('http')
-    ? `${prompt?.image_url}?v=${prompt?.created_at || prompt?.id}`
-    : `${url}${prompt?.image_url}?v=${prompt?.created_at || prompt?.id}`;
+  const dynamicImage = prompt?.image_url
+    ? prompt.image_url.startsWith('http')
+      ? `${prompt.image_url}?v=${prompt.created_at || prompt.id}`
+      : `${url}${prompt.image_url.replace(/^\/+/, '')}?v=${prompt.created_at || prompt.id}`
+    : `${url}og.png?v=2`;
 
   return {
     title: seoData.title,
@@ -45,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: 'Swarms Marketplace',
       images: [
         {
-          url: dynamicImage || `${url}og.png?v=2`,
+          url: dynamicImage,
           width: 1200,
           height: 630,
           alt: `${prompt?.name} - AI Prompt`,
@@ -60,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: seoData.description,
       images: [
         {
-          url: dynamicImage || `${url}og.png?v=2`,
+          url: dynamicImage,
           width: 1200,
           height: 630,
           alt: `${prompt?.name} - AI Prompt`,

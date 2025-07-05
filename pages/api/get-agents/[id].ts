@@ -14,6 +14,7 @@ interface AgentData {
   is_free: boolean;
   price: number; // SOL price (legacy)
   price_usd: number; // USD price (primary)
+  image_url?: string;
   file_path?: string;
   category?: string;
   status: string;
@@ -56,7 +57,7 @@ const getAgentById = async (req: NextApiRequest, res: NextApiResponse) => {
       .from('swarms_cloud_agents')
       .select(`
         id, name, description, agent, use_cases, tags, requirements, language,
-        is_free, price, price_usd, file_path, category, status,
+        is_free, price, price_usd, image_url, file_path, category, status,
         user_id, created_at
       `)
       .eq('id', id)
@@ -86,6 +87,7 @@ const getAgentById = async (req: NextApiRequest, res: NextApiResponse) => {
         is_free: agent.is_free,
         price: agent.price || 0,
         price_usd: agent.price_usd || 0,
+        image_url: agent.image_url || undefined,
         file_path: agent.file_path || undefined,
         category: agent.category as string,
         status: agent.status || 'pending',
@@ -116,6 +118,7 @@ const getAgentById = async (req: NextApiRequest, res: NextApiResponse) => {
       is_free: agent.is_free,
       price: agent.price || 0,
       price_usd: agent.price_usd || 0,
+      image_url: agent.image_url || undefined,
       file_path: agent.file_path || undefined,
       category: agent.category as string,
       status: agent.status || 'pending',
