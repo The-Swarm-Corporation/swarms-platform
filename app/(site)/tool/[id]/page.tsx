@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: seoData.title,
       description: seoData.description,
-      url: `${url}/tool/${tool?.id}`,
+      url: `${url}tool/${tool?.id}`,
       type: 'article',
       siteName: 'Swarms Marketplace',
       images: [
@@ -75,7 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     },
     alternates: {
-      canonical: `${url}/tool/${tool?.id}`,
+      canonical: `${url}tool/${tool?.id}`,
     },
   };
 }
