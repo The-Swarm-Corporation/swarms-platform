@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import Head from 'next/head';
 import Footer from '@/shared/components/ui/Footer/Footer';
 import BookmarkButton from '@/shared/components/bookmark-button';
+import Image from 'next/image';
 
 // Cache duration in milliseconds (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -377,7 +378,7 @@ export default function UserProfile() {
               className="relative w-32 h-32 md:w-36 md:h-36 rounded-md overflow-hidden shadow-lg border border-gray-800 bg-black/90 backdrop-blur-lg flex items-center justify-center"
             >
               {userData.avatar_url ? (
-                <img
+                <Image
                   src={userData.avatar_url}
                   alt={`${userData.username}'s profile picture`}
                   className="object-cover w-full h-full rounded-md max-w-[8rem] max-h-[8rem] border border-gray-800"

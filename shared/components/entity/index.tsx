@@ -4,7 +4,21 @@ import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Pencil, Share, Star, FileDown, Bookmark, Info, MessageSquare, Download, Code, Stars, Bot, ExternalLink } from 'lucide-react'; // Use available icons
+import {
+  Copy,
+  Pencil,
+  Share,
+  Star,
+  FileDown,
+  Bookmark,
+  Info,
+  MessageSquare,
+  Download,
+  Code,
+  Stars,
+  Bot,
+  ExternalLink,
+} from 'lucide-react'; 
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '@/shared/components/avatar';
@@ -436,24 +450,24 @@ print(result)`;
 
   const handleExportToAI = (platform: 'chatgpt' | 'claude') => {
     if (!prompt) return;
-    
+
     const encodedPrompt = encodeURIComponent(prompt);
     const encodedDescription = encodeURIComponent(description || '');
     const encodedName = encodeURIComponent(name || '');
-    
+
     let url: string;
-    
+
     if (platform === 'chatgpt') {
       url = `https://chatgpt.com/?hints=search&q=${encodedPrompt}`;
     } else {
       url = `https://claude.ai/new?q=${encodedPrompt}`;
     }
-    
+
     // Open in new tab
     window.open(url, '_blank', 'noopener,noreferrer');
-    
-    toast.toast({ 
-      description: `Opened ${platform === 'chatgpt' ? 'ChatGPT' : 'Claude'} in new tab` 
+
+    toast.toast({
+      description: `Opened ${platform === 'chatgpt' ? 'ChatGPT' : 'Claude'} in new tab`,
     });
   };
 
@@ -467,7 +481,9 @@ print(result)`;
               <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
                 <Code className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
               </div>
-              <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">{title}</h2>
+              <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
+                {title}
+              </h2>
             </div>
           )}
 
@@ -574,7 +590,8 @@ print(result)`;
                 className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 border-yellow-600"
               >
                 <Stars className="h-4 w-4 text-white hover:text-white" />
-                Reviews ({reviewLength})
+                Reviews{' '}
+                {reviewLength && reviewLength > 0 ? `(${reviewLength})` : ''}
               </Button>
               <BookmarkButton
                 id={id || ''}
@@ -675,21 +692,22 @@ print(result)`;
       )}
 
       {/* Requirements Section */}
-      {(title.toLowerCase() === 'agent' || title.toLowerCase() === 'tool') && requirements && (
-        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-              <Info className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+      {(title.toLowerCase() === 'agent' || title.toLowerCase() === 'tool') &&
+        requirements && (
+          <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <Info className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                Requirements
+              </h2>
             </div>
-            <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              Requirements
-            </h2>
-          </div>
-          <AgentRequirements
-            requirements={requirements as RequirementProps[]}
-          />
-        </section>
-      )}
+            <AgentRequirements
+              requirements={requirements as RequirementProps[]}
+            />
+          </section>
+        )}
 
       {/* Prompt Section */}
       {prompt && (
@@ -703,11 +721,12 @@ print(result)`;
                 Main Prompt
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
-                Copy this prompt, download it, or export it directly to ChatGPT or Claude to use in your conversations.
+                Copy this prompt, download it, or export it directly to ChatGPT
+                or Claude to use in your conversations.
               </p>
             </div>
           </div>
-          
+
           <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar relative">
             <div className="absolute top-3 right-3 flex gap-2 z-10">
               <button
@@ -786,7 +805,9 @@ print(out)`;
                           `${name ?? 'prompt'}_framework.py`,
                           'text/python',
                         );
-                        toast.toast({ description: 'Downloaded as Framework Python file' });
+                        toast.toast({
+                          description: 'Downloaded as Framework Python file',
+                        });
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
                     >
@@ -854,7 +875,9 @@ print(result)`;
                           `${name ?? 'prompt'}_api.py`,
                           'text/python',
                         );
-                        toast.toast({ description: 'Downloaded as API Python file' });
+                        toast.toast({
+                          description: 'Downloaded as API Python file',
+                        });
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
                     >
@@ -871,19 +894,34 @@ print(result)`;
                 onValueChange={(value) => setSelectedTab(value)}
               >
                 <TabsList className="flex justify-start w-auto">
-                  <TabsTrigger value={'preview'} className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm">
+                  <TabsTrigger
+                    value={'preview'}
+                    className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm"
+                  >
                     Preview
                   </TabsTrigger>
-                  <TabsTrigger value={'md'} className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm">
+                  <TabsTrigger
+                    value={'md'}
+                    className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm"
+                  >
                     Markdown
                   </TabsTrigger>
-                  <TabsTrigger value={'txt'} className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm">
+                  <TabsTrigger
+                    value={'txt'}
+                    className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm"
+                  >
                     Text
                   </TabsTrigger>
-                  <TabsTrigger value={'framework'} className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm">
+                  <TabsTrigger
+                    value={'framework'}
+                    className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm"
+                  >
                     Framework
                   </TabsTrigger>
-                  <TabsTrigger value={'api'} className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm">
+                  <TabsTrigger
+                    value={'api'}
+                    className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm"
+                  >
                     API
                   </TabsTrigger>
                 </TabsList>
@@ -915,7 +953,7 @@ print(result)`;
                       language="python"
                       wrapLongLines
                     >
-{`import time
+                      {`import time
 from swarms import Agent
 
 # Put your api key in the .env file like OPENAI_API_KEY=""
@@ -947,7 +985,7 @@ print(out)`}
                       language="python"
                       wrapLongLines
                     >
-{`import os
+                      {`import os
 import requests
 from dotenv import load_dotenv
 
@@ -1030,7 +1068,8 @@ print(result)`}
                 Prompt Agent Chat
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
-                Interact with this prompt in real-time. The AI will respond based on the system prompt.
+                Interact with this prompt in real-time. The AI will respond
+                based on the system prompt.
               </p>
             </div>
           </div>

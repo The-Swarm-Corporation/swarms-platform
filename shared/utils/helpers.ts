@@ -466,7 +466,9 @@ const makeId = (length: number = 5) => {
 
 export { makeId };
 
-export const optimizePromptKeywords = (prompt: TPrompt) => {
+export const optimizePromptKeywords = (prompt: TPrompt | any) => {
+  if (!prompt) return { title: 'Prompt', description: 'AI Prompt', keywords: '' };
+
   const tagsArray = prompt?.tags ? (prompt.tags as string).split(',') : [];
 
   return {
@@ -483,6 +485,52 @@ export const optimizePromptKeywords = (prompt: TPrompt) => {
       'dnd',
       'swarms prompt',
       'models',
+    ].join(', '),
+  };
+};
+
+export const optimizeAgentKeywords = (agent: any) => {
+  if (!agent) return { title: 'Agent', description: 'AI Agent', keywords: '' };
+
+  const tagsArray = agent?.tags ? (agent.tags as string).split(',') : [];
+
+  return {
+    title: `${agent?.name} - AI Agent`,
+    description: `${agent?.description} | Intelligent AI agent for automation and swarm intelligence. Tags: ${tagsArray.join(', ')}`,
+    keywords: [
+      agent?.name,
+      ...tagsArray,
+      'AI agent',
+      'swarm intelligence',
+      'AI automation',
+      'intelligent agent',
+      'AI',
+      'machine learning',
+      'swarms agent',
+      'automation',
+    ].join(', '),
+  };
+};
+
+export const optimizeToolKeywords = (tool: any) => {
+  if (!tool) return { title: 'Tool', description: 'AI Tool', keywords: '' };
+
+  const tagsArray = tool?.tags ? (tool.tags as string).split(',') : [];
+
+  return {
+    title: `${tool?.name} - AI Tool`,
+    description: `${tool?.description} | Powerful AI tool for development and automation. Tags: ${tagsArray.join(', ')}`,
+    keywords: [
+      tool?.name,
+      ...tagsArray,
+      'AI tool',
+      'development tool',
+      'automation tool',
+      'AI utility',
+      'AI',
+      'programming',
+      'swarms tool',
+      'developer tools',
     ].join(', '),
   };
 };

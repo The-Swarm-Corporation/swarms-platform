@@ -3,8 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Bookmark } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { addBookmark, removeBookmark, isBookmarked } from '@/shared/utils/bookmarks';
+import {
+  addBookmark,
+  removeBookmark,
+  isBookmarked,
+} from '@/shared/utils/bookmarks';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { useAuthContext } from './ui/auth.provider';
 
 interface BookmarkButtonProps {
   id: string;
@@ -27,6 +32,7 @@ export default function BookmarkButton({
   tags,
   className = '',
 }: BookmarkButtonProps) {
+  const { user } = useAuthContext();
   const [isSaved, setIsSaved] = useState(false);
   const { toast } = useToast();
 
@@ -35,6 +41,14 @@ export default function BookmarkButton({
   }, [id, type]);
 
   const handleBookmark = () => {
+    if (!user) {
+      toast({
+        description: 'Log in to perform this action',
+        style: { color: 'red' },
+      });
+      return;
+    }
+
     if (isSaved) {
       removeBookmark(id, type);
       setIsSaved(false);
@@ -52,7 +66,7 @@ export default function BookmarkButton({
         created_at,
         tags,
       });
-      
+
       if (success) {
         setIsSaved(true);
         toast({
@@ -81,4 +95,4 @@ export default function BookmarkButton({
       </span>
     </motion.button>
   );
-} 
+}

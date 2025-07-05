@@ -72,6 +72,35 @@ const getPromptById = async (req: NextApiRequest, res: NextApiResponse) => {
     const hasPurchased = userId ? await checkPromptAccess(id, userId) : false;
     const hasAccess = isFree || isOwner || hasPurchased;
 
+    if (!isFree && !userId) {
+      const publicData: PromptData = {
+        id: prompt.id,
+        name: prompt.name || '',
+        description: prompt.description || '',
+        use_cases: prompt.use_cases,
+        tags: prompt.tags || '',
+        is_free: prompt.is_free,
+        price: prompt.price || 0,
+        price_usd: prompt.price_usd || 0,
+        file_path: prompt.file_path || undefined,
+        category: prompt.category as string,
+        status: prompt.status || 'pending',
+        user_id: prompt.user_id || '',
+        created_at: prompt.created_at,
+        // No prompt content for paid items without auth
+      };
+
+      return res.status(200).json({
+        ...publicData,
+        access_info: {
+          has_access: false,
+          is_owner: false,
+          is_free: false,
+          requires_purchase: true,
+        },
+      });
+    }
+
     const responseData: PromptData = {
       id: prompt.id,
       name: prompt.name || '',

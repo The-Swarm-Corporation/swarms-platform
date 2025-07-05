@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
 
-const pathnames = ['/signin', '/signup', '/pricing', '/tool/', '/prompt'];
+const pathnames = ['/signin', '/signup', '/pricing', '/tool/', '/prompt', '/agent', '/tool'];
 
 function AuthModal() {
   const { isAuthModalOpen } = useAuthContext();

@@ -17,7 +17,7 @@ import MultiSelect from '@/shared/components/ui/multi-select';
 
 import { useRef, useState, useCallback } from 'react';
 import ModelFileUpload from './upload-image';
-import { solToUsd } from '@/shared/services/sol-price';
+import { getSolPrice } from '@/shared/services/sol-price';
 
 interface EditExplorerModalProps {
   isOpen: boolean;
@@ -62,22 +62,24 @@ function EditExplorerModal({
     checkTrustworthiness,
   } = useEditModal({ entityId, entityType, onClose, onEditSuccessfully });
 
-  const [usdPrice, setUsdPrice] = useState<number | null>(null);
+  const [solPrice, setSolPrice] = useState<number | null>(null);
   const [isConvertingPrice, setIsConvertingPrice] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const convertPriceToUsd = useCallback(async (solPrice: string) => {
-    if (!solPrice || isNaN(parseFloat(solPrice))) {
-      setUsdPrice(null);
+  const convertUsdToSol = useCallback(async (usdPrice: string) => {
+    if (!usdPrice || isNaN(parseFloat(usdPrice))) {
+      setSolPrice(null);
       return;
     }
 
     setIsConvertingPrice(true);
     try {
-      const usd = await solToUsd(parseFloat(solPrice));
-      setUsdPrice(usd);
+      const currentSolPrice = await getSolPrice();
+      const solEquivalent = parseFloat(usdPrice) / currentSolPrice;
+      setSolPrice(solEquivalent);
     } catch (error) {
       console.error('Failed to convert price:', error);
-      setUsdPrice(null);
+      setSolPrice(null);
     } finally {
       setIsConvertingPrice(false);
     }
@@ -135,8 +137,36 @@ function EditExplorerModal({
               onChange={(value) =>
                 setInputState({ ...inputState, name: value })
               }
+              onBlur={() => {
+                if (!inputState.name.trim()) {
+                  setErrors(prev => ({
+                    ...prev,
+                    name: 'Name is required'
+                  }));
+                } else if (inputState.name.trim().length < 2) {
+                  setErrors(prev => ({
+                    ...prev,
+                    name: 'Name must be at least 2 characters long'
+                  }));
+                } else if (inputState.name.trim().length > 100) {
+                  setErrors(prev => ({
+                    ...prev,
+                    name: 'Name cannot exceed 100 characters'
+                  }));
+                } else {
+                  setErrors(prev => {
+                    const { name, ...rest } = prev;
+                    return rest;
+                  });
+                }
+              }}
               placeholder="Enter name"
             />
+            {errors.name && (
+              <span className="text-red-500 text-sm mt-1">
+                {errors.name}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex flex-col gap-1">
@@ -146,9 +176,37 @@ function EditExplorerModal({
             onChange={(e) =>
               setInputState({ ...inputState, description: e.target.value })
             }
+            onBlur={() => {
+              if (!inputState.description.trim()) {
+                setErrors(prev => ({
+                  ...prev,
+                  description: 'Description is required'
+                }));
+              } else if (inputState.description.trim().length < 10) {
+                setErrors(prev => ({
+                  ...prev,
+                  description: 'Description must be at least 10 characters long'
+                }));
+              } else if (inputState.description.trim().length > 1000) {
+                setErrors(prev => ({
+                  ...prev,
+                  description: 'Description cannot exceed 1000 characters'
+                }));
+              } else {
+                setErrors(prev => {
+                  const { description, ...rest } = prev;
+                  return rest;
+                });
+              }
+            }}
             placeholder="Enter description"
             className="w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none"
           />
+          {errors.description && (
+            <span className="text-red-500 text-sm mt-1">
+              {errors.description}
+            </span>
+          )}
         </div>
         <div className="flex flex-col gap-1">
           <span className="capitalize">{entityType}</span>
@@ -158,6 +216,29 @@ function EditExplorerModal({
               onChange={(e) => {
                 setInputState({ ...inputState, uniqueField: e.target.value });
                 debouncedCheckUniqueField(e.target.value);
+              }}
+              onBlur={() => {
+                if (!inputState.uniqueField.trim()) {
+                  setErrors(prev => ({
+                    ...prev,
+                    content: `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} content is required`
+                  }));
+                } else if (inputState.uniqueField.trim().length < 5) {
+                  setErrors(prev => ({
+                    ...prev,
+                    content: `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} content must be at least 5 characters long`
+                  }));
+                } else if (inputState.uniqueField.trim().length > 50000) {
+                  setErrors(prev => ({
+                    ...prev,
+                    content: `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} content cannot exceed 50,000 characters`
+                  }));
+                } else {
+                  setErrors(prev => {
+                    const { content, ...rest } = prev;
+                    return rest;
+                  });
+                }
               }}
               required
               placeholder={`Enter ${entityType} here...`}
@@ -184,6 +265,11 @@ function EditExplorerModal({
               </div>
             )}
           </div>
+          {errors.content && (
+            <span className="text-red-500 text-sm mt-1">
+              {errors.content}
+            </span>
+          )}
           {inputState?.uniqueField?.length > 0 &&
             !validateMutation.isPending &&
             validateMutation.data &&
@@ -293,7 +379,7 @@ function EditExplorerModal({
                     name="pricing"
                     checked={inputState.isFree}
                     onChange={() =>
-                      setInputState({ ...inputState, isFree: true, price: 0 })
+                      setInputState({ ...inputState, isFree: true, price: '0' })
                     }
                     className="w-4 h-4 text-blue-500 border-blue-500/30 focus:ring-blue-500"
                   />
@@ -321,28 +407,63 @@ function EditExplorerModal({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-mono text-red-400 mb-2">
-                      Price (SOL)
+                      Price (USD) <span className="text-yellow-500">*</span>
                     </label>
                     <Input
                       type="number"
-                      min="0.000001"
+                      min="0.01"
                       max="999999"
-                      step="0.000001"
+                      step="0.01"
                       value={inputState.price}
                       onChange={(value) => {
-                        const price = parseFloat(value) || 0;
                         setInputState({
                           ...inputState,
-                          price,
+                          price: value,
                         });
-                        convertPriceToUsd(value);
                       }}
-                      placeholder="0.000001"
+                      onBlur={() => {
+                        // Validate price
+                        const price = parseFloat(inputState.price);
+                        if (inputState.price && (isNaN(price) || price < 0.01 || price > 999999)) {
+                          setErrors(prev => ({
+                            ...prev,
+                            price: price < 0.01 ? 'Price must be at least $0.01 USD' : 'Price cannot exceed $999,999 USD'
+                          }));
+                        } else {
+                          setErrors(prev => {
+                            const { price, ...rest } = prev;
+                            return rest;
+                          });
+                        }
+                        convertUsdToSol(inputState.price);
+                      }}
+                      placeholder="10.00"
                     />
-                    {usdPrice !== null && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        ≈ ${usdPrice.toFixed(2)} USD
-                        {isConvertingPrice && ' (converting...)'}
+                    {errors.price && (
+                      <span className="text-red-500 text-sm mt-1">
+                        {errors.price}
+                      </span>
+                    )}
+                    {inputState.price && !errors.price && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs text-muted-foreground font-mono">
+                          Range: $0.01 - $999,999 USD
+                        </p>
+                        {isConvertingPrice ? (
+                          <div className="flex items-center gap-1">
+                            <LoadingSpinner />
+                            <span className="text-xs text-muted-foreground">Converting...</span>
+                          </div>
+                        ) : solPrice !== null ? (
+                          <span className="text-xs text-green-400 font-mono">
+                            ≈ {solPrice.toFixed(6)} SOL (at current rate)
+                          </span>
+                        ) : null}
+                      </div>
+                    )}
+                    {!inputState.price && (
+                      <p className="text-xs text-muted-foreground mt-1 font-mono">
+                        Range: $0.01 - $999,999 USD
                       </p>
                     )}
                   </div>
@@ -358,8 +479,26 @@ function EditExplorerModal({
                           sellerWalletAddress: value,
                         })
                       }
+                      onBlur={() => {
+                        if (inputState.sellerWalletAddress && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(inputState.sellerWalletAddress)) {
+                          setErrors(prev => ({
+                            ...prev,
+                            walletAddress: 'Invalid Solana wallet address'
+                          }));
+                        } else {
+                          setErrors(prev => {
+                            const { walletAddress, ...rest } = prev;
+                            return rest;
+                          });
+                        }
+                      }}
                       placeholder="Your Solana wallet address..."
                     />
+                    {errors.walletAddress && (
+                      <span className="text-red-500 text-sm mt-1">
+                        {errors.walletAddress}
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
@@ -510,8 +649,25 @@ function EditExplorerModal({
           ))}
       </div>
       <div className="flex justify-end gap-2">
-        <Button disabled={isPending} onClick={submit}>
-          Update
+        <Button variant="outline" onClick={onClose} disabled={isPending}>
+          Cancel
+        </Button>
+        <Button
+          disabled={
+            isPending ||
+            validateMutation.isPending ||
+            (!inputState.isFree && checkTrustworthiness.isLoading) ||
+            (!inputState.isFree && checkTrustworthiness.data && !checkTrustworthiness.data.isEligible) ||
+            Object.keys(errors).length > 0 ||
+            !inputState.name.trim() ||
+            !inputState.description.trim() ||
+            !inputState.uniqueField.trim() ||
+            (!inputState.isFree && !inputState.price) ||
+            (!inputState.isFree && !inputState.sellerWalletAddress.trim())
+          }
+          onClick={submit}
+        >
+          {isPending ? 'Updating...' : 'Update'}
         </Button>
       </div>
     </Modal>

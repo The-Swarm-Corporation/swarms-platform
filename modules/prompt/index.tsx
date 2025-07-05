@@ -8,14 +8,14 @@ import { generateAccessToken } from '@/shared/utils/access-tokens';
 import { checkUserAccess } from '@/shared/utils/access-control';
 
 const Prompt = async ({ id }: { id: string }) => {
-  const session = await checkUserSession();
-
   const prompt = await trpcApi.explorer.getPromptById.query(id);
   if (!prompt) {
     redirect('/404');
   }
 
   if (!prompt.is_free) {
+    const session = await checkUserSession();
+
     if (session?.id && prompt.user_id === session.id) {
       // User owns the prompt - allow access
     } else if (!session?.id) {
