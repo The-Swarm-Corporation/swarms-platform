@@ -208,76 +208,76 @@ export default function AppsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white px-8 py-12 pb-60">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-extrabold mb-2 tracking-tight bg-gradient-to-r from-gray-200 to-gray-500 bg-clip-text text-transparent">Apps Gallery</h1>
-        <p className="text-lg text-gray-400 mb-10">Choose which apps you want to see in your sidebar. Star your favorites to pin them for quick access.</p>
-        <div className="mb-10">
-          <input
-            type="text"
-            placeholder="Search apps..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full max-w-md bg-black text-white placeholder-gray-500 rounded-md px-4 py-3 focus:outline-none border border-gray-700 focus:border-gray-600 focus:ring-0 shadow-none"
-            style={{
-              transition: 'border-color 0.3s',
-            }}
-          />
+    <div className="min-h-screen bg-[#000000] bg-gradient-to-b from-black via-black/95 to-black/90 text-white selection:bg-white/20">
+      <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+        {/* Ambient background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-1/2 bg-gradient-radial from-white/[0.05] to-transparent rounded-full blur-2xl pointer-events-none" />
+        
+        {/* Header */}
+        <div className="relative space-y-3 mb-12 sm:mb-16">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tighter text-white">Apps Gallery</h1>
+          <p className="text-base sm:text-lg text-gray-300 max-w-2xl">Choose which apps you want to see in your sidebar. Star your favorites to pin them for quick access.</p>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-12 sm:mb-16">
+          <div className="relative max-w-md w-full">
+            <input
+              type="text"
+              placeholder="Search apps..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full bg-white/[0.04] text-white placeholder-gray-400 rounded-2xl px-5 py-4 focus:outline-none border border-white/[0.06] hover:border-white/[0.12] focus:border-white/20 transition-all duration-200 backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:bg-white/[0.06] focus:bg-white/[0.08]"
+            />
+          </div>
         </div>
 
         {/* Templates Section */}
-        <div className="mb-12">
-          <div className="w-full flex items-center justify-center mb-6">
-            <div className="w-full h-0.5 bg-gray-800 rounded-full opacity-80" />
+        <div className="relative mb-16 sm:mb-20">
+          <div className="border-t border-white/[0.06] pt-12 mb-8 sm:mb-10">
+            <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-white">Quick Sidebar Templates</h2>
+            <p className="text-base sm:text-lg text-gray-300 mb-8">Choose a template to quickly set up your sidebar with a curated set of apps.</p>
           </div>
-          <h2 className="text-2xl font-bold text-gray-200 mb-1">Quick Sidebar Templates</h2>
-          <p className="text-gray-400 mb-6 text-base">Choose a template to quickly set up your sidebar with a curated set of apps for different workflows.</p>
-          <div className="flex flex-col sm:flex-row gap-6 mb-8 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {TEMPLATES.map((tpl) => (
               <button
                 key={tpl.id}
-                className="flex-1 flex items-center gap-5 px-8 py-7 rounded-2xl border border-gray-800 bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-lg group min-w-[240px] max-w-full"
+                className="group flex flex-col gap-4 p-6 sm:p-8 rounded-2xl border border-white/[0.06] hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.08] transition-all duration-300 ease-out text-left transform hover:scale-[1.02] active:scale-[0.98] backdrop-blur-sm shadow-[0_8px_16px_-6px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.06)]"
                 onClick={() => handleTemplateSelect(tpl.apps)}
                 type="button"
-                style={{ minHeight: '110px' }}
               >
-                <span className="flex items-center justify-center w-20 h-14 rounded-md bg-gray-900 group-hover:bg-gray-800 transition-all border border-gray-700 shadow-inner">
+                <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/[0.06] group-hover:bg-white/[0.1] group-hover:scale-110 transition-all duration-300 ease-out">
                   {tpl.icon}
                 </span>
-                <span className="flex flex-col items-start justify-center text-left w-full">
-                  <span className="font-bold text-xl text-gray-100 group-hover:text-blue-400 transition-all mb-1">{tpl.title}</span>
-                  <span className="text-sm text-gray-400 leading-snug">{tpl.description}</span>
-                </span>
+                <div>
+                  <span className="block font-semibold mb-2 text-white group-hover:text-white transition-colors">{tpl.title}</span>
+                  <span className="text-sm sm:text-base text-gray-300 group-hover:text-gray-200 transition-colors line-clamp-2">{tpl.description}</span>
+                </div>
               </button>
             ))}
           </div>
         </div>
 
+        {/* Apps Categories */}
         {CATEGORIES.map((cat) => {
           const appsInCategory = filteredApps.filter((app) => app.category === cat);
           if (appsInCategory.length === 0) return null;
           return (
-            <div key={cat} className="mb-12">
-              <h2 className="text-2xl font-bold mb-6 text-gray-300 border-b border-gray-800 pb-2">{cat}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            <div key={cat} className="relative mb-16 sm:mb-20 last:mb-0">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-8 pb-4 border-b border-white/[0.06] text-white">{cat}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {appsInCategory.map((app) => (
                   <div
                     key={app.id}
                     onClick={() => handleAppClick(app.id)}
-                    className={cn(
-                      'relative flex flex-col items-start p-6 rounded-md border border-gray-800',
-                      'bg-black shadow-lg',
-                      'hover:shadow-lg hover:border-gray-700 transition-all duration-200',
-                      'group cursor-pointer',
-                      'overflow-hidden',
-                    )}
+                    className="group relative flex flex-col p-6 sm:p-8 rounded-2xl border border-white/[0.06] hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.08] transition-all duration-300 ease-out cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] backdrop-blur-sm shadow-[0_8px_16px_-6px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.06)]"
                   >
-                    <div className="flex items-center gap-4 mb-4 w-full">
-                      <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-900 border border-gray-700 shadow-inner">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-white/[0.06] group-hover:bg-white/[0.1] group-hover:scale-110 transition-all duration-300 ease-out">
                         {app.icon}
                       </div>
                       <button
-                        className="ml-auto rounded-full p-1 bg-gray-900 border border-gray-700 hover:bg-gray-800 transition"
+                        className="ml-auto -mt-1 -mr-1 p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] active:bg-white/[0.08] transition-all duration-300 backdrop-blur-sm"
                         aria-label={starred.includes(app.id) ? 'Unstar app' : 'Star app'}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -285,15 +285,15 @@ export default function AppsPage() {
                         }}
                       >
                         {starred.includes(app.id) ? (
-                          <Star size={28} className="text-blue-400 drop-shadow" fill="#60a5fa" />
+                          <Star size={22} className="text-white transform hover:scale-110 active:scale-90 transition-transform duration-300" fill="currentColor" />
                         ) : (
-                          <StarOff size={28} className="text-gray-600" />
+                          <StarOff size={22} className="text-gray-300 hover:text-white transform hover:scale-110 active:scale-90 transition-all duration-300" />
                         )}
                       </button>
                     </div>
-                    <h3 className="text-xl font-semibold mb-1 text-gray-100 tracking-wide drop-shadow-sm" style={{letterSpacing: '0.03em'}}>{app.title}</h3>
-                    <p className="text-gray-400 mb-3 text-sm leading-relaxed min-h-[40px]">{app.description}</p>
-                    <span className="text-xs uppercase tracking-widest text-blue-500 bg-blue-900/10 px-2 py-1 rounded shadow-sm mt-auto">{cat}</span>
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2 text-white group-hover:text-white transition-colors">{app.title}</h3>
+                    <p className="text-base text-gray-300 group-hover:text-gray-200 transition-colors mb-4 line-clamp-2">{app.description}</p>
+                    <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors mt-auto font-medium">{cat}</span>
                   </div>
                 ))}
               </div>
