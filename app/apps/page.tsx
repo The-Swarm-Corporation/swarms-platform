@@ -6,113 +6,18 @@ import { cn } from '@/shared/utils/cn';
 import { useStarredApps } from '@/shared/components/starred-apps-context';
 import { useRouter } from 'next/navigation';
 
-const APPS = [
-  {
-    id: 'dashboard',
-    title: 'Dashboard',
-    description: 'Your main control center.',
-    icon: <LayoutDashboard size={32} className="text-emerald-500" />,
-    category: 'Marketplace',
-  },
-  {
-    id: 'marketplace',
-    title: 'Marketplace',
-    description: 'Discover and use new tools, agents, and prompts.',
-    icon: <Blocks size={32} className="text-blue-500" />,
-    category: 'Marketplace',
-  },
-  {
-    id: 'appstore',
-    title: 'App Store',
-    description: 'Discover and use autonomous AI applications.',
-    icon: <Store size={32} className="text-orange-500" />,
-    category: 'Marketplace',
-  },
-  {
-    id: 'apps',
-    title: 'Apps',
-    description: 'Manage and customize your sidebar apps.',
-    icon: <Atom size={32} className="text-gray-400" />,
-    category: 'No Code Agent Platforms',
-  },
-  {
-    id: 'chat',
-    title: 'Chat',
-    description: 'Converse with your agents and team.',
-    icon: <MessageSquareMore size={32} className="text-indigo-500" />,
-    category: 'No Code Agent Platforms',
-  },
-  {
-    id: 'spreadsheet',
-    title: 'Spreadsheet Swarm',
-    description: 'Collaborative AI-powered spreadsheets.',
-    icon: <FileSpreadsheet size={32} className="text-green-500" />,
-    category: 'No Code Agent Platforms',
-  },
-  {
-    id: 'dragndrop',
-    title: 'Drag & Drop',
-    description: 'Visual workflow builder.',
-    icon: <GripVertical size={32} className="text-orange-500" />,
-    category: 'No Code Agent Platforms',
-  },
-  {
-    id: 'leaderboard',
-    title: 'Leaderboard',
-    description: 'Discover top creators and contributors.',
-    icon: <Trophy size={32} className="text-yellow-500" />,
-    category: 'Marketplace',
-  },
-  {
-    id: 'apikeys',
-    title: 'API Keys',
-    description: 'Manage your API credentials.',
-    icon: <LockKeyhole size={32} className="text-red-500" />,
-    category: 'Account Settings',
-  },
-  {
-    id: 'telemetry',
-    title: 'Telemetry',
-    description: 'Monitor platform usage and analytics.',
-    icon: <CircleGauge size={32} className="text-cyan-500" />,
-    category: 'Account Settings',
-  },
-  {
-    id: 'settings',
-    title: 'Settings',
-    description: 'Account and organization settings.',
-    icon: <Settings size={32} className="text-gray-400" />,
-    category: 'Account Settings',
-  },
-  {
-    id: 'profile',
-    title: 'Profile',
-    description: 'Manage your user profile.',
-    icon: <User size={32} className="text-gray-400" />,
-    category: 'More',
-  },
-  {
-    id: 'bookmarks',
-    title: 'Marketplace Bookmarks',
-    description: 'Manage your bookmarks.',
-    icon: <Bookmark size={32} className="text-gray-400" />,
-    category: 'Marketplace',
-  },
-  {
-    id: 'playground',
-    title: 'Playground',
-    description: 'Playground',
-    icon: <Code2 size={32} className="text-gray-400" />,
-    category: 'Account Settings',
-  },
-];
+type CategoryDescription = {
+  title: string;
+  description: string;
+  forUsers: string;
+};
 
-const CATEGORIES = [
-  'Marketplace',
-  'No Code Agent Platforms',
-  'Account Settings',
-  'More',
-];
+type CategoryDescriptions = {
+  [key in 'Marketplace' | 'No Code Agent Platforms' | 'Account Settings' | 'More']: CategoryDescription;
+};
+
+const CATEGORIES = ['Marketplace', 'No Code Agent Platforms', 'Account Settings', 'More'] as const;
+type Category = typeof CATEGORIES[number];
 
 const TEMPLATES = [
   {
@@ -142,6 +47,144 @@ const TEMPLATES = [
     description: 'Activate all apps',
     icon: <Blocks size={28} className="text-blue-400" />,
     apps: ['marketplace', 'appstore', 'leaderboard', 'dashboard', 'settings', 'chat', 'spreadsheet', 'dragndrop', 'settings', 'apikeys', 'telemetry', 'settings', 'profile', 'playground', 'bookmarks'],
+  },
+];
+
+const CATEGORY_DESCRIPTIONS: CategoryDescriptions = {
+  'Marketplace': {
+    title: 'Marketplace',
+    description: 'Discover, share, and monetize agents, prompts, and tools',
+    forUsers: 'For creators, developers, and businesses looking to explore or share their agents',
+  },
+  'No Code Agent Platforms': {
+    title: 'No Code Agent Platforms',
+    description: 'Build and deploy agents without writing code',
+    forUsers: 'For business users and non-technical teams who want to leverage agentic capabilities',
+  },
+  'Account Settings': {
+    title: 'Account Settings',
+    description: 'Manage your account, API keys, and platform settings',
+    forUsers: 'For all users who need to configure their workspace and monitor usage',
+  },
+  'More': {
+    title: 'Additional Tools',
+    description: 'Extra utilities and personal settings',
+    forUsers: 'For users looking to customize their experience and access supplementary features',
+  },
+};
+
+const APPS = [
+  {
+    id: 'dashboard',
+    title: 'Dashboard',
+    description: 'Your personalized command center for monitoring and managing all platform activities.',
+    icon: <LayoutDashboard size={32} className="text-white" />,
+    category: 'Marketplace',
+    details: 'Track performance metrics, recent activity, and important notifications',
+  },
+  {
+    id: 'marketplace',
+    title: 'Marketplace',
+    description: 'Browse and discover AI tools, agents, and prompts from the community.',
+    icon: <Blocks size={32} className="text-white" />,
+    category: 'Marketplace',
+    details: 'Find, purchase, or sell AI solutions and tools',
+  },
+  {
+    id: 'appstore',
+    title: 'App Store',
+    description: 'Explore curated autonomous AI applications ready for immediate use.',
+    icon: <Store size={32} className="text-white" />,
+    category: 'Marketplace',
+    details: 'Download and deploy pre-built AI applications',
+  },
+  {
+    id: 'apps',
+    title: 'Apps',
+    description: 'Customize your workspace with the tools you need.',
+    icon: <Atom size={32} className="text-white" />,
+    category: 'No Code Agent Platforms',
+    details: 'Manage and organize your installed applications',
+  },
+  {
+    id: 'chat',
+    title: 'Chat',
+    description: 'Interact with AI agents through a familiar chat interface.',
+    icon: <MessageSquareMore size={32} className="text-white" />,
+    category: 'No Code Agent Platforms',
+    details: 'Real-time communication with AI agents and team members',
+  },
+  {
+    id: 'spreadsheet',
+    title: 'Spreadsheet Swarm',
+    description: 'Collaborative AI-powered spreadsheets for data analysis.',
+    icon: <FileSpreadsheet size={32} className="text-white" />,
+    category: 'No Code Agent Platforms',
+    details: 'Process and analyze data with AI assistance',
+  },
+  {
+    id: 'dragndrop',
+    title: 'Drag & Drop',
+    description: 'Build AI workflows visually with our intuitive interface.',
+    icon: <GripVertical size={32} className="text-white" />,
+    category: 'No Code Agent Platforms',
+    details: 'Create custom AI workflows without coding',
+  },
+  {
+    id: 'leaderboard',
+    title: 'Leaderboard',
+    description: 'See top performers and trending content in the community.',
+    icon: <Trophy size={32} className="text-white" />,
+    category: 'Marketplace',
+    details: 'Track popular creators and trending AI solutions',
+  },
+  {
+    id: 'apikeys',
+    title: 'API Keys',
+    description: 'Manage your API credentials and access tokens.',
+    icon: <LockKeyhole size={32} className="text-white" />,
+    category: 'Account Settings',
+    details: 'Secure access to platform APIs and services',
+  },
+  {
+    id: 'telemetry',
+    title: 'Telemetry',
+    description: 'Monitor platform usage and performance analytics.',
+    icon: <CircleGauge size={32} className="text-white" />,
+    category: 'Account Settings',
+    details: 'Track usage metrics and system performance',
+  },
+  {
+    id: 'settings',
+    title: 'Settings',
+    description: 'Configure your account and organization preferences.',
+    icon: <Settings size={32} className="text-white" />,
+    category: 'Account Settings',
+    details: 'Customize platform settings and preferences',
+  },
+  {
+    id: 'profile',
+    title: 'Profile',
+    description: 'Manage your personal profile and preferences.',
+    icon: <User size={32} className="text-white" />,
+    category: 'More',
+    details: 'Update your profile information and settings',
+  },
+  {
+    id: 'bookmarks',
+    title: 'Marketplace Bookmarks',
+    description: 'Access your saved items and favorites.',
+    icon: <Bookmark size={32} className="text-white" />,
+    category: 'Marketplace',
+    details: 'Quick access to saved AI tools and content',
+  },
+  {
+    id: 'playground',
+    title: 'Playground',
+    description: 'Experiment with AI models in a sandbox environment.',
+    icon: <Code2 size={32} className="text-white" />,
+    category: 'Account Settings',
+    details: 'Test and debug AI models safely',
   },
 ];
 
@@ -259,12 +302,18 @@ export default function AppsPage() {
         </div>
 
         {/* Apps Categories */}
-        {CATEGORIES.map((cat) => {
+        {CATEGORIES.map((cat: Category) => {
           const appsInCategory = filteredApps.filter((app) => app.category === cat);
           if (appsInCategory.length === 0) return null;
+          const categoryInfo = CATEGORY_DESCRIPTIONS[cat];
+          
           return (
             <div key={cat} className="relative mb-16 sm:mb-20 last:mb-0">
-              <h2 className="text-xl sm:text-2xl font-semibold mb-8 pb-4 border-b border-white/[0.06] text-white">{cat}</h2>
+              <div className="mb-8">
+                <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-white">{categoryInfo.title}</h2>
+                <p className="text-base text-gray-300 mb-2">{categoryInfo.description}</p>
+                <p className="text-sm text-gray-400">{categoryInfo.forUsers}</p>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {appsInCategory.map((app) => (
                   <div
@@ -293,7 +342,7 @@ export default function AppsPage() {
                     </div>
                     <h3 className="text-lg sm:text-xl font-semibold mb-2 text-white group-hover:text-white transition-colors">{app.title}</h3>
                     <p className="text-base text-gray-300 group-hover:text-gray-200 transition-colors mb-4 line-clamp-2">{app.description}</p>
-                    <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors mt-auto font-medium">{cat}</span>
+                    <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors mt-auto">{app.details}</p>
                   </div>
                 ))}
               </div>
