@@ -91,15 +91,15 @@ const InfoCard = ({
   const handleViewClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!authUser) {
+    const isPaidContent = showPremiumBadge && price_usd && price_usd > 0;
+
+    if (isPaidContent && !authUser) {
       await checkUserSession();
       return;
     }
 
     if (
-      showPremiumBadge &&
-      price_usd &&
-      price_usd > 0 &&
+      isPaidContent &&
       id &&
       (itemType === 'prompt' || itemType === 'agent')
     ) {
@@ -114,6 +114,7 @@ const InfoCard = ({
         router.push(link);
       }
     } else {
+      // Free content or authenticated user - direct navigation
       router.push(link);
     }
   };

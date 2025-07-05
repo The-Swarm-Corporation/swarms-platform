@@ -9,14 +9,14 @@ import { generateAccessToken } from '@/shared/utils/access-tokens';
 import { checkUserAccess } from '@/shared/utils/access-control';
 
 const Agent = async ({ id }: { id: string }) => {
-  const session = await checkUserSession();
-
   const agent = await trpcApi.explorer.getAgentById.query(id);
   if (!agent) {
     redirect('/404');
   }
 
   if (!agent.is_free) {
+    const session = await checkUserSession();
+
     if (session?.id && agent.user_id === session.id) {
       // User owns the agent - allow access
     } else if (!session?.id) {

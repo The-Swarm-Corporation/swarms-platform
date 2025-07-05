@@ -21,7 +21,7 @@ type EditModal = {
   imageUrl?: string;
   filePath?: string;
   isFree?: boolean;
-  price?: number;
+  price_usd?: number;
   sellerWalletAddress?: string;
 };
 
@@ -49,7 +49,7 @@ interface InputState {
   category: string[];
   requirements?: { package: string; installation: string }[];
   isFree: boolean;
-  price: number;
+  price: string;
   sellerWalletAddress: string;
 }
 
@@ -71,7 +71,7 @@ export default function useEditModal({
     category: [],
     requirements: [{ package: '', installation: '' }],
     isFree: true,
-    price: 0,
+    price: '0',
     sellerWalletAddress: '',
   });
 
@@ -158,7 +158,7 @@ export default function useEditModal({
             ? entityData.requirements
             : [{ package: '', installation: '' }],
         isFree: entityData.is_free ?? true,
-        price: entityData.price ?? 0,
+        price: entityData.price_usd ? entityData.price_usd.toString() : '0',
         sellerWalletAddress: entityData.seller_wallet_address ?? '',
       };
 
@@ -328,7 +328,7 @@ export default function useEditModal({
             filePath: imageUrl && filePath ? filePath : undefined,
             requirements: inputState.requirements!,
             isFree: inputState.isFree,
-            price: inputState.price,
+            price_usd: inputState.isFree ? 0 : parseFloat(inputState.price) || 0,
             sellerWalletAddress: inputState.sellerWalletAddress,
           }
         : entityType === 'tool'
@@ -355,7 +355,7 @@ export default function useEditModal({
               imageUrl: imageUrl || undefined,
               filePath: imageUrl && filePath ? filePath : undefined,
               isFree: inputState.isFree,
-              price: inputState.price,
+              price_usd: inputState.isFree ? 0 : parseFloat(inputState.price) || 0,
               sellerWalletAddress: inputState.sellerWalletAddress,
             };
 
@@ -376,7 +376,7 @@ export default function useEditModal({
         category: [],
         requirements: [{ package: '', installation: '' }],
         isFree: true,
-        price: 0,
+        price: '0',
         sellerWalletAddress: '',
       });
       setOriginalData(null);

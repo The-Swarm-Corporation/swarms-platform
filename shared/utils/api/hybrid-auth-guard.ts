@@ -30,16 +30,12 @@ export class HybridAuthGuard {
   private authMethod: 'api_key' | 'supabase' | 'none' = 'none';
 
   constructor(private req: NextApiRequest) {
-    // Extract API key from Authorization header
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       this.apiKey = authHeader.split(' ')[1];
     }
   }
 
-  /**
-   * Authenticate using API key (for programmatic access)
-   */
   private async authenticateWithApiKey(): Promise<AuthResult> {
     if (!this.apiKey) {
       return {
@@ -104,13 +100,13 @@ export class HybridAuthGuard {
     }
   }
 
-  /**
-   * Authenticate using Supabase session (for browser access)
-   */
   private async authenticateWithSupabase(): Promise<AuthResult> {
     try {
       const supabase = await createClient();
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
 
       if (error || !user) {
         return {
@@ -144,11 +140,7 @@ export class HybridAuthGuard {
     }
   }
 
-  /**
-   * Main authentication method - tries API key first, then Supabase
-   */
   async authenticate(): Promise<AuthResult> {
-    // Try API key authentication first (for programmatic access)
     if (this.apiKey) {
       const apiKeyResult = await this.authenticateWithApiKey();
       if (apiKeyResult.isAuthenticated) {
@@ -156,24 +148,19 @@ export class HybridAuthGuard {
       }
     }
 
-    // Fallback to Supabase authentication (for browser access)
     const supabaseResult = await this.authenticateWithSupabase();
     return supabaseResult;
   }
 
-  /**
-   * Optional authentication - returns user info if available, but doesn't require it
-   */
   async optionalAuthenticate(): Promise<AuthResult> {
     const result = await this.authenticate();
-    
-    // For optional auth, we don't return error status codes
+
     if (!result.isAuthenticated) {
       return {
         isAuthenticated: false,
         userId: null,
         authMethod: 'none',
-        status: 200, // Success even without auth
+        status: 200,
         message: 'No authentication provided',
       };
     }
@@ -181,9 +168,6 @@ export class HybridAuthGuard {
     return result;
   }
 
-  /**
-   * Get current user information
-   */
   getUserInfo(): UserInfo | null {
     if (!this.userId || this.authMethod === 'none') {
       return null;
@@ -196,33 +180,25 @@ export class HybridAuthGuard {
     };
   }
 
-  /**
-   * Get user ID (backward compatibility)
-   */
   getUserId(): string | null {
     return this.userId;
   }
 
-  /**
-   * Get authentication method
-   */
   getAuthMethod(): 'api_key' | 'supabase' | 'none' {
     return this.authMethod;
   }
 }
 
-/**
- * Convenience function for quick authentication
- */
-export async function authenticateRequest(req: NextApiRequest): Promise<AuthResult> {
+export async function authenticateRequest(
+  req: NextApiRequest,
+): Promise<AuthResult> {
   const guard = new HybridAuthGuard(req);
   return await guard.authenticate();
 }
 
-/**
- * Convenience function for optional authentication
- */
-export async function optionalAuthenticateRequest(req: NextApiRequest): Promise<AuthResult> {
+export async function optionalAuthenticateRequest(
+  req: NextApiRequest,
+): Promise<AuthResult> {
   const guard = new HybridAuthGuard(req);
   return await guard.optionalAuthenticate();
 }

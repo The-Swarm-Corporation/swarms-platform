@@ -36,7 +36,7 @@ export function usePurchaseStatus({
   );
 
   // Determine status
-  const isOwner = user?.id === userId;
+  const isOwner = !!(user?.id && userId && user.id === userId);
   const hasPurchased = purchaseData?.hasPurchased || false;
   const hasAccess = isFree || isOwner || hasPurchased;
   const showPremiumBadge = !isFree && !isOwner && !hasPurchased;
@@ -52,7 +52,7 @@ export function usePurchaseStatus({
     showOwnerBadge,
     showPurchasedBadge,
     isPurchaseLoading,
-    refetchPurchase, // Expose refetch function for manual refresh
+    refetchPurchase,
   };
 }
 

@@ -1,5 +1,5 @@
 import PromptModule from '@/modules/prompt';
-import { getPrompt } from '@/shared/utils/api/prompt';
+import { getPromptMetadata } from '@/shared/utils/api/metadata';
 import { getURL, optimizePromptKeywords } from '@/shared/utils/helpers';
 import { Metadata } from 'next';
 
@@ -14,27 +14,68 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const url = getURL();
   const resolvedParams = await params;
-  const prompt = await getPrompt(resolvedParams?.id);
+  const prompt = await getPromptMetadata(resolvedParams?.id);
+
+  if (!prompt) {
+    return {
+      title: 'Prompt Not Found | Swarms Marketplace',
+      description: 'The requested prompt could not be found on the Swarms Marketplace.',
+    };
+  }
+
   const seoData = optimizePromptKeywords(prompt);
 
   return {
     title: seoData.title,
     description: seoData.description,
     keywords: seoData.keywords,
+    authors: [{ name: 'Swarms Team' }],
+    creator: 'Swarms',
+    publisher: 'Swarms',
     openGraph: {
       title: seoData.title,
       description: seoData.description,
-      url: `${url}${prompt?.id}`,
+      url: `${url}prompt/${prompt?.id}`,
+      type: 'article',
+      siteName: 'Swarms Marketplace',
       images: [
         {
-          url: '/og.png',
+          url: prompt?.image_url || '/og.png',
           width: 1200,
           height: 630,
+          alt: `${prompt?.name} - AI Prompt`,
         },
       ],
     },
+    twitter: {
+      card: 'summary_large_image',
+      site: '@swarms_corp',
+      creator: '@swarms_corp',
+      title: seoData.title,
+      description: seoData.description,
+      images: [
+        {
+          url: prompt?.image_url || '/og.png',
+          width: 1200,
+          height: 630,
+          alt: `${prompt?.name} - AI Prompt`,
+        },
+      ],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      nocache: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
     alternates: {
-      canonical: `${url}${prompt?.id}`,
+      canonical: `${url}prompt/${prompt?.id}`,
     },
   };
 }

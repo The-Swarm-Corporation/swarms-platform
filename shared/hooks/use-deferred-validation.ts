@@ -46,7 +46,8 @@ export function useDeferredValidation(
       const rule = rules[fieldName];
       if (!rule) return { isValid: true };
 
-      const capitalizedFieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+      const capitalizedFieldName =
+        fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
 
       if (rule.required && (!value || value.trim().length === 0)) {
         return { isValid: false, error: `${capitalizedFieldName} is required` };
@@ -168,7 +169,10 @@ export function useDeferredValidation(
     [fields],
   );
 
-  const validateAll = useCallback((): { isValid: boolean; errors: string[] } => {
+  const validateAll = useCallback((): {
+    isValid: boolean;
+    errors: string[];
+  } => {
     let isValid = true;
     const errors: string[] = [];
     const newFields = { ...fields };
@@ -191,7 +195,9 @@ export function useDeferredValidation(
       } catch (error) {
         console.error(`Validation error for field ${fieldName}:`, error);
         isValid = false;
-        errors.push(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} validation failed`);
+        errors.push(
+          `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} validation failed`,
+        );
       }
     });
 
@@ -269,7 +275,8 @@ export function useMarketplaceValidation() {
       maxLength: 100,
       custom: (value: string) => {
         if (!value || value.trim().length === 0) return 'Name is required';
-        if (value.trim().length < 2) return 'Name must be at least 2 characters long';
+        if (value.trim().length < 2)
+          return 'Name must be at least 2 characters long';
         if (value.length > 100) return 'Name cannot exceed 100 characters';
         return null;
       },
@@ -279,9 +286,12 @@ export function useMarketplaceValidation() {
       minLength: 10,
       maxLength: 1000,
       custom: (value: string) => {
-        if (!value || value.trim().length === 0) return 'Description is required';
-        if (value.trim().length < 10) return 'Description must be at least 10 characters long';
-        if (value.length > 1000) return 'Description cannot exceed 1,000 characters';
+        if (!value || value.trim().length === 0)
+          return 'Description is required';
+        if (value.trim().length < 10)
+          return 'Description must be at least 10 characters long';
+        if (value.length > 1000)
+          return 'Description cannot exceed 1,000 characters';
         return null;
       },
     },
@@ -290,8 +300,10 @@ export function useMarketplaceValidation() {
       minLength: 5,
       maxLength: 50000,
       custom: (value: string) => {
-        if (!value || value.trim().length === 0) return 'Code content is required';
-        if (value.trim().length < 5) return 'Code must be at least 5 characters long';
+        if (!value || value.trim().length === 0)
+          return 'Code content is required';
+        if (value.trim().length < 5)
+          return 'Code must be at least 5 characters long';
         if (value.length > 50000) return 'Code cannot exceed 50,000 characters';
         return null;
       },
@@ -348,8 +360,9 @@ export function useMarketplaceValidation() {
           const invalidTag = tags.find((tag) => tag.length > 50);
           if (invalidTag) return `Tag "${invalidTag}" exceeds 50 characters`;
 
-          const uniqueTags = new Set(tags.map(tag => tag.toLowerCase()));
-          if (uniqueTags.size !== tags.length) return 'Duplicate tags are not allowed';
+          const uniqueTags = new Set(tags.map((tag) => tag.toLowerCase()));
+          if (uniqueTags.size !== tags.length)
+            return 'Duplicate tags are not allowed';
 
           return null;
         } catch (error) {

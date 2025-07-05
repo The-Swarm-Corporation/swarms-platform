@@ -64,7 +64,7 @@ const getAgentById = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return res.status(404).json({ error: 'Agent not found or not approved' });
+        return res.status(404).json({ error: 'Agent not found' });
       }
       throw error;
     }
@@ -73,6 +73,37 @@ const getAgentById = async (req: NextApiRequest, res: NextApiResponse) => {
     const isFree = agent.is_free;
     const hasPurchased = userId ? await checkAgentAccess(id, userId) : false;
     const hasAccess = isFree || isOwner || hasPurchased;
+
+    if (!isFree && !userId) {
+      const publicData: AgentData = {
+        id: agent.id,
+        name: agent.name || '',
+        description: agent.description || '',
+        use_cases: agent.use_cases,
+        tags: agent.tags || '',
+        requirements: agent.requirements as string,
+        language: agent.language || undefined,
+        is_free: agent.is_free,
+        price: agent.price || 0,
+        price_usd: agent.price_usd || 0,
+        file_path: agent.file_path || undefined,
+        category: agent.category as string,
+        status: agent.status || 'pending',
+        user_id: agent.user_id || '',
+        created_at: agent.created_at,
+        // No agent content for paid items without auth
+      };
+
+      return res.status(200).json({
+        ...publicData,
+        access_info: {
+          has_access: false,
+          is_owner: false,
+          is_free: false,
+          requires_purchase: true,
+        },
+      });
+    }
 
     const responseData: AgentData = {
       id: agent.id,
