@@ -20,11 +20,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!agent) {
     return {
       title: 'Agent Not Found | Swarms Marketplace',
-      description: 'The requested agent could not be found on the Swarms Marketplace.',
+      description:
+        'The requested agent could not be found on the Swarms Marketplace.',
     };
   }
 
   const seoData = optimizeAgentKeywords(agent);
+
+  const dynamicImage = agent?.image_url?.startsWith('http')
+    ? `${agent?.image_url}?v=${agent?.created_at || agent?.id}`
+    : `${url}${agent?.image_url}?v=${agent?.created_at || agent?.id}`;
 
   return {
     title: seoData.title,
@@ -41,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: 'Swarms Marketplace',
       images: [
         {
-          url: agent?.image_url || '/og.png',
+          url: dynamicImage || `${url}og.png?v=2`,
           width: 1200,
           height: 630,
           alt: `${agent?.name} - AI Agent`,
@@ -56,7 +61,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: seoData.description,
       images: [
         {
-          url: agent?.image_url || '/og.png',
+          url: dynamicImage || `${url}og.png?v=2`,
           width: 1200,
           height: 630,
           alt: `${agent?.name} - AI Agent`,
