@@ -18,7 +18,9 @@ import {
   BookOpen,
   HelpCircle,
   Mail,
-  Calendar
+  Calendar,
+  Code,
+  Box
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM, SWARMS_GITHUB } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -63,12 +65,39 @@ export default function Footer() {
     { name: 'Hiring', href: 'https://swarms.ai/hiring', icon: <Users className="h-4 w-4" /> },
   ];
 
+  const productLinks = [
+    { 
+      name: 'Python Framework', 
+      href: 'https://github.com/kyegomez/swarms', 
+      icon: <Code className="h-4 w-4" />,
+      description: 'Enterprise-grade production-ready multi-agent orchestration framework for building and deploying agents'
+    },
+    { 
+      name: 'Swarms Rust', 
+      href: 'https://github.com/The-Swarm-Corporation/swarms-rs', 
+      icon: <Box className="h-4 w-4" />,
+      description: 'High-performance Rust implementation of Swarms'
+    },
+    { 
+      name: 'Python SDK', 
+      href: 'https://github.com/The-Swarm-Corporation/swarms-sdk', 
+      icon: <Code className="h-4 w-4" />,
+      description: 'Official Python client library for seamless integration with Swarms API'
+    },
+    { 
+      name: 'TypeScript SDK', 
+      href: 'https://github.com/The-Swarm-Corporation/swarms-ts', 
+      icon: <Code className="h-4 w-4" />,
+      description: 'Type-safe TypeScript client for Swarms API.'
+    },
+  ];
+
   return (
     <footer className="w-full bg-black border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             {/* Brand Section */}
             <div className="lg:col-span-1">
               <div className="flex items-center space-x-2 mb-4">
@@ -93,6 +122,38 @@ export default function Footer() {
                   </Link>
                 ))}
               </div>
+            </div>
+
+            {/* Products Section */}
+            <div className="lg:col-span-1">
+              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
+                Products
+              </h3>
+              <ul className="space-y-4">
+                {productLinks.map((link) => (
+                  <li key={link.name} className="group">
+                    <Link
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      <div className="text-gray-400 hover:text-white transition-colors duration-200 text-sm">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            {link.icon}
+                          </span>
+                          <span className="font-medium">{link.name}</span>
+                          <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                        </div>
+                        <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors duration-200 ml-6">
+                          {link.description}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
 
             {/* Platform Links */}
