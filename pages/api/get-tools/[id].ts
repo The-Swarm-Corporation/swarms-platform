@@ -13,6 +13,7 @@ interface ToolData {
   language?: string;
   is_free: boolean;
   file_path?: string;
+  image_url?: string;
   category?: string;
   status: string;
   user_id: string;
@@ -39,7 +40,7 @@ const getToolById = async (req: NextApiRequest, res: NextApiResponse) => {
       .from('swarms_cloud_tools')
       .select(`
         id, name, description, tool, use_cases, tags, requirements, language,
-        is_free, file_path, category, status,
+        is_free, file_path, image_url, category, status,
         user_id, created_at
       `)
       .eq('id', id)
@@ -66,6 +67,7 @@ const getToolById = async (req: NextApiRequest, res: NextApiResponse) => {
       language: tool.language || undefined,
       is_free: tool.is_free,
       file_path: tool.file_path || undefined,
+      image_url: tool.image_url || undefined,
       category: tool.category as string,
       status: tool.status || 'pending',
       user_id: tool.user_id || '',

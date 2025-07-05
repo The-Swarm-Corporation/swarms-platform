@@ -12,6 +12,7 @@ interface PromptData {
   is_free: boolean;
   price: number; // SOL price (legacy)
   price_usd: number; // USD price (primary)
+  image_url?: string;
   file_path?: string;
   category?: string;
   status: string;
@@ -54,7 +55,7 @@ const getPromptById = async (req: NextApiRequest, res: NextApiResponse) => {
       .from('swarms_cloud_prompts')
       .select(`
         id, name, description, prompt, use_cases, tags,
-        is_free, price, price_usd, file_path, category, status,
+        is_free, price, price_usd, image_url, file_path, category, status,
         user_id, created_at
       `)
       .eq('id', id)
@@ -82,6 +83,7 @@ const getPromptById = async (req: NextApiRequest, res: NextApiResponse) => {
         is_free: prompt.is_free,
         price: prompt.price || 0,
         price_usd: prompt.price_usd || 0,
+        image_url: prompt.image_url || undefined,
         file_path: prompt.file_path || undefined,
         category: prompt.category as string,
         status: prompt.status || 'pending',
@@ -110,6 +112,7 @@ const getPromptById = async (req: NextApiRequest, res: NextApiResponse) => {
       is_free: prompt.is_free,
       price: prompt.price || 0,
       price_usd: prompt.price_usd || 0,
+      image_url: prompt.image_url || undefined,
       file_path: prompt.file_path || undefined,
       category: prompt.category as string,
       status: prompt.status || 'pending',
