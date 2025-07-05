@@ -19,11 +19,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!prompt) {
     return {
       title: 'Prompt Not Found | Swarms Marketplace',
-      description: 'The requested prompt could not be found on the Swarms Marketplace.',
+      description:
+        'The requested prompt could not be found on the Swarms Marketplace.',
     };
   }
 
   const seoData = optimizePromptKeywords(prompt);
+
+  const dynamicImage = prompt?.image_url?.startsWith('http')
+    ? `${prompt?.image_url}?v=${prompt?.created_at || prompt?.id}`
+    : `${url}${prompt?.image_url}?v=${prompt?.created_at || prompt?.id}`;
 
   return {
     title: seoData.title,
@@ -40,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: 'Swarms Marketplace',
       images: [
         {
-          url: prompt?.image_url || '/og.png',
+          url: dynamicImage || `${url}og.png?v=2`,
           width: 1200,
           height: 630,
           alt: `${prompt?.name} - AI Prompt`,
@@ -55,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: seoData.description,
       images: [
         {
-          url: prompt?.image_url || '/og.png',
+          url: dynamicImage || `${url}og.png?v=2`,
           width: 1200,
           height: 630,
           alt: `${prompt?.name} - AI Prompt`,

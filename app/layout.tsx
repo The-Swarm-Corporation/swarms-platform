@@ -17,15 +17,19 @@ export const viewport: Viewport = {
   ],
 };
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
+  'https://swarms.world/';
+const url = `${siteUrl}/`;
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://swarms.world',
-  ),
+  metadataBase: new URL(siteUrl),
   title: {
     template: '%s | Swarms Marketplace',
     default: 'The Swarms Marketplace - The Leading Agent Marketplace',
   },
-  description: 'Share, discover, and monetize autonomous agents, custom prompts, and specialized tools on the Swarms Marketplace.',
+  description:
+    'Share, discover, and monetize autonomous agents, custom prompts, and specialized tools on the Swarms Marketplace.',
   keywords: [
     'AI agents',
     'autonomous agents',
@@ -44,18 +48,19 @@ export const metadata: Metadata = {
   creator: 'Swarms',
   publisher: 'Swarms',
   alternates: {
-    canonical: process.env.NEXT_PUBLIC_SITE_URL || 'https://swarms.world',
+    canonical: siteUrl,
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://swarms.world',
+    url: siteUrl,
     siteName: 'Swarms Marketplace',
     title: 'The Swarms Marketplace - The Leading Agent Marketplace',
-    description: 'Share, discover, and monetize autonomous agents, custom prompts, and specialized tools on the Swarms Marketplace.',
+    description:
+      'Share, discover, and monetize autonomous agents, custom prompts, and specialized tools on the Swarms Marketplace.',
     images: [
       {
-        url: '/og.png',
+        url: `${url}og.png?v=2`,
         width: 1200,
         height: 630,
         alt: 'Swarms Marketplace - The Leading Agent Marketplace',
@@ -67,10 +72,11 @@ export const metadata: Metadata = {
     site: '@swarms_corp',
     creator: '@swarms_corp',
     title: 'The Swarms Marketplace - The Leading Agent Marketplace',
-    description: 'Share, discover, and monetize autonomous agents, custom prompts, and specialized tools on the Swarms Marketplace.',
+    description:
+      'Share, discover, and monetize autonomous agents, custom prompts, and specialized tools on the Swarms Marketplace.',
     images: [
       {
-        url: '/og.png',
+        url: `${url}og.png?v=2`,
         width: 1200,
         height: 630,
         alt: 'Swarms Marketplace - The Leading Agent Marketplace',
@@ -121,9 +127,7 @@ export default async function Layout({
             <TrpcProvider>
               <CommandPaletteProvider>
                 <AuthModal />
-                <StarredAppsProvider>
-                  {children}
-                </StarredAppsProvider>
+                <StarredAppsProvider>{children}</StarredAppsProvider>
               </CommandPaletteProvider>
             </TrpcProvider>
           </AuthProvider>
