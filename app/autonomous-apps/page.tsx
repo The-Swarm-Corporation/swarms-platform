@@ -166,49 +166,45 @@ export default function AutonomousAppsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white px-8 py-12 pb-60">
+    <div className="min-h-screen bg-black text-white px-4 sm:px-6 py-12">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <Rocket size={40} className="text-blue-500" />
+        <div className="flex items-center gap-4 mb-12">
+          <Rocket size={32} className="text-white" />
           <div>
-            <h1 className="text-4xl font-extrabold mb-2 tracking-tight bg-gradient-to-r from-gray-200 to-gray-500 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold mb-1">
               App Store
             </h1>
-            <p className="text-lg text-gray-400">
-              Autonomous Apps You Love
+            <p className="text-sm text-gray-400">
+              Discover and launch autonomous applications
             </p>
           </div>
         </div>
 
         {/* Search and Filter Section */}
-        <div className="mb-12 space-y-6">
+        <div className="mb-12 space-y-4">
           {/* Search Box */}
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
               placeholder="Search apps..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-black/50 border border-blue-800/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2.5 bg-[#111111] border border-[#333333] rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-white/20"
             />
           </div>
 
           {/* Category Filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <Filter size={20} className="text-gray-400" />
-            <span className="text-gray-400 text-sm">Filter by:</span>
-          </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
                 className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                  "px-3 py-1.5 rounded-md text-sm transition-all duration-200",
                   selectedCategory === category.id
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
-                    : "bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-gray-700/50"
+                    ? "bg-white text-black"
+                    : "bg-[#111111] text-gray-300 hover:bg-[#222222] border border-[#333333]"
                 )}
               >
                 {category.name} ({category.count})
@@ -218,55 +214,55 @@ export default function AutonomousAppsPage() {
         </div>
 
         {/* Coming Soon Banner */}
-        <div className="mb-12 p-6 rounded-lg bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-800/30">
-          <h2 className="text-2xl font-bold text-blue-400 mb-2">Coming Soon</h2>
-          <p className="text-gray-300">
+        <div className="mb-12 p-6 rounded-md bg-[#111111] border border-[#333333]">
+          <h2 className="text-xl font-semibold text-white mb-2">Coming Soon</h2>
+          <p className="text-gray-400 text-sm">
             The ability to create your own autonomous applications is coming soon. Stay tuned for updates!
           </p>
         </div>
 
         {/* Featured Apps Section */}
         <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl font-bold text-gray-200 mb-2">Featured Apps</h2>
-              <p className="text-gray-400">Apps created by our team to showcase the power of autonomous AI</p>
+              <h2 className="text-xl font-semibold text-white mb-1">Featured Apps</h2>
+              <p className="text-sm text-gray-400">Apps created by our team to showcase the power of autonomous AI</p>
             </div>
             <a
               href="https://cal.com/swarms"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-md hover:bg-gray-100 transition-colors text-sm font-medium"
             >
-              <Calendar size={20} />
+              <Calendar size={18} />
               <span>Launch Your App</span>
             </a>
           </div>
 
           {/* Apps Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredApps.map((app) => (
               <motion.div
                 key={app.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="relative flex flex-col p-6 rounded-lg border border-blue-800/30 bg-gradient-to-br from-black/60 to-blue-950/40 hover:from-blue-950/60 hover:to-black/80 transition-all duration-200 group"
+                className="relative flex flex-col p-6 rounded-md border border-[#333333] bg-[#111111] hover:bg-[#161616] transition-all duration-200"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-blue-900/40 shadow-inner">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-md bg-[#222222] border border-[#333333]">
                     {app.icon}
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-100">{app.title}</h3>
-                    <p className="text-sm text-gray-400">{app.domain}</p>
+                    <h3 className="text-lg font-medium text-white">{app.title}</h3>
+                    <p className="text-xs text-gray-400">{app.domain}</p>
                   </div>
                 </div>
-                <p className="text-gray-300 mb-4">{app.description}</p>
+                <p className="text-sm text-gray-300 mb-4">{app.description}</p>
                 
                 {/* Category Badge */}
                 <div className="mb-4">
-                  <span className={`text-xs uppercase tracking-widest text-${app.color}-500 bg-${app.color}-900/10 px-2 py-1 rounded`}>
+                  <span className="text-xs px-2 py-1 rounded-full bg-[#222222] text-gray-300 border border-[#333333]">
                     {app.category}
                   </span>
                 </div>
@@ -275,21 +271,19 @@ export default function AutonomousAppsPage() {
                 <div className="mt-auto flex gap-2">
                   <button
                     onClick={() => openInfoModal(app)}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition-colors text-sm"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-[#222222] hover:bg-[#333333] rounded-md transition-colors text-sm"
                   >
                     <Info size={16} />
                     <span>Learn More</span>
                   </button>
                   <button
                     onClick={() => setSelectedApp(app)}
-                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-sm"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-white text-black hover:bg-gray-100 rounded-md transition-colors text-sm font-medium"
                   >
                     <Play size={16} />
                     <span>Launch</span>
                   </button>
                 </div>
-                
-                <div className="absolute inset-0 pointer-events-none rounded-lg border border-blue-700/10" style={{boxShadow:'0 0 32px 0 rgba(37,99,235,0.08)'}} />
               </motion.div>
             ))}
           </div>
@@ -297,13 +291,13 @@ export default function AutonomousAppsPage() {
           {/* No Results */}
           {filteredApps.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-400 text-lg">No apps found matching your criteria.</p>
+              <p className="text-gray-400 text-sm">No apps found matching your criteria.</p>
               <button
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedCategory('all');
                 }}
-                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                className="mt-4 px-4 py-2 bg-white text-black hover:bg-gray-100 rounded-md transition-colors text-sm font-medium"
               >
                 Clear Filters
               </button>
@@ -312,18 +306,18 @@ export default function AutonomousAppsPage() {
         </div>
 
         {/* App Store CTA */}
-        <div className="p-8 rounded-lg bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-800/30 text-center">
-          <h2 className="text-2xl font-bold text-blue-400 mb-4">Want to Launch Your App?</h2>
-          <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+        <div className="p-8 rounded-md bg-[#111111] border border-[#333333] text-center">
+          <h2 className="text-xl font-semibold text-white mb-3">Want to Launch Your App?</h2>
+          <p className="text-sm text-gray-400 mb-6 max-w-2xl mx-auto">
             Join our growing ecosystem of autonomous AI applications. Book a call with our team to discuss launching your app in the Swarms App Store.
           </p>
           <a
             href="https://cal.com/swarms"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-lg font-semibold"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black hover:bg-gray-100 rounded-md transition-colors text-sm font-medium"
           >
-            <Calendar size={24} />
+            <Calendar size={18} />
             <span>Book a Call</span>
           </a>
         </div>
@@ -342,30 +336,30 @@ export default function AutonomousAppsPage() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="relative bg-gray-900 rounded-lg border border-blue-800/30 overflow-hidden max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                className="relative bg-[#111111] rounded-md border border-[#333333] overflow-hidden max-w-2xl w-full max-h-[90vh] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
               >
                 {/* Modal Header */}
-                <div className="p-6 border-b border-blue-800/30">
+                <div className="p-6 border-b border-[#333333]">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-gray-800/80 to-gray-700/80 border border-blue-900/40">
+                      <div className="w-10 h-10 flex items-center justify-center rounded-md bg-[#222222] border border-[#333333]">
                         {infoApp.icon}
                       </div>
                       <div>
-                        <h2 className="text-2xl font-bold text-gray-100">{infoApp.title}</h2>
-                        <p className="text-gray-400">{infoApp.domain}</p>
+                        <h2 className="text-xl font-semibold text-white">{infoApp.title}</h2>
+                        <p className="text-sm text-gray-400">{infoApp.domain}</p>
                       </div>
                     </div>
                     <button
                       onClick={closeInfoModal}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      className="p-2 hover:bg-[#222222] rounded-md transition-colors"
                     >
-                      <X size={24} className="text-gray-400" />
+                      <X size={20} className="text-gray-400" />
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs uppercase tracking-widest text-${infoApp.color}-500 bg-${infoApp.color}-900/10 px-2 py-1 rounded`}>
+                    <span className="text-xs px-2 py-1 rounded-full bg-[#222222] text-gray-300 border border-[#333333]">
                       {infoApp.category}
                     </span>
                     <span className="text-xs text-gray-500">Pre-built App</span>
@@ -376,17 +370,17 @@ export default function AutonomousAppsPage() {
                 <div className="p-6 space-y-6">
                   {/* Description */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-200 mb-2">About</h3>
-                    <p className="text-gray-300 leading-relaxed">{infoApp.longDescription}</p>
+                    <h3 className="text-sm font-semibold text-white mb-2">About</h3>
+                    <p className="text-sm text-gray-300 leading-relaxed">{infoApp.longDescription}</p>
                   </div>
 
                   {/* Features */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-200 mb-3">Key Features</h3>
+                    <h3 className="text-sm font-semibold text-white mb-3">Key Features</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {infoApp.features.map((feature, index) => (
                         <div key={index} className="flex items-center gap-2 text-gray-300">
-                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                          <div className="w-1 h-1 bg-white rounded-full" />
                           <span className="text-sm">{feature}</span>
                         </div>
                       ))}
@@ -395,12 +389,12 @@ export default function AutonomousAppsPage() {
 
                   {/* Tags */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-200 mb-3">Tags</h3>
+                    <h3 className="text-sm font-semibold text-white mb-3">Tags</h3>
                     <div className="flex flex-wrap gap-2">
                       {infoApp.tags.map((tag, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-gray-800/50 text-gray-300 text-xs rounded"
+                          className="px-2 py-1 bg-[#222222] text-gray-300 text-xs rounded-full border border-[#333333]"
                         >
                           {tag}
                         </span>
@@ -410,19 +404,19 @@ export default function AutonomousAppsPage() {
                 </div>
 
                 {/* Modal Footer */}
-                <div className="p-6 border-t border-blue-800/30 flex gap-3">
+                <div className="p-6 border-t border-[#333333] flex gap-3">
                   <button
                     onClick={() => launchApp(infoApp)}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors font-semibold"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white text-black hover:bg-gray-100 rounded-md transition-colors text-sm font-medium"
                   >
-                    <Play size={20} />
+                    <Play size={18} />
                     <span>Launch App</span>
                   </button>
                   <button
                     onClick={() => window.open(infoApp.url, '_blank')}
-                    className="flex items-center gap-2 px-4 py-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#222222] hover:bg-[#333333] rounded-md transition-colors text-sm"
                   >
-                    <ExternalLink size={20} />
+                    <ExternalLink size={18} />
                     <span>Open in New Tab</span>
                   </button>
                 </div>
@@ -447,57 +441,57 @@ export default function AutonomousAppsPage() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 className={cn(
-                  "relative bg-black rounded-lg border border-blue-800/30 overflow-hidden",
+                  "relative bg-black rounded-md border border-[#333333] overflow-hidden",
                   isMaximized ? "w-full h-full" : "w-full max-w-6xl h-[80vh]"
                 )}
                 onClick={e => e.stopPropagation()}
               >
                 {/* App Header */}
-                <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-b border-blue-800/30 flex items-center justify-between px-4 z-10">
+                <div className="absolute top-0 left-0 right-0 h-12 bg-[#111111] border-b border-[#333333] flex items-center justify-between px-4 z-10">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-blue-900/40">
+                    <div className="w-8 h-8 flex items-center justify-center rounded-md bg-[#222222] border border-[#333333]">
                       {selectedApp.icon}
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-100">{selectedApp.title}</h3>
+                      <h3 className="text-sm font-medium text-white">{selectedApp.title}</h3>
                       <p className="text-xs text-gray-400">{selectedApp.domain}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={openInNewTab}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      className="p-2 hover:bg-[#222222] rounded-md transition-colors"
                       title="Open in new tab"
                     >
-                      <ExternalLink size={20} className="text-gray-400" />
+                      <ExternalLink size={18} className="text-gray-400" />
                     </button>
                     <button
                       onClick={toggleMaximize}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      className="p-2 hover:bg-[#222222] rounded-md transition-colors"
                       title={isMaximized ? "Restore" : "Maximize"}
                     >
                       {isMaximized ? (
-                        <Minimize2 size={20} className="text-gray-400" />
+                        <Minimize2 size={18} className="text-gray-400" />
                       ) : (
-                        <Maximize2 size={20} className="text-gray-400" />
+                        <Maximize2 size={18} className="text-gray-400" />
                       )}
                     </button>
                     <button
                       onClick={toggleFullscreen}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      className="p-2 hover:bg-[#222222] rounded-md transition-colors"
                       title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
                     >
                       {isFullscreen ? (
-                        <Minimize2 size={20} className="text-gray-400" />
+                        <Minimize2 size={18} className="text-gray-400" />
                       ) : (
-                        <Maximize2 size={20} className="text-gray-400" />
+                        <Maximize2 size={18} className="text-gray-400" />
                       )}
                     </button>
                     <button
                       onClick={() => setSelectedApp(null)}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      className="p-2 hover:bg-[#222222] rounded-md transition-colors"
                     >
-                      <X size={20} className="text-gray-400" />
+                      <X size={18} className="text-gray-400" />
                     </button>
                   </div>
                 </div>
@@ -506,8 +500,8 @@ export default function AutonomousAppsPage() {
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className="flex flex-col items-center gap-4">
-                      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-gray-400">Loading {selectedApp.title}...</p>
+                      <div className="w-10 h-10 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <p className="text-sm text-gray-400">Loading {selectedApp.title}...</p>
                     </div>
                   </div>
                 )}
@@ -515,14 +509,14 @@ export default function AutonomousAppsPage() {
                 {/* Error State */}
                 {error && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className="flex flex-col items-center gap-4 p-6 bg-gray-900/80 rounded-lg border border-red-500/30">
-                      <AlertCircle size={32} className="text-red-500" />
-                      <p className="text-gray-300 text-center">{error}</p>
+                    <div className="flex flex-col items-center gap-4 p-6 bg-[#111111] rounded-md border border-[#333333]">
+                      <AlertCircle size={24} className="text-gray-400" />
+                      <p className="text-sm text-gray-300 text-center">{error}</p>
                       <button
                         onClick={handleRetry}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-gray-100 rounded-md transition-colors text-sm font-medium"
                       >
-                        <RefreshCcw size={20} />
+                        <RefreshCcw size={18} />
                         <span>Retry</span>
                       </button>
                     </div>
@@ -533,7 +527,7 @@ export default function AutonomousAppsPage() {
                 <iframe
                   ref={iframeRef}
                   src={selectedApp.url}
-                  className="w-full h-full mt-14"
+                  className="w-full h-full mt-12"
                   style={{ border: 'none' }}
                   title={selectedApp.title}
                   sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-downloads"
