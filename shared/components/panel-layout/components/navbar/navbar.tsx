@@ -1,6 +1,6 @@
 'use client';
 
-import { Github, LogIn, Coins } from 'lucide-react';
+import { Github, LogIn, Coins, Twitter } from 'lucide-react';
 import { FormEvent, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Logo from '@/shared/components/icons/Logo';
@@ -15,10 +15,11 @@ import NavItem from '../item';
 import NavbarSearch from './components/search';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import Avatar from '@/shared/components/avatar';
-import { NAVIGATION, SWARMS_GITHUB } from '@/shared/utils/constants';
+import { NAVIGATION, SWARMS_GITHUB, DISCORD, TWITTER } from '@/shared/utils/constants';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import useSubscription from '@/shared/hooks/subscription';
+import Discord from '@/shared/components/icons/Discord';
 
 export default function PlatformNavBar() {
   const { user } = useAuthContext();
@@ -102,6 +103,34 @@ export default function PlatformNavBar() {
         </div>
         <div className="flex items-center space-x-4">
           <ul className="p-0 hidden items-center sm:flex gap-2">
+            <li>
+              <a
+                href={DISCORD}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'inline-flex items-center justify-center w-9 h-9 text-white',
+                  'rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary',
+                  'transition-all duration-300'
+                )}
+              >
+                <Discord className="w-5 h-5" />
+              </a>
+            </li>
+            <li>
+              <a
+                href={TWITTER}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'inline-flex items-center justify-center w-9 h-9 text-white',
+                  'rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary',
+                  'transition-all duration-300'
+                )}
+              >
+                <Twitter className="w-5 h-5" />
+              </a>
+            </li>
             {FILTERED_NAV_LINKS?.map((item) => (
               <li key={item.title}>
                 <NavItem

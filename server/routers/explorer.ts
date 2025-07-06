@@ -1485,8 +1485,33 @@ const explorerRouter = router({
         return getTopUsersFallback(ctx, category, limit);
       }
     }),
+  getMarketplaceStats: publicProcedure.query(async ({ ctx }) => {
+    try {
+      const [promptsResult, agentsResult, toolsResult] = await Promise.all([
+        ctx.supabase
+          .from('swarms_cloud_prompts')
+          .select('*', { count: 'exact', head: true }),
+        ctx.supabase
+          .from('swarms_cloud_agents')
+          .select('*', { count: 'exact', head: true }),
+        ctx.supabase
+          .from('swarms_cloud_tools')
+          .select('*', { count: 'exact', head: true })
+      ]);
 
-
+      return {
+        prompts: promptsResult.count || 0,
+        agents: agentsResult.count || 0,
+        tools: toolsResult.count || 0
+      };
+    } catch (error) {
+      console.error('Error fetching marketplace stats:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch marketplace statistics'
+      });
+    }
+  }),
 });
 
 // Optimized function for manual aggregation

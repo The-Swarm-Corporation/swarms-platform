@@ -119,7 +119,8 @@ export const PUBLIC = {
 
 const SWARMS_DOCS = 'https://docs.swarms.world/en/latest/';
 export const SWARMS_GITHUB = 'https://github.com/kyegomez/swarms';
-export const DISCORD = 'https://discord.gg/jM3Z6M9uMq';
+export const DISCORD = 'https://discord.gg/NHfAfHf9zs';
+export const TWITTER = 'https://x.com/swarms_corp';
 export const SWARM_CALENDLY = 'https://cal.com/swarms';
 
 enum NAV_LINKS {

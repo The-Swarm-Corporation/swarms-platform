@@ -8,13 +8,14 @@ import Logo from '@/shared/components/icons/Logo';
 import { usePathname, useRouter } from 'next/navigation';
 import { getRedirectMethod } from '@/shared/utils/auth-helpers/settings';
 import s from './Navbar.module.css';
-import { DISCORD, PLATFORM, SWARMS_GITHUB } from '@/shared/utils/constants';
+import { DISCORD, PLATFORM, SWARMS_GITHUB, TWITTER } from '@/shared/utils/constants';
 import { cn } from '@/shared/utils/cn';
 import { Drawer, DrawerContent, DrawerTrigger, DrawerClose } from '../drawer';
 import { Button } from '../button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Twitter } from 'lucide-react';
 import { useAuthContext } from '../auth.provider';
 import { motion, AnimatePresence } from 'framer-motion';
+import Discord from '@/shared/components/icons/Discord';
 
 export default function Navlinks() {
   const router = getRedirectMethod() === 'client' ? useRouter() : null;
@@ -296,6 +297,24 @@ export default function Navlinks() {
             Customer Support
           </Link>
         </motion.div>
+        <div className="flex items-center space-x-2">
+          <a
+            href={DISCORD}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center w-9 h-9 text-white rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary transition-all duration-300"
+          >
+            <Discord className="w-5 h-5" />
+          </a>
+          <a
+            href={TWITTER}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center w-9 h-9 text-white rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary transition-all duration-300"
+          >
+            <Twitter className="w-5 h-5" />
+          </a>
+        </div>
       </div>
     </div>
   );

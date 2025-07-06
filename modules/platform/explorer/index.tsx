@@ -19,6 +19,7 @@ import dynamic from 'next/dynamic';
 import Sticky from 'react-stickynode';
 import AddToolModal from './components/add-tool-modal';
 import ModelCategories from './components/content/categories';
+import MarketplaceStats from './components/content/marketplace-stats';
 
 const Trending = dynamic(() => import('./components/content/trending'), {
   ssr: false,
@@ -210,17 +211,28 @@ const Explorer = () => {
             {/* Main banner content */}
             <div className="relative w-full bg-gradient-to-r from-black to-red-950 p-8 rounded-lg">
               <div className="relative z-10">
-                <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-wider bg-clip-text">
-                  Swarms Marketplace
-                </h1>
-                <p className="text-xl text-red-100/80">
-                  Search and discover tools, agents, and prompts.
-                </p>
+                <div className="flex flex-col gap-8">
+                  <div>
+                    <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-wider bg-clip-text">
+                      Swarms Marketplace
+                    </h1>
+                    <p className="text-xl text-red-100/80">
+                      Search and discover tools, agents, and prompts.
+                    </p>
+                  </div>
+                  
+                </div>
               </div>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(220,38,38,0.1)_0%,_transparent_70%)]"></div>
             </div>
           </div>
         </div>
+
+         {/* Stats integration */}
+         {/* Need to add padding top and bottom */}
+         {/* <div className="pt-4 pb-4">
+            <MarketplaceStats />
+          </div> */}
 
         <div
           className={cn(
