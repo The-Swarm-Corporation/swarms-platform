@@ -21,6 +21,7 @@ import AddToolModal from './components/add-tool-modal';
 import ModelCategories from './components/content/categories';
 import MarketplaceStats from './components/content/marketplace-stats';
 import Footer from '@/shared/components/ui/Footer';
+import { MarketplaceTicker } from '@/shared/components/marketplace/ticker';
 
 const Trending = dynamic(() => import('./components/content/trending'), {
   ssr: false,
@@ -205,7 +206,9 @@ const Explorer = () => {
       />
       <div className="w-full flex flex-col min-h-screen relative">
         <div className="flex-grow relative">
-          <div className="w-full mb-4 md:mb-8">
+          <MarketplaceTicker />
+          
+          <div className="w-full mb-4 md:mb-8 mt-4">
             <div className="relative group">
               {/* Animated border overlay */}
               <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 via-red-900 to-red-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x"></div>
@@ -228,12 +231,6 @@ const Explorer = () => {
               </div>
             </div>
           </div>
-
-           {/* Stats integration */}
-           {/* Need to add padding top and bottom */}
-           {/* <div className="pt-4 pb-4">
-              <MarketplaceStats />
-            </div> */}
 
           <div className={cn(
             'bg-white dark:bg-black sticky top-[48px] z-20 pb-2 md:pb-4 px-2 md:px-0',
