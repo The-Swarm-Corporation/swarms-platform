@@ -20,6 +20,7 @@ import {
   Code2,
   Rocket,
   Store,
+  Bell,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -77,6 +78,12 @@ export const NAV_LINKS: NavMenuProps = {
       icon: <Building2 size={20} className="text-gray-400" />,
       title: 'Organization',
       link: PLATFORM.ORGANIZATION,
+      className: navItemClass,
+    },
+    {
+      icon: <Bell size={20} className="text-gray-400" />,
+      title: 'Notifications',
+      link: '/notifications',
       className: navItemClass,
     },
     {

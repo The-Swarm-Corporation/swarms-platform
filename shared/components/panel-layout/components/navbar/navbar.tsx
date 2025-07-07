@@ -14,6 +14,7 @@ import { NAV_LINKS } from '../const';
 import NavItem from '../item';
 import NavbarSearch from './components/search';
 import { trpc } from '@/shared/utils/trpc/trpc';
+import NotificationBell from '@/shared/components/notifications/notification-bell';
 import Avatar from '@/shared/components/avatar';
 import { NAVIGATION, SWARMS_GITHUB, DISCORD, TWITTER } from '@/shared/utils/constants';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
@@ -161,6 +162,9 @@ export default function PlatformNavBar() {
               </span>
             </div>
           )}
+
+          {user && <NotificationBell className="text-white hover:text-primary" />}
+
           <div
             className="relative ml-5 cursor-pointer max-sm:mt-1"
             onClick={setOn}
