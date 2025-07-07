@@ -223,72 +223,136 @@ export default function Navlinks() {
                     </Link>
                   </motion.div>
                 )}
+                {/* Mobile Auth Buttons */}
+                <div className="mt-auto border-t border-white/10 pt-4">
+                  {user ? (
+                    <form onSubmit={(e) => handleRequest(e, SignOut, router)} className="w-full">
+                      <input
+                        type="hidden"
+                        name="pathName"
+                        value={usePathname()?.toString()}
+                      />
+                      <motion.div
+                        variants={buttonVariants}
+                        initial="initial"
+                        whileHover="hover"
+                        whileTap="tap"
+                        className="w-full"
+                      >
+                        <button
+                          type="submit"
+                          className={cn(
+                            navButtonClass,
+                            'w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20 hover:border-red-500/50 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]',
+                          )}
+                        >
+                          Sign out
+                        </button>
+                      </motion.div>
+                    </form>
+                  ) : (
+                    <div className="flex flex-col gap-2 w-full">
+                      <motion.div
+                        variants={buttonVariants}
+                        initial="initial"
+                        whileHover="hover"
+                        whileTap="tap"
+                        className="w-full"
+                      >
+                        <Link href="/signin" className={cn(navButtonClass, glowEffect, 'w-full text-center')}>
+                          Sign In
+                        </Link>
+                      </motion.div>
+                      <motion.div
+                        variants={buttonVariants}
+                        initial="initial"
+                        whileHover="hover"
+                        whileTap="tap"
+                        className="w-full"
+                      >
+                        <Link
+                          href="/signin/signup"
+                          className={cn(
+                            navButtonClass,
+                            'w-full text-center bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 border-primary/50 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]',
+                          )}
+                        >
+                          Sign Up
+                        </Link>
+                      </motion.div>
+                    </div>
+                  )}
+                </div>
               </div>
             </DrawerContent>
           </Drawer>
         </div>
       </div>
-      {/* common */}
+      {/* common - now with responsive classes */}
       <div className="flex justify-end items-center gap-3 w-full">
-        {user ? (
-          <form onSubmit={(e) => handleRequest(e, SignOut, router)}>
-            <input
-              type="hidden"
-              name="pathName"
-              value={usePathname()?.toString()}
-            />
-            <motion.div
-              variants={buttonVariants}
-              initial="initial"
-              whileHover="hover"
-              whileTap="tap"
-            >
-              <button
-                type="submit"
-                className={cn(
-                  navButtonClass,
-                  'bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20 hover:border-red-500/50 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]',
-                )}
+        {/* Desktop Auth Buttons */}
+        <div className="hidden md:flex items-center gap-3">
+          {user ? (
+            <form onSubmit={(e) => handleRequest(e, SignOut, router)}>
+              <input
+                type="hidden"
+                name="pathName"
+                value={usePathname()?.toString()}
+              />
+              <motion.div
+                variants={buttonVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
               >
-                Sign out
-              </button>
-            </motion.div>
-          </form>
-        ) : (
-          <motion.div
-            variants={buttonVariants}
-            initial="initial"
-            whileHover="hover"
-            whileTap="tap"
-          >
-            <Link href="/signin" className={cn(navButtonClass, glowEffect)}>
-              Sign In
-            </Link>
-          </motion.div>
-        )}
-        {!user && (
-          <motion.div
-            variants={buttonVariants}
-            initial="initial"
-            whileHover="hover"
-            whileTap="tap"
-          >
-            <Link
-              href="/signin/signup"
-              className={cn(
-                navButtonClass,
-                'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 border-primary/50 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]',
-              )}
-            >
-              Sign Up
-            </Link>
-          </motion.div>
-        )}
+                <button
+                  type="submit"
+                  className={cn(
+                    navButtonClass,
+                    'bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20 hover:border-red-500/50 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]',
+                  )}
+                >
+                  Sign out
+                </button>
+              </motion.div>
+            </form>
+          ) : (
+            <>
+              <motion.div
+                variants={buttonVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Link href="/signin" className={cn(navButtonClass, glowEffect)}>
+                  Sign In
+                </Link>
+              </motion.div>
+              <motion.div
+                variants={buttonVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Link
+                  href="/signin/signup"
+                  className={cn(
+                    navButtonClass,
+                    'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 border-primary/50 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]',
+                  )}
+                >
+                  Sign Up
+                </Link>
+              </motion.div>
+            </>
+          )}
+        </div>
         <motion.div
           variants={buttonVariants}
           initial="initial"
           whileHover="hover"
           whileTap="tap"
+          className="hidden sm:block"
         >
           <Link
             href="https://cal.com/swarms"
@@ -297,7 +361,7 @@ export default function Navlinks() {
             Customer Support
           </Link>
         </motion.div>
-        <div className="flex items-center space-x-2">
+        <div className="hidden sm:flex items-center space-x-2">
           <a
             href={DISCORD}
             target="_blank"
