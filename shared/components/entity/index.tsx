@@ -476,64 +476,110 @@ print(result)`;
       {/* Header Section */}
       <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 md:p-8 bg-white dark:bg-zinc-950/50 mb-8">
         <div className="max-md:text-center">
-          {title && (
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-                <Code className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-              </div>
-              <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
-                {title}
-              </h2>
-            </div>
-          )}
-
           <div className="relative group mb-6">
             <div className="absolute -inset-0.5 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x" />
             <div
               className={cn(
                 'relative w-full rounded-2xl overflow-hidden',
-                imageUrl && 'bg-gradient-to-r from-black to-red-950 p-8',
+                imageUrl ? 'bg-gradient-to-r from-black to-red-950' : ''
               )}
               style={{
-                backgroundImage: `
-        linear-gradient(180deg, rgba(9, 11, 10, 0) 38.11%, rgba(9, 11, 10, 0.8) 88.68%),
-        linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
-        url(${imageUrl})
-      `,
+                backgroundImage: imageUrl ? `
+                  linear-gradient(180deg, rgba(9, 11, 10, 0) 38.11%, rgba(9, 11, 10, 0.8) 88.68%),
+                  linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+                  url(${imageUrl})
+                ` : undefined,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
+                minHeight: imageUrl ? '300px' : 'auto'
               }}
-            >
-              <div className="relative z-10 font-mono">
-                {name && (
-                  <h1 className="text-4xl md:text-6xl text-white">{name}</h1>
-                )}
-                {description && (
-                  <div
-                    style={{
-                      textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-                    }}
-                    className="text-sm mt-2.5 font-medium md:text-base text-white/80 bg-zinc-950/50 p-3 rounded-md border-l-2 border-primary/50 shadow-inner w-fit"
-                  >
-                    <p className="text-xs italic">{description}</p>
-                  </div>
-                )}
-                <Avatar
-                  userId={userId ?? ''}
-                  showUsername
-                  showBorder
-                  className={cn('mt-4', imageUrl && 'mt-6')}
-                  title={`${title ?? ''} Author`}
-                />
+            />
+          </div>
+
+          {/* Title and Description Section */}
+          <div className="space-y-8">
+            {title && (
+              <div className="flex items-center gap-3 justify-center md:justify-start">
+                <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+                  <Code className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+                </div>
+                <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
+                  {title}
+                </h2>
               </div>
+            )}
+
+            <div className="space-y-6">
+              {name && (
+                <h1 className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {name}
+                </h1>
+              )}
+              {description && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
+                    <Info className="h-4 w-4" />
+                    <h3 className="text-sm font-medium">About this {entityTitle}</h3>
+                  </div>
+                  <div className="bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                    <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                      <Markdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          // Override default link to open in new tab
+                          a: ({ node, ...props }) => (
+                            <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline" />
+                          ),
+                          // Style code blocks
+                          code: ({ node, className, children, ...props }: any) => {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const isInline = !match && !className?.includes('code-block');
+                            return (
+                              <code 
+                                {...props} 
+                                className={isInline 
+                                  ? "bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-sm" 
+                                  : "block bg-zinc-100 dark:bg-zinc-800 p-4 rounded-lg text-sm overflow-x-auto"
+                                }
+                              >
+                                {children}
+                              </code>
+                            );
+                          },
+                          // Add spacing to paragraphs
+                          p: ({ node, ...props }) => (
+                            <p {...props} className="mb-4 last:mb-0" />
+                          ),
+                          // Style lists
+                          ul: ({ node, ...props }) => (
+                            <ul {...props} className="list-disc pl-6 mb-4 last:mb-0 space-y-2" />
+                          ),
+                          ol: ({ node, ...props }) => (
+                            <ol {...props} className="list-decimal pl-6 mb-4 last:mb-0 space-y-2" />
+                          ),
+                        }}
+                      >
+                        {description}
+                      </Markdown>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <Avatar
+                userId={userId ?? ''}
+                showUsername
+                showBorder
+                className="mt-6"
+                title={`${title ?? ''} Author`}
+              />
             </div>
           </div>
 
           {/* Tags Section */}
           {tags && tags.length > 0 && (
-            <div className="mb-6">
-              <div className="flex gap-2 select-none flex-wrap">
+            <div className="mt-8">
+              <div className="flex gap-2 select-none flex-wrap justify-center md:justify-start">
                 {tags?.map(
                   (tag) =>
                     tag.trim() && (
@@ -550,112 +596,88 @@ print(result)`;
           )}
 
           {/* Action Buttons Section */}
-          <div className="max-md:flex-col max-md:items-center md:w-fit gap-3">
-            <div className="flex flex-wrap gap-3">
-              {showEditButton && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleShowEditModal}
-                  className="flex items-center gap-2 border-zinc-300 dark:border-zinc-700"
-                >
-                  <Pencil className="h-4 w-4" />
-                  Edit
-                </Button>
-              )}
+          <div className="mt-8 flex flex-wrap justify-center md:justify-start gap-3">
+            {showEditButton && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleShowShareModal}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 border-green-600"
+                onClick={handleShowEditModal}
+                className="flex items-center gap-2 border-zinc-300 dark:border-zinc-700"
               >
-                <Share className="h-4 w-4 text-white" />
-                Share
+                <Pencil className="h-4 w-4" />
+                Edit
               </Button>
-              {id && user.data?.id && !reviewQuery?.data?.hasReviewed && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleShowReviewModal}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 border-blue-600"
-                >
-                  <Star className="h-4 w-4 text-white hover:text-white" />
-                  Rate
-                </Button>
-              )}
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShowShareModal}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 border-green-600"
+            >
+              <Share className="h-4 w-4 text-white" />
+              Share
+            </Button>
+            {id && user.data?.id && !reviewQuery?.data?.hasReviewed && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleShowReviewListModal}
-                className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 border-yellow-600"
+                onClick={handleShowReviewModal}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 border-blue-600"
               >
-                <Stars className="h-4 w-4 text-white hover:text-white" />
-                Reviews{' '}
-                {reviewLength && reviewLength > 0 ? `(${reviewLength})` : ''}
+                <Star className="h-4 w-4 text-white hover:text-white" />
+                Rate
               </Button>
-              <BookmarkButton
-                id={id || ''}
-                type={entityTitle as 'prompt' | 'agent' | 'tool'}
-                name={name || title}
-                description={description}
-                created_at={new Date().toISOString()}
-                username={user?.data?.username || undefined}
-                tags={tags}
-              />
-              {prompt && (
-                <div className="relative group">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 border-indigo-600"
-                  >
-                    <ExternalLink className="h-4 w-4 text-white" />
-                    Export to AI
-                  </Button>
-                  <div className="absolute right-0 top-full mt-2 w-48 rounded-lg bg-zinc-800/95 border border-zinc-700/50 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <div className="py-1">
-                      <button
-                        onClick={() => handleExportToAI('chatgpt')}
-                        className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                        Export to ChatGPT
-                      </button>
-                      <button
-                        onClick={() => handleExportToAI('claude')}
-                        className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
-                      >
-                        <Bot className="w-4 h-4" />
-                        Export to Claude
-                      </button>
-                    </div>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShowReviewListModal}
+              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 border-yellow-600"
+            >
+              <Stars className="h-4 w-4 text-white hover:text-white" />
+              Reviews{' '}
+              {reviewLength && reviewLength > 0 ? `(${reviewLength})` : ''}
+            </Button>
+            <BookmarkButton
+              id={id || ''}
+              type={entityTitle as 'prompt' | 'agent' | 'tool'}
+              name={name || title}
+              description={description}
+              created_at={new Date().toISOString()}
+              username={user?.data?.username || undefined}
+              tags={tags}
+            />
+            {prompt && (
+              <div className="relative group">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 border-indigo-600"
+                >
+                  <ExternalLink className="h-4 w-4 text-white" />
+                  Export to AI
+                </Button>
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-lg bg-zinc-800/95 border border-zinc-700/50 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-1">
+                    <button
+                      onClick={() => handleExportToAI('chatgpt')}
+                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      Export to ChatGPT
+                    </button>
+                    <button
+                      onClick={() => handleExportToAI('claude')}
+                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
+                    >
+                      <Bot className="w-4 h-4" />
+                      Export to Claude
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Rating Section
-          <div
-            className={cn(
-              'flex items-center gap-3 w-full invisible mt-4',
-              reviews?.data && reviews.data?.length > 0 && 'visible',
-            )}
-          >
-            <div className="flex items-center gap-2 separator">
-              <ReactStars value={modelRating} isEdit={false} />
-              <div className="flex text-sm text-zinc-600 dark:text-zinc-400">
-                <span>{reviewLength}</span> <span>review{reviewTextEnd}</span>
               </div>
-            </div>
-            <Button
-              variant="ghost"
-              className="underline w-fit p-0 hover:bg-transparent text-sm"
-              onClick={handleShowReviewListModal}
-            >
-              Click to See Reviews
-            </Button>
-          </div> */}
+            )}
+          </div>
         </div>
       </section>
 
