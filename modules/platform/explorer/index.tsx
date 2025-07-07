@@ -20,6 +20,7 @@ import Sticky from 'react-stickynode';
 import AddToolModal from './components/add-tool-modal';
 import ModelCategories from './components/content/categories';
 import MarketplaceStats from './components/content/marketplace-stats';
+import Footer from '@/shared/components/ui/Footer';
 
 const Trending = dynamic(() => import('./components/content/trending'), {
   ssr: false,
@@ -202,148 +203,159 @@ const Explorer = () => {
           refetch();
         }}
       />
-      <div className="w-full flex flex-col h-full">
-        <div className="w-full mb-8">
-          <div className="relative group">
-            {/* Animated border overlay */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 via-red-900 to-red-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x"></div>
+      <div className="w-full flex flex-col min-h-screen relative">
+        <div className="flex-grow relative">
+          <div className="w-full mb-4 md:mb-8">
+            <div className="relative group">
+              {/* Animated border overlay */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 via-red-900 to-red-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x"></div>
 
-            {/* Main banner content */}
-            <div className="relative w-full bg-gradient-to-r from-black to-red-950 p-8 rounded-lg">
-              <div className="relative z-10">
-                <div className="flex flex-col gap-8">
-                  <div>
-                    <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-wider bg-clip-text">
-                      Swarms Marketplace
-                    </h1>
-                    <p className="text-xl text-red-100/80">
-                      Search and discover tools, agents, and prompts.
-                    </p>
+              {/* Main banner content */}
+              <div className="relative w-full bg-gradient-to-r from-black to-red-950 p-4 md:p-8 rounded-lg">
+                <div className="relative z-10">
+                  <div className="flex flex-col gap-4 md:gap-8">
+                    <div>
+                      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-2 md:mb-4 tracking-wider bg-clip-text">
+                        Swarms Marketplace
+                      </h1>
+                      <p className="text-base md:text-xl text-red-100/80">
+                        Search and discover tools, agents, and prompts.
+                      </p>
+                    </div>
                   </div>
-                  
                 </div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(220,38,38,0.1)_0%,_transparent_70%)]"></div>
               </div>
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(220,38,38,0.1)_0%,_transparent_70%)]"></div>
             </div>
           </div>
-        </div>
 
-         {/* Stats integration */}
-         {/* Need to add padding top and bottom */}
-         {/* <div className="pt-4 pb-4">
-            <MarketplaceStats />
-          </div> */}
+           {/* Stats integration */}
+           {/* Need to add padding top and bottom */}
+           {/* <div className="pt-4 pb-4">
+              <MarketplaceStats />
+            </div> */}
 
-        <div
-          className={cn(
-            'bg-white dark:bg-black sticky top-[48px] z-10 pb-4',
-            isFixed &&
-              'shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
-          )}
-        >
-          <ul className="p-0 mb-2 flex items-center flex-wrap gap-3">
-            {defaultOptions.map((option) => {
-              const colorSelector = isAllLoading
-                ? 'text-primary'
-                : filterOption === option || filterOption === 'all'
-                  ? 'text-green-500'
-                  : 'text-primary';
-              return (
-                <li
-                  key={option}
+          <div className={cn(
+            'bg-white dark:bg-black sticky top-[48px] z-20 pb-2 md:pb-4 px-2 md:px-0',
+            isFixed && 'shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
+          )}>
+            <ul className="p-0 mb-2 flex items-center justify-start flex-wrap gap-2 md:gap-3 mx-2 md:mx-0">
+              {defaultOptions.map((option) => {
+                const colorSelector = isAllLoading
+                  ? 'text-primary'
+                  : filterOption === option || filterOption === 'all'
+                    ? 'text-green-500'
+                    : 'text-primary';
+                return (
+                  <li
+                    key={option}
+                    onClick={() => !isAllLoading && handleOptionChange(option)}
+                    className={cn(
+                      'shadow mt-2 cursor-pointer capitalize text-center rounded-md flex items-center justify-center bg-secondary text-foreground min-w-[100px] sm:min-w-[120px] md:w-24 py-2 px-3 text-xs md:text-sm transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation',
+                      colorSelector,
+                      isAllLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-secondary/80'
+                    )}
+                  >
+                    {option}
+                    <Activity
+                      size={16}
+                      className={cn('ml-2 font-bold', colorSelector)}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 px-2 md:px-0">
+              <div className="relative w-full border border-gray-700 rounded-md">
+                <Input
+                  placeholder="Search..."
+                  onChange={handleSearchChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      searchClickHandler();
+                    }
+                  }}
+                  value={search}
+                  disabled={isAllLoading}
+                  className="disabled:cursor-not-allowed disabled:opacity-50 h-11 md:h-10 px-4 text-base md:text-sm"
+                />
+                <button
                   className={cn(
-                    'shadow mt-2 cursor-pointer capitalize text-center rounded-sm flex items-center justify-center bg-secondary text-foreground w-24 p-1 px-2 text-xs md:text-sm',
-                    colorSelector,
+                    'border-none absolute right-0 h-full top-0 rounded-tr-md w-[60px] md:w-[50px] flex items-center justify-center rounded-br-md transition-all duration-200',
+                    search.trim()
+                      ? 'bg-primary/70 cursor-pointer hover:bg-primary active:bg-primary/90'
+                      : 'bg-[#1e1e1e] cursor-default',
                   )}
+                  onClick={searchClickHandler}
                 >
-                  {option}
-                  <Activity
-                    size={15}
-                    className={cn('ml-2 font-bold', colorSelector)}
-                  />
-                </li>
-              );
-            })}
-          </ul>
-          <div className="flex items-center gap-3">
-            <div className="relative w-full border border-gray-700 rounded-md">
-              <Input
-                placeholder="Search..."
-                onChange={handleSearchChange}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    searchClickHandler();
-                  }
-                }}
-                value={search}
-                disabled={isAllLoading}
-                className="disabled:cursor-not-allowed disabled:opacity-50"
-              />
-              <button
-                className={cn(
-                  'border-none absolute right-0 h-full top-0 rounded-tr-md w-[50px] flex items-center justify-center rounded-br-md',
-                  search.trim()
-                    ? 'bg-primary/70 cursor-pointer'
-                    : 'bg-[#1e1e1e] cursor-default',
-                )}
-                onClick={searchClickHandler}
-              >
-                <Search className="h-4 w-4 text-white" />
-              </button>
-            </div>
+                  <Search className="h-5 w-5 md:h-4 md:w-4 text-white" />
+                </button>
+              </div>
 
-            <Select
-              onValueChange={(value) => {
-                handleOptionChange(value);
-              }}
-              disabled={isAllLoading}
-              value={filterOption}
-            >
-              <SelectTrigger className="w-1/2 xl:w-1/4 cursor-pointer">
-                <SelectValue placeholder={filterOption} />
-              </SelectTrigger>
-              <SelectContent>
-                {explorerOptions?.map((option) => (
-                  <SelectItem key={option.label} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select
+                onValueChange={(value) => {
+                  handleOptionChange(value);
+                }}
+                disabled={isAllLoading}
+                value={filterOption}
+              >
+                <SelectTrigger className="w-full sm:w-1/2 xl:w-1/4 cursor-pointer h-11 md:h-10">
+                  <SelectValue placeholder={filterOption} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {explorerOptions?.map((option) => (
+                    <SelectItem 
+                      key={option.label} 
+                      value={option.value}
+                      className="py-3 md:py-2"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="px-2 md:px-0 relative z-10">
+            <ModelCategories
+              categories={explorerCategories}
+              isLoading={isLoading}
+              onCategoryClick={handleCategoryChange}
+              activeCategory={tagCategory}
+            />
+          </div>
+
+          <div
+            className={cn(
+              'flex flex-col h-full p-2 md:p-4 space-y-6 md:space-y-4 relative z-0',
+              isFixed
+                ? 'translate-y-[185px] sm:translate-y-[165px] md:translate-y-[125px] xl:translate-y-[120px]'
+                : 'translate-y-0',
+            )}
+          >
+            {filterOption === 'all' && !searchValue && tagCategory === 'all' && (
+              <Trending
+                {...{
+                  trendingModels,
+                  isFetchingTrending,
+                  loadMoreTrending,
+                  hasMoreTrending,
+                  usersMap,
+                  reviewsMap,
+                }}
+                isLoading={isTrendingLoading}
+              />
+            )}
+            {reorderedElements.map(({ key, content }, index) => (
+              <div key={`${key}-${index}`} className="transition-all duration-300">
+                {content}
+              </div>
+            ))}
           </div>
         </div>
-
-        <ModelCategories
-          categories={explorerCategories}
-          isLoading={isLoading}
-          onCategoryClick={handleCategoryChange}
-          activeCategory={tagCategory}
-        />
-
-        <div
-          className={cn(
-            'flex flex-col h-full p-2',
-            isFixed
-              ? 'translate-y-[155px] md:translate-y-[125px] xl:translate-y-[120px]'
-              : 'translate-y-0',
-          )}
-        >
-          {filterOption === 'all' && !searchValue && tagCategory === 'all' && (
-            <Trending
-              {...{
-                trendingModels,
-                isFetchingTrending,
-                loadMoreTrending,
-                hasMoreTrending,
-                usersMap,
-                reviewsMap,
-              }}
-              isLoading={isTrendingLoading}
-            />
-          )}
-          {reorderedElements.map(({ key, content }, index) => (
-            <div key={`${key}-${index}`}>{content}</div>
-          ))}
+        <div className="relative z-30">
+          <Footer />
         </div>
       </div>
     </>

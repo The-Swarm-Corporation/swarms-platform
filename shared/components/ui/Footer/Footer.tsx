@@ -279,17 +279,6 @@ export default function Footer() {
             <p className="text-gray-400 text-sm">
               &copy; {new Date().getFullYear()} Swarms AI. All rights reserved.
             </p>
-            <div className="flex items-center space-x-6 text-sm text-gray-400">
-              <Link href="/privacy" className="hover:text-white transition-colors duration-200">
-                Privacy
-              </Link>
-              <Link href="/terms" className="hover:text-white transition-colors duration-200">
-                Terms
-              </Link>
-              <Link href="/cookies" className="hover:text-white transition-colors duration-200">
-                Cookies
-              </Link>
-            </div>
           </div>
         </div>
       </div>
