@@ -186,7 +186,7 @@ const AddToolModal = ({
 
   return (
     <Modal
-      className="max-w-2xl overflow-y-auto"
+      className="max-w-2xl overflow-y-auto z-[9999]"
       isOpen={isOpen}
       onClose={onClose}
       title="Add Tool"

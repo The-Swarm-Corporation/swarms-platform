@@ -16,6 +16,7 @@ import { cn } from '@/shared/utils/cn';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { usePathname } from 'next/navigation';
 import { useToast } from '../../ui/Toasts/use-toast';
+import MentionText from '@/shared/components/ui/mention-text';
 
 interface MessageProps extends PropsWithChildren {
   comment: CommentType | ReplyType;
@@ -138,7 +139,9 @@ export default function Message({
               </div>
             </div>
 
-            <p className="mt-6 font-normal">{comment?.content}</p>
+            <div className="mt-6 font-normal">
+              <MentionText text={comment?.content || ''} />
+            </div>
           </div>
           <div className="flex gap-2 md:gap-6 mt-2 md:mt-3">
             <LikeButton

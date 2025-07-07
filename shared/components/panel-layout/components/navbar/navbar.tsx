@@ -134,7 +134,11 @@ export default function PlatformNavBar() {
             </div>
           )}
 
-          {user && <NotificationBell className="text-white hover:text-primary" />}
+          {user && (
+            <div className="text-white">
+              <NotificationBell />
+            </div>
+          )}
 
           <div
             className="relative ml-5 cursor-pointer max-sm:mt-1"

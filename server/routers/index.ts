@@ -11,6 +11,7 @@ import { dndRouter } from './dnd';
 import { agentRouter, chatRouter, fileUploadRouter, swarmConfigRouter } from './chat';
 import referralRouter from './referral';
 import marketplaceRouter from './marketplace';
+import notificationsRouter from './notifications';
 
 export const appRouter = router({
   main: mainRouter,
@@ -28,5 +29,6 @@ export const appRouter = router({
   swarmConfig: swarmConfigRouter,
   referral: referralRouter,
   marketplace: marketplaceRouter,
+  notifications: notificationsRouter,
 });
 export type AppRouter = typeof appRouter;

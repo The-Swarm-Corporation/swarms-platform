@@ -320,7 +320,7 @@ const AddPromptModal = ({
   return (
     <WalletProvider>
       <Modal
-        className="max-w-2xl"
+        className="max-w-2xl z-[9999]"
         isOpen={isOpen}
         onClose={handleClose}
         title="Add Prompt"

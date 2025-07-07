@@ -52,7 +52,7 @@ export default function BookmarkButton({
         created_at,
         tags,
       });
-      
+
       if (success) {
         setIsSaved(true);
         toast({
@@ -81,4 +81,4 @@ export default function BookmarkButton({
       </span>
     </motion.button>
   );
-} 
+}

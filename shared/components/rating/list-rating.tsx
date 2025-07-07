@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
+import MentionText from '@/shared/components/ui/mention-text';
 
 export interface ReviewProps {
   comment: string;
@@ -62,7 +63,9 @@ export default function ListReview({
                   </div>
                   <div className="mt-2.5">
                     <ReactStars value={review?.rating} isEdit={false} />
-                    <div className="mt-1">{review.comment}</div>
+                    <div className="mt-1">
+                      <MentionText text={review.comment} />
+                    </div>
                     <hr className="border-transparent" />
                   </div>
                 </div>

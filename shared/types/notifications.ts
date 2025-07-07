@@ -1,24 +1,20 @@
-export type NotificationType =
-  | 'content_liked'
-  | 'content_commented'
-  | 'content_reviewed'
-  | 'content_rated'
-  | 'user_followed'
-  | 'user_mentioned'
-  | 'content_approved'
-  | 'content_rejected'
-  | 'system_announcement'
-  | 'account_update'
-  | 'security_alert'
-  | 'marketplace_purchase'
-  | 'marketplace_sale'
-  | 'marketplace_commission'
-  | 'referral_signup'
-  | 'referral_reward'
-  | 'org_invite'
-  | 'org_update';
+import { Database } from '@/types_db';
 
-export type NotificationStatus = 'unread' | 'read' | 'archived';
+export type NotificationType = Database['public']['Enums']['notification_type'];
+export type NotificationStatus =
+  Database['public']['Enums']['notification_status'];
+export type NotificationRow =
+  Database['public']['Tables']['swarms_notifications']['Row'];
+export type NotificationInsert =
+  Database['public']['Tables']['swarms_notifications']['Insert'];
+export type NotificationUpdate =
+  Database['public']['Tables']['swarms_notifications']['Update'];
+export type NotificationPreferencesRow =
+  Database['public']['Tables']['swarms_notification_preferences']['Row'];
+export type NotificationPreferencesInsert =
+  Database['public']['Tables']['swarms_notification_preferences']['Insert'];
+export type NotificationPreferencesUpdate =
+  Database['public']['Tables']['swarms_notification_preferences']['Update'];
 
 export interface Notification {
   id: string;
@@ -79,6 +75,28 @@ export interface NotificationCounts {
   total_count: number;
   unread_count: number;
 }
+
+export interface NotificationResponse {
+  notifications: NotificationRow[];
+  total: number;
+  hasMore: boolean;
+}
+
+export interface NotificationFilters {
+  status?: NotificationStatus;
+  type?: NotificationType;
+  limit?: number;
+  offset?: number;
+}
+
+export const SOCIAL_NOTIFICATION_TYPES: NotificationType[] = [
+  'content_liked',
+  'content_commented',
+  'content_reviewed',
+  'content_rated',
+  'user_followed',
+  'user_mentioned',
+] as const;
 
 export const NOTIFICATION_CATEGORIES = {
   social: [

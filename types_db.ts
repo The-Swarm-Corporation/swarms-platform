@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.0.2 (a4e00ff)"
+  }
   public: {
     Tables: {
       access_logs: {
@@ -392,6 +397,33 @@ export type Database = {
           swarms_reserve?: string
           ticker_symbol?: string
           token_name?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          api_key: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          action: string
+          api_key: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          action?: string
+          api_key?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          timestamp?: string | null
         }
         Relationships: []
       }
@@ -783,131 +815,6 @@ export type Database = {
           },
         ]
       }
-      email_queue: {
-        Row: {
-          attempts: number
-          created_at: string
-          delivered_at: string | null
-          from_email: string
-          html_content: string
-          id: string
-          last_error: string | null
-          max_attempts: number
-          next_attempt_at: string
-          notification_id: string | null
-          priority: number
-          processing_time_ms: number | null
-          reply_to: string | null
-          sent_at: string | null
-          status: Database["public"]["Enums"]["email_status"]
-          subject: string
-          template_data: Json | null
-          template_name: string | null
-          text_content: string | null
-          to_email: string
-          updated_at: string
-        }
-        Insert: {
-          attempts?: number
-          created_at?: string
-          delivered_at?: string | null
-          from_email?: string
-          html_content: string
-          id?: string
-          last_error?: string | null
-          max_attempts?: number
-          next_attempt_at?: string
-          notification_id?: string | null
-          priority?: number
-          processing_time_ms?: number | null
-          reply_to?: string | null
-          sent_at?: string | null
-          status?: Database["public"]["Enums"]["email_status"]
-          subject: string
-          template_data?: Json | null
-          template_name?: string | null
-          text_content?: string | null
-          to_email: string
-          updated_at?: string
-        }
-        Update: {
-          attempts?: number
-          created_at?: string
-          delivered_at?: string | null
-          from_email?: string
-          html_content?: string
-          id?: string
-          last_error?: string | null
-          max_attempts?: number
-          next_attempt_at?: string
-          notification_id?: string | null
-          priority?: number
-          processing_time_ms?: number | null
-          reply_to?: string | null
-          sent_at?: string | null
-          status?: Database["public"]["Enums"]["email_status"]
-          subject?: string
-          template_data?: Json | null
-          template_name?: string | null
-          text_content?: string | null
-          to_email?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "email_queue_notification_id_fkey"
-            columns: ["notification_id"]
-            isOneToOne: false
-            referencedRelation: "notifications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      email_templates: {
-        Row: {
-          created_at: string
-          description: string | null
-          html_template: string
-          id: string
-          is_active: boolean
-          name: string
-          optional_variables: string[]
-          required_variables: string[]
-          subject_template: string
-          text_template: string | null
-          updated_at: string
-          version: number
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          html_template: string
-          id?: string
-          is_active?: boolean
-          name: string
-          optional_variables?: string[]
-          required_variables?: string[]
-          subject_template: string
-          text_template?: string | null
-          updated_at?: string
-          version?: number
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          html_template?: string
-          id?: string
-          is_active?: boolean
-          name?: string
-          optional_variables?: string[]
-          required_variables?: string[]
-          subject_template?: string
-          text_template?: string | null
-          updated_at?: string
-          version?: number
-        }
-        Relationships: []
-      }
       failed_pool_creations: {
         Row: {
           bonding_curve_address: string | null
@@ -1271,139 +1178,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      notification_preferences: {
-        Row: {
-          account_notifications: boolean
-          created_at: string
-          email_enabled: boolean
-          email_frequency: string
-          id: string
-          language: string
-          marketing_notifications: boolean
-          marketplace_notifications: boolean
-          organization_notifications: boolean
-          quiet_hours_enabled: boolean
-          quiet_hours_end: string | null
-          quiet_hours_start: string | null
-          system_notifications: boolean
-          timezone: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          account_notifications?: boolean
-          created_at?: string
-          email_enabled?: boolean
-          email_frequency?: string
-          id?: string
-          language?: string
-          marketing_notifications?: boolean
-          marketplace_notifications?: boolean
-          organization_notifications?: boolean
-          quiet_hours_enabled?: boolean
-          quiet_hours_end?: string | null
-          quiet_hours_start?: string | null
-          system_notifications?: boolean
-          timezone?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          account_notifications?: boolean
-          created_at?: string
-          email_enabled?: boolean
-          email_frequency?: string
-          id?: string
-          language?: string
-          marketing_notifications?: boolean
-          marketplace_notifications?: boolean
-          organization_notifications?: boolean
-          quiet_hours_enabled?: boolean
-          quiet_hours_end?: string | null
-          quiet_hours_start?: string | null
-          system_notifications?: boolean
-          timezone?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notification_preferences_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      notifications: {
-        Row: {
-          created_at: string
-          data: Json | null
-          email_id: string | null
-          email_sent: boolean | null
-          email_sent_at: string | null
-          id: string
-          item_id: string | null
-          item_type: string | null
-          message: string
-          read_at: string | null
-          recipient_email: string
-          status: Database["public"]["Enums"]["notification_status"]
-          title: string
-          transaction_id: string | null
-          type: Database["public"]["Enums"]["notification_type"]
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          data?: Json | null
-          email_id?: string | null
-          email_sent?: boolean | null
-          email_sent_at?: string | null
-          id?: string
-          item_id?: string | null
-          item_type?: string | null
-          message: string
-          read_at?: string | null
-          recipient_email: string
-          status?: Database["public"]["Enums"]["notification_status"]
-          title: string
-          transaction_id?: string | null
-          type: Database["public"]["Enums"]["notification_type"]
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          data?: Json | null
-          email_id?: string | null
-          email_sent?: boolean | null
-          email_sent_at?: string | null
-          id?: string
-          item_id?: string | null
-          item_type?: string | null
-          message?: string
-          read_at?: string | null
-          recipient_email?: string
-          status?: Database["public"]["Enums"]["notification_status"]
-          title?: string
-          transaction_id?: string | null
-          type?: Database["public"]["Enums"]["notification_type"]
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       prices: {
         Row: {
@@ -3371,6 +3145,128 @@ export type Database = {
         }
         Relationships: []
       }
+      swarms_notification_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          marketplace_notifications: boolean
+          notifications_enabled: boolean
+          quiet_hours_enabled: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          referral_notifications: boolean
+          social_notifications: boolean
+          system_notifications: boolean
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          marketplace_notifications?: boolean
+          notifications_enabled?: boolean
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          referral_notifications?: boolean
+          social_notifications?: boolean
+          system_notifications?: boolean
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          marketplace_notifications?: boolean
+          notifications_enabled?: boolean
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          referral_notifications?: boolean
+          social_notifications?: boolean
+          system_notifications?: boolean
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swarms_notifications: {
+        Row: {
+          action_url: string | null
+          actor_id: string | null
+          created_at: string
+          data: Json
+          id: string
+          message: string
+          read_at: string | null
+          related_id: string | null
+          related_type: string | null
+          status: Database["public"]["Enums"]["notification_status"]
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          actor_id?: string | null
+          created_at?: string
+          data?: Json
+          id?: string
+          message: string
+          read_at?: string | null
+          related_id?: string | null
+          related_type?: string | null
+          status?: Database["public"]["Enums"]["notification_status"]
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          actor_id?: string | null
+          created_at?: string
+          data?: Json
+          id?: string
+          message?: string
+          read_at?: string | null
+          related_id?: string | null
+          related_type?: string | null
+          status?: Database["public"]["Enums"]["notification_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swarms_notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swarms_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       swarms_spreadsheet_session_agents: {
         Row: {
           created_at: string | null
@@ -4303,24 +4199,28 @@ export type Database = {
     }
     Enums: {
       credit_plan: "default" | "invoice"
-      email_status:
-        | "queued"
-        | "sending"
-        | "sent"
-        | "delivered"
-        | "failed"
-        | "bounced"
       model_type: "text" | "vision"
-      notification_status: "pending" | "sent" | "failed" | "read"
+      notification_status: "unread" | "read" | "archived"
       notification_type:
+        | "content_liked"
+        | "content_commented"
+        | "content_reviewed"
+        | "content_rated"
+        | "user_followed"
+        | "user_mentioned"
+        | "content_approved"
+        | "content_rejected"
+        | "system_announcement"
+        | "account_update"
+        | "security_alert"
         | "marketplace_purchase"
         | "marketplace_sale"
         | "marketplace_commission"
-        | "system_alert"
-        | "account_update"
-        | "organization_invite"
-        | "credit_update"
-        | "subscription_update"
+        | "referral_signup"
+        | "referral_reward"
+        | "org_invite"
+        | "org_update"
+        | "comment_replied"
       organization_member_invite_status:
         | "waiting"
         | "joined"
@@ -4350,21 +4250,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -4382,14 +4286,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -4405,14 +4311,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -4428,14 +4336,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -4443,14 +4353,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
@@ -4459,25 +4371,28 @@ export const Constants = {
   public: {
     Enums: {
       credit_plan: ["default", "invoice"],
-      email_status: [
-        "queued",
-        "sending",
-        "sent",
-        "delivered",
-        "failed",
-        "bounced",
-      ],
       model_type: ["text", "vision"],
-      notification_status: ["pending", "sent", "failed", "read"],
+      notification_status: ["unread", "read", "archived"],
       notification_type: [
+        "content_liked",
+        "content_commented",
+        "content_reviewed",
+        "content_rated",
+        "user_followed",
+        "user_mentioned",
+        "content_approved",
+        "content_rejected",
+        "system_announcement",
+        "account_update",
+        "security_alert",
         "marketplace_purchase",
         "marketplace_sale",
         "marketplace_commission",
-        "system_alert",
-        "account_update",
-        "organization_invite",
-        "credit_update",
-        "subscription_update",
+        "referral_signup",
+        "referral_reward",
+        "org_invite",
+        "org_update",
+        "comment_replied",
       ],
       organization_member_invite_status: [
         "waiting",
