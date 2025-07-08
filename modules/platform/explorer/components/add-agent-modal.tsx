@@ -3,6 +3,8 @@ import Modal from '@/shared/components/modal';
 import { Button } from '@/shared/components/ui/button';
 import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
+import { fetchRepositoryInfo } from '@/shared/utils/github-integration';
+import { Github } from 'lucide-react';
 
 import { trpc } from '@/shared/utils/trpc/trpc';
 import {
@@ -51,6 +53,8 @@ const AddAgentModal = ({
   const [isValidating, setIsValidating] = useState(false);
   const [solPrice, setSolPrice] = useState<number | null>(null); // SOL equivalent preview
   const [isConvertingPrice, setIsConvertingPrice] = useState(false);
+  const [githubUrl, setGithubUrl] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
 
   const {
     image,
@@ -338,6 +342,55 @@ const AddAgentModal = ({
       });
   };
 
+  const handleGitHubImport = async () => {
+    if (!githubUrl) {
+      toast.toast({
+        title: 'Please enter a GitHub repository URL',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const repoInfo = await fetchRepositoryInfo(githubUrl);
+      
+      if (!repoInfo) {
+        throw new Error('Failed to fetch repository information');
+      }
+
+      // Update form fields with repository info
+      setAgentName(repoInfo.name);
+      setDescription(`${repoInfo.description}\n\nSource: ${githubUrl}`);
+      setAgent(repoInfo.mainCode);
+      setLanguage(repoInfo.language);
+      setCategories(repoInfo.categories);
+      setTags(repoInfo.tags.join(', '));
+
+      // If there's an image URL, trigger image upload
+      if (repoInfo.imageUrl) {
+        const response = await fetch(repoInfo.imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'repo-avatar.png', { type: 'image/png' });
+        await uploadImage(file, modelType);
+      }
+
+      toast.toast({
+        title: 'Repository imported successfully',
+        description: 'Please review and adjust the imported information.',
+      });
+    } catch (error) {
+      console.error('Error importing from GitHub:', error);
+      toast.toast({
+        title: 'Failed to import repository',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -349,6 +402,31 @@ const AddAgentModal = ({
         title="Add Agent"
       >
       <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
+        <div className="flex flex-col gap-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Github className="w-5 h-5" />
+            <h3 className="font-medium">Import from GitHub</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-3">
+            Import an agent from a public GitHub repository. The repository should contain Python code (preferably main.py or example.py). 
+            Private repositories are not supported yet. The repository's name, description, and code will be used to populate the form.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={githubUrl}
+              onChange={setGithubUrl}
+              placeholder="Enter public GitHub repository URL"
+              className="flex-1"
+            />
+            <Button
+              onClick={handleGitHubImport}
+              disabled={isImporting || !githubUrl}
+              className="w-24"
+            >
+              {isImporting ? <LoadingSpinner /> : 'Import'}
+            </Button>
+          </div>
+        </div>
         <div className="mb-4 p-3 bg-teal-500/10 border border-teal-500/30 rounded-lg font-mono">
           <div className="flex items-start gap-2">
             <span className="text-teal-500 text-lg">ℹ️</span>
