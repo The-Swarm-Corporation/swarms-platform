@@ -7,6 +7,7 @@ import { extractCategories } from '@/shared/utils/helpers';
 import { Tables } from '@/types_db';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { createReviewNotification, detectAndNotifyMentions } from '@/shared/utils/notifications/create-notifications';
 import { validateMarketplaceSubmission } from '@/shared/services/fraud-prevention';
 import { checkDailyLimit } from '@/shared/utils/api/daily-rate-limit';
 
@@ -309,7 +310,13 @@ const explorerRouter = router({
         const lastSubmitTime = new Date(lastSubmit.created_at);
         const currentTime = new Date();
         const diff = currentTime.getTime() - lastSubmitTime.getTime();
-        const diffMinutes = diff / (1000 * 60); // 1 minute
+        // Check if less than 1 minute has passed
+        if (diff < 60000) {
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: 'Please wait before submitting another prompt',
+          });
+        }
       }
 
       try {
@@ -360,10 +367,7 @@ const explorerRouter = router({
           .min(0.000001, 'Price must be at least 0.000001 SOL')
           .max(999999, 'Price cannot exceed 999,999 SOL')
           .optional(),
-        sellerWalletAddress: z
-          .string()
-          .min(1, 'Wallet address is required for paid items')
-          .optional(),
+        sellerWalletAddress: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -660,10 +664,7 @@ const explorerRouter = router({
           .min(0.000001, 'Price must be at least 0.000001 SOL')
           .max(999999, 'Price cannot exceed 999,999 SOL')
           .optional(),
-        sellerWalletAddress: z
-          .string()
-          .min(1, 'Wallet address is required for paid items')
-          .optional(),
+        sellerWalletAddress: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -1038,7 +1039,7 @@ const explorerRouter = router({
       const user_id = ctx.session.data.user?.id ?? '';
 
       try {
-        const { data: existingReview, error: existingReviewError } =
+        const { data: existingReview } =
           await ctx.supabase
             .from('swarms_cloud_reviews')
             .select('id')
@@ -1071,6 +1072,39 @@ const explorerRouter = router({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Failed to insert review',
           });
+        }
+
+        try {
+          const { data: contentData } = await ctx.supabase
+            .from(model_type === 'prompt' ? 'swarms_cloud_prompts' : model_type === 'agent' ? 'swarms_cloud_agents' : 'swarms_cloud_tools')
+            .select('user_id, name')
+            .eq('id', model_id)
+            .single();
+
+          if (contentData?.user_id && contentData.user_id !== user_id) {
+            await createReviewNotification(
+              contentData.user_id,
+              user_id,
+              model_type as 'prompt' | 'agent' | 'tool',
+              model_id,
+              contentData.name || `${model_type} content`,
+              rating,
+              comment
+            );
+          }
+
+          if ((newReview as any).data?.[0]?.id) {
+            await detectAndNotifyMentions(
+              comment,
+              user_id,
+              'review',
+              (newReview as any).data[0].id,
+              model_type as 'prompt' | 'agent' | 'tool',
+              model_id
+            );
+          }
+        } catch (notificationError) {
+          console.error('Failed to create review notification:', notificationError);
         }
 
         return true;

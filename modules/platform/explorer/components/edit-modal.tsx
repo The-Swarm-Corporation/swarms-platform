@@ -15,9 +15,12 @@ import { Plus } from 'lucide-react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import MultiSelect from '@/shared/components/ui/multi-select';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import ModelFileUpload from './upload-image';
 import { solToUsd } from '@/shared/services/sol-price';
+import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
+import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
+import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
 
 interface EditExplorerModalProps {
   isOpen: boolean;
@@ -64,6 +67,12 @@ function EditExplorerModal({
 
   const [usdPrice, setUsdPrice] = useState<number | null>(null);
   const [isConvertingPrice, setIsConvertingPrice] = useState(false);
+
+  const validation = useMarketplaceValidation();
+
+  useEffect(() => {
+    validation.updateField('walletAddress', inputState.sellerWalletAddress);
+  }, [inputState.sellerWalletAddress, validation]);
 
   const convertPriceToUsd = useCallback(async (solPrice: string) => {
     if (!solPrice || isNaN(parseFloat(solPrice))) {
@@ -120,11 +129,12 @@ function EditExplorerModal({
   if (!user) return null;
 
   return (
-    <Modal
-      className="max-w-2xl"
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Update ${entityType.charAt(0).toUpperCase() + entityType.slice(1)}`}
+    <WalletProvider>
+      <Modal
+        className="max-w-2xl"
+        isOpen={isOpen}
+        onClose={onClose}
+        title={`Update ${entityType.charAt(0).toUpperCase() + entityType.slice(1)}`}
     >
       <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar h-[75vh] relative px-4">
         <div className="flex flex-col gap-1">
@@ -347,10 +357,7 @@ function EditExplorerModal({
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-mono text-red-400 mb-2">
-                      Wallet Address
-                    </label>
-                    <Input
+                    <SmartWalletInput
                       value={inputState.sellerWalletAddress}
                       onChange={(value) =>
                         setInputState({
@@ -358,7 +365,9 @@ function EditExplorerModal({
                           sellerWalletAddress: value,
                         })
                       }
-                      placeholder="Your Solana wallet address..."
+                      onBlur={() => validation.validateOnBlur('walletAddress')}
+                      error={validation.fields.walletAddress?.error}
+                      disabled={isPending}
                     />
                   </div>
                 </div>
@@ -515,6 +524,7 @@ function EditExplorerModal({
         </Button>
       </div>
     </Modal>
+    </WalletProvider>
   );
 }
 
