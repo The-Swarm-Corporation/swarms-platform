@@ -2,7 +2,6 @@
 // Todo: Add the ability to hover over buttons and get copy from text, markdown, and more!
 import React, { PropsWithChildren, useState, useTransition } from 'react';
 import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import {
   Copy,
@@ -46,6 +45,7 @@ import { stripMarkdown } from './helper';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import BookmarkButton from '@/shared/components/bookmark-button';
+import RecommendedItems from './recommended-items';
 
 type UseCasesProps = { title: string; description: string };
 
@@ -153,9 +153,10 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
 }
 
 // Add custom wrapper component
-const CustomSyntaxHighlighter = (props: any) => {
-  return <SyntaxHighlighter {...props} />;
-};
+const SyntaxHighlighter = dynamic(
+  () => import('react-syntax-highlighter').then(mod => mod.PrismAsyncLight),
+  { ssr: false }
+);
 
 const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
   <pre id="customPreTag" {...props} />
@@ -1032,14 +1033,13 @@ print(result)`;
                 </TabsList>
                 <div className="p-4 rounded-xl overflow-hidden !bg-gray-500/10">
                   <TabsContent className="m-0" value={'preview'}>
-                    <CustomSyntaxHighlighter
+                    <SyntaxHighlighter
                       PreTag={CustomPre}
                       style={dracula}
                       language={language || 'markdown'}
-                      wrapLongLines
                     >
                       {prompt}
-                    </CustomSyntaxHighlighter>
+                    </SyntaxHighlighter>
                   </TabsContent>
                   <TabsContent className="m-0" value={'md'}>
                     <Markdown className="prose" remarkPlugins={[remarkGfm]}>
@@ -1052,11 +1052,10 @@ print(result)`;
                     </pre>
                   </TabsContent>
                   <TabsContent className="m-0" value={'framework'}>
-                    <CustomSyntaxHighlighter
+                    <SyntaxHighlighter
                       PreTag={CustomPre}
                       style={dracula}
                       language="python"
-                      wrapLongLines
                     >
                       {`import time
 from swarms import Agent
@@ -1081,14 +1080,13 @@ out = agent.run("Your task description here")
 
 time.sleep(10)
 print(out)`}
-                    </CustomSyntaxHighlighter>
+                    </SyntaxHighlighter>
                   </TabsContent>
                   <TabsContent className="m-0" value={'api'}>
-                    <CustomSyntaxHighlighter
+                    <SyntaxHighlighter
                       PreTag={CustomPre}
                       style={dracula}
                       language="python"
-                      wrapLongLines
                     >
                       {`import os
 import requests
@@ -1145,7 +1143,7 @@ task = "Your task description here"
 # Run the agent
 result = run_single_agent(agent_config, task)
 print(result)`}
-                    </CustomSyntaxHighlighter>
+                    </SyntaxHighlighter>
                   </TabsContent>
                 </div>
               </Tabs>
@@ -1188,6 +1186,14 @@ print(result)`}
           </div>
           <CommentList modelId={id} title={title} />
         </section>
+      )}
+
+      {/* Recommendations Section */}
+      {id && title && (
+        <RecommendedItems 
+          currentId={id} 
+          type={title.toLowerCase() as 'prompt' | 'agent' | 'tool'} 
+        />
       )}
 
       {/* Share Modal */}
