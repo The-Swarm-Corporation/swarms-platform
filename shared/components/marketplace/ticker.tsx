@@ -29,7 +29,7 @@ export function MarketplaceTicker() {
     let currentScroll = 0;
 
     const scroll = () => {
-      currentScroll += 1; // Adjust speed by changing this value
+      currentScroll += 2; // Increased speed (2px per frame instead of 1px)
       if (currentScroll >= scrollWidth / 2) {
         currentScroll = 0;
       }
@@ -52,13 +52,6 @@ export function MarketplaceTicker() {
       <div className="container mx-auto">
         <div className="flex items-center h-12 overflow-hidden relative">
           {/* Trending Icon */}
-          <div className="flex-shrink-0 bg-red-600 h-full flex items-center px-4 z-10">
-            <TrendingUpIcon className="w-5 h-5 text-white" />
-          </div>
-          
-          {/* Gradient Overlays */}
-          <div className="absolute left-[76px] w-20 h-full bg-gradient-to-r from-black to-transparent z-[5]" />
-          <div className="absolute right-0 w-20 h-full bg-gradient-to-l from-black to-transparent z-[5]" />
 
           {/* Scrolling Content */}
           <div className="flex-1 overflow-hidden ml-4">
