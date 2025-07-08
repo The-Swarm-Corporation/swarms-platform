@@ -178,16 +178,17 @@ const Explorer = () => {
   }, []);
 
   useEffect(() => {
-    // Check if user has seen the onboarding
+    // Only check once when component mounts
     const hasSeenOnboarding = localStorage.getItem('hasSeenMarketplaceOnboarding');
+    
+    // If they haven't seen it, show after a small delay
     if (!hasSeenOnboarding) {
-      // Show the onboarding modal after a short delay
       const timer = setTimeout(() => {
         setShowOnboarding(true);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, []); // Empty dependency array ensures this only runs once
 
   return (
     <>

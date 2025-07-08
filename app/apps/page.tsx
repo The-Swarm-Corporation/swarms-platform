@@ -85,7 +85,7 @@ const APPS = [
   {
     id: 'marketplace',
     title: 'Marketplace',
-    description: 'Browse and discover AI tools, agents, and prompts from the community.',
+    description: 'Browse and discover agentic tools, agents, and prompts from the community.',
     icon: <Blocks size={32} className="text-white" />,
     category: 'Marketplace',
     details: 'Find, purchase, or sell AI solutions and tools',
@@ -176,7 +176,7 @@ const APPS = [
     description: 'Access your saved items and favorites.',
     icon: <Bookmark size={32} className="text-white" />,
     category: 'Marketplace',
-    details: 'Quick access to saved AI tools and content',
+    details: 'Quick access to saved agentic tools and content',
   },
   {
     id: 'playground',

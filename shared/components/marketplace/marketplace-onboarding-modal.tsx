@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Modal from '@/shared/components/modal';
 import { Button } from '@/shared/components/ui/button';
 import { Search, ShoppingCart, Zap } from 'lucide-react';
@@ -31,19 +31,24 @@ const MarketplaceOnboardingModal = ({ isOpen, onClose }: MarketplaceOnboardingMo
     },
   ];
 
+  const handleComplete = () => {
+    // Mark as completed in localStorage
+    localStorage.setItem('hasSeenMarketplaceOnboarding', 'true');
+    onClose();
+  };
+
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      onClose();
-      localStorage.setItem('hasSeenMarketplaceOnboarding', 'true');
+      handleComplete();
     }
   };
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleComplete} // Even if they close the modal, mark it as seen
       showHeader={false}
       showClose={true}
       className="sm:max-w-xl"
@@ -75,10 +80,7 @@ const MarketplaceOnboardingModal = ({ isOpen, onClose }: MarketplaceOnboardingMo
         <div className="flex gap-4">
           <Button
             variant="outline"
-            onClick={() => {
-              onClose();
-              localStorage.setItem('hasSeenMarketplaceOnboarding', 'true');
-            }}
+            onClick={handleComplete}
           >
             Skip
           </Button>
