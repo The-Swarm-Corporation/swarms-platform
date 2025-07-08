@@ -72,7 +72,7 @@ function EditExplorerModal({
 
   useEffect(() => {
     validation.updateField('walletAddress', inputState.sellerWalletAddress);
-  }, [inputState.sellerWalletAddress, validation]);
+  }, [inputState.sellerWalletAddress, validation.updateField]);
 
   const convertPriceToUsd = useCallback(async (solPrice: string) => {
     if (!solPrice || isNaN(parseFloat(solPrice))) {

@@ -137,7 +137,10 @@ export default function NotificationsPage() {
   const utils = trpc.useUtils();
 
   const markAsReadMutation = trpc.notifications.markAsRead.useMutation({
-    onSuccess: () => refetch(),
+    onSuccess: () => {
+      refetch();
+      utils.notifications.getNotificationCounts.invalidate();
+    },
   });
 
   const markNotificationsAsReadMutation =
@@ -179,6 +182,8 @@ export default function NotificationsPage() {
       },
       onSettled: () => {
         setSelectedNotifications([]);
+        // Invalidate notification counts to update the bell counter
+        utils.notifications.getNotificationCounts.invalidate();
       },
     });
 
@@ -250,6 +255,8 @@ export default function NotificationsPage() {
       },
       onSettled: () => {
         setSelectedNotifications([]);
+        // Invalidate notification counts to update the bell counter
+        utils.notifications.getNotificationCounts.invalidate();
       },
     });
 
@@ -288,6 +295,8 @@ export default function NotificationsPage() {
       },
       onSettled: () => {
         setSelectedNotifications([]);
+        // Invalidate notification counts to update the bell counter
+        utils.notifications.getNotificationCounts.invalidate();
       },
     });
 
@@ -329,6 +338,8 @@ export default function NotificationsPage() {
       },
       onSettled: () => {
         setSelectedNotifications([]);
+        // Invalidate notification counts to update the bell counter
+        utils.notifications.getNotificationCounts.invalidate();
       },
     });
 

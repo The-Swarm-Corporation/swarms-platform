@@ -1,11 +1,19 @@
 'use client';
 
-import { Bell, CheckCheck, Heart, MessageSquare, Star, User } from 'lucide-react';
+import {
+  Bell,
+  CheckCheck,
+  Heart,
+  MessageSquare,
+  Star,
+  User,
+  Loader2,
+} from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { formatDistanceToNow } from 'date-fns';
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import MentionText from '@/shared/components/ui/mention-text';
 import { useRouter } from 'next/navigation';
 
@@ -53,14 +61,20 @@ interface NotificationPanelProps {
 
 const getNotificationIcon = (type: NotificationType) => {
   switch (type) {
-    case 'content_liked': return Heart;
+    case 'content_liked':
+      return Heart;
     case 'content_commented':
-    case 'comment_replied': return MessageSquare;
+    case 'comment_replied':
+      return MessageSquare;
     case 'content_reviewed':
-    case 'content_rated': return Star;
-    case 'user_followed': return User;
-    case 'user_mentioned': return Bell;
-    default: return Bell;
+    case 'content_rated':
+      return Star;
+    case 'user_followed':
+      return User;
+    case 'user_mentioned':
+      return Bell;
+    default:
+      return Bell;
   }
 };
 
@@ -71,68 +85,113 @@ const getNotificationColor = (type: NotificationType) => {
 };
 
 function NotificationPanel({ onClose }: NotificationPanelProps) {
-  const { data: notificationsData, refetch, isLoading } = trpc.notifications.getUserNotifications.useQuery({
-    status: 'unread',
-    limit: 20,
-  }, {
-    staleTime: 10000,
-  });
+  const [clickingNotificationId, setClickingNotificationId] = useState<
+    string | null
+  >(null);
+
+  const {
+    data: notificationsData,
+    refetch,
+    isLoading,
+  } = trpc.notifications.getUserNotifications.useQuery(
+    {
+      status: 'unread',
+      limit: 20,
+    },
+    {
+      staleTime: 10000,
+    },
+  );
+
+  const utils = trpc.useUtils();
 
   const markAsReadMutation = trpc.notifications.markAsRead.useMutation({
     onSuccess: () => {
       refetch();
+      utils.notifications.getNotificationCounts.invalidate();
       onClose();
     },
   });
 
-  const markNotificationsAsReadMutation = trpc.notifications.markNotificationsAsRead.useMutation({
-    onSuccess: () => {
-      refetch();
-    },
-  });
+  const markNotificationsAsReadMutation =
+    trpc.notifications.markNotificationsAsRead.useMutation({
+      onSuccess: () => {
+        refetch();
+        utils.notifications.getNotificationCounts.invalidate();
+      },
+    });
 
   const router = useRouter();
 
-  const socialTypes = useMemo(() => [
-    'content_liked',
-    'content_commented',
-    'comment_replied',
-    'content_reviewed',
-    'content_rated',
-    'user_followed',
-    'user_mentioned'
-  ] as NotificationType[], []);
+  const socialTypes = useMemo(
+    () =>
+      [
+        'content_liked',
+        'content_commented',
+        'comment_replied',
+        'content_reviewed',
+        'content_rated',
+        'user_followed',
+        'user_mentioned',
+      ] as NotificationType[],
+    [],
+  );
 
-  const notifications = useMemo(() =>
-    (notificationsData?.notifications || []).filter((n: NotificationRow) =>
-      socialTypes.includes(n.type)
-    ),
-    [notificationsData?.notifications, socialTypes]
+  const notifications = useMemo(
+    () =>
+      (notificationsData?.notifications || []).filter((n: NotificationRow) =>
+        socialTypes.includes(n.type),
+      ),
+    [notificationsData?.notifications, socialTypes],
   );
 
   const handleMarkAllRead = useCallback(() => {
     markAsReadMutation.mutate({});
   }, [markAsReadMutation]);
 
-  const handleNotificationClick = useCallback((notification: NotificationRow) => {
-    // Mark as read if unread
-    if (notification.status === 'unread') {
-      markNotificationsAsReadMutation.mutate({
-        notificationIds: [notification.id]
-      });
-    }
+  const handleNotificationClick = useCallback(
+    async (notification: NotificationRow) => {
+      if (clickingNotificationId === notification.id) return;
 
-    // Navigate to related content
-    if (notification.action_url) {
-      if (notification.action_url.startsWith('http')) {
-        window.open(notification.action_url, '_blank');
-      } else {
-        router.push(notification.action_url);
+      setClickingNotificationId(notification.id);
+
+      try {
+        if (notification.status === 'unread') {
+          await markNotificationsAsReadMutation.mutateAsync({
+            notificationIds: [notification.id],
+          });
+        }
+
+        if (notification.action_url) {
+          if (notification.action_url.startsWith('http')) {
+            window.open(notification.action_url, '_blank');
+            onClose();
+            setClickingNotificationId(null);
+          } else {
+            router.push(notification.action_url);
+          }
+        } else {
+          onClose();
+          setClickingNotificationId(null);
+        }
+      } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+        if (notification.action_url) {
+          if (notification.action_url.startsWith('http')) {
+            window.open(notification.action_url, '_blank');
+          } else {
+            router.push(notification.action_url);
+            return;
+          }
+        }
+
+        onClose();
+        setClickingNotificationId(null);
       }
-    }
-
-    // onClose();
-  }, [markNotificationsAsReadMutation, router]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [markNotificationsAsReadMutation, onClose, clickingNotificationId, router],
+  );
 
   return (
     <div className="w-full">
@@ -169,26 +228,46 @@ function NotificationPanel({ onClose }: NotificationPanelProps) {
             {notifications.map((notification: NotificationRow) => {
               const Icon = getNotificationIcon(notification.type);
               const iconColor = getNotificationColor(notification.type);
-              const timeAgo = formatDistanceToNow(new Date(notification.created_at), { addSuffix: true });
+              const timeAgo = formatDistanceToNow(
+                new Date(notification.created_at),
+                { addSuffix: true },
+              );
+              const isClicking = clickingNotificationId === notification.id;
 
               return (
                 <div
                   key={notification.id}
-                  className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors ${
-                    notification.status === 'unread' ? 'bg-accent/20' : ''
+                  className={`p-4 transition-all duration-200 ease-in-out ${
+                    isClicking
+                      ? 'bg-accent/40 cursor-wait opacity-75'
+                      : `hover:bg-[#ffffff21] hover:shadow-sm cursor-pointer ${
+                          notification.status === 'unread'
+                            ? 'bg-accent/20'
+                            : 'hover:bg-[#ffffff21]'
+                        }`
                   }`}
-                  onClick={() => handleNotificationClick(notification)}
+                  onClick={() =>
+                    !isClicking && handleNotificationClick(notification)
+                  }
                 >
                   <div className="flex items-start gap-3">
                     <div className="p-2 rounded-full bg-muted/50 flex-shrink-0">
-                      <Icon className={`h-4 w-4 ${iconColor}`} />
+                      {isClicking ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      ) : (
+                        <Icon className={`h-4 w-4 ${iconColor}`} />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium line-clamp-1">{notification.title}</p>
+                      <p className="text-sm font-medium line-clamp-1">
+                        {notification.title}
+                      </p>
                       <div className="text-sm text-muted-foreground mt-1 line-clamp-2">
                         <MentionText text={notification.message} />
                       </div>
-                      <p className="text-xs text-muted-foreground/70 mt-2">{timeAgo}</p>
+                      <p className="text-xs text-muted-foreground/70 mt-2">
+                        {timeAgo}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -197,6 +276,19 @@ function NotificationPanel({ onClose }: NotificationPanelProps) {
           </div>
         )}
       </ScrollArea>
+
+      <div className="border-t p-3">
+        <Button
+          variant="ghost"
+          className="w-full text-sm text-primary hover:text-primary/80"
+          onClick={() => {
+            router.push('/platform/notifications');
+            onClose();
+          }}
+        >
+          See all notifications
+        </Button>
+      </div>
     </div>
   );
 }
