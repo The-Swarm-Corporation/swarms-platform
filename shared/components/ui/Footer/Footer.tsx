@@ -20,7 +20,11 @@ import {
   Mail,
   Calendar,
   Code,
-  Box
+  Box,
+  Youtube,
+  BookText,
+  Ticket,
+  Send
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM, SWARMS_GITHUB } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -54,9 +58,13 @@ export default function Footer() {
 
   const socialLinks = [
     { name: 'GitHub', href: SWARMS_GITHUB, icon: <Github className="h-4 w-4" /> },
-    { name: 'Discord', href: DISCORD, icon: <Discord /> },
-    { name: 'Twitter', href: 'https://twitter.com/swarms_corp', icon: <Twitter className="h-4 w-4" /> },
+    { name: 'Discord', href: 'https://discord.gg/jM3Z6M9uMq', icon: <Discord /> },
+    { name: 'Twitter', href: 'https://twitter.com/kyegomez', icon: <Twitter className="h-4 w-4" /> },
     { name: 'LinkedIn', href: 'https://linkedin.com/company/The-Swarm-Corporation', icon: <Linkedin className="h-4 w-4" /> },
+    { name: 'YouTube', href: 'https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ', icon: <Youtube className="h-4 w-4" /> },
+    { name: 'Blog', href: 'https://medium.com/@kyeg', icon: <BookText className="h-4 w-4" /> },
+    { name: 'Telegram', href: 'https://t.co/dSRy143zQv', icon: <Send className="h-4 w-4" /> },
+    { name: 'Events', href: 'https://lu.ma/5p2jnc2v', icon: <Ticket className="h-4 w-4" /> },
   ];
 
   const companyLinks = [
@@ -93,14 +101,24 @@ export default function Footer() {
     },
   ];
 
+  const communityLinks = [
+    { name: 'Discord', href: 'https://discord.gg/jM3Z6M9uMq', icon: <Discord />, description: 'Join our community chat' },
+    { name: 'X Community', href: 'https://x.com/i/communities/1875452887414804745', icon: <Twitter className="h-4 w-4" />, description: 'Join the X community' },
+    { name: 'Telegram', href: 'https://t.co/dSRy143zQv', icon: <Send className="h-4 w-4" />, description: 'Join our Telegram group' },
+    { name: 'YouTube', href: 'https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ', icon: <Youtube className="h-4 w-4" />, description: 'Watch tutorials and demos' },
+    { name: 'Blog', href: 'https://medium.com/@kyeg', icon: <BookText className="h-4 w-4" />, description: 'Read our latest articles' },
+    { name: 'Events', href: 'https://lu.ma/5p2jnc2v', icon: <Ticket className="h-4 w-4" />, description: 'Join community events' },
+    { name: 'Onboarding', href: 'https://cal.com/swarms/swarms-onboarding-session', icon: <Calendar className="h-4 w-4" />, description: 'Book a session with Kye' },
+  ];
+
   return (
     <footer className="w-full bg-black border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-x-8 gap-y-12">
             {/* Brand Section */}
-            <div className="lg:col-span-1">
+            <div className="col-span-1 sm:col-span-2 lg:col-span-1">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                   <Image src="/swarms-logo.svg" alt="Swarms" width={32} height={32} />
@@ -110,23 +128,24 @@ export default function Footer() {
               <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xs">
                 The All-In-One Agentic Infrastructure Platform for Agents.
               </p>
-              <div className="flex space-x-4">
+              <div className="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-4 gap-2">
                 {socialLinks.map((link) => (
                   <Link
                     key={link.name}
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-white transition-colors duration-200 p-2 rounded-lg hover:bg-gray-800"
+                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-800/50 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200"
+                    title={link.name}
                   >
-                    {link.icon}
+                    <span className="w-4 h-4">{link.icon}</span>
                   </Link>
                 ))}
               </div>
             </div>
 
             {/* Products Section */}
-            <div className="lg:col-span-1">
+            <div className="col-span-1 lg:col-span-1">
               <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
                 Products
               </h3>
@@ -158,7 +177,7 @@ export default function Footer() {
             </div>
 
             {/* Platform Links */}
-            <div>
+            <div className="col-span-1 lg:col-span-1">
               <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
                 Platform
               </h3>
@@ -180,7 +199,7 @@ export default function Footer() {
             </div>
 
             {/* Resources */}
-            <div>
+            <div className="col-span-1 lg:col-span-1">
               <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
                 Resources
               </h3>
@@ -218,7 +237,7 @@ export default function Footer() {
             </div>
 
             {/* Company */}
-            <div>
+            <div className="col-span-1 lg:col-span-1">
               <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
                 Company
               </h3>
@@ -238,6 +257,38 @@ export default function Footer() {
                       {link.href.startsWith('http') && (
                         <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                       )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Community Section */}
+            <div className="col-span-1 sm:col-span-2 lg:col-span-1">
+              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
+                Community
+              </h3>
+              <ul className="space-y-4">
+                {communityLinks.map((link) => (
+                  <li key={link.name}>
+                    <Link
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group block"
+                    >
+                      <div className="text-gray-400 hover:text-white transition-colors duration-200">
+                        <div className="flex items-center space-x-2">
+                          <span className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors duration-200">
+                            {link.icon}
+                          </span>
+                          <span className="text-sm font-medium">{link.name}</span>
+                          <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all duration-200" />
+                        </div>
+                        <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors duration-200 mt-0.5 ml-6">
+                          {link.description}
+                        </p>
+                      </div>
                     </Link>
                   </li>
                 ))}
