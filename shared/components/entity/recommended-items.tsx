@@ -1,5 +1,5 @@
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { ArrowRight, Bot, Code, FileText } from 'lucide-react';
+import { ArrowRight, Bot, Code, FileText, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { makeUrl } from '@/shared/utils/helpers';
 import { PUBLIC } from '@/shared/utils/constants';
@@ -13,102 +13,147 @@ interface RecommendedItemsProps {
 }
 
 export default function RecommendedItems({ currentId, type }: RecommendedItemsProps) {
-  // For prompts, use a random offset to get random recommendations
-  const [randomOffset, setRandomOffset] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [seenItems, setSeenItems] = useState<Set<string>>(new Set([currentId]));
+  const [currentItems, setCurrentItems] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (type === 'prompt') {
-      // Generate random offset between 0 and 20 (assuming we have more than 20 prompts)
-      setRandomOffset(Math.floor(Math.random() * 20));
-    }
-  }, [type]);
-
-  // Fetch data using the explorer endpoint
-  const { data: explorerData } = trpc.explorer.getExplorerData.useQuery(
+  // Fetch data using the explorer endpoint with larger limit to ensure variety
+  const { data: explorerData, refetch } = trpc.explorer.getExplorerData.useQuery(
     {
       includePrompts: type === 'prompt',
       includeAgents: type === 'agent',
       includeTools: type === 'tool',
-      limit: type === 'prompt' ? 10 : 4, // Fetch more for prompts to ensure we have enough after filtering
-      offset: type === 'prompt' ? randomOffset : 0,
+      limit: 20, // Fetch more items to ensure we have enough unique ones
+      offset: offset,
     },
     {
       refetchOnWindowFocus: false,
     }
   );
 
-  // Get the appropriate data array based on type
-  const items = type === 'prompt' 
-    ? explorerData?.prompts 
-    : type === 'agent' 
-      ? explorerData?.agents 
-      : explorerData?.tools;
+  // Initialize or update items when data changes
+  useEffect(() => {
+    if (explorerData) {
+      let availableItems = [];
+      if (type === 'prompt') {
+        availableItems = explorerData.prompts;
+      } else if (type === 'agent') {
+        availableItems = explorerData.agents;
+      } else {
+        availableItems = explorerData.tools;
+      }
 
-  // For prompts, shuffle the array before filtering
-  const shuffleArray = (array: any[]) => {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+      // Filter out items we've already seen
+      availableItems = availableItems.filter(item => !seenItems.has(item.id));
+
+      // If we don't have enough new items, reset seen items (except current)
+      if (availableItems.length < 3) {
+        setSeenItems(new Set([currentId]));
+        availableItems = (type === 'prompt' ? explorerData.prompts :
+                         type === 'agent' ? explorerData.agents :
+                         explorerData.tools).filter(item => item.id !== currentId);
+      }
+
+      // Shuffle the available items
+      availableItems = availableItems.sort(() => Math.random() - 0.5);
+
+      // Take 3 items
+      const newItems = availableItems.slice(0, 3);
+
+      // Update seen items
+      const newSeen = new Set(seenItems);
+      newItems.forEach(item => newSeen.add(item.id));
+      setSeenItems(newSeen);
+
+      // Update current items
+      setCurrentItems(newItems);
     }
-    return array;
+  }, [explorerData, type, currentId]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Increment offset to get different items
+      setOffset(prev => prev + 20);
+      await refetch();
+    } catch (error) {
+      console.error('Error refreshing items:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
-  // Filter out the current item and take only 3
-  const recommendations = type === 'prompt'
-    ? shuffleArray([...(items || [])])
-        .filter(item => item.id !== currentId)
-        .slice(0, 3)
-    : (items || [])
-        .filter(item => item.id !== currentId)
-        .slice(0, 3);
-
-  if (!recommendations.length) return null;
+  if (!currentItems.length) return null;
 
   return (
     <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-          {type === 'prompt' ? (
-            <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-          ) : type === 'agent' ? (
-            <Bot className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-          ) : (
-            <Code className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-          )}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+            {type === 'prompt' ? (
+              <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            ) : type === 'agent' ? (
+              <Bot className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            ) : (
+              <Code className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            )}
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+              Items You'd Like
+            </h2>
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+              {type === 'prompt' 
+                ? 'Discover more interesting prompts from our collection'
+                : `Check out similar ${type}s that match your interests`}
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-            Items You'd Like
-          </h2>
-          <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
-            {type === 'prompt' 
-              ? 'Discover interesting prompts from our collection'
-              : `Explore similar ${type}s that others have created`}
-          </p>
-        </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+        >
+          <RefreshCw className={cn(
+            "h-4 w-4",
+            isRefreshing && "animate-spin"
+          )} />
+          Explore More
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {recommendations.map((item) => (
-          <div
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {currentItems.map((item) => (
+          <Link
             key={item.id}
-            className={cn(
-              "group relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800",
-              "bg-white dark:bg-zinc-950 transition-all duration-500 ease-out",
-              "hover:shadow-xl hover:scale-[1.02] hover:border-zinc-300 dark:hover:border-zinc-700",
-              "hover:-translate-y-1"
-            )}
+            href={makeUrl(PUBLIC.PROMPT, item.id)}
+            className="group relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-all duration-500 ease-out hover:shadow-xl hover:scale-[1.02] hover:border-zinc-300 dark:hover:border-zinc-700"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-            <div className="relative p-6 flex flex-col h-full">
-              <div className="flex-grow">
-                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-1">
-                  {item.name}
-                </h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-4">
+            <div className="p-6">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-start justify-between">
+                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-2">
+                    {item.name}
+                  </h3>
+                  <div className={cn(
+                    "px-2 py-1 rounded text-sm font-medium",
+                    item.is_free 
+                      ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                      : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                  )}>
+                    {item.is_free ? 'Free' : `$${item.price_usd?.toFixed(2)}`}
+                  </div>
+                </div>
+
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">
                   {item.description}
                 </p>
-                <div className="flex flex-wrap gap-2 mb-4">
+
+                <div className="flex flex-wrap gap-2">
                   {item.tags?.split(',').slice(0, 2).map((tag: string) => (
                     <span
                       key={tag}
@@ -118,27 +163,17 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
                     </span>
                   ))}
                 </div>
-              </div>
-              <Link
-                href={makeUrl(
-                  type === 'prompt'
-                    ? PUBLIC.PROMPT
-                    : type === 'agent'
-                      ? PUBLIC.AGENT
-                      : PUBLIC.TOOL,
-                  { id: item.id }
-                )}
-              >
+
                 <Button 
-                  className="w-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 group/button"
-                  variant="ghost"
+                  variant="ghost" 
+                  className="w-full mt-2 group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800/50"
                 >
                   Learn More
-                  <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-200 group-hover/button:translate-x-1" />
+                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                 </Button>
-              </Link>
+              </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
