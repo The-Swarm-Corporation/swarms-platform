@@ -44,13 +44,11 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
-export default async function RootLayout({ children }: PropsWithChildren) {
-  return (
-    <>
-      <main className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]">
-        {children}
-      </main>
-      <Footer />
-    </>
-  );
+
+export default function Layout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return children
 }
