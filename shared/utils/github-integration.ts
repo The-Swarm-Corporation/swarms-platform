@@ -54,6 +54,24 @@ export async function fetchRepositoryInfo(githubUrl: string): Promise<RepoInfo |
       throw error;
     });
 
+    // Fetch README content
+    let readmeContent = '';
+    try {
+      const readme = await octokit.repos.getReadme({
+        owner,
+        repo,
+        mediaType: {
+          format: 'raw'
+        }
+      });
+      
+      if ('data' in readme) {
+        readmeContent = readme.data as string;
+      }
+    } catch (error) {
+      console.log('README not found or error:', error);
+    }
+
     // Prioritized list of files to check
     const possibleFiles = [
       'example.py',           // Prioritize example.py
@@ -170,7 +188,9 @@ export async function fetchRepositoryInfo(githubUrl: string): Promise<RepoInfo |
 
     const repoInfo = {
       name: repoData.data.name,
-      description: repoData.data.description || '',
+      description: readmeContent ? 
+        `${repoData.data.description || ''}\n\n${readmeContent}` : 
+        repoData.data.description || '',
       mainCode,
       language: languageMap[repoData.data.language || ''] || 'python',
       imageUrl: repoData.data.owner?.avatar_url,

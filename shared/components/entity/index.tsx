@@ -152,6 +152,11 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
   );
 }
 
+// Add custom wrapper component
+const CustomSyntaxHighlighter = (props: any) => {
+  return <SyntaxHighlighter {...props} />;
+};
+
 const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
   <pre id="customPreTag" {...props} />
 );
@@ -531,25 +536,75 @@ print(result)`;
                           a: ({ node, ...props }) => (
                             <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline" />
                           ),
+                          // Style tables
+                          table: ({ node, ...props }) => (
+                            <div className="my-6 w-full overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+                              <table {...props} className="w-full border-collapse text-sm" />
+                            </div>
+                          ),
+                          thead: ({ node, ...props }) => (
+                            <thead {...props} className="bg-zinc-100 dark:bg-zinc-800/50" />
+                          ),
+                          tr: ({ node, ...props }) => (
+                            <tr {...props} className="border-b border-zinc-200 dark:border-zinc-800" />
+                          ),
+                          th: ({ node, ...props }) => (
+                            <th {...props} className="border-r border-zinc-200 dark:border-zinc-800 px-4 py-2 text-left font-medium" />
+                          ),
+                          td: ({ node, ...props }) => (
+                            <td {...props} className="border-r border-zinc-200 dark:border-zinc-800 px-4 py-2" />
+                          ),
                           // Style code blocks
                           code: ({ node, className, children, ...props }: any) => {
                             const match = /language-(\w+)/.exec(className || '');
                             const isInline = !match && !className?.includes('code-block');
-                            return (
+                            return isInline ? (
                               <code 
                                 {...props} 
-                                className={isInline 
-                                  ? "bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-sm" 
-                                  : "block bg-zinc-100 dark:bg-zinc-800 p-4 rounded-lg text-sm overflow-x-auto"
-                                }
+                                className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-sm"
                               >
                                 {children}
                               </code>
+                            ) : (
+                              <div className="relative group">
+                                <button 
+                                  onClick={() => copyToClipboard(children as string)}
+                                  className="absolute right-2 top-2 p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50 opacity-0 group-hover:opacity-100"
+                                  title="Copy code"
+                                >
+                                  <Copy size={14} className="text-zinc-200" />
+                                </button>
+                                <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg overflow-hidden">
+                                  <div className="flex items-center justify-between px-4 py-2 bg-zinc-200 dark:bg-zinc-700/50 border-b border-zinc-300 dark:border-zinc-600">
+                                    <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                                      {match?.[1]?.toUpperCase() || 'CODE'}
+                                    </span>
+                                  </div>
+                                  <pre className="p-4 overflow-x-auto">
+                                    <code className={className} {...props}>
+                                      {children}
+                                    </code>
+                                  </pre>
+                                </div>
+                              </div>
                             );
                           },
                           // Add spacing to paragraphs
                           p: ({ node, ...props }) => (
-                            <p {...props} className="mb-4 last:mb-0" />
+                            <p {...props} className="mb-4 last:mb-0 leading-relaxed" />
+                          ),
+                          // Style headings
+                          h1: ({ node, ...props }) => (
+                            <h1 {...props} className="text-2xl font-bold mt-8 mb-4" />
+                          ),
+                          h2: ({ node, ...props }) => (
+                            <h2 {...props} className="text-xl font-bold mt-8 mb-4" />
+                          ),
+                          h3: ({ node, ...props }) => (
+                            <h3 {...props} className="text-lg font-bold mt-6 mb-4" />
+                          ),
+                          h4: ({ node, ...props }) => (
+                            <h4 {...props} className="text-base font-bold mt-6 mb-4" />
                           ),
                           // Style lists
                           ul: ({ node, ...props }) => (
@@ -557,6 +612,14 @@ print(result)`;
                           ),
                           ol: ({ node, ...props }) => (
                             <ol {...props} className="list-decimal pl-6 mb-4 last:mb-0 space-y-2" />
+                          ),
+                          // Style blockquotes
+                          blockquote: ({ node, ...props }) => (
+                            <blockquote {...props} className="border-l-4 border-zinc-300 dark:border-zinc-700 pl-4 my-4 italic" />
+                          ),
+                          // Style horizontal rules
+                          hr: ({ node, ...props }) => (
+                            <hr {...props} className="my-8 border-zinc-200 dark:border-zinc-800" />
                           ),
                         }}
                       >
@@ -730,6 +793,26 @@ print(result)`;
             />
           </section>
         )}
+
+      {/* Code Section */}
+      {children && (
+        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+              <Code className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                Agent Code
+              </h2>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                The main implementation code for this {entityTitle}. You can view, copy, and use this code directly in your projects.
+              </p>
+            </div>
+          </div>
+          {children}
+        </section>
+      )}
 
       {/* Prompt Section */}
       {prompt && (
@@ -949,14 +1032,14 @@ print(result)`;
                 </TabsList>
                 <div className="p-4 rounded-xl overflow-hidden !bg-gray-500/10">
                   <TabsContent className="m-0" value={'preview'}>
-                    <SyntaxHighlighter
+                    <CustomSyntaxHighlighter
                       PreTag={CustomPre}
                       style={dracula}
                       language={language || 'markdown'}
                       wrapLongLines
                     >
                       {prompt}
-                    </SyntaxHighlighter>
+                    </CustomSyntaxHighlighter>
                   </TabsContent>
                   <TabsContent className="m-0" value={'md'}>
                     <Markdown className="prose" remarkPlugins={[remarkGfm]}>
@@ -969,7 +1052,7 @@ print(result)`;
                     </pre>
                   </TabsContent>
                   <TabsContent className="m-0" value={'framework'}>
-                    <SyntaxHighlighter
+                    <CustomSyntaxHighlighter
                       PreTag={CustomPre}
                       style={dracula}
                       language="python"
@@ -998,10 +1081,10 @@ out = agent.run("Your task description here")
 
 time.sleep(10)
 print(out)`}
-                    </SyntaxHighlighter>
+                    </CustomSyntaxHighlighter>
                   </TabsContent>
                   <TabsContent className="m-0" value={'api'}>
-                    <SyntaxHighlighter
+                    <CustomSyntaxHighlighter
                       PreTag={CustomPre}
                       style={dracula}
                       language="python"
@@ -1062,19 +1145,12 @@ task = "Your task description here"
 # Run the agent
 result = run_single_agent(agent_config, task)
 print(result)`}
-                    </SyntaxHighlighter>
+                    </CustomSyntaxHighlighter>
                   </TabsContent>
                 </div>
               </Tabs>
             </div>
           </div>
-        </section>
-      )}
-
-      {/* Children Content */}
-      {children && (
-        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
-          {children}
         </section>
       )}
 

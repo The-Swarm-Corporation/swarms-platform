@@ -187,10 +187,10 @@ function EditExplorerModal({
                   ...prev,
                   description: 'Description must be at least 10 characters long'
                 }));
-              } else if (inputState.description.trim().length > 1000) {
+              } else if (inputState.description.trim().length > 10000) {
                 setErrors(prev => ({
                   ...prev,
-                  description: 'Description cannot exceed 1000 characters'
+                  description: 'Description cannot exceed 10,000 characters'
                 }));
               } else {
                 setErrors(prev => {

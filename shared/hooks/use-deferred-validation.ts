@@ -284,14 +284,14 @@ export function useMarketplaceValidation() {
     description: {
       required: true,
       minLength: 10,
-      maxLength: 1000,
+      maxLength: 10000,
       custom: (value: string) => {
         if (!value || value.trim().length === 0)
           return 'Description is required';
         if (value.trim().length < 10)
           return 'Description must be at least 10 characters long';
-        if (value.length > 1000)
-          return 'Description cannot exceed 1,000 characters';
+        if (value.length > 10000)
+          return 'Description cannot exceed 10,000 characters';
         return null;
       },
     },
