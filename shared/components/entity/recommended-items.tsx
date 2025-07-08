@@ -83,10 +83,10 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
     // Filter out items we've already seen
     const newItems = items.filter(item => !seenItems.has(item.id));
 
-    // Take 3 random items from the new items
+    // Take 6 random items from the new items (increased from 3)
     const selectedItems = newItems
       .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
+      .slice(0, 6);
 
     // Update seen items
     const newSeen = new Set(seenItems);
@@ -105,7 +105,8 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
 
       const selectedItems = processNewItems(items);
 
-      if (selectedItems.length < 3) {
+      // Changed minimum items check to 6
+      if (selectedItems.length < 6) {
         setOffset(prev => prev + 20);
         return;
       }
@@ -114,7 +115,6 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
         setCurrentItems(selectedItems);
         setItemsCache([selectedItems]);
       } else if (!isRefreshing) {
-        // Add to cache if not refreshing (initial load)
         setItemsCache(prev => [...prev, selectedItems]);
       }
     }
@@ -262,7 +262,7 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
         {exitingItems.length > 0 && (
           <div
             className={cn(
-              "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8",
+              "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6", // Adjusted grid and gaps
               "absolute inset-0 z-10",
               "transition-all duration-300 ease-in-out transform",
               slideDirection === 'left' 
@@ -387,7 +387,7 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
         {/* Current items layer */}
         <div
           className={cn(
-            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8",
+            "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6", // Adjusted grid and gaps
             "relative z-20",
             animationPhase !== 'none' && "transition-all duration-300 ease-out transform",
             animationPhase === 'enter' && slideDirection === 'left' && "translate-x-[40px] opacity-0",
@@ -396,7 +396,8 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
           )}
         >
           {isRefreshing ? (
-            Array(3).fill(null).map((_, i) => (
+            // Show 6 skeletons while loading
+            Array(6).fill(null).map((_, i) => (
               <RecommendedItemSkeleton key={`skeleton-${i}`} />
             ))
           ) : (
