@@ -104,23 +104,22 @@ Every issue in our [GitHub Issues](https://github.com/The-Swarm-Corporation/swar
 
 Check our [issues page](https://github.com/The-Swarm-Corporation/swarms-platform/issues) to find tasks that match your skills and start earning today!
 
-### Ways to Get Started:
+## Join our Community
 
-- 🌟 Star this repository to show your support
-- 💸 Pick up a bounty from our [issues page](https://github.com/The-Swarm-Corporation/swarms-platform/issues)
-- 📚 Read our [Contributing Guidelines](CONTRIBUTING.md)
-- 💬 Join our [Discord Community](https://discord.gg/kS3rwKs3ZC)
-- 🗓️ Attend our [Weekly Community Gatherings](https://lu.ma/5p2jnc2v)
+Join our community of agent engineers and researchers for technical support, cutting-edge updates, and exclusive access to world-class agent engineering insights!
 
-## 🌐 Community & Support
+| Platform | Description | Link |
+|----------|-------------|------|
+| 📚 Documentation | Official documentation and guides | [docs.swarms.world](https://docs.swarms.world) |
+| 📝 Blog | Latest updates and technical articles | [Medium](https://medium.com/@kyeg) |
+| 💬 Discord | Live chat and community support | [Join Discord](https://discord.gg/jM3Z6M9uMq) |
+| 🐦 Twitter | Latest news and announcements | [@kyegomez](https://twitter.com/kyegomez) |
+| 👥 LinkedIn | Professional network and updates | [The Swarm Corporation](https://www.linkedin.com/company/the-swarm-corporation) |
+| 📺 YouTube | Tutorials and demos | [Swarms Channel](https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ) |
+| 🎫 Events | Join our community events | [Sign up here](https://lu.ma/5p2jnc2v) |
+| 🚀 Onboarding Session | Get onboarded with Kye Gomez, creator and lead maintainer of Swarms | [Book Session](https://cal.com/swarms/swarms-onboarding-session) |
 
-Join our growing community of agent developers:
 
-- 📝 [Official Blog](https://docs.swarms.world)
-- 💬 [Discord Server](https://discord.gg/kS3rwKs3ZC)
-- 🐦 [Twitter Updates](https://twitter.com/KyeGomezB)
-- 🔗 [LinkedIn](https://www.linkedin.com/company/the-swarm-corporation)
-- 📺 [YouTube Channel](https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ)
 
 ## 📈 Roadmap
 
