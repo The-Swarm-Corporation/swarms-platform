@@ -22,6 +22,7 @@ import ModelCategories from './components/content/categories';
 import MarketplaceStats from './components/content/marketplace-stats';
 import Footer from '@/shared/components/ui/Footer';
 import { MarketplaceTicker } from '@/shared/components/marketplace/ticker';
+import MarketplaceOnboardingModal from '@/shared/components/marketplace/marketplace-onboarding-modal';
 
 const Trending = dynamic(() => import('./components/content/trending'), {
   ssr: false,
@@ -41,6 +42,7 @@ const Explorer = () => {
   const [addAgentModalOpen, setAddAgentModalOpen] = useState(false);
   const [addToolModalOpen, setAddToolModalOpen] = useState(false);
   const [isFixed, setIsFixed] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleStateChange = (status: { status: number }) => {
     if (status.status === Sticky.STATUS_FIXED) {
@@ -175,8 +177,24 @@ const Explorer = () => {
     document.head.appendChild(style);
   }, []);
 
+  useEffect(() => {
+    // Check if user has seen the onboarding
+    const hasSeenOnboarding = localStorage.getItem('hasSeenMarketplaceOnboarding');
+    if (!hasSeenOnboarding) {
+      // Show the onboarding modal after a short delay
+      const timer = setTimeout(() => {
+        setShowOnboarding(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   return (
     <>
+      <MarketplaceOnboardingModal 
+        isOpen={showOnboarding} 
+        onClose={() => setShowOnboarding(false)} 
+      />
       <AddPromptModal
         onAddSuccessfully={() => {}}
         modelType="prompt"
