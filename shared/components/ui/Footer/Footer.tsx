@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM, SWARMS_GITHUB } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
+import Image from 'next/image';
 
 export default function Footer() {
   const router = useRouter();
@@ -101,10 +102,10 @@ export default function Footer() {
             {/* Brand Section */}
             <div className="lg:col-span-1">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">S</span>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                  <Image src="/swarms-logo.svg" alt="Swarms" width={32} height={32} />
                 </div>
-                <span className="text-white font-bold text-xl">SWARMS</span>
+                <span className="text-white font-bold text-xl">Swarms</span>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xs">
                 The All-In-One Agentic Infrastructure Platform for Agents.
