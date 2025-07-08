@@ -265,9 +265,9 @@ export default function Footer() {
                 </button>
               </div>
               <div className="text-gray-400 text-sm">
-                <span>Ready to get started? </span>
-                <Link href="/signin" className="text-red-400 hover:text-red-300 transition-colors duration-200 font-medium">
-                  Sign up for free
+                <span>Our Mission: </span>
+                <Link href="https://swarms.ai" className="text-red-400 hover:text-red-300 transition-colors duration-200 font-medium">
+                  Enabling The Agentic Economy
                 </Link>
               </div>
             </div>
