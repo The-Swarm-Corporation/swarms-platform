@@ -126,7 +126,7 @@ export default function Footer() {
                 <span className="text-white font-bold text-xl">Swarms</span>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xs">
-                The All-In-One Agentic Infrastructure Platform for Agents.
+                Building The Infrastructure For The Agentic Economy.
               </p>
               <div className="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-4 gap-2">
                 {socialLinks.map((link) => (
