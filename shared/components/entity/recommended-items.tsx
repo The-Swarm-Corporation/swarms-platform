@@ -374,7 +374,7 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
                             "opacity-80 group-hover:opacity-100"
                           )}
                         >
-                          Learn More
+                          Get Access
                           <ArrowRight className={cn(
                             "ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4",
                             "transition-all duration-300",
@@ -507,7 +507,7 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
                           "opacity-80 group-hover:opacity-100"
                         )}
                       >
-                        Learn More
+                        Get Access
                         <ArrowRight className={cn(
                           "ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4",
                           "transition-all duration-300",
