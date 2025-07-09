@@ -66,6 +66,7 @@ const Agent = async ({ id }: { id: string }) => {
         name={agent.name ?? ''}
         requirements={requirements}
         userId={agent.user_id ?? ''}
+        links={agent.links as { name: string; url: string }[] | null}
       >
         <AgentPlayground
           language={agent.language ?? ''}

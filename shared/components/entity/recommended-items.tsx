@@ -2,7 +2,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import { ArrowRight, Bot, Code, FileText, ChevronRight, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/shared/utils/cn';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/shared/components/ui/button';
 
 // Skeleton component for loading state
@@ -54,16 +54,18 @@ interface RecommendedItemsProps {
 export default function RecommendedItems({ currentId, type }: RecommendedItemsProps) {
   const [offset, setOffset] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [seenItems, setSeenItems] = useState<Set<string>>(new Set([currentId]));
   const [currentItems, setCurrentItems] = useState<any[]>([]);
   const [itemsCache, setItemsCache] = useState<any[][]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left');
-  
+
   // New state for managing exit and entry animations
   const [exitingItems, setExitingItems] = useState<any[]>([]);
   const [animationPhase, setAnimationPhase] = useState<'exit' | 'enter' | 'none'>('none');
+
+  const seenItemsRef = useRef<Set<string>>(new Set([currentId]));
+  const itemsCacheRef = useRef<any[][]>([]);
 
   // Fetch data using the explorer endpoint
   const { data: explorerData, refetch } = trpc.explorer.getExplorerData.useQuery(
@@ -79,23 +81,6 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
     }
   );
 
-  const processNewItems = useCallback((items: any[]) => {
-    // Filter out items we've already seen
-    const newItems = items.filter(item => !seenItems.has(item.id));
-
-    // Take 6 random items from the new items (increased from 3)
-    const selectedItems = newItems
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 6);
-
-    // Update seen items
-    const newSeen = new Set(seenItems);
-    selectedItems.forEach(item => newSeen.add(item.id));
-    setSeenItems(newSeen);
-
-    return selectedItems;
-  }, [seenItems]);
-
   useEffect(() => {
     if (explorerData) {
       let items = [];
@@ -103,22 +88,34 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
       if (type === 'agent') items = explorerData.agents;
       if (type === 'tool') items = explorerData.tools;
 
-      const selectedItems = processNewItems(items);
+      const newItems = items.filter(item => !seenItemsRef.current.has(item.id));
+      const selectedItems = newItems
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 6);
 
-      // Changed minimum items check to 6
-      if (selectedItems.length < 6) {
+      if (selectedItems.length === 0 && itemsCacheRef.current.length === 0 && offset < 100) {
         setOffset(prev => prev + 20);
         return;
       }
 
-      if (itemsCache.length === 0) {
-        setCurrentItems(selectedItems);
-        setItemsCache([selectedItems]);
-      } else if (!isRefreshing) {
-        setItemsCache(prev => [...prev, selectedItems]);
+      // If we have some items (even if less than 6), use them
+      if (selectedItems.length > 0) {
+        selectedItems.forEach(item => seenItemsRef.current.add(item.id));
+
+        if (itemsCacheRef.current.length === 0) {
+          setCurrentItems(selectedItems);
+          setItemsCache([selectedItems]);
+          itemsCacheRef.current = [selectedItems];
+        } else if (!isRefreshing) {
+          setItemsCache(prev => {
+            const newCache = [...prev, selectedItems];
+            itemsCacheRef.current = newCache;
+            return newCache;
+          });
+        }
       }
     }
-  }, [explorerData, type, processNewItems]);
+  }, [explorerData, type, offset, isRefreshing]);
 
   const animateTransition = (newItems: any[], direction: 'left' | 'right') => {
     if (isAnimating) return;
@@ -146,7 +143,7 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
     if (isAnimating || isRefreshing) return;
 
     const nextIndex = currentIndex + 1;
-    
+
     // If we have cached items
     if (nextIndex < itemsCache.length) {
       setCurrentIndex(nextIndex);
@@ -156,19 +153,29 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
       setIsRefreshing(true);
       setOffset(prev => prev + 20);
       const result = await refetch();
-      
+
       if (result.data) {
         let items = [];
         if (type === 'prompt') items = result.data.prompts;
         if (type === 'agent') items = result.data.agents;
         if (type === 'tool') items = result.data.tools;
 
-        const newItems = processNewItems(items);
-        setItemsCache(prev => [...prev, newItems]);
+        const newItems = items.filter(item => !seenItemsRef.current.has(item.id));
+        const selectedItems = newItems
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 6);
+
+        selectedItems.forEach(item => seenItemsRef.current.add(item.id));
+
+        setItemsCache(prev => {
+          const newCache = [...prev, selectedItems];
+          itemsCacheRef.current = newCache;
+          return newCache;
+        });
         setCurrentIndex(nextIndex);
-        animateTransition(newItems, 'left');
+        animateTransition(selectedItems, 'left');
       }
-      
+
       setIsRefreshing(false);
     }
   };
@@ -199,7 +206,7 @@ export default function RecommendedItems({ currentId, type }: RecommendedItemsPr
           </div>
           <div>
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              Items You'd Like
+              Items You&apos;d Like
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
               {type === 'prompt'

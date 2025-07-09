@@ -62,6 +62,7 @@ const Prompt = async ({ id }: { id: string }) => {
           imageUrl={prompt.image_url ?? ''}
           prompt={prompt.prompt ?? ''}
           userId={prompt.user_id ?? ''}
+          links={prompt.links as { name: string; url: string }[] | null}
         />
       </AccessRestriction>
     </>

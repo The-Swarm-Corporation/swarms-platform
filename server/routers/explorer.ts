@@ -194,9 +194,14 @@ const explorerRouter = router({
 
   // Validate prompt
   validatePrompt: userProcedure
-    .input(z.string())
+    .input(
+      z.object({
+        prompt: z.string(),
+        editingId: z.string().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const prompt = input;
+      const { prompt, editingId } = input;
       // at least 5 characters
       if (prompt.length < 5) {
         return {
@@ -206,11 +211,17 @@ const explorerRouter = router({
       }
 
       const user_id = ctx.session.data.user?.id || '';
-      const promptData = await ctx.supabase
+      let query = ctx.supabase
         .from('swarms_cloud_prompts')
         .select('*')
         .eq('prompt', prompt)
         .eq('user_id', user_id);
+
+      if (editingId) {
+        query = query.neq('id', editingId);
+      }
+
+      const promptData = await query;
       const exists = (promptData.data ?? [])?.length > 0;
       return {
         valid: !exists,
@@ -220,32 +231,40 @@ const explorerRouter = router({
 
   addPrompt: userProcedure
     .input(
-      z.object({
-        name: z.string().optional(),
-        prompt: z.string(),
-        description: z.string().optional(),
-        useCases: z.array(z.any()).optional(),
-        imageUrl: z.string().optional(),
-        filePath: z.string().optional(),
-        tags: z.string().optional(),
-        category: z.array(z.string()).optional(),
-        isFree: z.boolean().default(true),
-        price_usd: z
-          .number()
-          .min(0, 'Price must be non-negative')
-          .max(999999, 'Price cannot exceed $999,999 USD')
-          .optional(),
-        sellerWalletAddress: z.string().optional(),
-      })
-      .refine((data) => {
-        if (!data.isFree && (!data.price_usd || data.price_usd < 0.01)) {
-          return false;
-        }
-        return true;
-      }, {
-        message: 'Paid prompts must have a price of at least $0.01 USD',
-        path: ['price_usd'],
-      }),
+      z
+        .object({
+          name: z.string().optional(),
+          prompt: z.string(),
+          description: z.string().optional(),
+          useCases: z.array(z.any()).optional(),
+          imageUrl: z.string().optional(),
+          filePath: z.string().optional(),
+          tags: z.string().optional(),
+          links: z.array(z.object({
+            name: z.string(),
+            url: z.string().url('Invalid URL format')
+          })).optional(),
+          category: z.array(z.string()).optional(),
+          isFree: z.boolean().default(true),
+          price_usd: z
+            .number()
+            .min(0, 'Price must be non-negative')
+            .max(999999, 'Price cannot exceed $999,999 USD')
+            .optional(),
+          sellerWalletAddress: z.string().optional(),
+        })
+        .refine(
+          (data) => {
+            if (!data.isFree && (!data.price_usd || data.price_usd < 0.01)) {
+              return false;
+            }
+            return true;
+          },
+          {
+            message: 'Paid prompts must have a price of at least $0.01 USD',
+            path: ['price_usd'],
+          },
+        ),
     )
     .mutation(async ({ ctx, input }) => {
       if (!input.prompt) {
@@ -260,7 +279,11 @@ const explorerRouter = router({
       const user_id = ctx.session.data.user?.id ?? '';
 
       // Check daily rate limits
-      const dailyLimitCheck = await checkDailyLimit(user_id, 'prompt', !input.isFree);
+      const dailyLimitCheck = await checkDailyLimit(
+        user_id,
+        'prompt',
+        !input.isFree,
+      );
       if (!dailyLimitCheck.allowed) {
         throw new TRPCError({
           code: 'TOO_MANY_REQUESTS',
@@ -286,7 +309,7 @@ const explorerRouter = router({
         'prompt',
         input.name || '',
         input.description || '',
-        input.isFree
+        input.isFree,
       );
 
       if (!validation.isValid) {
@@ -313,28 +336,34 @@ const explorerRouter = router({
       }
 
       try {
-        const prompts = await ctx.supabase.from('swarms_cloud_prompts').insert([
-          {
-            name: input.name,
-            use_cases: input.useCases,
-            prompt: input.prompt,
-            description: input.description,
-            user_id: user_id,
-            image_url: input.imageUrl || null,
-            tags: input.tags,
-            file_path: input.filePath || null,
-            status: 'pending',
-            category: input.category,
-            is_free: input.isFree,
-            price_usd: input.price_usd,
-            seller_wallet_address: input.sellerWalletAddress || null,
-          } as Tables<'swarms_cloud_prompts'>,
-        ]);
+        const prompts = await ctx.supabase
+          .from('swarms_cloud_prompts')
+          .insert([
+            {
+              name: input.name,
+              use_cases: input.useCases,
+              prompt: input.prompt,
+              description: input.description,
+              user_id: user_id,
+              image_url: input.imageUrl || null,
+              tags: input.tags,
+              links: input.links || [],
+              file_path: input.filePath || null,
+              status: 'pending',
+              category: input.category,
+              is_free: input.isFree,
+              price_usd: input.price_usd,
+              seller_wallet_address: input.sellerWalletAddress || null,
+            } as any,
+          ])
+          .select('id')
+          .single();
+
         if (prompts.error) {
           throw prompts.error;
         }
 
-        return true;
+        return { id: prompts.data.id };
       } catch (e) {
         console.error(e);
         throw "Couldn't add prompt";
@@ -357,14 +386,23 @@ const explorerRouter = router({
         isFree: z.boolean().optional(),
         price: z
           .number()
-          .min(0.000001, 'Price must be at least 0.000001 SOL')
-          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .min(0, 'Price must be non-negative')
+          .max(999999, 'Price cannot exceed 999,999')
           .optional(),
-        sellerWalletAddress: z
-          .string()
-          .min(1, 'Wallet address is required for paid items')
-          .optional(),
-      }),
+        sellerWalletAddress: z.string().optional(),
+      })
+      .refine(
+        (data) => {
+          if (data.isFree === false && (!data.price || data.price <= 0)) {
+            return false;
+          }
+          return true;
+        },
+        {
+          message: 'Paid prompts must have a price greater than 0',
+          path: ['price'],
+        },
+      ),
     )
     .mutation(async ({ ctx, input }) => {
       if (!input.prompt) {
@@ -408,7 +446,7 @@ const explorerRouter = router({
           }
         }
         if (input.price !== undefined) {
-          updateData.price = input.price;
+          updateData.price_usd = input.price;
         }
         if (input.sellerWalletAddress !== undefined) {
           updateData.seller_wallet_address = input.sellerWalletAddress || null;
@@ -486,9 +524,14 @@ const explorerRouter = router({
       return model.data;
     }),
   validateAgent: userProcedure
-    .input(z.string())
+    .input(
+      z.object({
+        agent: z.string(),
+        editingId: z.string().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const agent = input;
+      const { agent, editingId } = input;
       // at least 5 characters
       if (agent.length < 5) {
         return {
@@ -498,11 +541,18 @@ const explorerRouter = router({
       }
 
       const user_id = ctx.session.data.user?.id || '';
-      const agentData = await ctx.supabase
+      let query = ctx.supabase
         .from('swarms_cloud_agents')
         .select('*')
         .eq('agent', agent)
         .eq('user_id', user_id);
+
+      // If editing, exclude the current item from the check
+      if (editingId) {
+        query = query.neq('id', editingId);
+      }
+
+      const agentData = await query;
       const exists = (agentData.data ?? [])?.length > 0;
       return {
         valid: !exists,
@@ -512,34 +562,42 @@ const explorerRouter = router({
   // Add agent
   addAgent: userProcedure
     .input(
-      z.object({
-        name: z.string(),
-        agent: z.string(),
-        language: z.string().optional(),
-        description: z.string().optional(),
-        requirements: z.array(z.any()).optional(),
-        useCases: z.array(z.any()).optional(),
-        imageUrl: z.string().optional(),
-        filePath: z.string().optional(),
-        tags: z.string().optional(),
-        category: z.array(z.string()).optional(),
-        isFree: z.boolean().default(true),
-        price_usd: z
-          .number()
-          .min(0, 'Price must be non-negative')
-          .max(999999, 'Price cannot exceed $999,999 USD')
-          .optional(),
-        sellerWalletAddress: z.string().optional(),
-      })
-      .refine((data) => {
-        if (!data.isFree && (!data.price_usd || data.price_usd < 0.01)) {
-          return false;
-        }
-        return true;
-      }, {
-        message: 'Paid agents must have a price of at least $0.01 USD',
-        path: ['price_usd'],
-      }),
+      z
+        .object({
+          name: z.string(),
+          agent: z.string(),
+          language: z.string().optional(),
+          description: z.string().optional(),
+          requirements: z.array(z.any()).optional(),
+          useCases: z.array(z.any()).optional(),
+          imageUrl: z.string().optional(),
+          filePath: z.string().optional(),
+          tags: z.string().optional(),
+          links: z.array(z.object({
+            name: z.string(),
+            url: z.string().url('Invalid URL format')
+          })).optional(),
+          category: z.array(z.string()).optional(),
+          isFree: z.boolean().default(true),
+          price_usd: z
+            .number()
+            .min(0, 'Price must be non-negative')
+            .max(999999, 'Price cannot exceed $999,999 USD')
+            .optional(),
+          sellerWalletAddress: z.string().optional(),
+        })
+        .refine(
+          (data) => {
+            if (!data.isFree && (!data.price_usd || data.price_usd < 0.01)) {
+              return false;
+            }
+            return true;
+          },
+          {
+            message: 'Paid agents must have a price of at least $0.01 USD',
+            path: ['price_usd'],
+          },
+        ),
     )
     .mutation(async ({ ctx, input }) => {
       if (!input.description) {
@@ -554,7 +612,11 @@ const explorerRouter = router({
       const user_id = ctx.session.data.user?.id ?? '';
 
       // Check daily rate limits
-      const dailyLimitCheck = await checkDailyLimit(user_id, 'agent', !input.isFree);
+      const dailyLimitCheck = await checkDailyLimit(
+        user_id,
+        'agent',
+        !input.isFree,
+      );
       if (!dailyLimitCheck.allowed) {
         throw new TRPCError({
           code: 'TOO_MANY_REQUESTS',
@@ -580,7 +642,7 @@ const explorerRouter = router({
         'agent',
         input.name || '',
         input.description || '',
-        input.isFree
+        input.isFree,
       );
 
       if (!validation.isValid) {
@@ -610,30 +672,36 @@ const explorerRouter = router({
       }
 
       try {
-        const agents = await ctx.supabase.from('swarms_cloud_agents').insert([
-          {
-            name: input.name || null,
-            description: input.description || null,
-            user_id: user_id,
-            use_cases: input.useCases,
-            agent: input.agent,
-            requirements: input.requirements,
-            tags: input.tags || null,
-            language: input.language,
-            image_url: input.imageUrl || null,
-            file_path: input.filePath || null,
-            status: 'pending',
-            category: input.category,
-            is_free: input.isFree,
-            price_usd: input.price_usd,
-            seller_wallet_address: input.sellerWalletAddress || null,
-          } as Tables<'swarms_cloud_agents'>,
-        ]);
+        const agents = await ctx.supabase
+          .from('swarms_cloud_agents')
+          .insert([
+            {
+              name: input.name || null,
+              description: input.description || null,
+              user_id: user_id,
+              use_cases: input.useCases,
+              agent: input.agent,
+              requirements: input.requirements,
+              tags: input.tags || null,
+              links: input.links || [],
+              language: input.language,
+              image_url: input.imageUrl || null,
+              file_path: input.filePath || null,
+              status: 'pending',
+              category: input.category,
+              is_free: input.isFree,
+              price_usd: input.price_usd,
+              seller_wallet_address: input.sellerWalletAddress || null,
+            } as any,
+          ])
+          .select('id')
+          .single();
+
         if (agents.error) {
           throw agents.error;
         }
 
-        return true;
+        return { id: agents.data.id };
       } catch (e) {
         console.error(e);
         throw "Couldn't add agent";
@@ -657,14 +725,23 @@ const explorerRouter = router({
         isFree: z.boolean().optional(),
         price: z
           .number()
-          .min(0.000001, 'Price must be at least 0.000001 SOL')
-          .max(999999, 'Price cannot exceed 999,999 SOL')
+          .min(0, 'Price must be non-negative')
+          .max(999999, 'Price cannot exceed 999,999')
           .optional(),
-        sellerWalletAddress: z
-          .string()
-          .min(1, 'Wallet address is required for paid items')
-          .optional(),
-      }),
+        sellerWalletAddress: z.string().optional(),
+      })
+      .refine(
+        (data) => {
+          if (data.isFree === false && (!data.price || data.price <= 0)) {
+            return false;
+          }
+          return true;
+        },
+        {
+          message: 'Paid agents must have a price greater than 0',
+          path: ['price'],
+        },
+      ),
     )
     .mutation(async ({ ctx, input }) => {
       if (!input.description) {
@@ -710,7 +787,7 @@ const explorerRouter = router({
           }
         }
         if (input.price !== undefined) {
-          updateData.price = input.price;
+          updateData.price_usd = input.price;
         }
         if (input.sellerWalletAddress !== undefined) {
           updateData.seller_wallet_address = input.sellerWalletAddress || null;
@@ -767,9 +844,14 @@ const explorerRouter = router({
     }),
   //tools
   validateTool: userProcedure
-    .input(z.string())
+    .input(
+      z.object({
+        tool: z.string(),
+        editingId: z.string().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const tool = input;
+      const { tool, editingId } = input;
       if (tool.length < 3) {
         return {
           error: 'Tool should be at least 3 characters',
@@ -778,11 +860,18 @@ const explorerRouter = router({
       }
 
       const user_id = ctx.session.data.user?.id || '';
-      const toolData = await ctx.supabase
+      let query = ctx.supabase
         .from('swarms_cloud_tools')
         .select('*')
         .eq('tool', tool)
         .eq('user_id', user_id);
+
+      // If editing, exclude the current item from the check
+      if (editingId) {
+        query = query.neq('id', editingId);
+      }
+
+      const toolData = await query;
       const exists = (toolData.data ?? [])?.length > 0;
       return {
         valid: !exists,
@@ -800,6 +889,10 @@ const explorerRouter = router({
         requirements: z.array(z.any()),
         useCases: z.array(z.any()),
         tags: z.string().optional(),
+        links: z.array(z.object({
+          name: z.string(),
+          url: z.string().url('Invalid URL format')
+        })).optional(),
         category: z.array(z.string()).optional(),
         imageUrl: z.string().optional(),
         filePath: z.string().optional(),
@@ -835,26 +928,32 @@ const explorerRouter = router({
       }
 
       try {
-        const tools = await ctx.supabase.from('swarms_cloud_tools').insert([
-          {
-            name: input.name || null,
-            description: input.description || null,
-            user_id: user_id,
-            use_cases: input.useCases,
-            tool: input.tool,
-            requirements: input.requirements,
-            tags: input.tags || null,
-            language: input.language,
-            status: 'pending',
-            category: input.category,
-            image_url: input.imageUrl || null,
-            file_path: input.filePath || null,
-          } as Tables<'swarms_cloud_tools'>,
-        ]);
+        const tools = await ctx.supabase
+          .from('swarms_cloud_tools')
+          .insert([
+            {
+              name: input.name || null,
+              description: input.description || null,
+              user_id: user_id,
+              use_cases: input.useCases,
+              tool: input.tool,
+              requirements: input.requirements,
+              tags: input.tags || null,
+              links: input.links || [],
+              language: input.language,
+              status: 'pending',
+              category: input.category,
+              image_url: input.imageUrl || null,
+              file_path: input.filePath || null,
+            } as any,
+          ])
+          .select('id')
+          .single();
+
         if (tools.error) {
           throw tools.error;
         }
-        return true;
+        return { id: tools.data.id };
       } catch (e) {
         console.error(e);
         throw "Couldn't add tool";
@@ -903,7 +1002,7 @@ const explorerRouter = router({
             category: input.category,
             image_url: input.imageUrl || null,
             file_path: input.filePath || null,
-          } as Tables<'swarms_cloud_tools'>)
+          })
           .eq('user_id', user_id)
           .eq('id', input.id)
           .select('*');
@@ -1396,8 +1495,10 @@ const explorerRouter = router({
   getTopUsers: publicProcedure
     .input(
       z.object({
-        category: z.enum(['total', 'prompts', 'agents', 'tools']).default('total'),
-        limit: z.number().min(1).max(50).default(10)
+        category: z
+          .enum(['total', 'prompts', 'agents', 'tools'])
+          .default('total'),
+        limit: z.number().min(1).max(50).default(10),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -1405,47 +1506,55 @@ const explorerRouter = router({
       const startTime = Date.now();
 
       try {
-        const { data: rpcResult, error: rpcError } = await ctx.supabase
-          .rpc('get_top_users_optimized', {
+        const { data: rpcResult, error: rpcError } = await ctx.supabase.rpc(
+          'get_top_users_optimized',
+          {
             category_filter: category,
-            result_limit: limit
-          });
+            result_limit: limit,
+          },
+        );
 
         if (rpcError) {
-          console.warn('RPC function failed, falling back to manual aggregation:', rpcError);
+          console.warn(
+            'RPC function failed, falling back to manual aggregation:',
+            rpcError,
+          );
           return getTopUsersFallback(ctx, category, limit);
         }
 
         if (!rpcResult || rpcResult.length === 0) {
-          console.log(`getTopUsers (RPC) completed in ${Date.now() - startTime}ms, returned 0 users for category: ${category}`);
+          console.log(
+            `getTopUsers (RPC) completed in ${Date.now() - startTime}ms, returned 0 users for category: ${category}`,
+          );
           return [];
         }
 
         const userIds = rpcResult.map((row: any) => row.result_user_id);
 
-        const [usersResult, promptsResult, agentsResult, toolsResult] = await Promise.all([
-          ctx.supabase
-            .from('users')
-            .select('id, username, full_name, avatar_url')
-            .in('id', userIds)
-            .not('username', 'is', null)
-            .neq('username', ''),
-          ctx.supabase
-            .from('swarms_cloud_prompts')
-            .select('id, user_id, name, created_at')
-            .in('user_id', userIds)
-            .order('created_at', { ascending: false }),
-          ctx.supabase
-            .from('swarms_cloud_agents')
-            .select('id, user_id, name, created_at')
-            .in('user_id', userIds)
-            .order('created_at', { ascending: false }),
-          ctx.supabase
-            .from('swarms_cloud_tools')
-            .select('id, user_id, name, created_at')
-            .in('user_id', userIds)
-            .order('created_at', { ascending: false })
-        ]);
+        const [usersResult, promptsResult, agentsResult, toolsResult] =
+          await Promise.all([
+            ctx.supabase
+              .from('users')
+              .select('id, username, full_name, avatar_url')
+              .in('id', userIds)
+              .not('username', 'is', null)
+              .neq('username', ''),
+            ctx.supabase
+              .from('swarms_cloud_prompts')
+              .select('id, user_id, name, created_at')
+              .in('user_id', userIds)
+              .order('created_at', { ascending: false }),
+            ctx.supabase
+              .from('swarms_cloud_agents')
+              .select('id, user_id, name, created_at')
+              .in('user_id', userIds)
+              .order('created_at', { ascending: false }),
+            ctx.supabase
+              .from('swarms_cloud_tools')
+              .select('id, user_id, name, created_at')
+              .in('user_id', userIds)
+              .order('created_at', { ascending: false }),
+          ]);
 
         if (usersResult.error) throw usersResult.error;
         if (promptsResult.error) throw promptsResult.error;
@@ -1476,12 +1585,16 @@ const explorerRouter = router({
           .filter(Boolean);
 
         const endTime = Date.now();
-        console.log(`getTopUsers (RPC) completed in ${endTime - startTime}ms, returned ${result.length}/${limit} users for category: ${category}`);
+        console.log(
+          `getTopUsers (RPC) completed in ${endTime - startTime}ms, returned ${result.length}/${limit} users for category: ${category}`,
+        );
 
         return result;
-
       } catch (error) {
-        console.error('getTopUsers (RPC) failed, falling back to manual aggregation:', error);
+        console.error(
+          'getTopUsers (RPC) failed, falling back to manual aggregation:',
+          error,
+        );
         return getTopUsersFallback(ctx, category, limit);
       }
     }),
@@ -1496,19 +1609,19 @@ const explorerRouter = router({
           .select('*', { count: 'exact', head: true }),
         ctx.supabase
           .from('swarms_cloud_tools')
-          .select('*', { count: 'exact', head: true })
+          .select('*', { count: 'exact', head: true }),
       ]);
 
       return {
         prompts: promptsResult.count || 0,
         agents: agentsResult.count || 0,
-        tools: toolsResult.count || 0
+        tools: toolsResult.count || 0,
       };
     } catch (error) {
       console.error('Error fetching marketplace stats:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to fetch marketplace statistics'
+        message: 'Failed to fetch marketplace statistics',
       });
     }
   }),
@@ -1527,7 +1640,7 @@ async function getTopUsersFallback(ctx: any, category: string, limit: number) {
       .select('id, user_id, name, created_at'),
     ctx.supabase
       .from('swarms_cloud_tools')
-      .select('id, user_id, name, created_at')
+      .select('id, user_id, name, created_at'),
   ]);
 
   if (promptsResult.error) throw promptsResult.error;
@@ -1542,7 +1655,7 @@ async function getTopUsersFallback(ctx: any, category: string, limit: number) {
   const allUserIds = new Set([
     ...prompts.map((p: any) => p.user_id),
     ...agents.map((a: any) => a.user_id),
-    ...tools.map((t: any) => t.user_id)
+    ...tools.map((t: any) => t.user_id),
   ]);
 
   const uniqueUserIds = Array.from(allUserIds);
@@ -1601,7 +1714,9 @@ async function getTopUsersFallback(ctx: any, category: string, limit: number) {
   const result = sortedUsers.slice(0, limit);
 
   const endTime = Date.now();
-  console.log(`getTopUsers completed in ${endTime - startTime}ms, returned ${result.length} users for category: ${category}`);
+  console.log(
+    `getTopUsers completed in ${endTime - startTime}ms, returned ${result.length} users for category: ${category}`,
+  );
 
   return result;
 }

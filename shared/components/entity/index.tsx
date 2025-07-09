@@ -1,7 +1,7 @@
 'use client';
 // Todo: Add the ability to hover over buttons and get copy from text, markdown, and more!
 import React, { PropsWithChildren, useState, useTransition } from 'react';
-import Card3D, { CardBody, CardItem } from '@/shared/components/3d-card';
+
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import {
   Copy,
@@ -9,7 +9,6 @@ import {
   Share,
   Star,
   FileDown,
-  Bookmark,
   Info,
   MessageSquare,
   Download,
@@ -17,7 +16,10 @@ import {
   Stars,
   Bot,
   ExternalLink,
-} from 'lucide-react'; 
+  Globe,
+  FileText,
+  Link,
+} from 'lucide-react';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { usePathname } from 'next/navigation';
 import Avatar from '@/shared/components/avatar';
@@ -46,10 +48,21 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import BookmarkButton from '@/shared/components/bookmark-button';
 import RecommendedItems from './recommended-items';
+import TwitterX from '@/shared/components/icons/TwitterX';
+import GitHub from '@/shared/components/icons/GitHub';
+import LinkedIn from '@/shared/components/icons/LinkedIn';
+import Discord from '@/shared/components/icons/Discord';
+import YouTube from '@/shared/components/icons/YouTube';
+import Telegram from '@/shared/components/icons/Telegram';
 
 type UseCasesProps = { title: string; description: string };
 
 type EntityType = 'agent' | 'prompt' | 'tool';
+
+interface LinkItem {
+  name: string;
+  url: string;
+}
 
 interface Entity extends PropsWithChildren {
   id?: string;
@@ -63,6 +76,7 @@ interface Entity extends PropsWithChildren {
   imageUrl?: string;
   requirements?: RequirementProps[];
   userId?: string | null;
+  links?: LinkItem[] | null;
 }
 
 const CommentList = dynamic(() => import('@/shared/components/comments'), {
@@ -162,6 +176,93 @@ const CustomPre = (props: React.HTMLAttributes<HTMLPreElement>) => (
   <pre id="customPreTag" {...props} />
 );
 
+function EntityLinks({ links }: { links: LinkItem[] }) {
+  const getIconForLink = (name: string) => {
+    const normalizedName = name.toLowerCase().trim();
+
+    switch (normalizedName) {
+      case 'github':
+        return <GitHub className="h-4 w-4" />;
+      case 'twitter':
+      case 'x':
+        return <TwitterX className="h-4 w-4" />;
+      case 'linkedin':
+        return <LinkedIn className="h-4 w-4" />;
+      case 'youtube':
+        return <YouTube className="h-4 w-4" />;
+      case 'website':
+      case 'site':
+        return <Globe className="h-4 w-4" />;
+      case 'documentation':
+      case 'docs':
+        return <FileText className="h-4 w-4" />;
+      case 'blog':
+        return <FileText className="h-4 w-4" />;
+      case 'discord':
+        return <Discord className="h-4 w-4" />;
+      case 'telegram':
+        return <Telegram className="h-4 w-4" />;
+      default:
+        return <Link className="h-4 w-4" />;
+    }
+  };
+
+  const getThemeColors = (name: string) => {
+    const normalizedName = name.toLowerCase().trim();
+
+    switch (normalizedName) {
+      case 'github':
+        return 'bg-gray-100 dark:bg-gray-800/50 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600 text-[#181717] dark:text-gray-300 hover:text-[#181717] dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-500 transform hover:scale-105 hover:shadow-md';
+      case 'twitter':
+        return 'bg-[#1DA1F2]/10 dark:bg-[#1DA1F2]/20 hover:bg-[#1DA1F2]/20 dark:hover:bg-[#1DA1F2]/30 border-[#1DA1F2]/30 dark:border-[#1DA1F2]/50 text-[#1DA1F2] dark:text-[#1DA1F2] hover:text-[#1DA1F2] hover:border-[#1DA1F2]/50 dark:hover:border-[#1DA1F2]/70 transform hover:scale-105 hover:shadow-md';
+      case 'x':
+        return 'bg-gray-100 dark:bg-gray-800/50 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600 text-black dark:text-white hover:text-black dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-500 transform hover:scale-105 hover:shadow-md';
+      case 'linkedin':
+        return 'bg-[#0A66C2]/10 dark:bg-[#0A66C2]/20 hover:bg-[#0A66C2]/20 dark:hover:bg-[#0A66C2]/30 border-[#0A66C2]/30 dark:border-[#0A66C2]/50 text-[#0A66C2] dark:text-[#0A66C2] hover:text-[#0A66C2] hover:border-[#0A66C2]/50 dark:hover:border-[#0A66C2]/70 transform hover:scale-105 hover:shadow-md';
+      case 'youtube':
+        return 'bg-[#FF0000]/10 dark:bg-[#FF0000]/20 hover:bg-[#FF0000]/20 dark:hover:bg-[#FF0000]/30 border-[#FF0000]/30 dark:border-[#FF0000]/50 text-[#FF0000] dark:text-[#FF0000] hover:text-[#FF0000] hover:border-[#FF0000]/50 dark:hover:border-[#FF0000]/70 transform hover:scale-105 hover:shadow-md';
+      case 'discord':
+        return 'bg-[#5865F2]/10 dark:bg-[#5865F2]/20 hover:bg-[#5865F2]/20 dark:hover:bg-[#5865F2]/30 border-[#5865F2]/30 dark:border-[#5865F2]/50 text-[#5865F2] dark:text-[#5865F2] hover:text-[#5865F2] hover:border-[#5865F2]/50 dark:hover:border-[#5865F2]/70 transform hover:scale-105 hover:shadow-md';
+      case 'telegram':
+        return 'bg-[#0088cc]/10 dark:bg-[#0088cc]/20 hover:bg-[#0088cc]/20 dark:hover:bg-[#0088cc]/30 border-[#0088cc]/30 dark:border-[#0088cc]/50 text-[#0088cc] dark:text-[#0088cc] hover:text-[#0088cc] hover:border-[#0088cc]/50 dark:hover:border-[#0088cc]/70 transform hover:scale-105 hover:shadow-md';
+      case 'website':
+      case 'site':
+        return 'bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-900/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:border-green-300 dark:hover:border-green-700 transform hover:scale-105 hover:shadow-md';
+      case 'documentation':
+      case 'docs':
+        return 'bg-purple-50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:border-purple-300 dark:hover:border-purple-700 transform hover:scale-105 hover:shadow-md';
+      case 'blog':
+        return 'bg-orange-50 dark:bg-orange-950/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 hover:border-orange-300 dark:hover:border-orange-700 transform hover:scale-105 hover:shadow-md';
+      default:
+        return 'bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:text-zinc-800 dark:hover:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-500 transform hover:scale-105 hover:shadow-md';
+    }
+  };
+
+  const handleLinkClick = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  if (!links || links.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {links.map((link, index) => (
+        <button
+          key={index}
+          onClick={() => handleLinkClick(link.url)}
+          className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-colors duration-200 ${getThemeColors(link.name)}`}
+          title={`${link.name}: ${link.url}`}
+        >
+          {getIconForLink(link.name)}
+          <span>{link.name}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function EntityComponent({
   id,
   title,
@@ -175,6 +276,7 @@ export default function EntityComponent({
   children,
   userId,
   imageUrl,
+  links,
 }: Entity) {
   const toast = useToast();
   const user = trpc.main.getUser.useQuery(undefined, {
@@ -742,6 +844,19 @@ print(result)`;
               </div>
             )}
           </div>
+
+          {/* Links Section */}
+          {links && links.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Link className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                  Related Links
+                </span>
+              </div>
+              <EntityLinks links={links} />
+            </div>
+          )}
         </div>
       </section>
 

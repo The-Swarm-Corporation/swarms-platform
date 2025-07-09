@@ -35,6 +35,7 @@ const Tool = async ({ id }: { id: string }) => {
       imageUrl={tool.image_url ?? ''}
       requirements={requirements}
       userId={tool.user_id ?? ''}
+      links={tool.links as { name: string; url: string }[] | null}
     >
       <ToolPlayground language={tool.language ?? ''} agent={tool.tool ?? ''} />
     </EntityComponent>

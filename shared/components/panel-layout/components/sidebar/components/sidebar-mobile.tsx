@@ -51,19 +51,16 @@ const SidebarMobile = () => {
     <div className="lg:hidden">
       <Drawer direction="left">
         <DrawerTrigger asChild>
-          <div className="flex items-center w-fit h-20 bg-transparent top-0 fixed z-[10000] ">
+          <div className="flex items-center w-fit h-[60px] bg-transparent top-0 fixed z-[10000] ">
             <Button className="text-foreground gap-5" variant="link">
               <AlignLeft className="mb-1.5" />
             </Button>
           </div>
         </DrawerTrigger>
         <DrawerContent className="flex flex-col h-full w-[300px] mt-24 fixed bottom-0 rounded-none">
-          <div className="p-4 bg-background flex-1 h-full flex flex-col gap-4">
-            <div className="flex gap-2 items-center">
-              <div className="flex items-center w-[40px] h-[40px] min-w-[40px]">
-                <Logo />
-              </div>
-              <h2 className="font-bold text-primary">SWARMS</h2>
+          <div className="p-4 pt-2 bg-background flex-1 h-full flex flex-col gap-4 border-r border-gray-800">
+            <div className="flex items-center w-10 h-10 min-w-10">
+              <Logo />
             </div>
 
             <DrawerClose className="absolute top-4 right-4">

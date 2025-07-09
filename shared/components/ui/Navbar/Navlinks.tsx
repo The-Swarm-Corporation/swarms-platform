@@ -55,9 +55,8 @@ export default function Navlinks() {
   return (
     <div className="relative flex flex-row justify-between py-2 align-center md:py-6 px-4">
       <div className="flex flex-shrink-0 items-center">
-        {/* desktop */}
         <motion.div
-          className="flex items-center w-[40px] h-[40px] min-w-[40px] max-md:hidden"
+          className="flex items-center w-[32px] h-[32px] md:w-[40px] md:h-[40px] min-w-[32px] md:min-w-[40px] mr-2 md:mr-0"
           whileHover={{ rotate: 360 }}
           transition={{ duration: 0.5 }}
         >
@@ -128,15 +127,17 @@ export default function Navlinks() {
           <Drawer direction="left">
             <DrawerTrigger asChild>
               <Button
-                className="text-white p-0 hover:bg-white/10 rounded-full"
+                className="text-white p-2 hover:bg-white/10 rounded-md border border-white/10 hover:border-primary/50 transition-all duration-300"
                 variant="ghost"
+                size="sm"
+                aria-label="Open navigation menu"
               >
-                <Menu />
+                <Menu className="w-5 h-5" />
               </Button>
             </DrawerTrigger>
 
-            <DrawerContent className="flex flex-col h-full w-[300px] mt-24 fixed bottom-0 rounded-none backdrop-blur-xl bg-background/80 border-r border-white/10">
-              <div className="p-4 flex-1 h-full flex flex-col gap-4">
+            <DrawerContent className="flex flex-col h-full w-[280px] sm:w-[300px] mt-16 md:mt-24 fixed bottom-0 rounded-none backdrop-blur-xl bg-background/80 border-r border-white/10">
+              <div className="p-3 sm:p-4 flex-1 h-full flex flex-col gap-3 sm:gap-4 overflow-y-auto">
                 <div className="flex gap-2 items-center">
                   <motion.div
                     className="flex items-center w-[40px] h-[40px] min-w-[40px]"
@@ -145,7 +146,7 @@ export default function Navlinks() {
                   >
                     <Logo />
                   </motion.div>
-                  <h2 className="font-bold text-primary bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                  <h2 className="font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                     SWARMS
                   </h2>
                 </div>

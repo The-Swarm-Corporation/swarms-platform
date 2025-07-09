@@ -6,7 +6,6 @@ import Input from '@/shared/components/ui/Input/Input';
 import MultiSelect from '@/shared/components/ui/multi-select';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { explorerCategories } from '@/shared/utils/constants';
-import { launchConfetti } from '@/shared/utils/helpers';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useModelFileUpload } from '../hook/upload-file';
@@ -15,6 +14,9 @@ import ModelFileUpload from './upload-image';
 import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
 import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
 import { getSolPrice } from '@/shared/services/sol-price';
+import { Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { validateLinksArray, getSuggestedUrlPattern, type LinkItem } from '@/shared/utils/link-validation';
 
 interface Props {
   isOpen: boolean;
@@ -37,12 +39,26 @@ const AddPromptModal = ({
   const [tags, setTags] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [isFree, setIsFree] = useState(true);
   const [priceUsd, setPriceUsd] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [solPrice, setSolPrice] = useState<number | null>(null);
   const [isConvertingPrice, setIsConvertingPrice] = useState(false);
+  const [links, setLinks] = useState<LinkItem[]>([
+    { name: '', url: '' },
+  ]);
+  const [linkErrors, setLinkErrors] = useState<string>('');
+  const router = useRouter();
+
+
+
+  useEffect(() => {
+    if (!isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
 
   const {
     image,
@@ -61,6 +77,33 @@ const AddPromptModal = ({
 
   const handleCategoriesChange = (selectedCategories: string[]) => {
     setCategories(selectedCategories);
+  };
+
+  const addLink = () => {
+    setLinks([...links, { name: '', url: '' }]);
+  };
+
+  const removeLink = (index: number) => {
+    if (links.length > 1) {
+      setLinks(links.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateLink = (index: number, field: 'name' | 'url', value: string) => {
+    const newLinks = [...links];
+    newLinks[index][field] = value;
+    setLinks(newLinks);
+
+    if (linkErrors) {
+      setLinkErrors('');
+    }
+
+    if (field === 'url' && value.trim()) {
+      const linkValidation = validateLinksArray([{ name: newLinks[index].name, url: value }]);
+      if (!linkValidation.isValid) {
+        setLinkErrors(`Link ${index + 1}: ${linkValidation.error}`);
+      }
+    }
   };
 
   const toast = useToast();
@@ -124,23 +167,23 @@ const AddPromptModal = ({
 
   const resetForm = useCallback(() => {
     setPromptName('');
-    setDescription('');
     setPrompt('');
+    setDescription('');
     setTags('');
     setCategories([]);
+    setIsLoading(false);
+    setIsRedirecting(false);
     setIsFree(true);
     setPriceUsd('');
     setWalletAddress('');
-    setSolPrice(null);
-    setIsLoading(false);
+    setLinks([{ name: '', url: '' }]);
+    setLinkErrors('');
     setIsValidating(false);
+    setSolPrice(null);
     setIsConvertingPrice(false);
 
     validation.reset();
-
     validatePrompt.reset();
-
-    setIsValidating(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -256,6 +299,19 @@ const AddPromptModal = ({
       .filter(Boolean)
       .join(',');
 
+    const filteredLinks = links.filter(link => link.name.trim() && link.url.trim());
+    const linkValidation = validateLinksArray(filteredLinks);
+    if (!linkValidation.isValid) {
+      setLinkErrors(linkValidation.error || 'Invalid links');
+      toast.toast({
+        title: 'Invalid links',
+        description: linkValidation.error,
+        variant: 'destructive',
+      });
+      return;
+    }
+    setLinkErrors('');
+
     setIsLoading(true);
 
     // Add prompt
@@ -274,21 +330,42 @@ const AddPromptModal = ({
           },
         ],
         tags: trimTags,
+        links: filteredLinks,
         isFree,
         price_usd: isFree ? 0 : parseFloat(priceUsd),
         sellerWalletAddress: isFree ? '' : walletAddress,
       })
-      .then(async () => {
+      .then(async (result) => {
+        setIsLoading(false);
+
         toast.toast({
           title: 'Prompt added successfully 🎉',
         });
 
-        //celeberate the confetti
-        launchConfetti();
-        onAddSuccessfully();
-        setJustSubmitted(true);
-        resetForm();
-        onClose();
+        if (result?.id) {
+          setIsRedirecting(true);
+
+          toast.toast({
+            title: 'Redirecting to your prompt...',
+            description: 'This may take a moment. You can close this modal if it takes too long.',
+            duration: 5000,
+          });
+
+          router.push(`/prompt/${result.id}`);
+
+          setTimeout(() => {
+            setIsRedirecting(false);
+            toast.toast({
+              title: 'Taking longer than expected?',
+              description: 'You can close this modal and navigate manually.',
+              duration: 3000,
+            });
+          }, 8000);
+        } else {
+          onAddSuccessfully();
+          resetForm();
+          onClose();
+        }
       })
       .catch((error) => {
         console.log({ error });
@@ -325,6 +402,7 @@ const AddPromptModal = ({
           variant: 'destructive',
         });
         setIsLoading(false);
+        setIsRedirecting(false);
 
         addPrompt.reset();
       });
@@ -412,7 +490,7 @@ const AddPromptModal = ({
                 if (prompt.trim().length >= 5) {
                   setIsValidating(true);
                   try {
-                    await validatePrompt.mutateAsync(prompt);
+                    await validatePrompt.mutateAsync({ prompt });
                   } catch (error) {
                     validatePrompt.reset();
                   } finally {
@@ -486,6 +564,57 @@ const AddPromptModal = ({
             onChange={handleCategoriesChange}
             placeholder="Select categories"
           />
+        </div>
+
+        <div className="flex flex-col gap-1 mt-2">
+          <div className="flex items-center justify-between">
+            <span>Add Links</span>
+            <button
+              type="button"
+              onClick={addLink}
+              className="flex items-center gap-1 text-red-500 hover:text-red-400 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Link
+            </button>
+          </div>
+          {linkErrors && (
+            <div className="text-red-500 text-sm mb-2">
+              {linkErrors}
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            {links.map((link, index) => (
+              <div key={index} className="flex gap-4 items-center">
+                <span className="w-10">🔗 {index + 1}</span>
+                <div className="w-full flex flex-col md:flex-row gap-1 py-2">
+                  <Input
+                    value={link.name}
+                    onChange={(value) => updateLink(index, 'name', value)}
+                    placeholder="Link name (e.g., GitHub, Twitter)"
+                    className="border border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-400"
+                  />
+                  <Input
+                    value={link.url}
+                    onChange={(value) => updateLink(index, 'url', value)}
+                    placeholder={link.name ? getSuggestedUrlPattern(link.name) : "https://example.com"}
+                    className="border border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-400"
+                  />
+                </div>
+                <div className="w-4">
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => removeLink(index)}
+                      className="text-red-500 text-sm hover:text-red-400"
+                    >
+                      ❌
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col gap-1 mt-4">
@@ -662,19 +791,34 @@ const AddPromptModal = ({
         </div>
 
         <div className="flex justify-between mt-4">
-          <Button
-            variant="outline"
-            onClick={resetForm}
-            disabled={addPrompt.isPending || isLoading}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            Clear Form
-          </Button>
+          {isRedirecting ? (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsRedirecting(false);
+                resetForm();
+                onClose();
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Close Modal
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={resetForm}
+              disabled={addPrompt.isPending || isLoading}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Clear Form
+            </Button>
+          )}
 
           <Button
             disabled={
               addPrompt.isPending ||
               isLoading ||
+              isRedirecting ||
               isValidating ||
               validatePrompt.isPending ||
               (!isFree && checkTrustworthiness.isLoading) ||
@@ -685,13 +829,15 @@ const AddPromptModal = ({
             onClick={submit}
             className="w-40"
           >
-            {addPrompt.isPending || isLoading
-              ? 'Submitting...'
-              : isValidating || validatePrompt.isPending
-                ? 'Validating...'
-                : !isFree && checkTrustworthiness.isLoading
-                  ? 'Checking...'
-                  : 'Submit Prompt'}
+            {isRedirecting
+              ? 'Redirecting...'
+              : addPrompt.isPending || isLoading
+                ? 'Submitting...'
+                : isValidating || validatePrompt.isPending
+                  ? 'Validating...'
+                  : !isFree && checkTrustworthiness.isLoading
+                    ? 'Checking...'
+                    : 'Submit Prompt'}
           </Button>
         </div>
       </div>

@@ -14,10 +14,14 @@ import {
 } from '@/shared/components/ui/select';
 import { explorerCategories, languageOptions } from '@/shared/utils/constants';
 import MultiSelect from '@/shared/components/ui/multi-select';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useModelFileUpload } from '../hook/upload-file';
 import ModelFileUpload from './upload-image';
+import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
+import { validateLinksArray, getSuggestedUrlPattern, type LinkItem } from '@/shared/utils/link-validation';
 
 interface Props {
   isOpen: boolean;
@@ -40,6 +44,38 @@ const AddToolModal = ({
   const [language, setLanguage] = useState('python');
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [requirements, setRequirements] = useState([
+    { package: '', installation: '' },
+  ]);
+  const [links, setLinks] = useState<LinkItem[]>([
+    { name: '', url: '' },
+  ]);
+  const [linkErrors, setLinkErrors] = useState<string>('');
+  const router = useRouter();
+
+  const validation = useMarketplaceValidation();
+
+  const resetForm = () => {
+    setToolName('');
+    setTool('');
+    setDescription('');
+    setTags('');
+    setCategories([]);
+    setIsLoading(false);
+    setIsRedirecting(false);
+    setLinks([{ name: '', url: '' }]);
+    setLanguage('python');
+    setRequirements([{ package: '', installation: '' }]);
+    setLinkErrors('');
+    validation.reset();
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
 
   const {
     image,
@@ -58,14 +94,56 @@ const AddToolModal = ({
 
   const debouncedCheckPrompt = useMemo(() => {
     const debouncedFn = debounce((value: string) => {
-      validateTool.mutateAsync(value);
+      validateTool.mutateAsync({ tool: value });
     }, 400);
     return debouncedFn;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [validateTool.mutateAsync]);
 
   const handleCategoriesChange = (selectedCategories: string[]) => {
     setCategories(selectedCategories);
+  };
+
+  const addRequirement = () => {
+    setRequirements([...requirements, { package: '', installation: '' }]);
+  };
+
+  const removeRequirement = (index: number) => {
+    if (requirements.length > 1) {
+      setRequirements(requirements.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateRequirement = (index: number, field: 'package' | 'installation', value: string) => {
+    const newRequirements = [...requirements];
+    newRequirements[index][field] = value;
+    setRequirements(newRequirements);
+  };
+
+  const addLink = () => {
+    setLinks([...links, { name: '', url: '' }]);
+  };
+
+  const removeLink = (index: number) => {
+    if (links.length > 1) {
+      setLinks(links.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateLink = (index: number, field: 'name' | 'url', value: string) => {
+    const newLinks = [...links];
+    newLinks[index][field] = value;
+    setLinks(newLinks);
+
+    if (linkErrors) {
+      setLinkErrors('');
+    }
+
+    if (field === 'url' && value.trim()) {
+      const linkValidation = validateLinksArray([{ name: newLinks[index].name, url: value }]);
+      if (!linkValidation.isValid) {
+        setLinkErrors(`Link ${index + 1}: ${linkValidation.error}`);
+      }
+    }
   };
 
   const toast = useToast();
@@ -245,6 +323,19 @@ const AddToolModal = ({
       .filter(Boolean)
       .join(',');
 
+    const filteredLinks = links.filter(link => link.name.trim() && link.url.trim());
+    const linkValidation = validateLinksArray(filteredLinks);
+    if (!linkValidation.isValid) {
+      setLinkErrors(linkValidation.error || 'Invalid links');
+      toast.toast({
+        title: 'Invalid links',
+        description: linkValidation.error,
+        variant: 'destructive',
+      });
+      return;
+    }
+    setLinkErrors('');
+
     setIsLoading(true);
 
     // Add Tool
@@ -258,21 +349,41 @@ const AddToolModal = ({
         category: categories,
         imageUrl: imageUrl || undefined,
         filePath: imageUrl && filePath ? filePath : undefined,
-        requirements: [{ package: '', installation: '' }],
+        requirements: requirements.filter(req => req.package.trim() && req.installation.trim()),
         tags: trimTags,
+        links: filteredLinks,
       })
-      .then(async () => {
+      .then(async (result) => {
+        setIsLoading(false);
+
         toast.toast({
           title: 'Tool added successfully 🎉',
         });
 
-        onClose();
-        onAddSuccessfully();
-        // Reset form
-        setToolName('');
-        setTool('');
-        setDescription('');
-        setTags('');
+        if (result?.id) {
+          setIsRedirecting(true);
+
+          toast.toast({
+            title: 'Redirecting to your tool...',
+            description: 'This may take a moment. You can close this modal if it takes too long.',
+            duration: 5000,
+          });
+
+          router.push(`/tool/${result.id}`);
+
+          setTimeout(() => {
+            setIsRedirecting(false);
+            toast.toast({
+              title: 'Taking longer than expected?',
+              description: 'You can close this modal and navigate manually.',
+              duration: 3000,
+            });
+          }, 8000);
+        } else {
+          onAddSuccessfully();
+          resetForm();
+          onClose();
+        }
       })
       .catch((error) => {
         console.log({ error });
@@ -280,6 +391,7 @@ const AddToolModal = ({
           title: 'An error has occurred',
         });
         setIsLoading(false);
+        setIsRedirecting(false);
       });
   };
 
@@ -299,9 +411,19 @@ const AddToolModal = ({
             <Input
               value={toolName}
               onChange={setToolName}
+              onBlur={() => validation.validateOnBlur('name')}
               placeholder="Enter name"
-              className="border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400"
+              className={`border ${
+                validation.fields.name?.error
+                  ? 'border-red-500'
+                  : 'border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400'
+              }`}
             />
+            {validation.fields.name?.error && (
+              <span className="text-red-500 text-sm mt-1">
+                {validation.fields.name.error}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex flex-col gap-1">
@@ -309,9 +431,19 @@ const AddToolModal = ({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            onBlur={() => validation.validateOnBlur('description')}
             placeholder="Enter description"
-            className="w-full h-20 p-2 border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400 rounded-md bg-transparent outline-0 resize-none"
+            className={`w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none ${
+              validation.fields.description?.error
+                ? 'border-red-500'
+                : 'border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400'
+            }`}
           />
+          {validation.fields.description?.error && (
+            <span className="text-red-500 text-sm mt-1">
+              {validation.fields.description.error}
+            </span>
+          )}
         </div>
         <div className="flex flex-col gap-1">
           <span>Tool Code - (Add types and docstrings)</span>
@@ -322,9 +454,14 @@ const AddToolModal = ({
                 setTool(v.target.value);
                 debouncedCheckPrompt(v.target.value);
               }}
+              onBlur={() => validation.validateOnBlur('content')}
               required
               placeholder="Enter tool code here..."
-              className="w-full h-20 p-2 border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400 rounded-md bg-transparent outline-0 resize-none"
+              className={`w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none ${
+                validation.fields.content?.error
+                  ? 'border-red-500'
+                  : 'border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400'
+              }`}
             />
             {validateTool.isPending ? (
               <div className="absolute right-2 top-2">
@@ -354,6 +491,11 @@ const AddToolModal = ({
                 {validateTool.data.error}
               </span>
             )}
+          {validation.fields.content?.error && (
+            <span className="text-red-500 text-sm mt-1">
+              {validation.fields.content.error}
+            </span>
+          )}
         </div>
         <div className="flex flex-col gap-1">
           <span>Language</span>
@@ -382,6 +524,104 @@ const AddToolModal = ({
             placeholder="Select categories"
           />
         </div>
+
+        <div className="flex flex-col gap-1 mt-2">
+          <div className="flex items-center justify-between">
+            <span>Requirements</span>
+            <button
+              type="button"
+              onClick={addRequirement}
+              className="flex items-center gap-1 text-yellow-500 hover:text-yellow-400 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Requirement
+            </button>
+          </div>
+          <div className="flex flex-col gap-2">
+            {requirements.map((requirement, index) => (
+              <div key={index} className="flex gap-4 items-center">
+                <span className="w-10">📦 {index + 1}</span>
+                <div className="w-full flex flex-col md:flex-row gap-1 py-2">
+                  <Input
+                    value={requirement.package}
+                    onChange={(value) => updateRequirement(index, 'package', value)}
+                    placeholder="Enter package name"
+                    className="border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400"
+                  />
+                  <Input
+                    value={requirement.installation}
+                    onChange={(value) => updateRequirement(index, 'installation', value)}
+                    placeholder="pip install package"
+                    className="border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400"
+                  />
+                </div>
+                <div className="w-4">
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => removeRequirement(index)}
+                      className="text-red-500 text-sm hover:text-red-400"
+                    >
+                      ❌
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1 mt-2">
+          <div className="flex items-center justify-between">
+            <span>Add Links</span>
+            <button
+              type="button"
+              onClick={addLink}
+              className="flex items-center gap-1 text-yellow-500 hover:text-yellow-400 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Link
+            </button>
+          </div>
+          {linkErrors && (
+            <div className="text-red-500 text-sm mb-2">
+              {linkErrors}
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            {links.map((link, index) => (
+              <div key={index} className="flex gap-4 items-center">
+                <span className="w-10">🔗 {index + 1}</span>
+                <div className="w-full flex flex-col md:flex-row gap-1 py-2">
+                  <Input
+                    value={link.name}
+                    onChange={(value) => updateLink(index, 'name', value)}
+                    placeholder="Link name (e.g., GitHub, Twitter)"
+                    className="border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400"
+                  />
+                  <Input
+                    value={link.url}
+                    onChange={(value) => updateLink(index, 'url', value)}
+                    placeholder={link.name ? getSuggestedUrlPattern(link.name) : "https://example.com"}
+                    className="border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400"
+                  />
+                </div>
+                <div className="w-4">
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => removeLink(index)}
+                      className="text-red-500 text-sm hover:text-red-400"
+                    >
+                      ❌
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <ModelFileUpload
           image={image}
           imageUrl={imageUrl || ''}
@@ -401,17 +641,54 @@ const AddToolModal = ({
           <Input
             value={tags}
             onChange={setTags}
+            onBlur={() => validation.validateOnBlur('tags')}
             placeholder="Tools, Search, etc."
-            className="border border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400"
+            className={`border ${
+              validation.fields.tags?.error
+                ? 'border-red-500'
+                : 'border-gray-300 dark:border-gray-600 focus:border-yellow-500 dark:focus:border-yellow-400'
+            }`}
           />
+          {validation.fields.tags?.error && (
+            <span className="text-red-500 text-sm mt-1">
+              {validation.fields.tags.error}
+            </span>
+          )}
         </div>
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-between mt-4">
+          {isRedirecting ? (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsRedirecting(false);
+                resetForm();
+                onClose();
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Close Modal
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={resetForm}
+              disabled={addTool.isPending || isLoading}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Clear Form
+            </Button>
+          )}
+
           <Button
-            disabled={addTool.isPending || isLoading}
+            disabled={addTool.isPending || isLoading || isRedirecting}
             onClick={submit}
             className="w-32"
           >
-            {addTool.isPending || isLoading ? 'Submitting...' : 'Submit Tool'}
+            {isRedirecting
+              ? 'Redirecting...'
+              : addTool.isPending || isLoading
+                ? 'Submitting...'
+                : 'Submit Tool'}
           </Button>
         </div>
       </div>

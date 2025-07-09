@@ -10,7 +10,7 @@ import { generateFingerprint } from '../auth-helpers/fingerprinting';
  */
 const ratelimit = new Ratelimit({
   redis: kv,
-  limiter: Ratelimit.slidingWindow(20, '15 s'),
+  limiter: Ratelimit.slidingWindow(300, '60 s'),
 });
 
 /**
@@ -49,6 +49,11 @@ const withRateLimit: MiddlewareFactory = (next) => {
   return async (request: NextRequest, event: NextFetchEvent) => {
     // skip limit for Stripe webhook
     if (request.nextUrl.pathname.includes('/api/webhooks')) {
+      return next(request, event);
+    }
+
+    // skip limit for explorer data (high-frequency public queries)
+    if (request.nextUrl.pathname.includes('/api/trpc/explorer.getExplorerData')) {
       return next(request, event);
     }
 

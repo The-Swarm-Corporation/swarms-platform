@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { fetchRepositoryInfo } from '@/shared/utils/github-integration';
-import { Github } from 'lucide-react';
+import { GitBranch, Plus } from 'lucide-react';
 
 import { trpc } from '@/shared/utils/trpc/trpc';
 import {
@@ -24,7 +24,9 @@ import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation
 import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
 import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
 import { getSolPrice } from '@/shared/services/sol-price';
-import { launchConfetti } from '@/shared/utils/helpers';
+import { useRouter } from 'next/navigation';
+import { validateLinksArray, getSuggestedUrlPattern, type LinkItem } from '@/shared/utils/link-validation';
+
 
 interface Props {
   isOpen: boolean;
@@ -47,6 +49,7 @@ const AddAgentModal = ({
   const [language, setLanguage] = useState('python');
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [isFree, setIsFree] = useState(true);
   const [priceUsd, setPriceUsd] = useState(''); // USD price input
   const [walletAddress, setWalletAddress] = useState('');
@@ -55,6 +58,14 @@ const AddAgentModal = ({
   const [isConvertingPrice, setIsConvertingPrice] = useState(false);
   const [githubUrl, setGithubUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+  const [requirements, setRequirements] = useState([
+    { package: 'requests', installation: 'pip3 install requests' },
+  ]);
+  const [links, setLinks] = useState<LinkItem[]>([
+    { name: '', url: '' },
+  ]);
+  const [linkErrors, setLinkErrors] = useState<string>('');
+  const router = useRouter();
 
   const {
     image,
@@ -81,6 +92,47 @@ const AddAgentModal = ({
 
   const validation = useMarketplaceValidation();
 
+  // Reset all states when modal opens/closes
+  const resetForm = useCallback(() => {
+    setAgentName('');
+    setAgent('');
+    setDescription('');
+    setTags('');
+    setCategories([]);
+    setIsLoading(false);
+    setIsRedirecting(false);
+    setIsFree(true);
+    setPriceUsd('');
+    setWalletAddress('');
+    setLinks([{ name: '', url: '' }]);
+    setLinkErrors('');
+    setIsValidating(false);
+    setSolPrice(null);
+    setIsConvertingPrice(false);
+    setGithubUrl('');
+    setIsImporting(false);
+    setLanguage('python');
+    setRequirements([
+      { package: 'requests', installation: 'pip3 install requests' },
+    ]);
+
+    // Reset validation and mutation state - these are stable references
+    try {
+      validation.reset();
+      validateAgent.reset();
+    } catch (error) {
+      console.warn('Error resetting validation:', error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array to prevent infinite loops - validation and validateAgent are stable
+
+  // Reset form when modal closes (but not during redirect)
+  useEffect(() => {
+    if (!isOpen && !isRedirecting) {
+      resetForm();
+    }
+  }, [isOpen, isRedirecting, resetForm]);
+
   // Convert USD to SOL on price change
   const convertUsdToSol = async (usdPrice: string) => {
     if (!usdPrice || isNaN(parseFloat(usdPrice))) {
@@ -101,18 +153,52 @@ const AddAgentModal = ({
     }
   };
 
-  useEffect(() => {
-    validation.updateField('name', agentName);
-    validation.updateField('description', description);
-    validation.updateField('content', agent);
-    validation.updateField('price', priceUsd);
-    validation.updateField('walletAddress', walletAddress);
-    validation.updateField('tags', tags);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agentName, description, agent, priceUsd, walletAddress, tags]);
 
   const handleCategoriesChange = (selectedCategories: string[]) => {
     setCategories(selectedCategories);
+  };
+
+  const addRequirement = () => {
+    setRequirements([...requirements, { package: '', installation: '' }]);
+  };
+
+  const removeRequirement = (index: number) => {
+    if (requirements.length > 1) {
+      setRequirements(requirements.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateRequirement = (index: number, field: 'package' | 'installation', value: string) => {
+    const newRequirements = [...requirements];
+    newRequirements[index][field] = value;
+    setRequirements(newRequirements);
+  };
+
+  const addLink = () => {
+    setLinks([...links, { name: '', url: '' }]);
+  };
+
+  const removeLink = (index: number) => {
+    if (links.length > 1) {
+      setLinks(links.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateLink = (index: number, field: 'name' | 'url', value: string) => {
+    const newLinks = [...links];
+    newLinks[index][field] = value;
+    setLinks(newLinks);
+
+    if (linkErrors) {
+      setLinkErrors('');
+    }
+
+    if (field === 'url' && value.trim()) {
+      const linkValidation = validateLinksArray([{ name: newLinks[index].name, url: value }]);
+      if (!linkValidation.isValid) {
+        setLinkErrors(`Link ${index + 1}: ${linkValidation.error}`);
+      }
+    }
   };
 
   const handleImageUploadClick = () => {
@@ -132,39 +218,14 @@ const AddAgentModal = ({
     await uploadImage(file, modelType);
   };
 
-  const resetForm = useCallback(() => {
-    setAgentName('');
-    setDescription('');
-    setAgent('');
-    setTags('');
-    setLanguage('python');
-    setCategories([]);
-    setIsFree(true);
-    setPriceUsd('');
-    setWalletAddress('');
-    setSolPrice(null);
-    setIsLoading(false);
-    setIsValidating(false);
-    setIsConvertingPrice(false);
 
-    validation.reset();
 
-    validateAgent.reset();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
-  const [justSubmitted, setJustSubmitted] = useState(false);
 
   const handleClose = () => {
     onClose();
   };
 
-  useEffect(() => {
-    if (isOpen && justSubmitted) {
-      resetForm();
-      setJustSubmitted(false);
-    }
-  }, [isOpen, justSubmitted, resetForm]);
 
   const handleDrop = async (e: React.DragEvent) => {
     if (uploadStatus === 'uploading') return;
@@ -261,6 +322,19 @@ const AddAgentModal = ({
       .filter(Boolean)
       .join(',');
 
+    const filteredLinks = links.filter(link => link.name.trim() && link.url.trim());
+    const linkValidation = validateLinksArray(filteredLinks);
+    if (!linkValidation.isValid) {
+      setLinkErrors(linkValidation.error || 'Invalid links');
+      toast.toast({
+        title: 'Invalid links',
+        description: linkValidation.error,
+        variant: 'destructive',
+      });
+      return;
+    }
+    setLinkErrors('');
+
     setIsLoading(true);
 
     // Add Agent
@@ -279,28 +353,44 @@ const AddAgentModal = ({
           },
         ],
         language,
-        requirements: [
-          { package: 'requests', installation: 'pip3 install requests' },
-        ],
+        requirements: requirements.filter(req => req.package.trim() && req.installation.trim()),
         tags: trimTags,
+        links: filteredLinks,
         isFree,
         price_usd: isFree ? 0 : parseFloat(priceUsd),
         sellerWalletAddress: isFree ? '' : walletAddress,
       })
-      .then(async () => {
+      .then(async (result) => {
+        setIsLoading(false);
+
         toast.toast({
           title: 'Agent added successfully 🎉',
         });
 
-        launchConfetti();
+        if (result?.id) {
+          setIsRedirecting(true);
 
-        onAddSuccessfully();
+          toast.toast({
+            title: 'Redirecting to your agent...',
+            description: 'This may take a moment. You can close this modal if it takes too long.',
+            duration: 5000,
+          });
 
-        setJustSubmitted(true);
+          router.push(`/agent/${result.id}`);
 
-        resetForm();
-
-        onClose();
+          setTimeout(() => {
+            setIsRedirecting(false);
+            toast.toast({
+              title: 'Taking longer than expected?',
+              description: 'You can close this modal and navigate manually.',
+              duration: 3000,
+            });
+          }, 8000);
+        } else {
+          onAddSuccessfully();
+          resetForm();
+          onClose();
+        }
       })
       .catch((error) => {
         console.log({ error });
@@ -337,6 +427,7 @@ const AddAgentModal = ({
           variant: 'destructive',
         });
         setIsLoading(false);
+        setIsRedirecting(false);
 
         addAgent.reset();
       });
@@ -359,7 +450,6 @@ const AddAgentModal = ({
         throw new Error('Failed to fetch repository information');
       }
 
-      // Update form fields with repository info
       setAgentName(repoInfo.name);
       setDescription(`${repoInfo.description}\n\nSource: ${githubUrl}`);
       setAgent(repoInfo.mainCode);
@@ -367,7 +457,6 @@ const AddAgentModal = ({
       setCategories(repoInfo.categories);
       setTags(repoInfo.tags.join(', '));
 
-      // If there's an image URL, trigger image upload
       if (repoInfo.imageUrl) {
         const response = await fetch(repoInfo.imageUrl);
         const blob = await response.blob();
@@ -404,12 +493,12 @@ const AddAgentModal = ({
       <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
         <div className="flex flex-col gap-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <Github className="w-5 h-5" />
+            <GitBranch className="w-5 h-5" />
             <h3 className="font-medium">Import from GitHub</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-3">
             Import an agent from a public GitHub repository. The repository should contain Python code (preferably main.py or example.py). 
-            Private repositories are not supported yet. The repository's name, description, and code will be used to populate the form.
+            Private repositories are not supported yet. The repository&apos;s name, description, and code will be used to populate the form.
           </p>
           <div className="flex gap-2">
             <Input
@@ -454,9 +543,19 @@ const AddAgentModal = ({
             <Input
               value={agentName}
               onChange={setAgentName}
+              onBlur={() => validation.validateOnBlur('name')}
               placeholder="Enter name"
-              className="border border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400"
+              className={`border ${
+                validation.fields.name?.error
+                  ? 'border-red-500'
+                  : 'border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400'
+              }`}
             />
+            {validation.fields.name?.error && (
+              <span className="text-red-500 text-sm mt-1">
+                {validation.fields.name.error}
+              </span>
+            )}
           </div>
         </div>
 
@@ -465,9 +564,19 @@ const AddAgentModal = ({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            onBlur={() => validation.validateOnBlur('description')}
             placeholder="Enter description"
-            className="w-full h-20 p-2 border border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400 rounded-md bg-transparent outline-0 resize-none"
+            className={`w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none ${
+              validation.fields.description?.error
+                ? 'border-red-500'
+                : 'border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400'
+            }`}
           />
+          {validation.fields.description?.error && (
+            <span className="text-red-500 text-sm mt-1">
+              {validation.fields.description.error}
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">
@@ -486,7 +595,7 @@ const AddAgentModal = ({
                 if (agent.trim().length >= 5) {
                   setIsValidating(true);
                   try {
-                    await validateAgent.mutateAsync(agent);
+                    await validateAgent.mutateAsync({ agent });
                   } catch (error) {
                     validateAgent.reset();
                   } finally {
@@ -556,6 +665,103 @@ const AddAgentModal = ({
           />
         </div>
 
+        <div className="flex flex-col gap-1 mt-2">
+          <div className="flex items-center justify-between">
+            <span>Requirements</span>
+            <button
+              type="button"
+              onClick={addRequirement}
+              className="flex items-center gap-1 text-teal-500 hover:text-teal-400 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Requirement
+            </button>
+          </div>
+          <div className="flex flex-col gap-2">
+            {requirements.map((requirement, index) => (
+              <div key={index} className="flex gap-4 items-center">
+                <span className="w-10">📦 {index + 1}</span>
+                <div className="w-full flex flex-col md:flex-row gap-1 py-2">
+                  <Input
+                    value={requirement.package}
+                    onChange={(value) => updateRequirement(index, 'package', value)}
+                    placeholder="Enter package name"
+                    className="border border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400"
+                  />
+                  <Input
+                    value={requirement.installation}
+                    onChange={(value) => updateRequirement(index, 'installation', value)}
+                    placeholder="pip install package"
+                    className="border border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400"
+                  />
+                </div>
+                <div className="w-4">
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => removeRequirement(index)}
+                      className="text-red-500 text-sm hover:text-red-400"
+                    >
+                      ❌
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1 mt-2">
+          <div className="flex items-center justify-between">
+            <span>Add Links</span>
+            <button
+              type="button"
+              onClick={addLink}
+              className="flex items-center gap-1 text-teal-500 hover:text-teal-400 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Link
+            </button>
+          </div>
+          {linkErrors && (
+            <div className="text-red-500 text-sm mb-2">
+              {linkErrors}
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            {links.map((link, index) => (
+              <div key={index} className="flex gap-4 items-center">
+                <span className="w-10">🔗 {index + 1}</span>
+                <div className="w-full flex flex-col md:flex-row gap-1 py-2">
+                  <Input
+                    value={link.name}
+                    onChange={(value) => updateLink(index, 'name', value)}
+                    placeholder="Link name (e.g., GitHub, Twitter)"
+                    className="border border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400"
+                  />
+                  <Input
+                    value={link.url}
+                    onChange={(value) => updateLink(index, 'url', value)}
+                    placeholder={link.name ? getSuggestedUrlPattern(link.name) : "https://example.com"}
+                    className="border border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400"
+                  />
+                </div>
+                <div className="w-4">
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => removeLink(index)}
+                      className="text-red-500 text-sm hover:text-red-400"
+                    >
+                      ❌
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <ModelFileUpload
           image={image}
           imageUrl={imageUrl || ''}
@@ -576,9 +782,19 @@ const AddAgentModal = ({
           <Input
             value={tags}
             onChange={setTags}
+            onBlur={() => validation.validateOnBlur('tags')}
             placeholder="AI, automation, tools, etc."
-            className="border border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400"
+            className={`border ${
+              validation.fields.tags?.error
+                ? 'border-red-500'
+                : 'border-gray-300 dark:border-gray-600 focus:border-teal-500 dark:focus:border-teal-400'
+            }`}
           />
+          {validation.fields.tags?.error && (
+            <span className="text-red-500 text-sm mt-1">
+              {validation.fields.tags.error}
+            </span>
+          )}
         </div>
 
         <div className="group flex flex-col gap-2">
@@ -740,19 +956,34 @@ const AddAgentModal = ({
         </div>
 
         <div className="flex justify-between mt-4">
-          <Button
-            variant="outline"
-            onClick={resetForm}
-            disabled={addAgent.isPending || isLoading}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            Clear Form
-          </Button>
+          {isRedirecting ? (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsRedirecting(false);
+                resetForm();
+                onClose();
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Close Modal
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={resetForm}
+              disabled={addAgent.isPending || isLoading}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Clear Form
+            </Button>
+          )}
 
           <Button
             disabled={
               addAgent.isPending ||
               isLoading ||
+              isRedirecting ||
               isValidating ||
               validateAgent.isPending ||
               (!isFree && checkTrustworthiness.isLoading) ||
@@ -763,13 +994,15 @@ const AddAgentModal = ({
             onClick={submit}
             className="w-32"
           >
-            {addAgent.isPending || isLoading
-              ? 'Submitting...'
-              : isValidating || validateAgent.isPending
-                ? 'Validating...'
-                : !isFree && checkTrustworthiness.isLoading
-                  ? 'Checking...'
-                  : 'Submit Agent'}
+            {isRedirecting
+              ? 'Redirecting...'
+              : addAgent.isPending || isLoading
+                ? 'Submitting...'
+                : isValidating || validateAgent.isPending
+                  ? 'Validating...'
+                  : !isFree && checkTrustworthiness.isLoading
+                    ? 'Checking...'
+                    : 'Submit Agent'}
           </Button>
         </div>
       </div>

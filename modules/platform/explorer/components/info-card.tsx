@@ -76,6 +76,7 @@ const InfoCard = ({
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const router = useRouter();
 
   const handleShare = useCallback((e: React.MouseEvent) => {
@@ -91,31 +92,41 @@ const InfoCard = ({
   const handleViewClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    const isPaidContent = showPremiumBadge && price_usd && price_usd > 0;
-
-    if (isPaidContent && !authUser) {
-      await checkUserSession();
+    if (isNavigating || generateToken.isPending) {
       return;
     }
 
-    if (
-      isPaidContent &&
-      id &&
-      (itemType === 'prompt' || itemType === 'agent')
-    ) {
-      try {
-        const result = await generateToken.mutateAsync({
-          itemId: id,
-          itemType: itemType as 'prompt' | 'agent',
-        });
-        router.push(`/access/${itemType}/${result.token}`);
-      } catch (error) {
-        console.error('Failed to generate access token:', error);
+    setIsNavigating(true);
+
+    try {
+      const isPaidContent = showPremiumBadge && price_usd && price_usd > 0;
+
+      if (isPaidContent && !authUser) {
+        await checkUserSession();
+        return;
+      }
+
+      if (
+        isPaidContent &&
+        id &&
+        (itemType === 'prompt' || itemType === 'agent')
+      ) {
+        try {
+          const result = await generateToken.mutateAsync({
+            itemId: id,
+            itemType: itemType as 'prompt' | 'agent',
+          });
+          router.push(`/access/${itemType}/${result.token}`);
+        } catch (error) {
+          console.error('Failed to generate access token:', error);
+          router.push(link);
+        }
+      } else {
+        // Free content or authenticated user - direct navigation
         router.push(link);
       }
-    } else {
-      // Free content or authenticated user - direct navigation
-      router.push(link);
+    } catch (error) {
+      console.error('Failed to navigate:', error);
     }
   };
 
@@ -268,6 +279,7 @@ const InfoCard = ({
           <button
             className={cn(
               `flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 hover:scale-105 active:scale-95`,
+              'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100',
               colors.button,
               showPremiumBadge && price_usd && price_usd > 0
                 ? 'bg-[#4ECD78]/10 border-[0.5px] border-[#4ECD78]/20 hover:bg-[#4ECD78]/20 text-[#4ECD78]'
@@ -279,11 +291,21 @@ const InfoCard = ({
                 : `View item ${itemType}`
             }
             onClick={handleViewClick}
+            disabled={isNavigating || generateToken.isPending}
           >
             <span>
-              {showPremiumBadge && price_usd && price_usd > 0
-                ? 'Buy'
-                : btnLabel || 'Learn More'}{' '}
+              {isNavigating || generateToken.isPending ? (
+                <div className="flex items-center gap-1 text-sm">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-1" />
+                  Loading...
+                </div>
+              ) : (
+                <>
+                  {showPremiumBadge && price_usd && price_usd > 0
+                    ? 'Buy'
+                    : btnLabel || 'Learn More'}{' '}
+                </>
+              )}
             </span>
             {showPremiumBadge && price_usd && price_usd > 0 ? (
               <span className="text-[#4ECD78] text-sm font-medium">
