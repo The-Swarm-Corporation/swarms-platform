@@ -120,7 +120,7 @@ const ChatComponent = ({
                 </div>
 
                 {/* Message Content */}
-                <div className="flex-1 max-w-[80%] space-y-2">
+                <div className="flex-1 max-w-[80%] min-w-0 space-y-2">
                   {editingMessageId === message?.response_id ? (
                     <div className="relative">
                       <textarea
@@ -139,12 +139,14 @@ const ChatComponent = ({
                     </div>
                   ) : (
                     <div className={cn(
-                      "p-4 rounded-lg border transition-all duration-200",
+                      "p-4 rounded-lg border transition-all duration-200 overflow-hidden",
                       message?.sender === 'user'
                         ? "bg-white/5 border-white/10 text-white"
                         : "bg-white/3 border-white/5 text-white/90"
                     )}>
-                      <MarkdownComponent text={message?.text || ''} />
+                      <div className="overflow-x-auto break-words">
+                        <MarkdownComponent text={message?.text || ''} />
+                      </div>
                     </div>
                   )}
 

@@ -183,7 +183,7 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 <div
                   className={cn(
                     'rounded-md lg:rounded-lg px-2 lg:px-6 py-3 text-black dark:text-white lg:py-4 relative overflow-hidden transition-colors duration-300',
-                    'max-w-[90%] md:max-w-[70%] xl:max-w-[60%] w-full bg-[#928E8B] dark:bg-[#444444]',
+                    'max-w-[90%] md:max-w-[70%] xl:max-w-[60%] min-w-0 w-full bg-[#928E8B] dark:bg-[#444444]',
                   )}
                 >
                   <textarea
@@ -282,12 +282,12 @@ const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                         className={cn(
                           'rounded-md lg:rounded-lg px-2 lg:px-6 py-3 text-black dark:text-white lg:py-4 relative overflow-hidden transition-colors duration-300',
                           message?.role === 'user'
-                            ? 'max-w-[70%] xl:max-w-[60%] bg-[#928E8B] dark:bg-[#444444]'
-                            : 'max-w-full dark:bg-[#131313] bg-[#928E8B] border-2 border-[#f9f9f914]',
+                            ? 'max-w-[70%] xl:max-w-[60%] min-w-0 bg-[#928E8B] dark:bg-[#444444]'
+                            : 'max-w-full min-w-0 dark:bg-[#131313] bg-[#928E8B] border-2 border-[#f9f9f914]',
                         )}
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent animate-pulse" />
-                        <div className="relative text-xs lg:text-base w-full">
+                        <div className="relative text-xs lg:text-base w-full overflow-x-auto break-words">
                           <MarkdownComponent
                             text={
                               msg?.content?.replace(
