@@ -152,7 +152,7 @@ export default function NavbarSearch() {
   };
 
   return (
-    <div ref={searchRef} className="w-full relative ml-10 mt-2 sm:mt-0 lg:ml-0">
+    <div ref={searchRef} className="w-full relative ml-10 lg:ml-0">
       <label hidden htmlFor="search">
         Search
       </label>

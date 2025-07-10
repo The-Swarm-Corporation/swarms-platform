@@ -89,32 +89,32 @@ export default function PlatformNavBar() {
   return (
     <header
       className={cn(
-        'fixed max-sm:flex max-sm:items-center w-full top-0 backdrop-blur-sm border-b border-gray-800 bg-black shadow-md transition-all duration-150 px-4 py-2 h-16 md:h-20',
+        'fixed w-full top-0 backdrop-blur-sm border-b border-gray-800 bg-black shadow-md transition-all duration-150 px-3 sm:px-4 py-2 h-14 sm:h-16 md:h-20',
         isChatInterface ? 'z-50' : 'z-[9999]',
       )}
     >
-      <nav className="flex items-center justify-between max-sm:w-full relative">
-        <div className="flex items-center w-4/5 sm:w-1/2 xl:w-1/3">
-          <div className="flex items-center w-[40px] h-[40px] min-w-[40px] max-lg:hidden mr-4">
+      <nav className="flex items-center justify-between w-full relative">
+        <div className="flex items-center max-md:flex-1 max-md:min-w-0 md:w-1/2 xl:w-1/3">
+          <div className="flex items-center w-[32px] h-[32px] sm:w-[36px] sm:h-[36px] md:w-[40px] max-lg:hidden md:h-[40px] min-w-[32px] sm:min-w-[36px] md:min-w-[40px] mr-2 sm:mr-3 md:mr-4 flex-shrink-0">
             <Logo />
           </div>
 
           <NavbarSearch />
         </div>
-        <div className="flex items-center space-x-4">
-          <ul className="p-0 hidden items-center sm:flex gap-2">
+        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-shrink-0">
+          <ul className="p-0 hidden items-center sm:flex gap-1 md:gap-2">
             <li>
               <a
                 href={DISCORD}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  'inline-flex items-center justify-center w-9 h-9 text-white',
+                  'inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 text-white',
                   'rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary',
                   'transition-all duration-300'
                 )}
               >
-                <Discord className="w-5 h-5" />
+                <Discord className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
             </li>
             <li>
@@ -123,12 +123,12 @@ export default function PlatformNavBar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  'inline-flex items-center justify-center w-9 h-9 text-white',
+                  'inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 text-white',
                   'rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary',
                   'transition-all duration-300'
                 )}
               >
-                <Twitter className="w-5 h-5" />
+                <Twitter className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
             </li>
             {FILTERED_NAV_LINKS?.map((item) => (
@@ -136,9 +136,9 @@ export default function PlatformNavBar() {
                 <NavItem
                   {...item}
                   className={cn(
-                    'inline-flex items-center justify-center px-4 py-2 my-1 font-medium text-sm text-white',
+                    'inline-flex items-center justify-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 my-1 font-medium text-xs sm:text-sm text-white',
                     'rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary',
-                    'transition-all duration-300',
+                    'transition-all duration-300 whitespace-nowrap',
                     item.link === path &&
                       'bg-primary/20 text-primary border-primary/50 shadow-[0_0_10px_rgba(var(--primary-rgb,255,0,0),0.4)]',
                   )}
@@ -151,10 +151,10 @@ export default function PlatformNavBar() {
           </ul>
           {/* Credits Display */}
           {user && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-black/40 border border-white/15 rounded-md backdrop-blur-sm">
-              <Coins className="w-4 h-4 text-primary" />
-              <span className="text-sm text-white/80">Credits:</span>
-              <span className="text-sm font-semibold text-primary">
+            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-black/40 border border-white/15 rounded-md backdrop-blur-sm">
+              <Coins className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+              <span className="text-xs sm:text-sm text-white/80 hidden sm:inline">Credits:</span>
+              <span className="text-xs sm:text-sm font-semibold text-primary">
                 {subscription.creditLoading
                   ? '...'
                   : `$${(subscription.credit ?? 0).toFixed(2)}`}
@@ -162,7 +162,7 @@ export default function PlatformNavBar() {
             </div>
           )}
           <div
-            className="relative ml-5 cursor-pointer max-sm:mt-1"
+            className="relative ml-2 sm:ml-3 md:ml-5 cursor-pointer"
             onClick={setOn}
           >
             <Avatar user={user as User} profileName={profileName} />
@@ -182,9 +182,10 @@ export default function PlatformNavBar() {
                   <NavItem title={profileName} />
                   <span
                     title="Active user"
-                    className="inline-flex shrink-0 items-center justify-center whitespace-nowrap text-sm border border-input bg-secondary text-foreground font-medium shadow-sm hover:bg-accent hover:text-accent-foreground h-8 py-2 gap-[6px] rounded-full px-2"
+                    className="inline-flex shrink-0 items-center justify-center whitespace-nowrap text-xs sm:text-sm border border-input bg-secondary text-foreground font-medium shadow-sm hover:bg-accent hover:text-accent-foreground h-7 sm:h-8 py-1 sm:py-2 gap-1 sm:gap-[6px] rounded-full px-1.5 sm:px-2"
                   >
-                    {profileName?.charAt(0)?.toUpperCase()}_swarms+
+                    <span className="hidden sm:inline">{profileName?.charAt(0)?.toUpperCase()}_swarms+</span>
+                    <span className="sm:hidden">{profileName?.charAt(0)?.toUpperCase()}</span>
                   </span>
                 </li>
                 {NAV_LINKS.account?.map((item, index, array) => {

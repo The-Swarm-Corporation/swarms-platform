@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { trpc, trpcConfig } from './trpc';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
-import { getURL } from '../helpers';
+
 
 export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -13,9 +13,18 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: { staleTime: 5000 },
+          queries: {
+            staleTime: 5000,
+          },
           mutations: {
-            onError(error, variables, context) {
+            onError(error: any) {
+              if (error.message?.includes('Too many requests') ||
+                  error.message?.includes('429') ||
+                  error.data?.httpStatus === 429) {
+                console.warn('Rate limit hit:', error.message);
+                return;
+              }
+
               toaster.toast({
                 title: error.message,
                 variant: 'destructive',

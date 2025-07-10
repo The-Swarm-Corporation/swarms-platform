@@ -29,13 +29,15 @@ interface AgentEditModal extends EditModal {
   agent: string;
   language?: string;
   requirements: { package: string; installation: string }[];
+  price?: number;
 }
 
 interface PromptEditModal extends EditModal {
   prompt: string;
+  price?: number;
 }
 
-interface ToolEditModal extends Omit<AgentEditModal, 'agent'> {
+interface ToolEditModal extends Omit<AgentEditModal, 'agent' | 'price'> {
   tool: string;
 }
 
@@ -48,6 +50,7 @@ interface InputState {
   language?: string;
   category: string[];
   requirements?: { package: string; installation: string }[];
+  links?: { name: string; url: string }[];
   isFree: boolean;
   price: string;
   sellerWalletAddress: string;
@@ -70,6 +73,7 @@ export default function useEditModal({
     language: 'python',
     category: [],
     requirements: [{ package: '', installation: '' }],
+    links: [{ name: '', url: '' }],
     isFree: true,
     price: '0',
     sellerWalletAddress: '',
@@ -157,6 +161,9 @@ export default function useEditModal({
           entityType === 'agent' || entityType === 'tool'
             ? entityData.requirements
             : [{ package: '', installation: '' }],
+        links: entityData.links && entityData.links.length > 0
+          ? entityData.links
+          : [{ name: '', url: '' }],
         isFree: entityData.is_free ?? true,
         price: entityData.price_usd ? entityData.price_usd.toString() : '0',
         sellerWalletAddress: entityData.seller_wallet_address ?? '',
@@ -166,14 +173,20 @@ export default function useEditModal({
       // Store original data for change detection
       setOriginalData(loadedData);
     }
-  }, [entityData, entityType]);
+  }, [entityData, entityType, setFilePath, setImageUrl]);
 
   const debouncedCheckUniqueField = useMemo(() => {
     const debouncedFn = debounce((value: string) => {
-      validateMutation.mutateAsync(value);
+      if (entityType === 'agent') {
+        (validateMutation as any).mutateAsync({ agent: value, editingId: entityId });
+      } else if (entityType === 'tool') {
+        (validateMutation as any).mutateAsync({ tool: value, editingId: entityId });
+      } else {
+        (validateMutation as any).mutateAsync({ prompt: value, editingId: entityId });
+      }
     }, 400);
     return debouncedFn;
-  }, [validateMutation]);
+  }, [validateMutation, entityType, entityId]);
 
   const handleCategoriesChange = (selectedCategories: string[]) => {
     setInputState((prev) => ({
@@ -217,6 +230,21 @@ export default function useEditModal({
         return { ...prev, requirements: newRequirements };
       });
     }
+  };
+
+  const addLink = () => {
+    setInputState((prev) => ({
+      ...prev,
+      links: [...(prev.links ?? []), { name: '', url: '' }],
+    }));
+  };
+
+  const removeLink = (index: number) => {
+    setInputState((prev) => {
+      const newLinks = [...(prev.links ?? [])];
+      newLinks.splice(index, 1);
+      return { ...prev, links: newLinks };
+    });
   };
 
   const submit = () => {
@@ -328,8 +356,8 @@ export default function useEditModal({
             filePath: imageUrl && filePath ? filePath : undefined,
             requirements: inputState.requirements!,
             isFree: inputState.isFree,
-            price_usd: inputState.isFree ? 0 : parseFloat(inputState.price) || 0,
-            sellerWalletAddress: inputState.sellerWalletAddress,
+            price: inputState.isFree ? 0 : parseFloat(inputState.price) || 0,
+            sellerWalletAddress: inputState.isFree ? undefined : inputState.sellerWalletAddress,
           }
         : entityType === 'tool'
           ? {
@@ -343,6 +371,7 @@ export default function useEditModal({
               requirements: inputState.requirements!,
               imageUrl: imageUrl || undefined,
               filePath: imageUrl && filePath ? filePath : undefined,
+              // Tools don't have marketplace fields yet
             }
           : {
               id: entityId,
@@ -355,8 +384,8 @@ export default function useEditModal({
               imageUrl: imageUrl || undefined,
               filePath: imageUrl && filePath ? filePath : undefined,
               isFree: inputState.isFree,
-              price_usd: inputState.isFree ? 0 : parseFloat(inputState.price) || 0,
-              sellerWalletAddress: inputState.sellerWalletAddress,
+              price: inputState.isFree ? 0 : parseFloat(inputState.price) || 0,
+              sellerWalletAddress: inputState.isFree ? undefined : inputState.sellerWalletAddress,
             };
 
     // Edit entity
@@ -375,6 +404,7 @@ export default function useEditModal({
         language: 'python',
         category: [],
         requirements: [{ package: '', installation: '' }],
+        links: [{ name: '', url: '' }],
         isFree: true,
         price: '0',
         sellerWalletAddress: '',
@@ -400,6 +430,8 @@ export default function useEditModal({
     removeUseCase,
     addRequirement,
     removeRequirement,
+    addLink,
+    removeLink,
     image,
     imageUrl,
     filePath,
@@ -411,5 +443,6 @@ export default function useEditModal({
     // Smart change detection
     hasContentChanged,
     checkTrustworthiness,
+    originalData,
   };
 }

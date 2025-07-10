@@ -15,9 +15,12 @@ import { Plus } from 'lucide-react';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import MultiSelect from '@/shared/components/ui/multi-select';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import ModelFileUpload from './upload-image';
 import { getSolPrice } from '@/shared/services/sol-price';
+import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
+import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
+import { useMarketplaceValidation } from '@/shared/hooks/use-deferred-validation';
 
 interface EditExplorerModalProps {
   isOpen: boolean;
@@ -46,6 +49,8 @@ function EditExplorerModal({
     removeUseCase,
     addRequirement,
     removeRequirement,
+    addLink,
+    removeLink,
     handleCategoriesChange,
 
     //upload
@@ -60,10 +65,17 @@ function EditExplorerModal({
 
     hasContentChanged,
     checkTrustworthiness,
+    originalData,
   } = useEditModal({ entityId, entityType, onClose, onEditSuccessfully });
 
   const [solPrice, setSolPrice] = useState<number | null>(null);
   const [isConvertingPrice, setIsConvertingPrice] = useState(false);
+
+  const validation = useMarketplaceValidation();
+
+  useEffect(() => {
+    validation.updateField('walletAddress', inputState.sellerWalletAddress);
+  }, [inputState.sellerWalletAddress, validation.updateField]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const convertUsdToSol = useCallback(async (usdPrice: string) => {
@@ -122,12 +134,13 @@ function EditExplorerModal({
   if (!user) return null;
 
   return (
-    <Modal
-      className="max-w-2xl"
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Update ${entityType.charAt(0).toUpperCase() + entityType.slice(1)}`}
-    >
+    <WalletProvider>
+      <Modal
+        className="max-w-2xl"
+        isOpen={isOpen}
+        onClose={onClose}
+        title={`Update ${entityType.charAt(0).toUpperCase() + entityType.slice(1)}`}
+      >
       <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar h-[75vh] relative px-4">
         <div className="flex flex-col gap-1">
           <span>Name</span>
@@ -392,9 +405,14 @@ function EditExplorerModal({
                     type="radio"
                     name="pricing"
                     checked={!inputState.isFree}
-                    onChange={() =>
-                      setInputState({ ...inputState, isFree: false })
-                    }
+                    onChange={() => {
+                      const originalPrice = originalData?.price || '0';
+                      setInputState({
+                        ...inputState,
+                        isFree: false,
+                        price: originalPrice === '0' ? '' : originalPrice
+                      });
+                    }}
                     className="w-4 h-4 text-green-500 border-green-500/30 focus:ring-green-500"
                   />
                   <span className="font-mono text-sm text-green-400">
@@ -468,10 +486,7 @@ function EditExplorerModal({
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-mono text-red-400 mb-2">
-                      Wallet Address
-                    </label>
-                    <Input
+                    <SmartWalletInput
                       value={inputState.sellerWalletAddress}
                       onChange={(value) =>
                         setInputState({
@@ -479,26 +494,10 @@ function EditExplorerModal({
                           sellerWalletAddress: value,
                         })
                       }
-                      onBlur={() => {
-                        if (inputState.sellerWalletAddress && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(inputState.sellerWalletAddress)) {
-                          setErrors(prev => ({
-                            ...prev,
-                            walletAddress: 'Invalid Solana wallet address'
-                          }));
-                        } else {
-                          setErrors(prev => {
-                            const { walletAddress, ...rest } = prev;
-                            return rest;
-                          });
-                        }
-                      }}
-                      placeholder="Your Solana wallet address..."
+                      onBlur={() => validation.validateOnBlur('walletAddress')}
+                      error={validation.fields.walletAddress?.error}
+                      disabled={isPending}
                     />
-                    {errors.walletAddress && (
-                      <span className="text-red-500 text-sm mt-1">
-                        {errors.walletAddress}
-                      </span>
-                    )}
                   </div>
                 </div>
               )}
@@ -647,6 +646,63 @@ function EditExplorerModal({
               </div>
             </>
           ))}
+
+        <div className="flex flex-col gap-1 mt-4">
+          <div className="flex items-center justify-between">
+            <span>Add Links</span>
+            <button
+              type="button"
+              onClick={addLink}
+              className="flex items-center gap-1 text-blue-500 hover:text-blue-400 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Link
+            </button>
+          </div>
+          <div className="flex flex-col gap-2">
+            {inputState.links?.map((link, index) => (
+              <div key={index} className="flex gap-4 items-center">
+                <span className="w-10">🔗 {index + 1}</span>
+                <div className="w-full flex flex-col md:flex-row gap-1 py-2">
+                  <Input
+                    value={link.name}
+                    onChange={(value) =>
+                      setInputState((prev) => {
+                        const newLinks = [...(prev.links ?? [])];
+                        newLinks[index].name = value;
+                        return { ...prev, links: newLinks };
+                      })
+                    }
+                    placeholder="Link name (e.g., GitHub, Twitter)"
+                  />
+                  <Input
+                    value={link.url}
+                    onChange={(value) =>
+                      setInputState((prev) => {
+                        const newLinks = [...(prev.links ?? [])];
+                        newLinks[index].url = value;
+                        return { ...prev, links: newLinks };
+                      })
+                    }
+                    placeholder="https://github.com/username/repo"
+                  />
+                </div>
+                <div className="w-4">
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => removeLink(index)}
+                      className="text-red-500 text-sm hover:text-red-400"
+                    >
+                      ❌
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onClose} disabled={isPending}>
@@ -656,14 +712,14 @@ function EditExplorerModal({
           disabled={
             isPending ||
             validateMutation.isPending ||
-            (!inputState.isFree && checkTrustworthiness.isLoading) ||
-            (!inputState.isFree && checkTrustworthiness.data && !checkTrustworthiness.data.isEligible) ||
+            (entityType !== 'tool' && !inputState.isFree && checkTrustworthiness.isLoading) ||
+            (entityType !== 'tool' && !inputState.isFree && checkTrustworthiness.data && !checkTrustworthiness.data.isEligible) ||
             Object.keys(errors).length > 0 ||
             !inputState.name.trim() ||
             !inputState.description.trim() ||
             !inputState.uniqueField.trim() ||
-            (!inputState.isFree && !inputState.price) ||
-            (!inputState.isFree && !inputState.sellerWalletAddress.trim())
+            (entityType !== 'tool' && !inputState.isFree && !inputState.price) ||
+            (entityType !== 'tool' && !inputState.isFree && !inputState.sellerWalletAddress.trim())
           }
           onClick={submit}
         >
@@ -671,6 +727,7 @@ function EditExplorerModal({
         </Button>
       </div>
     </Modal>
+    </WalletProvider>
   );
 }
 

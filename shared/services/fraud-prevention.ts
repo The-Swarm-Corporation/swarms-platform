@@ -155,26 +155,20 @@ export async function validateContentFallback(
       ...agents.map(a => a.id),
     ];
 
-    if (allItemIds.length === 0) {
+    if (isFree) {
       return {
-        isValid: false,
-        reason: 'Fallback validation: You need to have created content before submitting. Quality validation service is temporarily unavailable.',
+        isValid: true,
+        reason: allItemIds.length === 0
+          ? 'Free content approved for new user. Our validation system is temporarily down, but free submissions are allowed.'
+          : 'Content approved based on your submission history. Our validation system will be back online shortly.',
         usedFallback: true,
       };
     }
 
-    if (isFree) {
-      if (allItemIds.length < 1) {
-        return {
-          isValid: false,
-          reason: 'Our validation system is temporarily down. Since this is your first submission, please try again in a few minutes when the system is back online.',
-          usedFallback: true,
-        };
-      }
-
+    if (allItemIds.length === 0) {
       return {
-        isValid: true,
-        reason: 'Content approved based on your submission history. Our validation system will be back online shortly.',
+        isValid: false,
+        reason: 'Fallback validation: You need to have created content before submitting paid items. Quality validation service is temporarily unavailable.',
         usedFallback: true,
       };
     }
@@ -224,6 +218,14 @@ export async function validateContentFallback(
   } catch (error) {
     console.error('Error in fallback validation:', error);
 
+    if (isFree) {
+      return {
+        isValid: true,
+        reason: 'Free content approved. Our validation system is experiencing issues, but free submissions are allowed.',
+        usedFallback: true,
+      };
+    }
+
     return {
       isValid: false,
       reason: 'Our validation system is experiencing issues. Please try submitting your content again in a few minutes.',
@@ -250,7 +252,7 @@ export async function validateContentQuality(
       throw new Error('Simulated API failure for testing');
     }
 
-    const minScore = isFree ? 5 : 8;
+    const minScore = isFree ? 4 : 6;
     const qualityLevel = isFree ? 'medium' : 'high';
 
     const validationPrompt =
@@ -344,6 +346,15 @@ Respond with ONLY a number (1-10) followed by a dash and brief constructive feed
 
     if (userId) {
       return await validateContentFallback(userId, isFree);
+    }
+
+    if (isFree) {
+      return {
+        isValid: true,
+        reason: 'Free content approved. Our quality validation system is temporarily unavailable, but free content submissions are allowed.',
+        apiResponse: 'Fallback approval for free content',
+        usedFallback: true,
+      };
     }
 
     return {
