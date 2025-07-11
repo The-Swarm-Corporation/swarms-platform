@@ -90,6 +90,7 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
         isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
       } border-2 border-gray-800 rounded-lg`}
     >
+      <div onClick={(e) => e.stopPropagation()}>
       <div className="relative flex items-center pt-0.5 w-full">
         <div className="grow border-t border-gray-300 dark:border-zinc-800" />
       </div>
@@ -132,6 +133,7 @@ export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
             Copy
           </Button>
         </div>
+      </div>
       </div>
     </Modal>
   );
