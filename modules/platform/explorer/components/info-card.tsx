@@ -77,20 +77,34 @@ const InfoCard = ({
   const [showShareModal, setShowShareModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isShareModalClosing, setIsShareModalClosing] = useState(false);
   const router = useRouter();
 
   const handleShare = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setShowShareModal(true);
+  }, []);
+
+  const handleShareModalClose = useCallback(() => {
+    setIsShareModalClosing(true);
+    setShowShareModal(false);
+    setTimeout(() => {
+      setIsShareModalClosing(false);
+    }, 100);
   }, []);
 
   const handleCardClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isShareModalClosing || showShareModal) {
+      return;
+    }
     setShowDetailsModal(true);
   };
 
   const handleViewClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
 
     if (isNavigating || generateToken.isPending) {
       return;
@@ -320,7 +334,7 @@ const InfoCard = ({
 
       <ShareModal
         isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
+        onClose={handleShareModalClose}
         link={link}
       />
 
