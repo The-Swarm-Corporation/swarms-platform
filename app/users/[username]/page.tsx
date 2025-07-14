@@ -18,6 +18,7 @@ import Head from 'next/head';
 import Footer from '@/shared/components/ui/Footer/Footer';
 import BookmarkButton from '@/shared/components/bookmark-button';
 import Image from 'next/image';
+import Input from '@/shared/components/ui/Input/Input';
 
 // Cache duration in milliseconds (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -171,9 +172,20 @@ export default function UserProfile() {
   const [selectedTab, setSelectedTab] = useState('all');
   const [hydrated, setHydrated] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Pagination and search state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(9); // 9 works per page
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Memoize the cache key
+  // Debug search query changes
+  useEffect(() => {
+    console.log('Search query changed to:', searchQuery);
+  }, [searchQuery]);
+
+  // Memoize the cache key (for user data)
   const cacheKey = useMemo(() => `user_${username}`, [username]);
+  // Cache for paginated/search results
+  const worksCacheKey = useMemo(() => `works_${username}_${selectedTab}_${searchQuery}_${currentPage}_${pageSize}`, [username, selectedTab, searchQuery, currentPage, pageSize]);
 
   // Get user data with caching
   const { data: userData, isLoading: isLoadingUser } = trpc.explorer.getUserExplorerItemsByUsername.useQuery(
@@ -194,17 +206,53 @@ export default function UserProfile() {
     tools: userData?.tools?.length || 0,
   }), [userData]);
 
-  // Memoize filtered items
+  // Memoize filtered items (by tab)
   const filteredItems = useMemo(() => {
     if (!userData) return [];
-    return selectedTab === 'all' 
+    let items = selectedTab === 'all' 
       ? userData.combinedItems 
       : selectedTab === 'prompts' 
         ? userData.prompts 
         : selectedTab === 'agents'
           ? userData.agents
           : userData.tools;
-  }, [userData, selectedTab]);
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      console.log('Searching for:', q, 'in', items.length, 'items');
+      items = items.filter((item: any) => {
+        const nameMatch = item.name && item.name.toLowerCase().includes(q);
+        const descMatch = item.description && item.description.toLowerCase().includes(q);
+        const tagMatch = Array.isArray(item.tags) && item.tags.some((tag: string) => tag.toLowerCase().includes(q));
+        return nameMatch || descMatch || tagMatch;
+      });
+      console.log('Found', items.length, 'matching items');
+    }
+    return items;
+  }, [userData, selectedTab, searchQuery]);
+
+  // Pagination logic with caching
+  const paginatedItems = useMemo(() => {
+    // Check cache
+    const now = Date.now();
+    if (cache[worksCacheKey] && now - cache[worksCacheKey].timestamp < CACHE_DURATION) {
+      return cache[worksCacheKey].data;
+    }
+    // Compute paginated items
+    const startIdx = (currentPage - 1) * pageSize;
+    const endIdx = startIdx + pageSize;
+    const pageItems = filteredItems.slice(startIdx, endIdx);
+    // Cache result
+    cache[worksCacheKey] = { data: pageItems, timestamp: now };
+    return pageItems;
+  }, [filteredItems, currentPage, pageSize, worksCacheKey]);
+
+  const totalPages = useMemo(() => Math.ceil(filteredItems.length / pageSize) || 1, [filteredItems, pageSize]);
+
+  // Reset page when tab or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedTab, searchQuery]);
 
   // Memoize share message
   const shareMessage = useMemo(() => 
@@ -638,12 +686,28 @@ export default function UserProfile() {
                 ))}
               </div>
             </div>
+            {/* Search input */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+              <Input
+                type="text"
+                placeholder="Search works by name, description, or tag..."
+                value={searchQuery}
+                onChange={setSearchQuery}
+                className="w-full sm:w-96 bg-black/80 border border-gray-700 text-white placeholder:text-gray-400 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Search works"
+              />
+              {/* Pagination info */}
+              <div className="flex items-center gap-2 text-white/70 text-sm mt-2 sm:mt-0">
+                <span>Page {currentPage} of {totalPages}</span>
+                <span className="mx-2">|</span>
+                <span>{filteredItems.length} result{filteredItems.length !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
             <div role="tabpanel" id={`${selectedTab}-panel`}>
-              {filteredItems && filteredItems.length > 0 ? (
+              {paginatedItems && paginatedItems.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredItems.map((item, index) => {
+                  {paginatedItems.map((item: any, index: number) => {
                     const colors = itemColors[item.itemType as keyof typeof itemColors];
-                    
                     return (
                       <motion.article
                         key={item.id}
@@ -674,7 +738,7 @@ export default function UserProfile() {
                               {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
                             </time>
                             <span className={`text-xs font-medium ${colors.icon}`}>
-                              {item.tags?.[0] || 'No tags'}
+                              {Array.isArray(item.tags) ? item.tags[0] || 'No tags' : 'No tags'}
                             </span>
                           </div>
                           <div className={`absolute inset-0 pointer-events-none opacity-5 ${colors.bg}`} />
@@ -690,10 +754,42 @@ export default function UserProfile() {
                   transition={{ duration: 0.2 }}
                   className="text-center text-white/70 py-12 text-sm"
                 >
-                  No {selectedTab === 'all' ? 'public works' : selectedTab} yet.
+                  No {selectedTab === 'all' ? 'public works' : selectedTab} found.
                 </motion.div>
               )}
             </div>
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-2 rounded-md text-sm font-medium border border-gray-700 bg-black/80 text-white/80 hover:bg-gray-900 transition-all duration-200 ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  aria-label="Previous page"
+                >
+                  Prev
+                </button>
+                {/* Page numbers */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-3 py-2 rounded-md text-sm font-medium border border-gray-700 ${currentPage === pageNum ? 'bg-blue-600 text-white' : 'bg-black/80 text-white/80 hover:bg-gray-900'} transition-all duration-200`}
+                    aria-current={currentPage === pageNum ? 'page' : undefined}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-2 rounded-md text-sm font-medium border border-gray-700 bg-black/80 text-white/80 hover:bg-gray-900 transition-all duration-200 ${currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  aria-label="Next page"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </motion.section>
         </div>
         <Footer />
