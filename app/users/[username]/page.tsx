@@ -198,6 +198,23 @@ export default function UserProfile() {
     }
   );
 
+  // Debug userData
+  useEffect(() => {
+    if (userData) {
+      console.log('UserData received:', {
+        username: userData.username,
+        combinedItemsLength: userData.combinedItems?.length || 0,
+        promptsLength: userData.prompts?.length || 0,
+        agentsLength: userData.agents?.length || 0,
+        toolsLength: userData.tools?.length || 0,
+        hasCombinedItems: !!userData.combinedItems,
+        hasPrompts: !!userData.prompts,
+        hasAgents: !!userData.agents,
+        hasTools: !!userData.tools
+      });
+    }
+  }, [userData]);
+
   // Memoize stats calculation
   const stats = useMemo(() => ({
     totalItems: userData?.combinedItems?.length || 0,
@@ -208,7 +225,11 @@ export default function UserProfile() {
 
   // Memoize filtered items (by tab)
   const filteredItems = useMemo(() => {
-    if (!userData) return [];
+    if (!userData) {
+      console.log('No userData available');
+      return [];
+    }
+    
     let items = selectedTab === 'all' 
       ? userData.combinedItems 
       : selectedTab === 'prompts' 
@@ -216,6 +237,9 @@ export default function UserProfile() {
         : selectedTab === 'agents'
           ? userData.agents
           : userData.tools;
+    
+    console.log(`Filtered items for tab "${selectedTab}":`, items?.length || 0, 'items');
+    
     // Search filter
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
@@ -228,24 +252,54 @@ export default function UserProfile() {
       });
       console.log('Found', items.length, 'matching items');
     }
-    return items;
+    
+    console.log('Final filtered items:', items?.length || 0);
+    return items || [];
   }, [userData, selectedTab, searchQuery]);
 
   // Pagination logic with caching
   const paginatedItems = useMemo(() => {
+    console.log('Pagination calculation:', {
+      hasUserData: !!userData,
+      filteredItemsLength: filteredItems.length,
+      currentPage,
+      pageSize,
+      cacheKey: worksCacheKey
+    });
+    
+    // Only cache if we have data and filteredItems is not empty
+    if (!userData || filteredItems.length === 0) {
+      console.log('No userData or filteredItems, returning empty array');
+      return [];
+    }
+    
     // Check cache
     const now = Date.now();
     if (cache[worksCacheKey] && now - cache[worksCacheKey].timestamp < CACHE_DURATION) {
+      console.log('Using cached paginated items:', cache[worksCacheKey].data.length);
       return cache[worksCacheKey].data;
     }
+    
     // Compute paginated items
     const startIdx = (currentPage - 1) * pageSize;
     const endIdx = startIdx + pageSize;
     const pageItems = filteredItems.slice(startIdx, endIdx);
-    // Cache result
-    cache[worksCacheKey] = { data: pageItems, timestamp: now };
+    
+    console.log('Computed paginated items:', {
+      startIdx,
+      endIdx,
+      pageItemsLength: pageItems.length,
+      totalFilteredItems: filteredItems.length
+    });
+    
+    // Only cache if we have actual items
+    if (pageItems.length > 0) {
+      cache[worksCacheKey] = { data: pageItems, timestamp: now };
+      console.log('Cached paginated items');
+    }
+    
     return pageItems;
-  }, [filteredItems, currentPage, pageSize, worksCacheKey]);
+  }, [userData, filteredItems, currentPage, pageSize, worksCacheKey]);
 
   const totalPages = useMemo(() => Math.ceil(filteredItems.length / pageSize) || 1, [filteredItems, pageSize]);
 
