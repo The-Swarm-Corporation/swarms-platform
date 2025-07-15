@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { Code, MessageSquare, Wrench, Share2, Twitter, Linkedin, Globe, Sparkles, Zap, Rocket, Trophy, Star, Crown, Target, Flame, Heart, Brain, Copy, Check, Grid, List, ChevronDown } from 'lucide-react';
+import { Code, MessageSquare, Wrench, Share2, Twitter, Linkedin, Globe, Sparkles, Zap, Rocket, Trophy, Star, Crown, Target, Flame, Heart, Brain, Copy, Check, Grid, List, ChevronDown, ChevronRight, Award } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import ErrorMessage from './ErrorMessage';
@@ -177,6 +177,8 @@ export default function UserProfile() {
   const [pageSize, setPageSize] = useState(9); // 9 works per page
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'gallery' | 'table'>('gallery');
+  const [showBadges, setShowBadges] = useState(false);
+  const [showStats, setShowStats] = useState(true);
 
   // Debug search query changes
   useEffect(() => {
@@ -496,7 +498,7 @@ export default function UserProfile() {
               <div className="absolute inset-0 pointer-events-none opacity-10 bg-[repeating-linear-gradient(135deg,rgba(255,255,255,0.04)_0_1px,transparent_1px_4px)]" />
             </motion.div>
             <div className="flex-1 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+              <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
                 <motion.h1 
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -522,40 +524,68 @@ export default function UserProfile() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                  className={`px-3 py-1 rounded-full ${userTier.bg} ${userTier.border} border`}
+                  className={`px-2 py-1 rounded-full ${userTier.bg} ${userTier.border} border flex items-center gap-1.5`}
                 >
-                  <span className={`text-sm font-medium ${userTier.color}`}>{userTier.name}</span>
+                  <Award className={`h-3 w-3 ${userTier.color}`} />
+                  <span className={`text-xs font-medium ${userTier.color}`}>{userTier.name}</span>
                 </motion.div>
               </div>
               <motion.p 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.2 }}
-                className="text-lg text-gray-400 font-medium mb-2 tracking-wide"
+                className="text-lg text-gray-400 font-medium mb-3 tracking-wide"
               >
                 {userData.full_name || 'No name provided'}
               </motion.p>
+              
+              {/* Compact Badges Section */}
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.2 }}
-                className="flex flex-wrap gap-2 justify-center md:justify-start mb-4"
+                className="mb-4"
               >
-                {earnedBadges.map((badge, index) => (
+                <button
+                  onClick={() => setShowBadges(!showBadges)}
+                  className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors group"
+                >
                   <motion.div
-                    key={badge.id}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    className={`group relative px-3 py-1.5 rounded-full ${badge.bg} ${badge.border} border flex items-center gap-2`}
+                    animate={{ rotate: showBadges ? 90 : 0 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <badge.icon className={`h-4 w-4 ${badge.color}`} />
-                    <span className={`text-sm font-medium ${badge.color}`}>{badge.name}</span>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-black/90 rounded-md text-xs text-white/80 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      {badge.description}
-                    </div>
+                    <ChevronRight className="h-4 w-4" />
                   </motion.div>
-                ))}
+                  <span className="font-medium">Achievements ({earnedBadges.length})</span>
+                </button>
+                
+                <motion.div
+                  initial={false}
+                  animate={{ 
+                    height: showBadges ? 'auto' : 0,
+                    opacity: showBadges ? 1 : 0
+                  }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-800/50">
+                    {earnedBadges.map((badge, index) => (
+                      <motion.div
+                        key={badge.id}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={`group relative px-2 py-1 rounded-full ${badge.bg} ${badge.border} border flex items-center gap-1.5`}
+                      >
+                        <badge.icon className={`h-3 w-3 ${badge.color}`} />
+                        <span className={`text-xs font-medium ${badge.color}`}>{badge.name}</span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/95 rounded-md text-xs text-white/90 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 border border-gray-700 shadow-lg backdrop-blur-sm">
+                          {badge.description}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
               </motion.div>
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
@@ -567,69 +597,68 @@ export default function UserProfile() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleCopyUrl}
-                  className="flex items-center gap-2 px-6 py-3 rounded-md bg-black/90 text-blue-400 border border-blue-500/50 hover:border-blue-400 hover:bg-blue-950/30 transition-all duration-300 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] group"
+                  className="flex items-center gap-2 px-4 py-2 rounded-md bg-black/90 text-blue-400 border border-blue-500/50 hover:border-blue-400 hover:bg-blue-950/30 transition-all duration-300 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] group"
                   aria-label="Copy profile URL"
                 >
                   {copied ? (
                     <>
-                      <Check className="h-5 w-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
-                      <span className="text-sm font-medium tracking-wide">Copied!</span>
+                      <Check className="h-4 w-4 group-hover:scale-110 transition-transform" aria-hidden="true" />
+                      <span className="text-xs font-medium tracking-wide">Copied!</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="h-5 w-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
-                      <span className="text-sm font-medium tracking-wide">Copy Profile URL</span>
+                      <Copy className="h-4 w-4 group-hover:scale-110 transition-transform" aria-hidden="true" />
+                      <span className="text-xs font-medium tracking-wide">Copy URL</span>
                     </>
                   )}
                 </motion.button>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-2 px-6 py-3 rounded-md bg-black/90 text-emerald-400 border border-emerald-500/50 hover:border-emerald-400 hover:bg-emerald-950/30 transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] group" aria-label="Share profile">
-                    <Share2 className="h-5 w-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
-                    <span className="text-sm font-medium tracking-wide">Share Account</span>
+                  <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2 rounded-md bg-black/90 text-emerald-400 border border-emerald-500/50 hover:border-emerald-400 hover:bg-emerald-950/30 transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] group" aria-label="Share profile">
+                    <Share2 className="h-4 w-4 group-hover:scale-110 transition-transform" aria-hidden="true" />
+                    <span className="text-xs font-medium tracking-wide">Share</span>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-80 bg-black/95 border border-emerald-500/30 rounded-md p-3 shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-xl">
-                    <div className="px-2 py-1.5 mb-2">
-                      <h3 className="text-sm font-medium text-white/90">Share Profile</h3>
-                      <p className="text-xs text-white/60 mt-1">Share this profile with your network</p>
+                  <DropdownMenuContent className="w-64 bg-black/95 border border-emerald-500/30 rounded-lg p-2 shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-xl">
+                    <div className="px-2 py-1 mb-2 border-b border-gray-800/50">
+                      <h3 className="text-xs font-medium text-white/90 uppercase tracking-wider">Share Profile</h3>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       <DropdownMenuItem 
-                        className="flex items-center gap-4 text-white hover:text-white hover:bg-gray-900/50 cursor-pointer p-4 rounded-md transition-all duration-200 group"
+                        className="flex items-center gap-3 text-white hover:text-white hover:bg-gray-900/50 cursor-pointer p-2.5 rounded-md transition-all duration-200 group"
                         onClick={() => handleShare('twitter')}
                         aria-label="Share on Twitter"
                       >
-                        <div className="w-12 h-12 rounded-md bg-[#1DA1F2]/10 flex items-center justify-center border border-[#1DA1F2]/20 group-hover:bg-[#1DA1F2]/20 transition-colors">
-                          <Twitter className="h-6 w-6 text-[#1DA1F2]" aria-hidden="true" />
+                        <div className="w-8 h-8 rounded-md bg-[#1DA1F2]/10 flex items-center justify-center border border-[#1DA1F2]/20 group-hover:bg-[#1DA1F2]/20 transition-colors">
+                          <Twitter className="h-4 w-4 text-[#1DA1F2]" aria-hidden="true" />
                         </div>
                         <div className="flex-1">
-                          <span className="text-sm font-medium block">Share on Twitter</span>
-                          <span className="text-xs text-white/60">Share with your followers</span>
+                          <span className="text-xs font-medium block">Twitter</span>
+                          <span className="text-xs text-white/50">Share with followers</span>
                         </div>
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        className="flex items-center gap-4 text-white hover:text-white hover:bg-gray-900/50 cursor-pointer p-4 rounded-md transition-all duration-200 group"
+                        className="flex items-center gap-3 text-white hover:text-white hover:bg-gray-900/50 cursor-pointer p-2.5 rounded-md transition-all duration-200 group"
                         onClick={() => handleShare('linkedin')}
                         aria-label="Share on LinkedIn"
                       >
-                        <div className="w-12 h-12 rounded-md bg-[#0077B5]/10 flex items-center justify-center border border-[#0077B5]/20 group-hover:bg-[#0077B5]/20 transition-colors">
-                          <Linkedin className="h-6 w-6 text-[#0077B5]" aria-hidden="true" />
+                        <div className="w-8 h-8 rounded-md bg-[#0077B5]/10 flex items-center justify-center border border-[#0077B5]/20 group-hover:bg-[#0077B5]/20 transition-colors">
+                          <Linkedin className="h-4 w-4 text-[#0077B5]" aria-hidden="true" />
                         </div>
                         <div className="flex-1">
-                          <span className="text-sm font-medium block">Share on LinkedIn</span>
-                          <span className="text-xs text-white/60">Share with your professional network</span>
+                          <span className="text-xs font-medium block">LinkedIn</span>
+                          <span className="text-xs text-white/50">Share with network</span>
                         </div>
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        className="flex items-center gap-4 text-white hover:text-white hover:bg-gray-900/50 cursor-pointer p-4 rounded-md transition-all duration-200 group"
+                        className="flex items-center gap-3 text-white hover:text-white hover:bg-gray-900/50 cursor-pointer p-2.5 rounded-md transition-all duration-200 group"
                         onClick={() => handleShare('reddit')}
                         aria-label="Share on Reddit"
                       >
-                        <div className="w-12 h-12 rounded-md bg-[#FF4500]/10 flex items-center justify-center border border-[#FF4500]/20 group-hover:bg-[#FF4500]/20 transition-colors">
-                          <Globe className="h-6 w-6 text-[#FF4500]" aria-hidden="true" />
+                        <div className="w-8 h-8 rounded-md bg-[#FF4500]/10 flex items-center justify-center border border-[#FF4500]/20 group-hover:bg-[#FF4500]/20 transition-colors">
+                          <Globe className="h-4 w-4 text-[#FF4500]" aria-hidden="true" />
                         </div>
                         <div className="flex-1">
-                          <span className="text-sm font-medium block">Share on Reddit</span>
-                          <span className="text-xs text-white/60">Share with the community</span>
+                          <span className="text-xs font-medium block">Reddit</span>
+                          <span className="text-xs text-white/50">Share with community</span>
                         </div>
                       </DropdownMenuItem>
                     </div>
@@ -652,56 +681,81 @@ export default function UserProfile() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="flex flex-col md:flex-row gap-4 mb-12 justify-center md:justify-between mt-8"
+            className="mb-8 mt-8"
             aria-label="User statistics"
           >
-            {[
-              { 
-                label: 'Total Works', 
-                value: stats.totalItems, 
-                color: 'text-white',
-                icon: Sparkles,
-                bg: 'bg-white/5'
-              },
-              { 
-                label: 'Prompts', 
-                value: stats.prompts, 
-                color: 'text-[#FF6B6B]',
-                icon: MessageSquare,
-                bg: 'bg-[#FF6B6B]/5'
-              },
-              { 
-                label: 'Agents', 
-                value: stats.agents, 
-                color: 'text-[#4ECDC4]',
-                icon: Rocket,
-                bg: 'bg-[#4ECDC4]/5'
-              },
-              { 
-                label: 'Tools', 
-                value: stats.tools, 
-                color: 'text-[#FFD93D]',
-                icon: Zap,
-                bg: 'bg-[#FFD93D]/5'
-              }
-            ].map((stat, index) => (
+            <button
+              onClick={() => setShowStats(!showStats)}
+              className="flex items-center gap-2 text-lg text-white/80 hover:text-white transition-colors group mb-4"
+            >
               <motion.div
-                key={stat.label}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.2, delay: index * 0.1 }}
-                whileHover={{ scale: 1.02, y: -5 }}
-                className={`flex-1 flex flex-col items-center p-6 rounded-md shadow-lg border border-gray-800 ${stat.bg} backdrop-blur-lg hover:bg-gray-900/50 transition-all duration-200`}
-                role="article"
-                aria-label={`${stat.label}: ${stat.value}`}
+                animate={{ rotate: showStats ? 90 : 0 }}
+                transition={{ duration: 0.2 }}
               >
-                <div className={`w-12 h-12 rounded-md ${stat.bg} flex items-center justify-center mb-3`}>
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} aria-hidden="true" />
-                </div>
-                <span className={`text-3xl font-bold ${stat.color} mb-2`}>{stat.value}</span>
-                <span className="text-white/80 font-medium tracking-wider text-sm">{stat.label}</span>
+                <ChevronRight className="h-5 w-5" />
               </motion.div>
-            ))}
+              <span className="font-semibold">Statistics Overview</span>
+            </button>
+            
+            <motion.div
+              initial={false}
+              animate={{ 
+                height: showStats ? 'auto' : 0,
+                opacity: showStats ? 1 : 0
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="flex flex-col md:flex-row gap-4 justify-center md:justify-between">
+                {[
+                  { 
+                    label: 'Total Works', 
+                    value: stats.totalItems, 
+                    color: 'text-white',
+                    icon: Sparkles,
+                    bg: 'bg-white/5'
+                  },
+                  { 
+                    label: 'Prompts', 
+                    value: stats.prompts, 
+                    color: 'text-[#FF6B6B]',
+                    icon: MessageSquare,
+                    bg: 'bg-[#FF6B6B]/5'
+                  },
+                  { 
+                    label: 'Agents', 
+                    value: stats.agents, 
+                    color: 'text-[#4ECDC4]',
+                    icon: Rocket,
+                    bg: 'bg-[#4ECDC4]/5'
+                  },
+                  { 
+                    label: 'Tools', 
+                    value: stats.tools, 
+                    color: 'text-[#FFD93D]',
+                    icon: Zap,
+                    bg: 'bg-[#FFD93D]/5'
+                  }
+                ].map((stat, index) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.2, delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    className={`flex-1 flex flex-col items-center p-6 rounded-md shadow-lg border border-gray-800 ${stat.bg} backdrop-blur-lg hover:bg-gray-900/50 transition-all duration-200`}
+                    role="article"
+                    aria-label={`${stat.label}: ${stat.value}`}
+                  >
+                    <div className={`w-12 h-12 rounded-md ${stat.bg} flex items-center justify-center mb-3`}>
+                      <stat.icon className={`h-6 w-6 ${stat.color}`} aria-hidden="true" />
+                    </div>
+                    <span className={`text-3xl font-bold ${stat.color} mb-2`}>{stat.value}</span>
+                    <span className="text-white/80 font-medium tracking-wider text-sm">{stat.label}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </motion.section>
 
           {/* Works Gallery */}
