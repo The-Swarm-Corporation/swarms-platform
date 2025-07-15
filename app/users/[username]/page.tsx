@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/shared/utils/trpc/trpc';
-import { Code, MessageSquare, Wrench, Share2, Twitter, Linkedin, Globe, Sparkles, Zap, Rocket, Trophy, Star, Crown, Target, Flame, Heart, Brain, Copy, Check } from 'lucide-react';
+import { Code, MessageSquare, Wrench, Share2, Twitter, Linkedin, Globe, Sparkles, Zap, Rocket, Trophy, Star, Crown, Target, Flame, Heart, Brain, Copy, Check, Grid, List, ChevronDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import ErrorMessage from './ErrorMessage';
@@ -174,8 +174,9 @@ export default function UserProfile() {
   const [copied, setCopied] = useState(false);
   // Pagination and search state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(9); // 9 works per page
+  const [pageSize, setPageSize] = useState(9); // 9 works per page
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'gallery' | 'table'>('gallery');
 
   // Debug search query changes
   useEffect(() => {
@@ -185,7 +186,7 @@ export default function UserProfile() {
   // Memoize the cache key (for user data)
   const cacheKey = useMemo(() => `user_${username}`, [username]);
   // Cache for paginated/search results
-  const worksCacheKey = useMemo(() => `works_${username}_${selectedTab}_${searchQuery}_${currentPage}_${pageSize}`, [username, selectedTab, searchQuery, currentPage, pageSize]);
+  const worksCacheKey = useMemo(() => `works_${username}_${selectedTab}_${searchQuery}_${currentPage}_${pageSize}_${viewMode}`, [username, selectedTab, searchQuery, currentPage, pageSize, viewMode]);
 
   // Get user data with caching
   const { data: userData, isLoading: isLoadingUser } = trpc.explorer.getUserExplorerItemsByUsername.useQuery(
@@ -303,10 +304,10 @@ export default function UserProfile() {
 
   const totalPages = useMemo(() => Math.ceil(filteredItems.length / pageSize) || 1, [filteredItems, pageSize]);
 
-  // Reset page when tab or search changes
+  // Reset page when tab, search, or page size changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedTab, searchQuery]);
+  }, [selectedTab, searchQuery, pageSize]);
 
   // Memoize share message
   const shareMessage = useMemo(() => 
@@ -740,67 +741,216 @@ export default function UserProfile() {
                 ))}
               </div>
             </div>
-            {/* Search input */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
-              <Input
-                type="text"
-                placeholder="Search works by name, description, or tag..."
-                value={searchQuery}
-                onChange={setSearchQuery}
-                className="w-full sm:w-96 bg-black/80 border border-gray-700 text-white placeholder:text-gray-400 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label="Search works"
-              />
+            {/* Search and View Controls */}
+            <div className="flex flex-col gap-4 mb-6">
+              {/* Search input */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <Input
+                  type="text"
+                  placeholder="Search works by name, description, or tag..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  className="w-full sm:w-96 bg-black/80 border border-gray-700 text-white placeholder:text-gray-400 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Search works"
+                />
+                {/* View and Page Size Controls */}
+                <div className="flex items-center gap-3">
+                  {/* View Mode Toggle */}
+                  <div className="flex items-center gap-1 bg-black/80 border border-gray-700 rounded-md p-1">
+                    <button
+                      onClick={() => setViewMode('gallery')}
+                      className={`p-2 rounded-md transition-all duration-200 ${
+                        viewMode === 'gallery' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'text-white/60 hover:text-white/80 hover:bg-gray-700/50'
+                      }`}
+                      aria-label="Gallery view"
+                    >
+                      <Grid className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setViewMode('table')}
+                      className={`p-2 rounded-md transition-all duration-200 ${
+                        viewMode === 'table' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'text-white/60 hover:text-white/80 hover:bg-gray-700/50'
+                      }`}
+                      aria-label="Table view"
+                    >
+                      <List className="h-4 w-4" />
+                    </button>
+                  </div>
+                  
+                  {/* Page Size Selector */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-md bg-black/80 text-white/80 border border-gray-700 hover:bg-gray-700/50 transition-all duration-200">
+                      <span className="text-sm">{pageSize} per page</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-48 bg-black/95 border border-gray-700 rounded-md p-2 shadow-lg backdrop-blur-xl">
+                      {[6, 9, 12, 18, 24].map((size) => (
+                        <DropdownMenuItem
+                          key={size}
+                          onClick={() => setPageSize(size)}
+                          className={`flex items-center justify-between px-3 py-2 rounded-md text-white hover:text-white hover:bg-gray-700/50 cursor-pointer transition-all duration-200 ${
+                            pageSize === size ? 'bg-blue-600/20 text-blue-400' : ''
+                          }`}
+                        >
+                          <span>{size} per page</span>
+                          {pageSize === size && <Check className="h-4 w-4" />}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+              
               {/* Pagination info */}
-              <div className="flex items-center gap-2 text-white/70 text-sm mt-2 sm:mt-0">
-                <span>Page {currentPage} of {totalPages}</span>
-                <span className="mx-2">|</span>
-                <span>{filteredItems.length} result{filteredItems.length !== 1 ? 's' : ''}</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-white/70 text-sm">
+                  <span>Page {currentPage} of {totalPages}</span>
+                  <span className="mx-2">|</span>
+                  <span>{filteredItems.length} result{filteredItems.length !== 1 ? 's' : ''}</span>
+                  <span className="mx-2">|</span>
+                  <span>View: {viewMode === 'gallery' ? 'Gallery' : 'Table'}</span>
+                </div>
               </div>
             </div>
             <div role="tabpanel" id={`${selectedTab}-panel`}>
               {paginatedItems && paginatedItems.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {paginatedItems.map((item: any, index: number) => {
-                    const colors = itemColors[item.itemType as keyof typeof itemColors];
-                    return (
-                      <motion.article
-                        key={item.id}
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.2, delay: index * 0.05 }}
-                        whileHover={{ scale: 1.02, y: -5 }}
-                      >
-                        <Link
-                          href={`/${item.itemType}/${item.id}`}
-                          className={`group relative block rounded-md overflow-hidden shadow-lg border border-gray-800 ${colors.bg} backdrop-blur-lg p-6 ${colors.hover} transition-all duration-200`}
-                          aria-label={`View ${item.name || 'Untitled'} ${item.itemType}`}
+                viewMode === 'gallery' ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {paginatedItems.map((item: any, index: number) => {
+                      const colors = itemColors[item.itemType as keyof typeof itemColors];
+                      return (
+                        <motion.article
+                          key={item.id}
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ duration: 0.2, delay: index * 0.05 }}
+                          whileHover={{ scale: 1.02, y: -5 }}
                         >
-                          <div className="flex items-center gap-3 mb-3">
-                            {item.itemType === 'prompt' ? (
-                              <MessageSquare className={`h-5 w-5 ${colors.icon} group-hover:scale-110 transition-transform`} aria-hidden="true" />
-                            ) : item.itemType === 'agent' ? (
-                              <Code className={`h-5 w-5 ${colors.icon} group-hover:scale-110 transition-transform`} aria-hidden="true" />
-                            ) : (
-                              <Wrench className={`h-5 w-5 ${colors.icon} group-hover:scale-110 transition-transform`} aria-hidden="true" />
-                            )}
-                            <span className={`text-xs uppercase tracking-wider font-medium ${colors.icon}`}>{item.itemType}</span>
-                          </div>
-                          <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 tracking-tight group-hover:text-white/90 transition-colors">{item.name || 'Untitled'}</h3>
-                          <p className="text-white/70 mb-3 line-clamp-2 text-sm group-hover:text-white/80 transition-colors">{item.description || 'No description provided'}</p>
-                          <div className="flex items-center justify-between mt-3">
-                            <time className="text-xs text-white/60 group-hover:text-white/70 transition-colors" dateTime={item.created_at}>
-                              {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
-                            </time>
-                            <span className={`text-xs font-medium ${colors.icon}`}>
-                              {Array.isArray(item.tags) ? item.tags[0] || 'No tags' : 'No tags'}
-                            </span>
-                          </div>
-                          <div className={`absolute inset-0 pointer-events-none opacity-5 ${colors.bg}`} />
-                        </Link>
-                      </motion.article>
-                    );
-                  })}
-                </div>
+                          <Link
+                            href={`/${item.itemType}/${item.id}`}
+                            className={`group relative block rounded-md overflow-hidden shadow-lg border border-gray-800 ${colors.bg} backdrop-blur-lg p-6 ${colors.hover} transition-all duration-200`}
+                            aria-label={`View ${item.name || 'Untitled'} ${item.itemType}`}
+                          >
+                            <div className="flex items-center gap-3 mb-3">
+                              {item.itemType === 'prompt' ? (
+                                <MessageSquare className={`h-5 w-5 ${colors.icon} group-hover:scale-110 transition-transform`} aria-hidden="true" />
+                              ) : item.itemType === 'agent' ? (
+                                <Code className={`h-5 w-5 ${colors.icon} group-hover:scale-110 transition-transform`} aria-hidden="true" />
+                              ) : (
+                                <Wrench className={`h-5 w-5 ${colors.icon} group-hover:scale-110 transition-transform`} aria-hidden="true" />
+                              )}
+                              <span className={`text-xs uppercase tracking-wider font-medium ${colors.icon}`}>{item.itemType}</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 tracking-tight group-hover:text-white/90 transition-colors">{item.name || 'Untitled'}</h3>
+                            <p className="text-white/70 mb-3 line-clamp-2 text-sm group-hover:text-white/80 transition-colors">{item.description || 'No description provided'}</p>
+                            <div className="flex items-center justify-between mt-3">
+                              <time className="text-xs text-white/60 group-hover:text-white/70 transition-colors" dateTime={item.created_at}>
+                                {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
+                              </time>
+                              <span className={`text-xs font-medium ${colors.icon}`}>
+                                {Array.isArray(item.tags) ? item.tags[0] || 'No tags' : 'No tags'}
+                              </span>
+                            </div>
+                            <div className={`absolute inset-0 pointer-events-none opacity-5 ${colors.bg}`} />
+                          </Link>
+                        </motion.article>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-gray-700">
+                          <th className="text-left py-3 px-4 text-white/80 font-medium text-sm">Type</th>
+                          <th className="text-left py-3 px-4 text-white/80 font-medium text-sm">Name</th>
+                          <th className="text-left py-3 px-4 text-white/80 font-medium text-sm">Description</th>
+                          <th className="text-left py-3 px-4 text-white/80 font-medium text-sm">Tags</th>
+                          <th className="text-left py-3 px-4 text-white/80 font-medium text-sm">Created</th>
+                          <th className="text-left py-3 px-4 text-white/80 font-medium text-sm">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedItems.map((item: any, index: number) => {
+                          const colors = itemColors[item.itemType as keyof typeof itemColors];
+                          return (
+                            <motion.tr
+                              key={item.id}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.2, delay: index * 0.05 }}
+                              className="border-b border-gray-800/50 hover:bg-gray-900/30 transition-colors"
+                            >
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-2">
+                                  {item.itemType === 'prompt' ? (
+                                    <MessageSquare className={`h-4 w-4 ${colors.icon}`} />
+                                  ) : item.itemType === 'agent' ? (
+                                    <Code className={`h-4 w-4 ${colors.icon}`} />
+                                  ) : (
+                                    <Wrench className={`h-4 w-4 ${colors.icon}`} />
+                                  )}
+                                  <span className={`text-xs font-medium ${colors.icon} uppercase tracking-wider`}>
+                                    {item.itemType}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <Link
+                                  href={`/${item.itemType}/${item.id}`}
+                                  className="text-white hover:text-blue-400 transition-colors font-medium"
+                                >
+                                  {item.name || 'Untitled'}
+                                </Link>
+                              </td>
+                              <td className="py-3 px-4">
+                                <p className="text-white/70 text-sm line-clamp-2 max-w-xs">
+                                  {item.description || 'No description provided'}
+                                </p>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex flex-wrap gap-1">
+                                  {Array.isArray(item.tags) && item.tags.length > 0 ? (
+                                    item.tags.slice(0, 3).map((tag: string, tagIndex: number) => (
+                                      <span
+                                        key={tagIndex}
+                                        className={`text-xs px-2 py-1 rounded-full ${colors.bg} ${colors.border} border`}
+                                      >
+                                        {tag}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-xs text-white/40">No tags</span>
+                                  )}
+                                  {Array.isArray(item.tags) && item.tags.length > 3 && (
+                                    <span className="text-xs text-white/40">+{item.tags.length - 3} more</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <time className="text-xs text-white/60" dateTime={item.created_at}>
+                                  {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
+                                </time>
+                              </td>
+                              <td className="py-3 px-4">
+                                <Link
+                                  href={`/${item.itemType}/${item.id}`}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 transition-colors text-sm font-medium"
+                                >
+                                  View
+                                </Link>
+                              </td>
+                            </motion.tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )
               ) : (
                 <motion.div 
                   initial={{ y: 20, opacity: 0 }}
