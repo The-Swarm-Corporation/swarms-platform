@@ -600,7 +600,8 @@ print(result)`;
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
-                minHeight: imageUrl ? '300px' : 'auto'
+                minHeight: imageUrl ? '500px' : 'auto',
+                height: imageUrl ? 'clamp(400px, 50vh, 600px)' : 'auto'
               }}
             />
           </div>
