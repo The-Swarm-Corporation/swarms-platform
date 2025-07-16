@@ -364,7 +364,7 @@ const AddToolModal = ({
           setIsRedirecting(true);
 
           toast.toast({
-            title: 'Redirecting to your tool...',
+            title: 'Successfully added your tool ✨ Redirecting to your tool...',
             description: 'This may take a moment. You can close this modal if it takes too long.',
             duration: 5000,
           });

@@ -371,7 +371,7 @@ const AddAgentModal = ({
           setIsRedirecting(true);
 
           toast.toast({
-            title: 'Redirecting to your agent...',
+            title: 'Successfully added your agent ✨ Redirecting to your agent...',
             description: 'This may take a moment. You can close this modal if it takes too long.',
             duration: 5000,
           });

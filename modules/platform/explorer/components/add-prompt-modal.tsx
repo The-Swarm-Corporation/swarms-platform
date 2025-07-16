@@ -346,7 +346,7 @@ const AddPromptModal = ({
           setIsRedirecting(true);
 
           toast.toast({
-            title: 'Redirecting to your prompt...',
+            title: 'Successfully added your prompt ✨ Redirecting to your prompt...',
             description: 'This may take a moment. You can close this modal if it takes too long.',
             duration: 5000,
           });
