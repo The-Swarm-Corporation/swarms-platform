@@ -77,6 +77,9 @@ interface Entity extends PropsWithChildren {
   requirements?: RequirementProps[];
   userId?: string | null;
   links?: LinkItem[] | null;
+  agentCode?: string; // NEW: The main code of the agent as a string
+  createdAt?: string; // Optional: time posted
+  authorUsername?: string; // Optional: author username
 }
 
 const CommentList = dynamic(() => import('@/shared/components/comments'), {
@@ -277,6 +280,9 @@ export default function EntityComponent({
   userId,
   imageUrl,
   links,
+  agentCode,
+  createdAt,
+  authorUsername,
 }: Entity) {
   const toast = useToast();
   const user = trpc.main.getUser.useQuery(undefined, {
@@ -928,6 +934,95 @@ print(result)`;
             </div>
           </div>
           {children}
+        </section>
+      )}
+
+      {/* Agent JSON Panel */}
+      {entityTitle === 'agent' && agentCode && (
+        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-gray-100 dark:bg-gray-800/30 rounded-lg">
+              <FileText className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                Agent Metadata (JSON)
+              </h2>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                All metadata and code for this agent, as a JSON object. Useful for programmatic use, export, or debugging.
+              </p>
+            </div>
+          </div>
+          <div className="relative">
+            <div className="absolute top-3 right-3 flex gap-2 z-10">
+              <button
+                onClick={() => {
+                  const jsonData = JSON.stringify({
+                    id,
+                    name,
+                    title,
+                    description,
+                    tags,
+                    requirements,
+                    usecases,
+                    language,
+                    userId,
+                    authorUsername: authorUsername || undefined,
+                    createdAt: createdAt || undefined,
+                    links,
+                    code: agentCode,
+                  }, null, 2);
+                  copyToClipboard(jsonData);
+                }}
+                className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
+                title="Copy JSON to clipboard"
+              >
+                <Copy size={16} className="text-zinc-200" />
+              </button>
+              <button
+                onClick={() => {
+                  const jsonData = JSON.stringify({
+                    id,
+                    name,
+                    title,
+                    description,
+                    tags,
+                    requirements,
+                    usecases,
+                    language,
+                    userId,
+                    authorUsername: authorUsername || undefined,
+                    createdAt: createdAt || undefined,
+                    links,
+                    code: agentCode,
+                  }, null, 2);
+                  downloadFile(jsonData, `${id}.json`, 'application/json');
+                  toast.toast({ description: 'Downloaded as JSON file' });
+                }}
+                className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
+                title="Download as JSON file"
+              >
+                <FileDown size={16} className="text-zinc-200" />
+              </button>
+            </div>
+            <pre className="bg-zinc-900 text-green-200 text-xs md:text-sm rounded-lg p-4 overflow-x-auto border border-zinc-800">
+              {JSON.stringify({
+                id,
+                name,
+                title,
+                description,
+                tags,
+                requirements,
+                usecases,
+                language,
+                userId,
+                authorUsername: authorUsername || undefined,
+                createdAt: createdAt || undefined,
+                links,
+                code: agentCode,
+              }, null, 2)}
+            </pre>
+          </div>
         </section>
       )}
 
