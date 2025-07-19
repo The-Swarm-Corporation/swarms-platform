@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import {
   Select,
@@ -22,6 +22,13 @@ export default function ThemeToggle() {
   const [themeOption, setThemeOption] = useState(
     theme === THEMES.SYSTEM ? THEMES.SYSTEM : SINGLE,
   );
+
+  // Ensure dark theme is set when not using system theme
+  useEffect(() => {
+    if (theme !== THEMES.SYSTEM && theme !== THEMES.DARK) {
+      setTheme(THEMES.DARK);
+    }
+  }, [theme, setTheme]);
 
   const placeholder = themeOptions.find(
     (option) => option.value === themeOption,

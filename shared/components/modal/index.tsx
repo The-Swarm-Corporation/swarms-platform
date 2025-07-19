@@ -2,6 +2,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -10,6 +11,7 @@ import {
 interface Props {
   isOpen: boolean;
   title?: string;
+  description?: string;
   onClose: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
@@ -22,6 +24,7 @@ interface Props {
 const Modal = ({
   isOpen,
   title,
+  description,
   onClose,
   children,
   footer,
@@ -46,6 +49,7 @@ const Modal = ({
         {showHeader && (
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
+            {description && <DialogDescription>{description}</DialogDescription>}
             <DialogClose onClick={onClose} />
           </DialogHeader>
         )}

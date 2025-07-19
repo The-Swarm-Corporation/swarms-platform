@@ -8,7 +8,7 @@ interface MermaidDiagramProps {
 
 const MermaidDiagram: React.FC<MermaidDiagramProps> = ({
   chart,
-  theme = 'light',
+  theme = 'dark',
 }) => {
   useEffect(() => {
     const config: MermaidConfig = {

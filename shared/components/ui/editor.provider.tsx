@@ -9,7 +9,7 @@ export enum THEMES {
   SYSTEM = 'system',
 }
 
-export const themes: THEMES[] = [THEMES.LIGHT, THEMES.DARK];
+export const themes: THEMES[] = [THEMES.DARK, THEMES.LIGHT];
 
 export const SINGLE = 'single';
 

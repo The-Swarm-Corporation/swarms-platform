@@ -4,11 +4,13 @@ import { Button } from '@/shared/components/ui/button';
 import { makeUrl } from '@/shared/utils/helpers';
 import React from 'react';
 import InfoCard from '../info-card';
-import { MessageCircle, Plus, ChevronDown, Code } from 'lucide-react';
+import { MessageCircle, Plus, ChevronDown, Code, Database } from 'lucide-react';
 import { PUBLIC } from '@/shared/utils/constants';
 import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 import PublicChatCard from '../chat-card';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 // TODO: Add types
 export default function Agents({
@@ -22,10 +24,20 @@ export default function Agents({
   hasMoreAgents,
   isAgentLoading,
 }: any) {
+  const router = useRouter();
+  
   async function handleAgentModal() {
     await checkUserSession();
     return setAddAgentModalOpen(true);
   }
+  
+  const handleRegistryClick = () => {
+    router.push('/platform/registry');
+    // Force scroll to top after navigation
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 100);
+  };
   return (
     <div className="flex flex-col min-h-1/2 gap-2 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -33,14 +45,24 @@ export default function Agents({
           <Code className="text-[#4ECDC4]" />
           Agents
         </h2>
-        <Button
-          onClick={handleAgentModal}
-          disabled={isLoading}
-          className="bg-[#4ECDC4]/20 border border-[#4ECDC4]/60 hover:bg-[#4ECDC4]/30 text-[#4ECDC4] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#4ECDC4]/25 group"
-        >
-          <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-          Add Agent
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={handleRegistryClick}
+            disabled={isLoading}
+            className="bg-[#6366f1]/20 border border-[#6366f1]/60 hover:bg-[#6366f1]/30 text-[#6366f1] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#6366f1]/25 group"
+          >
+            <Database className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+            View Registry
+          </Button>
+          <Button
+            onClick={handleAgentModal}
+            disabled={isLoading}
+            className="bg-[#4ECDC4]/20 border border-[#4ECDC4]/60 hover:bg-[#4ECDC4]/30 text-[#4ECDC4] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#4ECDC4]/25 group"
+          >
+            <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+            Add Agent
+          </Button>
+        </div>
       </div>
       <div>
         {isLoading && !isFetchingAgents ? (

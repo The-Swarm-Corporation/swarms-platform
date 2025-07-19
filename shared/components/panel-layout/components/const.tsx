@@ -20,6 +20,7 @@ import {
   Code2,
   Rocket,
   Store,
+  Database,
 } from 'lucide-react';
 import { DISCORD, NAVIGATION, PLATFORM } from '@/shared/utils/constants';
 import Discord from '@/shared/components/icons/Discord';
@@ -44,18 +45,6 @@ const navItemClass =
   'p-2 rounded-md bg-gray-50/5 hover:bg-gray-50/10 transition-colors duration-200';
 
 const SHARED_LINKS: MenuProps[] = [
-  {
-    icon: <Blocks className="text-blue-500" />,
-    title: 'Marketplace',
-    link: '/',
-    className: navItemClass,
-  },
-  {
-    title: 'Docs',
-    link: NAVIGATION.DOCS,
-    icon: <FileText className="text-purple-500" />,
-    className: navItemClass,
-  },
   {
     title: 'Learn More',
     link: NAVIGATION.LEARN_MORE,
@@ -107,6 +96,12 @@ export const SIDE_BAR_MENU: NavMenuProps = {
       icon: <Blocks size={24} className="text-blue-500" />,
       title: 'Marketplace',
       link: PLATFORM.EXPLORER,
+      className: navItemClass,
+    },
+    {
+      icon: <Database size={24} className="text-blue-500" />,
+      title: 'Registry',
+      link: PLATFORM.REGISTRY,
       className: navItemClass,
     },
     {

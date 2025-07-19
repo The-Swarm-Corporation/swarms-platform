@@ -7,7 +7,7 @@ export enum THEMES {
   SYSTEM = 'system',
 }
 
-export const themes: THEMES[] = [THEMES.LIGHT, THEMES.DARK];
+export const themes: THEMES[] = [THEMES.DARK, THEMES.LIGHT];
 
 export const SINGLE = 'single';
 
@@ -89,6 +89,7 @@ export const PLATFORM = {
   ACCOUNT_BILLING: '/platform/account/billing',
   SPREADSHEET: '/platform/spreadsheet',
   EXPLORER: '/',
+  REGISTRY: '/platform/registry',
   SETTINGS: '/platform/account',
   ORGANIZATION: '/platform/organization',
   CHAT: '/platform/chat',

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Atom, Blocks, Settings, User, Star, StarOff, MessageSquareMore, GripVertical, FileSpreadsheet, LockKeyhole, CircleGauge, LayoutDashboard, Trophy, Bookmark, Code2, Store } from 'lucide-react';
+import { Atom, Blocks, Settings, User, Star, StarOff, MessageSquareMore, GripVertical, FileSpreadsheet, LockKeyhole, CircleGauge, LayoutDashboard, Trophy, Bookmark, Code2, Store, Database } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useStarredApps } from '@/shared/components/starred-apps-context';
 import { useRouter } from 'next/navigation';
@@ -23,9 +23,9 @@ const TEMPLATES = [
   {
     id: 'marketplace',
     title: 'Marketplace',
-    description: 'Marketplace, App Store, Leaderboard, Dashboard, Settings',
+    description: 'Marketplace, Registry, App Store, Leaderboard, Dashboard, Settings',
     icon: <Blocks size={28} className="text-blue-400" />,
-    apps: ['dashboard', 'marketplace', 'appstore', 'leaderboard', 'settings', 'bookmarks'],
+    apps: ['dashboard', 'marketplace', 'registry', 'appstore', 'leaderboard', 'settings', 'bookmarks'],
   },
   {
     id: 'no-code',
@@ -46,7 +46,7 @@ const TEMPLATES = [
     title: 'All',
     description: 'Activate all apps',
     icon: <Blocks size={28} className="text-blue-400" />,
-    apps: ['marketplace', 'appstore', 'leaderboard', 'dashboard', 'settings', 'chat', 'spreadsheet', 'dragndrop', 'settings', 'apikeys', 'telemetry', 'settings', 'profile', 'playground', 'bookmarks'],
+    apps: ['marketplace', 'registry', 'appstore', 'leaderboard', 'dashboard', 'settings', 'chat', 'spreadsheet', 'dragndrop', 'settings', 'apikeys', 'telemetry', 'settings', 'profile', 'playground', 'bookmarks'],
   },
 ];
 
@@ -89,6 +89,14 @@ const APPS = [
     icon: <Blocks size={32} className="text-white" />,
     category: 'Marketplace',
     details: 'Find, purchase, or sell AI solutions and tools',
+  },
+  {
+    id: 'registry',
+    title: 'Registry',
+    description: 'Search and explore all agents with advanced filtering and pagination.',
+    icon: <Database size={32} className="text-white" />,
+    category: 'Marketplace',
+    details: 'Comprehensive agent discovery with free/paid filtering',
   },
   {
     id: 'appstore',
@@ -189,7 +197,7 @@ const APPS = [
 ];
 
 export default function AppsPage() {
-  const { starred, toggleStar } = useStarredApps();
+  const { starred, toggleStar, resetToDefaults } = useStarredApps();
   const [search, setSearch] = useState('');
   const router = useRouter();
 
@@ -205,6 +213,9 @@ export default function AppsPage() {
         break;
       case 'marketplace':
         router.push('/');
+        break;
+      case 'registry':
+        router.push('/platform/registry');
         break;
       case 'appstore':
         router.push('/autonomous-apps');
@@ -258,8 +269,18 @@ export default function AppsPage() {
         
         {/* Header */}
         <div className="relative space-y-3 mb-12 sm:mb-16">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tighter text-white">Apps Gallery</h1>
-          <p className="text-base sm:text-lg text-gray-300 max-w-2xl">Choose which apps you want to see in your sidebar. Star your favorites to pin them for quick access.</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tighter text-white">Apps Gallery</h1>
+              <p className="text-base sm:text-lg text-gray-300 max-w-2xl">Choose which apps you want to see in your sidebar. Star your favorites to pin them for quick access.</p>
+            </div>
+            <button
+              onClick={resetToDefaults}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Reset to All Apps
+            </button>
+          </div>
         </div>
 
         {/* Search */}

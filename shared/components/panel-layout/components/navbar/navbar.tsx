@@ -1,6 +1,6 @@
 'use client';
 
-import { Github, LogIn, Coins, Twitter } from 'lucide-react';
+import { Github, LogIn, Coins, Twitter, Settings } from 'lucide-react';
 import { FormEvent, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Logo from '@/shared/components/icons/Logo';
@@ -148,6 +148,24 @@ export default function PlatformNavBar() {
                 </NavItem>
               </li>
             ))}
+            {/* Sign in button for non-authenticated users */}
+            {!user && (
+              <li>
+                <a
+                  href="/signin"
+                  className={cn(
+                    'inline-flex items-center justify-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 my-1 font-medium text-xs sm:text-sm text-white',
+                    'rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary',
+                    'transition-all duration-300 whitespace-nowrap',
+                    path === '/signin' &&
+                      'bg-primary/20 text-primary border-primary/50 shadow-[0_0_10px_rgba(var(--primary-rgb,255,0,0),0.4)]',
+                  )}
+                >
+                  <LogIn className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                  Sign In
+                </a>
+              </li>
+            )}
           </ul>
           {/* Credits Display */}
           {user && (
@@ -160,6 +178,22 @@ export default function PlatformNavBar() {
                   : `$${(subscription.credit ?? 0).toFixed(2)}`}
               </span>
             </div>
+          )}
+          {/* Settings button for authenticated users - moved to left of avatar */}
+          {user && (
+            <a
+              href="/platform/account"
+              className={cn(
+                'inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 text-white',
+                'rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary',
+                'transition-all duration-300 ml-2 sm:ml-3',
+                path === '/platform/account' &&
+                  'bg-primary/20 text-primary border-primary/50 shadow-[0_0_10px_rgba(var(--primary-rgb,255,0,0),0.4)]',
+              )}
+              title="Settings"
+            >
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+            </a>
           )}
           <div
             className="relative ml-2 sm:ml-3 md:ml-5 cursor-pointer"
