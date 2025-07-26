@@ -138,8 +138,21 @@ ALTER FUNCTION "public"."get_user_id_by_email"("email" "text") OWNER TO "postgre
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$begin
-  insert into public.users (id, full_name, avatar_url, email)
-  values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url', new.email);
+  -- Add error handling to prevent trigger failures
+  begin
+    insert into public.users (id, full_name, avatar_url, email)
+    values (
+      new.id, 
+      COALESCE(new.raw_user_meta_data->>'full_name', ''),
+      COALESCE(new.raw_user_meta_data->>'avatar_url', ''),
+      COALESCE(new.email, '')
+    );
+  exception when others then
+    -- Log the error but don't fail the trigger
+    raise warning 'Failed to create user record for %: %', new.id, SQLERRM;
+    -- Return new to allow the auth.users insert to succeed
+    return new;
+  end;
   return new;
 end;$$;
 
