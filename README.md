@@ -10,7 +10,7 @@
 <p align="center">
 <a href="https://twitter.com/swarms_corp/">🐦 Twitter</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="https://discord.gg/NHfAfHf9zs">📢 Discord</a>
+<a href="https://discord.gg/EamjgSaEQf">📢 Discord</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://swarms.world">Swarms Platform</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
