@@ -22,8 +22,21 @@ create policy "Can update own user data." on users for update using (auth.uid() 
 create function public.handle_new_user() 
 returns trigger as $$
 begin
-  insert into public.users (id, full_name, avatar_url)
-  values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+  -- Add error handling to prevent trigger failures
+  begin
+    insert into public.users (id, full_name, avatar_url, email)
+    values (
+      new.id, 
+      COALESCE(new.raw_user_meta_data->>'full_name', ''),
+      COALESCE(new.raw_user_meta_data->>'avatar_url', ''),
+      COALESCE(new.email, '')
+    );
+  exception when others then
+    -- Log the error but don't fail the trigger
+    raise warning 'Failed to create user record for %: %', new.id, SQLERRM;
+    -- Return new to allow the auth.users insert to succeed
+    return new;
+  end;
   return new;
 end;
 $$ language plpgsql security definer;
