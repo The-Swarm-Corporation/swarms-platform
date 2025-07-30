@@ -592,30 +592,24 @@ print(result)`;
         <div className="max-md:text-center">
           <div className="relative group mb-6">
             <div className="absolute -inset-0.5 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x" />
-            {imageUrl ? (
-              <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-r from-black to-red-950">
-                <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px]">
-                  <Image
-                    src={imageUrl}
-                    alt={`${name || title} - ${entityTitle} image`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
-                    priority
-                    quality={90}
-                  />
-                  {/* Gradient overlay for better text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                </div>
-              </div>
-            ) : (
-              <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-r from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 h-32 flex items-center justify-center">
-                <div className="flex items-center gap-3 text-zinc-500 dark:text-zinc-400">
-                  <Code className="h-8 w-8" />
-                  <span className="text-lg font-medium">No image available</span>
-                </div>
-              </div>
-            )}
+            <div
+              className={cn(
+                'relative w-full rounded-2xl overflow-hidden',
+                imageUrl ? 'bg-gradient-to-r from-black to-red-950' : ''
+              )}
+              style={{
+                backgroundImage: imageUrl ? `
+                  linear-gradient(180deg, rgba(9, 11, 10, 0) 38.11%, rgba(9, 11, 10, 0.8) 88.68%),
+                  linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+                  url(${imageUrl})
+                ` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                minHeight: imageUrl ? '500px' : 'auto',
+                height: imageUrl ? 'clamp(400px, 50vh, 600px)' : 'auto'
+              }}
+            />
           </div>
 
           {/* Title and Description Section */}
@@ -839,141 +833,18 @@ print(result)`;
                 <div className="absolute right-0 top-full mt-2 w-48 rounded-lg bg-zinc-800/95 border border-zinc-700/50 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <div className="py-1">
                     <button
-                      onClick={() => {
-                        downloadFile(
-                          prompt ?? '',
-                          `${name ?? 'prompt'}.txt`,
-                          'text/plain',
-                        );
-                        toast.toast({ description: 'Downloaded as text file' });
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
+                      onClick={() => handleExportToAI('chatgpt')}
+                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
                     >
-                      Download as Text (.txt)
+                      <MessageSquare className="w-4 h-4" />
+                      Export to ChatGPT
                     </button>
                     <button
-                      onClick={() => {
-                        downloadFile(
-                          prompt ?? '',
-                          `${name ?? 'prompt'}.md`,
-                          'text/markdown',
-                        );
-                        toast.toast({
-                          description: 'Downloaded as markdown file',
-                        });
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
+                      onClick={() => handleExportToAI('claude')}
+                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
                     >
-                      Download as Markdown (.md)
-                    </button>
-                    <button
-                      onClick={() => {
-                        const frameworkCode = `import time
-from swarms import Agent
-
-# Put your api key in the .env file like OPENAI_API_KEY=""
-
-
-# Initialize the agent
-agent = Agent(
-    agent_name="${name || 'Custom-Agent'}",
-    agent_description="""${(description || 'Custom agent for specific tasks').replace(/"""/g, '\"\"\"').replace(/^\n+/, '')}""",
-    system_prompt="""${prompt?.replace(/"/g, '\\"') || ''}""",
-    max_loops=1,
-    model_name="gpt-4o-mini",
-    dynamic_temperature_enabled=True,
-    output_type="all",
-    max_tokens=16384,
-    # dashboard=True
-)
-
-# Run the agent with your task
-out = agent.run("Your task description here")
-
-time.sleep(10)
-print(out)`;
-                        downloadFile(
-                          frameworkCode,
-                          `${name ?? 'prompt'}_framework.py`,
-                          'text/python',
-                        );
-                        toast.toast({
-                          description: 'Downloaded as Framework Python file',
-                        });
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
-                    >
-                      Download as Framework (.py)
-                    </button>
-                    <button
-                      onClick={() => {
-                        const apiCode = `import os
-import requests
-from dotenv import load_dotenv
-
-# Load API key from environment
-load_dotenv()
-API_KEY = os.getenv("SWARMS_API_KEY")
-BASE_URL = "https://api.swarms.world"
-
-# Configure headers with your API key
-headers = {
-    "x-api-key": API_KEY,
-    "Content-Type": "application/json"
-}
-
-def run_single_agent(agent_config, task):
-    """
-    Run a single agent with the AgentCompletion format.
-    """
-    payload = {
-        "agent_config": agent_config,
-        "task": task
-    }
-
-    try:
-        response = requests.post(
-            f"{BASE_URL}/v1/agent/completions", 
-            headers=headers, 
-            json=payload
-        )
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error making request: {e}")
-        return None
-
-# Agent configuration using this prompt
-agent_config = {
-    "agent_name": "${name || 'Custom-Agent'}",
-    "description": """${(description || 'Custom agent for specific tasks').replace(/"""/g, '\"\"\"').replace(/^\n+/, '')}""",
-    "system_prompt": """${prompt?.replace(/"/g, '\\"') || ''}""",
-    "model_name": "gpt-4o",
-    "role": "worker",
-    "max_loops": 2,
-    "max_tokens": 8192,
-    "temperature": 0.5,
-    "auto_generate_prompt": False,
-}
-
-# Your task
-task = "Your task description here"
-
-# Run the agent
-result = run_single_agent(agent_config, task)
-print(result)`;
-                        downloadFile(
-                          apiCode,
-                          `${name ?? 'prompt'}_api.py`,
-                          'text/python',
-                        );
-                        toast.toast({
-                          description: 'Downloaded as API Python file',
-                        });
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
-                    >
-                      Download as API (.py)
+                      <Bot className="w-4 h-4" />
+                      Export to Claude
                     </button>
                   </div>
                 </div>
@@ -1231,7 +1102,7 @@ from swarms import Agent
 # Initialize the agent
 agent = Agent(
     agent_name="${name || 'Custom-Agent'}",
-    agent_description="""${(description || 'Custom agent for specific tasks').replace(/"""/g, '\"\"\"').replace(/^\n+/, '')}""",
+    agent_description="${description?.replace(/"/g, '\\"') || 'Custom agent for specific tasks'}",
     system_prompt="""${prompt?.replace(/"/g, '\\"') || ''}""",
     max_loops=1,
     model_name="gpt-4o-mini",
@@ -1300,7 +1171,7 @@ def run_single_agent(agent_config, task):
 # Agent configuration using this prompt
 agent_config = {
     "agent_name": "${name || 'Custom-Agent'}",
-    "description": """${(description || 'Custom agent for specific tasks').replace(/"""/g, '\"\"\"').replace(/^\n+/, '')}""",
+    "description": "${description?.replace(/"/g, '\\"') || 'Custom agent for specific tasks'}",
     "system_prompt": """${prompt?.replace(/"/g, '\\"') || ''}""",
     "model_name": "gpt-4o",
     "role": "worker",
@@ -1401,7 +1272,6 @@ print(result)`;
 from swarms import Agent
 
 # Put your api key in the .env file like OPENAI_API_KEY=""
-
 
 # Initialize the agent
 agent = Agent(
