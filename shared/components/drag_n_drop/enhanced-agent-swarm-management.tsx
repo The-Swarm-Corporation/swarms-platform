@@ -1,6 +1,6 @@
 'use client';
 
-import {
+import React, {
   useState,
   useCallback,
   useEffect,
@@ -110,10 +110,11 @@ import { getOptimizeSystemPrompt } from './helper';
 import { useAuthContext } from '../ui/auth.provider';
 import LoadingSpinner from '../loading-spinner';
 import MarkdownComponent from '../markdown.tsx';
+import ExpandableMarkdownOutput from './expandable_markdown_output';
 
 type AgentType = 'Worker' | 'Boss';
 type AgentModel = 'gpt-3.5-turbo' | 'gpt-4o' | 'claude-2' | 'gpt-4o-mini';
-type SwarmArchitecture = 'Concurrent' | 'Sequential' | 'Hierarchical';
+type SwarmArchitecture = 'Concurrent' | 'Sequential' | 'Hierarchical' | 'Custom';
 type ReactFlowNode = Node<AgentData>;
 
 // Define types that exactly match your Zod schema
@@ -154,6 +155,7 @@ interface AgentData {
   lastResult?: string;
   hideDeleteButton?: boolean;
   groupId?: string; // Added groupId property
+  isOutputExpanded?: boolean; // New property for expandable output
 }
 
 declare global {
@@ -176,28 +178,20 @@ interface EdgeParams {
 
 const AnimatedHexagon = motion.polygon;
 
-// Add this new component for the delete button
-const DeleteButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <Button
-    variant="ghost"
-    size="icon"
-    onClick={(e) => {
-      e.stopPropagation();
-      onClick();
-    }}
-    className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md border-2 border-background z-10 transition-all duration-200 hover:scale-110"
-  >
-    <X className="h-5 w-5" />
-  </Button>
-);
-
+/**
+ * Cleanup function to remove body styles that may interfere with modal display
+ */
 const cleanupBodyStyles = () => {
   document.body.style.removeProperty('pointer-events');
   // Also remove any other unwanted styles that might be added
   document.body.style.removeProperty('overflow');
 };
 
-// Create a hook to manage body styles
+/**
+ * Hook to manage body styles cleanup when modals are opened/closed
+ * 
+ * @param isOpen - Whether the modal is currently open
+ */
 const useBodyStyleCleanup = (isOpen: boolean) => {
   useEffect(() => {
     // Clean up styles when modal closes
@@ -212,13 +206,33 @@ const useBodyStyleCleanup = (isOpen: boolean) => {
   }, [isOpen]);
 };
 
+// Add this new component for the delete button
+const DeleteButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <Button
+    variant="ghost"
+    size="icon"
+    onClick={(e: React.MouseEvent) => {
+      e.stopPropagation();
+      onClick();
+    }}
+    className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md border-2 border-background z-10 transition-all duration-200 hover:scale-110"
+  >
+    <X className="h-5 w-5" />
+  </Button>
+);
+
 // Update the AgentNode component to include connection handles
 const AgentNode: React.FC<
   NodeProps<AgentData> & {
     hideDeleteButton?: boolean;
     isInGroupDisplay?: boolean; // New prop to indicate if the agent is being displayed inside a group
   }
-> = ({ data, id, hideDeleteButton, isInGroupDisplay }) => {
+> = ({ data, id, hideDeleteButton, isInGroupDisplay }: {
+  data: AgentData;
+  id: string;
+  hideDeleteButton?: boolean;
+  isInGroupDisplay?: boolean;
+}) => {
   const { user } = useAuthContext();
   const deductCredit = trpc.explorer.deductCredit.useMutation();
   const theme = useTheme();
@@ -282,10 +296,10 @@ const AgentNode: React.FC<
   }, [data.systemPrompt]);
 
   const handleDelete = useCallback(() => {
-    setNodes((nodes) => {
+    setNodes((nodes: Node[]) => {
       // Create a new array of nodes
       return nodes
-        .map((node) => {
+        .map((node: Node) => {
           // If this is a group node, check if it contains the agent
           if (node.type === 'group' && node.data.agents) {
             return {
@@ -306,8 +320,8 @@ const AgentNode: React.FC<
     });
 
     // Remove any edges connected to this agent
-    setEdges((edges) =>
-      edges.filter((edge) => edge.source !== id && edge.target !== id),
+    setEdges((edges: Edge[]) =>
+      edges.filter((edge: Edge) => edge.source !== id && edge.target !== id),
     );
   }, [id, data.id, setNodes, setEdges]);
 
@@ -481,9 +495,26 @@ const AgentNode: React.FC<
                 <div>
                   <strong>Last Result:</strong>
 
-                  <MarkdownComponent
-                    className="space-y-1 *:text-xs"
+                  <ExpandableMarkdownOutput
                     text={data.lastResult}
+                    isExpanded={data.isOutputExpanded || false}
+                    onToggleExpanded={() => {
+                      const updatedData = {
+                        ...data,
+                        isOutputExpanded: !data.isOutputExpanded,
+                      };
+                      setNodes((nodes) =>
+                        nodes.map((node) => {
+                          if (node.id === id) {
+                            return {
+                              ...node,
+                              data: updatedData,
+                            };
+                          }
+                          return node;
+                        }),
+                      );
+                    }}
                   />
                 </div>
               )}
@@ -661,34 +692,32 @@ const GroupNode: React.FC<NodeProps<GroupData>> = ({ data, id }) => {
   useBodyStyleCleanup(isEditing);
 
   const handleDelete = useCallback(() => {
-    setNodes((nodes) => {
-      // Get all agent IDs in this group
-      const agentIds = data.agents?.map((agent) => agent.id) || [];
-
-      // Update nodes: Remove the group and update agents to be standalone
+    setNodes((nodes: Node[]) => {
+      // Create a new array of nodes
       return nodes
-        .map((node) => {
-          if (node.id === id) {
-            // Remove the group
-            return null;
-          }
-          if (agentIds.includes(node.id)) {
-            // Update agent to remove group association
+        .map((node: Node) => {
+          // If this is a group node, check if it contains the agent
+          if (node.type === 'group' && node.data.agents) {
             return {
               ...node,
               data: {
                 ...node.data,
-                groupId: undefined,
+                // Remove the agent from the group's agents array
+                agents: node.data.agents.filter(
+                  (agent: AgentData) => agent.id !== data.id,
+                ),
               },
             };
           }
-          return node;
+          // Remove the agent node itself
+          return node.id !== id ? node : null;
         })
         .filter(Boolean) as Node[];
     });
 
-    setEdges((edges) =>
-      edges.filter((edge) => edge.source !== id && edge.target !== id),
+    // Remove any edges connected to this agent
+    setEdges((edges: Edge[]) =>
+      edges.filter((edge: Edge) => edge.source !== id && edge.target !== id),
     );
   }, [id, data.agents, setNodes, setEdges]);
 
@@ -1031,6 +1060,39 @@ interface GroupData {
   agents: AgentData[];
   description?: string;
 }
+
+/**
+ * ExpandableMarkdownOutput component for displaying agent results with expand/collapse functionality
+ */
+const ExpandableMarkdownOutput: React.FC<{
+  text: string;
+  className?: string;
+  isExpanded: boolean;
+  onToggleExpanded: () => void;
+}> = ({ text, className, isExpanded, onToggleExpanded }) => {
+  const maxLength = 200; // Maximum characters to show when collapsed
+  const shouldTruncate = text.length > maxLength;
+  const displayText = isExpanded || !shouldTruncate ? text : text.slice(0, maxLength) + '...';
+
+  return (
+    <div className={cn('space-y-2', className)}>
+      <MarkdownComponent
+        text={displayText}
+        className="space-y-1 *:text-xs"
+      />
+      {shouldTruncate && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleExpanded}
+          className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+        >
+          {isExpanded ? 'Show Less' : 'Show More'}
+        </Button>
+      )}
+    </div>
+  );
+};
 
 // Create a wrapped component for the main content
 const FlowContent = () => {
@@ -1688,6 +1750,13 @@ const FlowContent = () => {
     (window as any).updateNodeData = updateNodeData;
   }, []);
 
+  /**
+   * Processes an individual agent with the given task and context
+   * 
+   * @param agentId - Unique identifier of the agent to process
+   * @param context - Context from previous agents in the chain
+   * @returns Promise resolving to the agent's response text
+   */
   const processAgent = async (agentId: string, context: string = '') => {
     if (!user) {
       toast({
@@ -1820,7 +1889,10 @@ const FlowContent = () => {
     }
   };
 
-  // Update the runTask function's agent processing section
+  /**
+   * Executes the task across all agents and groups in the swarm
+   * Processes agents sequentially and groups according to their architecture
+   */
   const runTask = async () => {
     if (!task) {
       toast({
@@ -2643,27 +2715,12 @@ const FlowContent = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           <input
-            id="load-json"
             type="file"
             accept=".json"
             className="hidden"
             onChange={loadSwarmConfiguration}
           />
-          <Select
-            value={swarmArchitecture}
-            onValueChange={(value: SwarmArchitecture) =>
-              setSwarmArchitecture(value)
-            }
-          >
-            <SelectTrigger className="w-[180px] bg-card border-border">
-              <SelectValue placeholder="Select architecture" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Concurrent">Concurrent</SelectItem>
-              <SelectItem value="Sequential">Sequential</SelectItem>
-              <SelectItem value="Hierarchical">Hierarchical</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Architecture selection removed as requested */}
         </div>
       </div>
 
@@ -2800,7 +2857,16 @@ const FlowContent = () => {
                                 </TableCell>
                                 <TableCell>{groupName}</TableCell>
                                 <TableCell>
-                                  <MarkdownComponent text={result ?? ''} />
+                                  <ExpandableMarkdownOutput
+                                    text={result ?? ''}
+                                    isExpanded={agent?.isOutputExpanded || false}
+                                    onToggleExpanded={() => {
+                                      updateNodeData(agentId, {
+                                        ...agent,
+                                        isOutputExpanded: !agent?.isOutputExpanded,
+                                      });
+                                    }}
+                                  />
                                 </TableCell>
                               </TableRow>
                             );
@@ -3176,7 +3242,17 @@ const FlowContent = () => {
   );
 };
 
-// Update the main component to use the provider
+/**
+ * Main component for the enhanced agent swarm management interface
+ * Provides a drag-and-drop interface for creating and managing AI agent workflows
+ * 
+ * Features:
+ * - Visual flow builder with React Flow
+ * - Agent and group management
+ * - Task execution across swarms
+ * - Markdown output with expandable results
+ * - Custom flow architecture support
+ */
 export function EnhancedAgentSwarmManagementComponent() {
   return (
     <ReactFlowProvider>
