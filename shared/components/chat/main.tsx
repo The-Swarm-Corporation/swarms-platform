@@ -11,9 +11,9 @@ import {
   Loader2,
   Lock,
   LockOpen,
+  MessageSquare,
   Mic,
   Send,
-  Shield,
   Upload,
   X,
 } from 'lucide-react';
@@ -246,7 +246,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                 <div className="flex justify-between items-start">
                   <div className="flex items-center space-x-2 lg:space-x-4">
                     <div className="relative">
-                      <Shield className="w-5 h-5 lg:w-10 lg:h-10 text-primary/50" />
+                      <MessageSquare className="w-5 h-5 lg:w-10 lg:h-10 text-primary/50" />
                       <motion.div
                         animate={{ opacity: [0.5, 1, 0.5] }}
                         transition={{
@@ -255,7 +255,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                         }}
                         className="absolute inset-0 text-primary"
                       >
-                        <Shield className="w-5 h-5 lg:w-10 lg:h-10" />
+                        <MessageSquare className="w-5 h-5 lg:w-10 lg:h-10" />
                       </motion.div>
                     </div>
                     <div>
@@ -266,7 +266,7 @@ export default function SwarmsChat({}: SwarmsChatProps) {
                         </span>
                       </h2>
                       <p className="text-red-500/50 text-xs lg:text-sm tracking-wide">
-                        Swarms Agent System
+                        Conversational Interface for Multi-Agent Systems
                       </p>
                     </div>
                   </div>
