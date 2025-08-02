@@ -99,76 +99,80 @@ const PanelLayoutSidebar = () => {
       {/* desktop */}
       <div
         className={cn(
-          'max-w-[90px] w-full transition-all duration-150 ease-out translate-x-0 max-lg:hidden',
-          showTitle && 'max-w-[250px]',
+          'w-16 transition-all duration-150 ease-out translate-x-0 max-lg:hidden',
+          showTitle && 'w-64',
         )}
       />
       <div
         className={cn(
-          'flex flex-col fixed flex-shrink-0 max-w-[250px] border-r border-gray-800 w-full transition-all ease-out duration-150 translate-x-0 min-h-screen max-lg:hidden shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] z-[9999] bg-white dark:bg-black',
-          !showTitle && 'max-w-[90px]',
+          'flex flex-col fixed flex-shrink-0 w-16 border-r border-gray-800 transition-all ease-out duration-150 translate-x-0 h-screen max-lg:hidden shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] z-[9999] bg-white dark:bg-black',
+          showTitle && 'w-64',
         )}
       >
         <div
           onMouseEnter={() => setShowTitle(true)}
           onMouseLeave={() => setShowTitle(false)}
-          className={cn(
-            'flex flex-col justify-between p-4 w-full h-screen visible',
-            // isOn && 'invisible',
-          )}
+          className="flex flex-col h-full"
         >
-          <div className="flex flex-col h-[88%] w-[90%]">
-            {/* menu */}
-            <div className="flex-grow mt-3">
-              <AnimatePresence>
-                {filteredMenu?.map((item, index) => {
-                  const isSubMenuActive = item.items?.some(
-                    (subItem) => subItem.link === path,
-                  );
-                  return (
-                    <motion.div
-                      key={item.title}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <NavItem
-                        {...item}
-                        showTitle={showTitle}
-                        isIcon
-                        className={cn(
-                          'p-2 py-3 my-1 hover:bg-gray-700/40 hover:text-white rounded-md hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
-                          item.link === path &&
-                            'bg-gray-700/40 text-white [&_svg]:text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
+          {/* Scrollable content area */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="flex flex-col p-4 space-y-2">
+              {/* menu */}
+              <div className="flex-grow">
+                <AnimatePresence>
+                  {filteredMenu?.map((item, index) => {
+                    const isSubMenuActive = item.items?.some(
+                      (subItem) => subItem.link === path,
+                    );
+                    return (
+                      <motion.div
+                        key={item.title}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <NavItem
+                          {...item}
+                          showTitle={showTitle}
+                          isIcon
+                          className={cn(
+                            'p-2 py-2 my-1 hover:bg-gray-700/40 hover:text-white rounded-lg hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-gray-800/20 border border-gray-700/30',
+                            item.link === path &&
+                              'bg-gray-700/40 text-white [&_svg]:text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] border-gray-600',
+                          )}
+                        />
+                        {/* sub items */}
+                        {isSubMenuActive && showTitle && item.items?.length && (
+                          <div className="flex flex-col gap-2">
+                            {item.items?.map((subItem) => (
+                              <NavItem
+                                {...subItem}
+                                key={subItem.title}
+                                className={cn(
+                                  'pl-10 py-1 hover:bg-gray-700/40 hover:text-white rounded-lg bg-gray-800/20 border border-gray-700/30',
+                                  subItem.link === path &&
+                                    'bg-gray-700/40 text-white [&_svg]:text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] border-gray-600',
+                                )}
+                                showTitle
+                              />
+                            ))}
+                          </div>
                         )}
-                      />
-                      {/* sub items */}
-                      {isSubMenuActive && showTitle && item.items?.length && (
-                        <div className="flex flex-col gap-2">
-                          {item.items?.map((subItem) => (
-                            <NavItem
-                              {...subItem}
-                              key={subItem.title}
-                              className={cn(
-                                'pl-10 py-1 hover:bg-gray-700/40 hover:text-white rounded-md',
-                                subItem.link === path &&
-                                  'bg-gray-700/40 text-white [&_svg]:text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]',
-                              )}
-                              showTitle
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
             </div>
+          </div>
+
+          {/* Fixed bottom section */}
+          <div className="flex-shrink-0 p-4 space-y-2 border-t border-gray-800">
             {/* Command K reminder */}
-            <div className="p-2 py-3 hover:bg-gray-700/40 hover:text-white rounded-md hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] mb-2">
+            <div className="p-2 py-2 hover:bg-gray-700/40 hover:text-white rounded-lg hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-gray-800/20 border border-gray-700/30">
               <div className="flex items-center justify-start cursor-pointer w-full">
-                <Keyboard size={24} className="mr-2" />
+                <Keyboard size={20} className="mr-2" />
                 {showTitle && (
                   <div className="flex items-center gap-2">
                     <span>Command Bar</span>
@@ -179,7 +183,9 @@ const PanelLayoutSidebar = () => {
                 )}
               </div>
             </div>
-            <div className="p-2 py-3 hover:bg-destructive hover:text-white rounded-md hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)]">
+            
+            {/* Sign out/Login button */}
+            <div className="p-2 py-2 hover:bg-destructive hover:text-white rounded-lg hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-gray-800/20 border border-gray-700/30">
               {user ? (
                 <form onSubmit={handleSignOut} className="w-full">
                   <input
@@ -200,7 +206,7 @@ const PanelLayoutSidebar = () => {
                       </p>
                     ) : (
                       <p className="flex items-center justify-start">
-                        <LogOut size={24} className="mr-2" />
+                        <LogOut size={20} className="mr-2" />
                         {showTitle && <span>Sign out</span>}
                       </p>
                     )}
@@ -209,7 +215,7 @@ const PanelLayoutSidebar = () => {
               ) : (
                 <Link href="/signin" className="cursor-pointer">
                   <button className="flex items-center justify-start w-full">
-                    <LogIn size={24} className="mr-2" />
+                    <LogIn size={20} className="mr-2" />
                     {showTitle && <span>Log in</span>}
                   </button>
                 </Link>
