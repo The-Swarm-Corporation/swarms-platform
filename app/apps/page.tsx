@@ -78,7 +78,7 @@ const APPS = [
     id: 'dashboard',
     title: 'Dashboard',
     description: 'Your personalized command center for monitoring and managing all platform activities.',
-    icon: <LayoutDashboard size={32} className="text-white" />,
+    icon: <LayoutDashboard size={32} className="text-emerald-500" />,
     category: 'Marketplace',
     details: 'Track performance metrics, recent activity, and important notifications',
   },
@@ -86,7 +86,7 @@ const APPS = [
     id: 'marketplace',
     title: 'Marketplace',
     description: 'Browse and discover agentic tools, agents, and prompts from the community.',
-    icon: <Blocks size={32} className="text-white" />,
+    icon: <Blocks size={32} className="text-blue-500" />,
     category: 'Marketplace',
     details: 'Find, purchase, or sell AI solutions and tools',
   },
@@ -94,7 +94,7 @@ const APPS = [
     id: 'registry',
     title: 'Registry',
     description: 'Search and explore all agents with advanced filtering and pagination.',
-    icon: <Database size={32} className="text-white" />,
+    icon: <Database size={32} className="text-blue-500" />,
     category: 'Marketplace',
     details: 'Comprehensive agent discovery with free/paid filtering',
   },
@@ -102,7 +102,7 @@ const APPS = [
     id: 'appstore',
     title: 'App Store',
     description: 'Explore curated autonomous AI applications ready for immediate use.',
-    icon: <Store size={32} className="text-white" />,
+    icon: <Store size={32} className="text-orange-500" />,
     category: 'Marketplace',
     details: 'Download and deploy pre-built AI applications',
   },
@@ -110,7 +110,7 @@ const APPS = [
     id: 'apps',
     title: 'Apps',
     description: 'Customize your workspace with the tools you need.',
-    icon: <Atom size={32} className="text-white" />,
+    icon: <Atom size={32} className="text-gray-400" />,
     category: 'No Code Agent Platforms',
     details: 'Manage and organize your installed applications',
   },
@@ -118,7 +118,7 @@ const APPS = [
     id: 'chat',
     title: 'Chat',
     description: 'Interact with AI agents through a familiar chat interface.',
-    icon: <MessageSquareMore size={32} className="text-white" />,
+    icon: <MessageSquareMore size={32} className="text-indigo-500" />,
     category: 'No Code Agent Platforms',
     details: 'Real-time communication with AI agents and team members',
   },
@@ -126,7 +126,7 @@ const APPS = [
     id: 'spreadsheet',
     title: 'Spreadsheet Swarm',
     description: 'Collaborative AI-powered spreadsheets for data analysis.',
-    icon: <FileSpreadsheet size={32} className="text-white" />,
+    icon: <FileSpreadsheet size={32} className="text-green-500" />,
     category: 'No Code Agent Platforms',
     details: 'Process and analyze data with AI assistance',
   },
@@ -134,7 +134,7 @@ const APPS = [
     id: 'dragndrop',
     title: 'Drag & Drop',
     description: 'Build AI workflows visually with our intuitive interface.',
-    icon: <GripVertical size={32} className="text-white" />,
+    icon: <GripVertical size={32} className="text-orange-500" />,
     category: 'No Code Agent Platforms',
     details: 'Create custom AI workflows without coding',
   },
@@ -142,7 +142,7 @@ const APPS = [
     id: 'leaderboard',
     title: 'Leaderboard',
     description: 'See top performers and trending content in the community.',
-    icon: <Trophy size={32} className="text-white" />,
+    icon: <Trophy size={32} className="text-yellow-500" />,
     category: 'Marketplace',
     details: 'Track popular creators and trending AI solutions',
   },
@@ -150,7 +150,7 @@ const APPS = [
     id: 'apikeys',
     title: 'API Keys',
     description: 'Manage your API credentials and access tokens.',
-    icon: <LockKeyhole size={32} className="text-white" />,
+    icon: <LockKeyhole size={32} className="text-red-500" />,
     category: 'Account Settings',
     details: 'Secure access to platform APIs and services',
   },
@@ -158,7 +158,7 @@ const APPS = [
     id: 'telemetry',
     title: 'Telemetry',
     description: 'Monitor platform usage and performance analytics.',
-    icon: <CircleGauge size={32} className="text-white" />,
+    icon: <CircleGauge size={32} className="text-cyan-500" />,
     category: 'Account Settings',
     details: 'Track usage metrics and system performance',
   },
@@ -166,7 +166,7 @@ const APPS = [
     id: 'settings',
     title: 'Settings',
     description: 'Configure your account and organization preferences.',
-    icon: <Settings size={32} className="text-white" />,
+    icon: <Settings size={32} className="text-gray-400" />,
     category: 'Account Settings',
     details: 'Customize platform settings and preferences',
   },
@@ -174,7 +174,7 @@ const APPS = [
     id: 'profile',
     title: 'Profile',
     description: 'Manage your personal profile and preferences.',
-    icon: <User size={32} className="text-white" />,
+    icon: <User size={32} className="text-gray-400" />,
     category: 'More',
     details: 'Update your profile information and settings',
   },
@@ -182,7 +182,7 @@ const APPS = [
     id: 'bookmarks',
     title: 'Marketplace Bookmarks',
     description: 'Access your saved items and favorites.',
-    icon: <Bookmark size={32} className="text-white" />,
+    icon: <Bookmark size={32} className="text-purple-500" />,
     category: 'Marketplace',
     details: 'Quick access to saved agentic tools and content',
   },
@@ -190,7 +190,7 @@ const APPS = [
     id: 'playground',
     title: 'Playground',
     description: 'Experiment with AI models in a sandbox environment.',
-    icon: <Code2 size={32} className="text-white" />,
+    icon: <Code2 size={32} className="text-cyan-500" />,
     category: 'Account Settings',
     details: 'Test and debug AI models safely',
   },
@@ -272,13 +272,13 @@ export default function AppsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tighter text-white">Apps Gallery</h1>
-              <p className="text-base sm:text-lg text-gray-300 max-w-2xl">Choose which apps you want to see in your sidebar. Star your favorites to pin them for quick access.</p>
+              <p className="text-base sm:text-lg text-gray-300 max-w-2xl">Choose which apps you want to see in your sidebar. Star your favorites to pin them for quick access. Marketplace apps are selected by default.</p>
             </div>
             <button
               onClick={resetToDefaults}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >
-              Reset to All Apps
+              Reset to Marketplace
             </button>
           </div>
         </div>

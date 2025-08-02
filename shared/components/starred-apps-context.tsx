@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-const defaultStarred = ['dashboard', 'marketplace', 'registry', 'appstore', 'apps', 'chat', 'spreadsheet', 'dragndrop', 'leaderboard', 'apikeys', 'telemetry', 'settings', 'profile', 'bookmarks', 'playground'];
+const defaultStarred = ['dashboard', 'marketplace', 'registry', 'appstore', 'leaderboard', 'bookmarks'];
 const StarredAppsContext = createContext({
   starred: defaultStarred,
   toggleStar: (id: string) => {},
