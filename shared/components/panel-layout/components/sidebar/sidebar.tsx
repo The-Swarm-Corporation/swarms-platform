@@ -99,93 +99,92 @@ const PanelLayoutSidebar = () => {
       {/* desktop */}
       <div
         className={cn(
-          'w-16 transition-all duration-150 ease-out translate-x-0 max-lg:hidden',
-          showTitle && 'w-64',
+          'max-w-[80px] w-full transition-all duration-200 ease-out translate-x-0 max-lg:hidden',
+          showTitle && 'max-w-[240px]',
         )}
       />
       <div
         className={cn(
-          'flex flex-col fixed flex-shrink-0 w-16 border-r border-gray-800 transition-all ease-out duration-150 translate-x-0 h-screen max-lg:hidden shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] z-[9999] bg-white dark:bg-black',
-          showTitle && 'w-64',
+          'flex flex-col fixed flex-shrink-0 max-w-[240px] border-r border-gray-800/50 w-full transition-all ease-out duration-200 translate-x-0 min-h-screen max-lg:hidden shadow-lg z-[9999] bg-white/95 dark:bg-black/95 backdrop-blur-sm',
+          !showTitle && 'max-w-[80px]',
         )}
       >
         <div
           onMouseEnter={() => setShowTitle(true)}
           onMouseLeave={() => setShowTitle(false)}
-          className="flex flex-col h-full"
+          className={cn(
+            'flex flex-col justify-between p-3 w-full h-screen visible',
+          )}
         >
-          {/* Scrollable content area */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
-            <div className="flex flex-col p-4 space-y-2">
-              {/* menu */}
-              <div className="flex-grow">
-                <AnimatePresence>
-                  {filteredMenu?.map((item, index) => {
-                    const isSubMenuActive = item.items?.some(
-                      (subItem) => subItem.link === path,
-                    );
-                    return (
-                      <motion.div
-                        key={item.title}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <NavItem
-                          {...item}
-                          showTitle={showTitle}
-                          isIcon
-                          className={cn(
-                            'p-2 py-2 my-1 hover:bg-gray-700/40 hover:text-white rounded-lg hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-gray-800/20 border border-gray-700/30',
-                            item.link === path &&
-                              'bg-gray-700/40 text-white [&_svg]:text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] border-gray-600',
-                          )}
-                        />
-                        {/* sub items */}
-                        {isSubMenuActive && showTitle && item.items?.length && (
-                          <div className="flex flex-col gap-2">
-                            {item.items?.map((subItem) => (
-                              <NavItem
-                                {...subItem}
-                                key={subItem.title}
-                                className={cn(
-                                  'pl-10 py-1 hover:bg-gray-700/40 hover:text-white rounded-lg bg-gray-800/20 border border-gray-700/30',
-                                  subItem.link === path &&
-                                    'bg-gray-700/40 text-white [&_svg]:text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] border-gray-600',
-                                )}
-                                showTitle
-                              />
-                            ))}
-                          </div>
+          <div className="flex flex-col h-[88%] w-full">
+            {/* menu */}
+            <div className="flex-grow mt-2">
+              <AnimatePresence>
+                {filteredMenu?.map((item, index) => {
+                  const isSubMenuActive = item.items?.some(
+                    (subItem) => subItem.link === path,
+                  );
+                  return (
+                    <motion.div
+                      key={item.title}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.2, delay: index * 0.05 }}
+                    >
+                      <NavItem
+                        {...item}
+                        showTitle={showTitle}
+                        isIcon
+                        className={cn(
+                          'p-2.5 py-2.5 my-1 hover:bg-gray-700/30 hover:text-white rounded-lg hover:shadow-md transition-all duration-200 group',
+                          item.link === path &&
+                            'bg-gradient-to-r from-gray-700/50 to-gray-600/50 text-white [&_svg]:text-white shadow-lg border border-gray-600/30',
                         )}
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
+                      />
+                      {/* sub items */}
+                      {isSubMenuActive && showTitle && item.items?.length && (
+                        <motion.div 
+                          className="flex flex-col gap-1 ml-2 mt-1"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {item.items?.map((subItem) => (
+                            <NavItem
+                              {...subItem}
+                              key={subItem.title}
+                              className={cn(
+                                'pl-8 py-1.5 hover:bg-gray-700/30 hover:text-white rounded-md transition-all duration-200 text-sm',
+                                subItem.link === path &&
+                                  'bg-gray-700/40 text-white [&_svg]:text-white shadow-md',
+                              )}
+                              showTitle
+                            />
+                          ))}
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
-          </div>
-
-          {/* Fixed bottom section */}
-          <div className="flex-shrink-0 p-4 space-y-2 border-t border-gray-800">
             {/* Command K reminder */}
-            <div className="p-2 py-2 hover:bg-gray-700/40 hover:text-white rounded-lg hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-gray-800/20 border border-gray-700/30">
+            <div className="p-2.5 py-2.5 hover:bg-gray-700/30 hover:text-white rounded-lg hover:shadow-md transition-all duration-200 mb-2 group">
               <div className="flex items-center justify-start cursor-pointer w-full">
-                <Keyboard size={20} className="mr-2" />
+                <Keyboard size={20} className="mr-2 group-hover:scale-110 transition-transform duration-200" />
                 {showTitle && (
                   <div className="flex items-center gap-2">
-                    <span>Command Bar</span>
-                    <kbd className="px-2 py-1 text-xs font-semibold text-gray-400 bg-gray-800 border border-gray-700 rounded">
+                    <span className="text-sm">Command Bar</span>
+                    <kbd className="px-2 py-1 text-xs font-semibold text-gray-400 bg-gray-800/50 border border-gray-700/50 rounded-md">
                       ⌘K
                     </kbd>
                   </div>
                 )}
               </div>
             </div>
-            
-            {/* Sign out/Login button */}
-            <div className="p-2 py-2 hover:bg-destructive hover:text-white rounded-lg hover:shadow-[0_1px_3px_rgba(0,0,0,0.12),_0_1px_2px_rgba(0,0,0,0.24)] bg-gray-800/20 border border-gray-700/30">
+            <div className="p-2.5 py-2.5 hover:bg-red-600/20 hover:text-red-400 rounded-lg hover:shadow-md transition-all duration-200 group">
               {user ? (
                 <form onSubmit={handleSignOut} className="w-full">
                   <input
@@ -200,14 +199,14 @@ const PanelLayoutSidebar = () => {
                     {isLoading ? (
                       <p className="flex items-center justify-start">
                         {showTitle && (
-                          <span className="mr-2">Signing Out...</span>
+                          <span className="mr-2 text-sm">Signing Out...</span>
                         )}{' '}
                         <LoadingSpinner />
                       </p>
                     ) : (
                       <p className="flex items-center justify-start">
-                        <LogOut size={20} className="mr-2" />
-                        {showTitle && <span>Sign out</span>}
+                        <LogOut size={20} className="mr-2 group-hover:scale-110 transition-transform duration-200" />
+                        {showTitle && <span className="text-sm">Sign out</span>}
                       </p>
                     )}
                   </button>
@@ -215,8 +214,8 @@ const PanelLayoutSidebar = () => {
               ) : (
                 <Link href="/signin" className="cursor-pointer">
                   <button className="flex items-center justify-start w-full">
-                    <LogIn size={20} className="mr-2" />
-                    {showTitle && <span>Log in</span>}
+                    <LogIn size={20} className="mr-2 group-hover:scale-110 transition-transform duration-200" />
+                    {showTitle && <span className="text-sm">Log in</span>}
                   </button>
                 </Link>
               )}

@@ -51,7 +51,6 @@ export default function Footer() {
 
   const resourceLinks = [
     { name: 'Documentation', href: NAVIGATION.DOCS, icon: <FileText className="h-4 w-4" /> },
-    { name: 'Learn More', href: NAVIGATION.LEARN_MORE, icon: <Lightbulb className="h-4 w-4" /> },
     { name: 'Pricing', href: NAVIGATION.PRICING, icon: <Shield className="h-4 w-4" /> },
     { name: 'Get Demo', href: NAVIGATION.GET_DEMO, icon: <Calendar className="h-4 w-4" /> },
   ];

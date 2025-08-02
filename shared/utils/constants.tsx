@@ -128,14 +128,12 @@ enum NAV_LINKS {
   PRICING = '/pricing',
   DOCS = SWARMS_DOCS,
   GET_DEMO = SWARM_CALENDLY,
-  // LEARN_MORE = '/learn-more',
 }
 
 export const NAVIGATION: { [key in keyof typeof NAV_LINKS]: NAV_LINKS } = {
   PRICING: NAV_LINKS.PRICING,
   DOCS: NAV_LINKS.DOCS,
   GET_DEMO: NAV_LINKS.GET_DEMO,
-  // LEARN_MORE: NAV_LINKS.LEARN_MORE,
 };
 
 export const SECURITY_LEVELS = {

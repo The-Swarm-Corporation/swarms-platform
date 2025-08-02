@@ -47,7 +47,7 @@ const NavItem = React.forwardRef(function <
         target={isExternal ? '_blank' : undefined}
         rel={isExternal ? 'noopener noreferrer' : undefined}
         className={cn(
-          'group flex items-center justify-center outline-none p-4',
+          'group flex items-center justify-center outline-none p-2.5 transition-all duration-200',
           showTitle && 'justify-start',
           className,
         )}
@@ -57,16 +57,26 @@ const NavItem = React.forwardRef(function <
         {isIcon && (
           <span
             className={cn(
-              'text-black dark:text-white group-hover:text-white hidden',
+              'text-gray-400 group-hover:text-white transition-colors duration-200 hidden',
               showTitle && 'mr-3',
               link === path && 'text-white',
               isIcon && 'block',
             )}
           >
-            {icon}
+            {React.cloneElement(icon as React.ReactElement, { 
+              size: 18,
+              className: cn(
+                'transition-transform duration-200 group-hover:scale-110',
+                (icon as React.ReactElement)?.props?.className
+              )
+            })}
           </span>
         )}
-        {showTitle && <span className="whitespace-nowrap">{title}</span>}
+        {showTitle && (
+          <span className="whitespace-nowrap text-sm font-medium transition-colors duration-200">
+            {title}
+          </span>
+        )}
       </Link>
     );
   }
@@ -74,7 +84,7 @@ const NavItem = React.forwardRef(function <
   return (
     <Component
       className={cn(
-        'group flex items-center justify-start outline-none',
+        'group flex items-center justify-start outline-none transition-all duration-200',
         className,
       )}
       onClick={onSubmit}
@@ -84,15 +94,25 @@ const NavItem = React.forwardRef(function <
       {icon && (
         <span
           className={cn(
-            'mr-3 text-black dark:text-white group-hover:text-white hidden',
+            'mr-3 text-gray-400 group-hover:text-white transition-colors duration-200 hidden',
             link === path && 'text-white',
             isIcon && 'block',
           )}
         >
-          {icon}
+          {React.cloneElement(icon as React.ReactElement, { 
+            size: 18,
+            className: cn(
+              'transition-transform duration-200 group-hover:scale-110',
+              (icon as React.ReactElement)?.props?.className
+            )
+          })}
         </span>
       )}
-      {isShowSidebarItems && children ? children : <span>{title}</span>}
+      {isShowSidebarItems && children ? children : (
+        <span className="text-sm font-medium transition-colors duration-200">
+          {title}
+        </span>
+      )}
     </Component>
   );
 });

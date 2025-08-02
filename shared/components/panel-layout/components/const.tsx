@@ -45,25 +45,20 @@ const navItemClass =
   'p-2 rounded-md bg-gray-50/5 hover:bg-gray-50/10 transition-colors duration-200';
 
 const SHARED_LINKS: MenuProps[] = [
-  {
-    title: 'Learn More',
-    link: NAVIGATION.LEARN_MORE,
-    icon: <Lightbulb className="text-yellow-500" />,
-    className: navItemClass,
-  },
+  // Removed Learn More link to fix undefined error
 ];
 
 export const NAV_LINKS: NavMenuProps = {
   external: SHARED_LINKS,
   account: [
     {
-      icon: <User size={20} className="text-gray-400" />,
+      icon: <User size={18} className="text-gray-400" />,
       title: 'Manage account',
       link: PLATFORM.ACCOUNT,
       className: navItemClass,
     },
     {
-      icon: <Building2 size={20} className="text-gray-400" />,
+      icon: <Building2 size={18} className="text-gray-400" />,
       title: 'Organization',
       link: PLATFORM.ORGANIZATION,
       className: navItemClass,
@@ -75,7 +70,7 @@ export const NAV_LINKS: NavMenuProps = {
       className: navItemClass,
     },
     {
-      icon: <LogOut size={20} className="text-red-500" />,
+      icon: <LogOut size={18} className="text-red-500" />,
       title: 'Sign out',
       link: '',
       className: navItemClass,
@@ -87,85 +82,85 @@ export const SIDE_BAR_MENU: NavMenuProps = {
   base: SHARED_LINKS,
   platform: [
     {
-      icon: <LayoutDashboard size={24} className="text-emerald-500" />,
+      icon: <LayoutDashboard size={20} className="text-emerald-500" />,
       title: 'Dashboard',
       link: PLATFORM.DASHBOARD,
       className: navItemClass,
     },
     {
-      icon: <Blocks size={24} className="text-blue-500" />,
+      icon: <Blocks size={20} className="text-blue-500" />,
       title: 'Marketplace',
       link: PLATFORM.EXPLORER,
       className: navItemClass,
     },
     {
-      icon: <Database size={24} className="text-blue-500" />,
+      icon: <Database size={20} className="text-blue-500" />,
       title: 'Registry',
       link: PLATFORM.REGISTRY,
       className: navItemClass,
     },
     {
-      icon: <Store size={24} className="text-orange-500" />,
+      icon: <Store size={20} className="text-orange-500" />,
       title: 'App Store',
       link: PLATFORM.AUTONOMOUS_APPS,
       className: navItemClass,
     },
     {
-      icon: <Atom size={24} className="text-gray-400" />,
+      icon: <Atom size={20} className="text-gray-400" />,
       title: 'Apps',
       link: PLATFORM.APPS,
       className: navItemClass,
     },
     {
-      icon: <MessageSquareMore size={24} className="text-indigo-500" />,
+      icon: <MessageSquareMore size={20} className="text-indigo-500" />,
       title: 'Chat',
       link: PLATFORM.CHAT,
       className: navItemClass,
     },
     {
-      icon: <FileSpreadsheet size={24} className="text-green-500" />,
+      icon: <FileSpreadsheet size={20} className="text-green-500" />,
       title: 'Spreadsheet Swarm',
       link: PLATFORM.SPREADSHEET,
       className: navItemClass,
     },
     {
-      icon: <GripVertical size={24} className="text-orange-500" />,
+      icon: <GripVertical size={20} className="text-orange-500" />,
       title: 'Drag & Drop',
       link: PLATFORM.DRAG_N_DROP,
       className: navItemClass,
     },
     {
-      icon: <Bookmark size={24} className="text-purple-500" />,
+      icon: <Bookmark size={20} className="text-purple-500" />,
       title: 'Bookmarks',
       link: PLATFORM.BOOKMARKS,
       className: navItemClass,
     },
     {
-      icon: <Code2 size={24} className="text-cyan-500" />,
+      icon: <Code2 size={20} className="text-cyan-500" />,
       title: 'Playground',
       link: PLATFORM.PLAYGROUND,
       className: navItemClass,
     },
     {
-      icon: <LockKeyhole size={24} className="text-red-500" />,
+      icon: <LockKeyhole size={20} className="text-red-500" />,
       title: 'API Keys',
       link: PLATFORM.API_KEYS,
       className: navItemClass,
     },
     {
-      icon: <CircleGauge size={24} className="text-cyan-500" />,
+      icon: <CircleGauge size={20} className="text-cyan-500" />,
       title: 'Telemetry',
       link: PLATFORM.TELEMETRY,
       className: navItemClass,
     },
     {
-      icon: <Trophy size={24} className="text-yellow-500" />,
+      icon: <Trophy size={20} className="text-yellow-500" />,
       title: 'Leaderboard',
       link: PLATFORM.LEADERBOARD,
       className: navItemClass,
     },
     {
-      icon: <Settings size={24} className="text-gray-400" />,
+      icon: <Settings size={20} className="text-gray-400" />,
       title: 'Settings',
       link: PLATFORM.ACCOUNT,
       className: navItemClass,
