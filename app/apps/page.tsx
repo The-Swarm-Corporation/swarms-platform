@@ -247,6 +247,9 @@ export default function AppsPage() {
       case 'profile':
         router.push('/platform/account/profile');
         break;
+      case 'bookmarks':
+        router.push('/bookmarks');
+        break;
     }
   };
 

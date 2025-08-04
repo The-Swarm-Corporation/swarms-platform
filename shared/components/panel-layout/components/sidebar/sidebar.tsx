@@ -48,30 +48,27 @@ const PanelLayoutSidebar = () => {
   const appsMenuItem = SIDE_BAR_MENU.platform?.find(
     (item) => item.title.toLowerCase() === 'apps',
   );
-  const bookmarksMenuItem = SIDE_BAR_MENU.platform?.find(
-    (item) => item.title.toLowerCase() === 'bookmarks',
-  );
-  let filteredMenu = [];
-  if (starred.length === 0) {
-    filteredMenu = SIDE_BAR_MENU.platform || [];
-  } else {
-    filteredMenu =
-      SIDE_BAR_MENU.platform?.filter((item) =>
-        starred.includes(
-          Object.keys(appIdToSidebarTitle).find(
-            (id) =>
-              appIdToSidebarTitle[id as keyof typeof appIdToSidebarTitle] ===
-              item.title,
-          ) || '',
-        ),
-      ) || [];
-    // Ensure Apps page is always present
-    if (
-      appsMenuItem &&
-      !filteredMenu.some((item) => item.title.toLowerCase() === 'apps')
-    ) {
-      filteredMenu.splice(2, 0, appsMenuItem); // Insert after Marketplace (index 2)
-    }
+
+  // Filter menu based on starred apps - never show all apps unless specifically starred
+  let filteredMenu = SIDE_BAR_MENU.platform?.filter((item) =>
+    starred.includes(
+      Object.keys(appIdToSidebarTitle).find(
+        (id) =>
+          appIdToSidebarTitle[id as keyof typeof appIdToSidebarTitle] ===
+          item.title,
+      ) || '',
+    ),
+  ) || [];
+
+  // Ensure Apps page is always present regardless of starred state
+  if (
+    appsMenuItem &&
+    !filteredMenu.some((item) => item.title.toLowerCase() === 'apps')
+  ) {
+    // Find the position to insert Apps - after Dashboard if it exists, otherwise at the beginning
+    const dashboardIndex = filteredMenu.findIndex((item) => item.title === 'Dashboard');
+    const insertIndex = dashboardIndex >= 0 ? dashboardIndex + 1 : 0;
+    filteredMenu.splice(insertIndex, 0, appsMenuItem);
   }
 
   async function handleSignOut(e: FormEvent<HTMLFormElement>) {

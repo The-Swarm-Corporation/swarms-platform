@@ -2,7 +2,10 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
+// Default to only marketplace apps
 const defaultStarred = ['dashboard', 'marketplace', 'registry', 'appstore', 'leaderboard', 'bookmarks'];
+const STARRED_APPS_VERSION = '2.0'; // Version to track marketplace-only defaults
+
 const StarredAppsContext = createContext({
   starred: defaultStarred,
   toggleStar: (id: string) => {},
@@ -13,15 +16,27 @@ export const StarredAppsProvider = ({ children }: { children: React.ReactNode })
   const [starred, setStarred] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('starredApps');
-      // If there's stored data, check if it's the old format (only 3 apps)
+      const versionStored = localStorage.getItem('starredAppsVersion');
+      
+      // If version doesn't match, force reset to new defaults
+      if (versionStored !== STARRED_APPS_VERSION) {
+        localStorage.removeItem('starredApps');
+        localStorage.setItem('starredAppsVersion', STARRED_APPS_VERSION);
+        return defaultStarred;
+      }
+      
       if (stored) {
-        const parsed = JSON.parse(stored);
-        // If it's the old format with only 3 apps, migrate to new format
-        if (parsed.length === 3 && parsed.includes('dashboard') && parsed.includes('marketplace') && parsed.includes('apps')) {
+        try {
+          const parsed = JSON.parse(stored);
+          // Check if this is an array and has valid data
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        } catch (error) {
+          // If parsing fails, reset to defaults
           localStorage.removeItem('starredApps');
           return defaultStarred;
         }
-        return parsed;
       }
       return defaultStarred;
     }
@@ -29,7 +44,10 @@ export const StarredAppsProvider = ({ children }: { children: React.ReactNode })
   });
 
   useEffect(() => {
-    localStorage.setItem('starredApps', JSON.stringify(starred));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('starredApps', JSON.stringify(starred));
+      localStorage.setItem('starredAppsVersion', STARRED_APPS_VERSION);
+    }
   }, [starred]);
 
   const toggleStar = (id: string) => {
@@ -39,7 +57,10 @@ export const StarredAppsProvider = ({ children }: { children: React.ReactNode })
   };
 
   const resetToDefaults = () => {
-    localStorage.removeItem('starredApps');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('starredApps');
+      localStorage.setItem('starredAppsVersion', STARRED_APPS_VERSION);
+    }
     setStarred(defaultStarred);
   };
 
