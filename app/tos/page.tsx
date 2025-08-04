@@ -33,7 +33,7 @@ export default function TermsOfServicePage() {
             1. Acceptance of Terms
           </h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-            By accessing and using the Swarms Platform ("Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+            By accessing and using the Swarms Platform (&ldquo;Service&rdquo;), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
           </p>
         </section>
 
@@ -118,7 +118,7 @@ export default function TermsOfServicePage() {
             8. Disclaimers and Limitations
           </h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-            THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. WE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED. IN NO EVENT SHALL WE BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES.
+            THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; WITHOUT WARRANTIES OF ANY KIND. WE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED. IN NO EVENT SHALL WE BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES.
           </p>
         </section>
 

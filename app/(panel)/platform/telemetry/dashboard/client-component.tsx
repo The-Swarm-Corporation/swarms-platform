@@ -5,7 +5,7 @@ import { ApiKeyForm } from '@/shared/components/telemetry/api-key-form';
 import { SwarmComparison } from '@/shared/components/telemetry/swarm-comparison-chart';
 import { UsageOverview } from '@/shared/components/telemetry/usage-overview';
 import { fetchSwarmLogs, SwarmLog } from '@/shared/utils/api/telemetry/api';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAPIKeyContext } from '@/shared/components/ui/apikey.provider';
 
 export default function DashboardMetrics() {
@@ -14,7 +14,7 @@ export default function DashboardMetrics() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     if (!apiKey) return;
     setError(null);
 
@@ -34,11 +34,11 @@ export default function DashboardMetrics() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [apiKey]);
 
   useEffect(() => {
     fetchLogs();
-  }, [apiKey]);
+  }, [fetchLogs]);
 
   return (
     <>

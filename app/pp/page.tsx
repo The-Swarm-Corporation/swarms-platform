@@ -33,7 +33,7 @@ export default function PrivacyPolicyPage() {
             1. Introduction
           </h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-            Swarms Platform ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our AI-powered marketplace and platform services.
+            Swarms Platform (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our AI-powered marketplace and platform services.
           </p>
         </section>
 
@@ -174,7 +174,7 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-            10. Children's Privacy
+            10. Children&apos;s Privacy
           </h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
             Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you believe we have collected such information, please contact us immediately.
@@ -186,7 +186,7 @@ export default function PrivacyPolicyPage() {
             11. Changes to This Policy
           </h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-            We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on our website and updating the "Last updated" date. Your continued use of our services after changes constitutes acceptance of the updated policy.
+            We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on our website and updating the &ldquo;Last updated&rdquo; date. Your continued use of our services after changes constitutes acceptance of the updated policy.
           </p>
         </section>
 
