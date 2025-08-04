@@ -3,10 +3,11 @@
 import { Button } from '@/shared/components/ui/button';
 import { signInWithOAuth } from '@/shared/utils/auth-helpers/client';
 import { type Provider } from '@supabase/supabase-js';
-import { Github } from 'lucide-react';
+import { Github, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Google from '@/shared/components/icons/Google';
 import { useSearchParams } from 'next/navigation';
+import TwitterX from '@/shared/components/icons/TwitterX';
 
 type OAuthProviders = {
   name: Provider;
@@ -28,6 +29,11 @@ export default function OauthSignIn() {
       name: 'github',
       displayName: 'GitHub',
       icon: <Github className="h-5 w-5" />,
+    },
+    {
+      name: 'twitter',
+      displayName: 'X (Twitter)',
+      icon: <TwitterX />, // or use a placeholder
     },
     /* Add desired OAuth providers here */
   ];
