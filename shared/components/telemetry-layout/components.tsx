@@ -5,9 +5,9 @@ import { Button } from '../ui/button';
 
 export const LayoutLoader = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 top-0 z-[5000] flex h-screen w-screen items-center justify-center bg-[rgba(0,0,0,0.9)] text-center">
+    <div className="fixed bottom-0 left-0 right-0 top-0 z-[5000] flex h-screen w-screen items-center justify-center bg-background/80 backdrop-blur-sm text-center">
       <div className="animate-spin duration-1000">
-        <Loader color="#fff" size={25} />
+        <Loader className="h-6 w-6 text-foreground" />
       </div>
     </div>
   );
@@ -21,14 +21,14 @@ export const MessageComponent = ({
   return (
     <MessageScreen
       icon={KeyRound}
-      iconClass="h-12 w-12 text-yellow-500 mb-2"
+      iconClass="h-12 w-12 text-foreground mb-2"
       title="API Key Required"
-      borderClass="border border-zinc-700/50"
-      containerClass="fixed bottom-0 left-0 right-0 top-0 z-[5000] flex h-screen w-screen items-center justify-center bg-[rgba(0,0,0,0.9)]"
+      borderClass="border border-border"
+      containerClass="fixed bottom-0 left-0 right-0 top-0 z-[5000] flex h-screen w-screen items-center justify-center bg-background/80 backdrop-blur-sm"
       boxClass="relative"
     >
       <X
-        className="text-white absolute top-4 right-4 cursor-pointer"
+        className="text-foreground absolute top-4 right-4 cursor-pointer hover:text-muted-foreground transition-colors"
         role="button"
         tabIndex={0}
         onClick={handleCloseMessage}
@@ -39,7 +39,7 @@ export const MessageComponent = ({
           }
         }}
       />
-      <p className="text-center text-sm text-zinc-300">
+      <p className="text-center text-sm text-muted-foreground">
         You&apos;ll need an API key to interact to with your telemetry.
       </p>
       <Link
@@ -47,7 +47,7 @@ export const MessageComponent = ({
         target="_blank"
         className="mt-6"
       >
-        <Button className="bg-primary hover:bg-primary/80">
+        <Button className="bg-foreground text-background hover:bg-foreground/90">
           <KeyRound size={20} className="mr-2" /> Create API Key
         </Button>
       </Link>

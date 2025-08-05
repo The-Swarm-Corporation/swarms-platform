@@ -138,10 +138,10 @@ export function ApiKeyForm() {
   };
 
   return (
-    <Card className="bg-zinc-100 dark:bg-zinc-900 border-red-500/50">
+    <Card className="bg-card border border-white/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-white">
-          <KeyRound className="h-5 w-5 text-red-500" />
+        <CardTitle className="flex items-center gap-2">
+          <KeyRound className="h-5 w-5 text-foreground/60" />
           API Key Configuration
         </CardTitle>
         <CardDescription>
@@ -160,7 +160,7 @@ export function ApiKeyForm() {
             value={'.................................'}
             onChange={(e) => e.preventDefault()}
             placeholder="Enter your API key"
-            className="bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
+            className="bg-background border border-white/20"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -178,7 +178,7 @@ export function ApiKeyForm() {
           />
           <Button
             onClick={validateAndSaveKey}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-foreground text-background hover:bg-foreground/90 border border-white/20"
             disabled={isValidating}
           >
             {isValidating ? 'Validating...' : 'Validate API Key'}

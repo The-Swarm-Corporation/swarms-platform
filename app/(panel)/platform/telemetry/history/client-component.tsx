@@ -141,10 +141,10 @@ export default function HistoryPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8 p-6 border border-white/20 rounded-lg bg-background/50">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-zinc-800 rounded w-1/4" />
-          <div className="h-[400px] bg-zinc-800 rounded" />
+          <div className="h-8 bg-muted rounded w-1/4" />
+          <div className="h-[400px] bg-muted rounded" />
         </div>
       </div>
     );
@@ -153,14 +153,14 @@ export default function HistoryPage() {
   if (error) {
     return (
       <div className="p-6">
-        <Card className="p-4 bg-red-950/10 border-red-900">
-          <div className="text-primary">
+        <Card className="p-6 bg-destructive/5 border border-white/20">
+          <div className="text-destructive">
             <h3 className="font-semibold mb-2">Error Loading History</h3>
-            <p className="mb-4">{error}</p>
+            <p className="mb-4 text-sm">{error}</p>
             <Button
               onClick={handleRetry}
               variant="outline"
-              className="border-red-900 text-primary hover:bg-red-950/50"
+              className="border border-white/20 text-destructive hover:bg-destructive/10"
               size="sm"
             >
               <RefreshCcw className="mr-2 h-4 w-4" />
@@ -175,8 +175,8 @@ export default function HistoryPage() {
   if (logs.length === 0) {
     return (
       <div className="p-6">
-        <Card className="p-4 bg-zinc-900 border-zinc-800">
-          <p className="text-zinc-400 text-center">
+        <Card className="p-6 bg-card border border-white/20">
+          <p className="text-muted-foreground text-center">
             No execution history found
           </p>
         </Card>
@@ -185,29 +185,29 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 p-6 border border-white/20 rounded-lg bg-background/50">
       <div>
-        <h1 className="text-2xl font-bold text-red-600">Execution History</h1>
-        <p className="text-zinc-900 dark:text-zinc-400">
+        <h1 className="text-3xl font-bold tracking-tight">Execution History</h1>
+        <p className="text-sm text-muted-foreground mt-2">
           View and analyze past swarm executions
         </p>
       </div>
 
-      <Card className="border-red-500/50">
-        <div className="p-4 border-b border-zinc-800">
+      <Card className="border border-white/20 bg-card">
+        <div className="p-6 border-b border-white/20">
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search history..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
+                className="pl-10 bg-background border border-white/20"
               />
             </div>
             <Button
               variant="outline"
-              className="border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-400"
+              className="border border-white/20 hover:bg-white/10"
               onClick={exportToCSV}
             >
               <Download className="mr-2 h-4 w-4" />
@@ -217,13 +217,13 @@ export default function HistoryPage() {
         </div>
         <Table>
           <TableHeader>
-            <TableRow className="border-zinc-800 hover:bg-zinc-800/50">
-              <TableHead className="text-primary/70 font-bold">Swarm Name</TableHead>
-              <TableHead className="text-primary/70 font-bold">Status</TableHead>
-              <TableHead className="text-primary/70 font-bold">Start Time</TableHead>
-              <TableHead className="text-primary/70 font-bold">Duration</TableHead>
-              <TableHead className="text-primary/70 font-bold">Tokens</TableHead>
-              <TableHead className="text-primary/70 font-bold">Cost</TableHead>
+            <TableRow className="border-white/20 hover:bg-white/5">
+              <TableHead className="text-sm font-medium">Swarm Name</TableHead>
+              <TableHead className="text-sm font-medium">Status</TableHead>
+              <TableHead className="text-sm font-medium">Start Time</TableHead>
+              <TableHead className="text-sm font-medium">Duration</TableHead>
+              <TableHead className="text-sm font-medium">Tokens</TableHead>
+              <TableHead className="text-sm font-medium">Cost</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -239,9 +239,9 @@ export default function HistoryPage() {
               return (
                 <TableRow
                   key={log.id}
-                  className="border-zinc-800 hover:bg-zinc-800/50"
+                  className="border-white/20 hover:bg-white/5"
                 >
-                  <TableCell className="font-medium text-red-600">
+                  <TableCell className="font-medium">
                     {swarmName}
                   </TableCell>
                   <TableCell>
@@ -250,20 +250,20 @@ export default function HistoryPage() {
                       className={
                         log.data.status === 'success'
                           ? 'border-green-500 text-green-500'
-                          : 'border-red-500 text-primary'
+                          : 'border-destructive text-destructive'
                       }
                     >
                       {log.data.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-sm">
                     {new Date(log.created_at).toLocaleString()}
                   </TableCell>
-                  <TableCell>{log.data?.execution_time.toFixed(2)}s</TableCell>
-                  <TableCell>
+                  <TableCell className="text-sm">{log.data?.execution_time.toFixed(2)}s</TableCell>
+                  <TableCell className="text-sm">
                     {log.data?.usage?.total_tokens.toLocaleString()}
                   </TableCell>
-                  <TableCell>${totalCost.toFixed(4)}</TableCell>
+                  <TableCell className="text-sm">${totalCost.toFixed(4)}</TableCell>
                 </TableRow>
               );
             })}

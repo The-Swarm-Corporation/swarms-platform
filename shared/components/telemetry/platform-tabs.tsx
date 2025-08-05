@@ -17,24 +17,25 @@ export function PlatformTabs() {
   const pathname = usePathname();
 
   return (
-    <div className="w-full max-w-2xl mx-auto mb-6">
+    <div className="w-full mb-8">
       <Tabs
         value={pathname || ''}
         onValueChange={(value) => router.push(value)}
       >
         <div className="overflow-x-auto no-scrollbar">
-          <TabsList className="min-w-max bg-zinc-900 p-1 whitespace-nowrap flex">
+          <TabsList className="w-full max-w-4xl mx-auto bg-muted p-1 whitespace-nowrap flex border border-white/20">
             {routes.map((route) => (
               <TabsTrigger
                 key={route.value}
                 value={route.value}
                 className={cn(
-                  'flex-1',
-                  'data-[state=active]:bg-red-600 data-[state=active]:text-white',
-                  'data-[state=inactive]:text-red-500 data-[state=inactive]:hover:text-red-600',
+                  'flex-1 min-w-0 px-3 py-2 text-sm font-medium transition-all duration-200',
+                  'data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:border border-white/30',
+                  'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-white/5',
+                  'rounded-md',
                 )}
               >
-                {route.label}
+                <span className="truncate">{route.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>

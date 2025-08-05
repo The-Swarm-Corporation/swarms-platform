@@ -10,9 +10,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col min-h-screen w-full">
+    <div className="flex flex-col min-h-screen w-full bg-background">
       <APIkeyProvider>
-        <main className="flex-1 container mx-auto px-4 pb-6">
+        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <TelemetryLayout>
             <PlatformTabs />
             {children}

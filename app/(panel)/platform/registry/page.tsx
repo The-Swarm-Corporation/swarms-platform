@@ -97,7 +97,7 @@ const RegistryPage = () => {
   const { data: agentsData, isLoading, refetch } = trpc.explorer.getExplorerData.useQuery({
     includePrompts: false,
     includeTools: false,
-    limit: 50,
+    limit: 1000, // Fetch a large number to get all agents for proper filtering
     offset: 0,
     search: searchQuery,
     category: selectedIndustry === 'all' ? undefined : selectedIndustry,
@@ -171,8 +171,9 @@ const RegistryPage = () => {
     });
 
   // Pagination
-  const totalAgents = filteredAndSortedAgents.length;
-  const totalPages = Math.ceil(totalAgents / agentsPerPage);
+  const totalAgentsInDB = agentsData?.totalAgents || 0;
+  const filteredAgentsCount = filteredAndSortedAgents.length;
+  const totalPages = Math.ceil(filteredAgentsCount / agentsPerPage);
   const startIndex = (currentPage - 1) * agentsPerPage;
   const endIndex = startIndex + agentsPerPage;
   const paginatedAgents = filteredAndSortedAgents.slice(startIndex, endIndex);
@@ -528,7 +529,7 @@ const RegistryPage = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Agents</p>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{filteredAndSortedAgents.length}</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{totalAgentsInDB}</p>
                 </div>
               </div>
             </CardContent>
@@ -593,10 +594,10 @@ const RegistryPage = () => {
             </Button>
           </div>
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
-              {filteredAndSortedAgents.length} agents found
-            </p>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
+                {filteredAndSortedAgents.length} agents found
+              </p>
             <div className="flex gap-1 sm:gap-2 w-full sm:w-auto order-1 sm:order-2">
               <Button
                 variant="default"
@@ -628,7 +629,7 @@ const RegistryPage = () => {
           <div className="flex items-center justify-center py-8 sm:py-12">
             <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-gray-900 dark:border-white"></div>
           </div>
-        ) : filteredAndSortedAgents.length === 0 ? (
+        ) : filteredAgentsCount === 0 ? (
           <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-black shadow-sm">
             <CardContent className="p-6 sm:p-8 lg:p-12 text-center">
               <Database className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
@@ -672,7 +673,7 @@ const RegistryPage = () => {
         )}
 
         {/* Pagination Controls */}
-        {filteredAndSortedAgents.length > 0 && (
+        {filteredAgentsCount > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mt-4 sm:mt-6 lg:mt-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <div className="flex items-center space-x-2">
@@ -691,7 +692,7 @@ const RegistryPage = () => {
                 </Select>
               </div>
               <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Showing {startIndex + 1} to {Math.min(endIndex, totalAgents)} of {totalAgents} agents
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredAgentsCount)} of {filteredAgentsCount} agents
               </span>
             </div>
             

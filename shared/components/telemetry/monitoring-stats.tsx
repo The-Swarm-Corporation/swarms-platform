@@ -121,14 +121,14 @@ export function MonitoringStats({ logs, isLoading, error }: ITelemetry) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(8)].map((_, i) => (
-          <Card key={i} className="bg-zinc-900 border-zinc-800">
+          <Card key={i} className="bg-card border border-white/20">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-400">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Loading...
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-8 bg-zinc-800 rounded animate-pulse" />
+              <div className="h-8 bg-muted rounded animate-pulse" />
             </CardContent>
           </Card>
         ))}
@@ -138,11 +138,11 @@ export function MonitoringStats({ logs, isLoading, error }: ITelemetry) {
 
   if (error) {
     return (
-      <Card className="bg-red-900/10 border-red-900">
-        <CardContent className="p-4">
-          <div className="text-red-500">
+      <Card className="bg-destructive/5 border border-white/20">
+        <CardContent className="p-6">
+          <div className="text-destructive">
             <h3 className="font-semibold mb-2">Error Loading Stats</h3>
-            <p>{error}</p>
+            <p className="text-sm">{error}</p>
           </div>
         </CardContent>
       </Card>
@@ -155,17 +155,19 @@ export function MonitoringStats({ logs, isLoading, error }: ITelemetry) {
     value: string | number,
     subtitle?: string,
   ) => (
-    <Card className="bg-white dark:bg-zinc-900 border-zinc-800 hover:border-red-900/50 transition-colors">
+    <Card className="bg-card border border-white/20 hover:border-white/30 transition-colors">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-red-500/70 dark:text-red-600">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        {icon}
+        <div className="text-foreground/60">
+          {icon}
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold font-mono text-red-600">{value}</div>
+        <div className="text-2xl font-bold tracking-tight">{value}</div>
         {subtitle && (
-          <p className="text-xs text-zinc-500 dark:text-white font-mono">
+          <p className="text-xs text-muted-foreground mt-1">
             {subtitle}
           </p>
         )}
@@ -177,47 +179,47 @@ export function MonitoringStats({ logs, isLoading, error }: ITelemetry) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {metricCard(
         'Total Swarms Run',
-        <Activity className="h-4 w-4 text-red-500" />,
+        <Activity className="h-4 w-4" />,
         stats.totalSwarms,
         `${stats.successRate.toFixed(1)}% success rate`,
       )}
       {metricCard(
         'Total Cost',
-        <DollarSign className="h-4 w-4 text-red-500" />,
+        <DollarSign className="h-4 w-4" />,
         `$${stats.totalCost.toFixed(2)}`,
         `$${(stats.totalCost / stats.totalSwarms).toFixed(4)} per swarm`,
       )}
       {metricCard(
         'Avg. Execution Time',
-        <Timer className="h-4 w-4 text-red-500" />,
+        <Timer className="h-4 w-4" />,
         `${stats.averageExecutionTime.toFixed(2)}s`,
         'Average per swarm',
       )}
       {metricCard(
         'Total Tokens',
-        <Zap className="h-4 w-4 text-red-500" />,
+        <Zap className="h-4 w-4" />,
         stats.totalTokens.toLocaleString(),
         `${Math.round(stats.totalTokens / stats.totalSwarms).toLocaleString()} per swarm`,
       )}
       {metricCard(
         'Total Agents Built',
-        <Users className="h-4 w-4 text-red-500" />,
+        <Users className="h-4 w-4" />,
         stats.totalAgentsBuilt,
       )}
       {metricCard(
         'Total Swarms Built',
-        <Box className="h-4 w-4 text-red-500" />,
+        <Box className="h-4 w-4" />,
         stats.totalSwarmsBuilt,
       )}
       {metricCard(
         'Success Rate',
-        <Award className="h-4 w-4 text-red-500" />,
+        <Award className="h-4 w-4" />,
         `${stats.successRate.toFixed(1)}%`,
         'Overall success rate',
       )}
       {metricCard(
         'Most Used Model',
-        <Brain className="h-4 w-4 text-red-500" />,
+        <Brain className="h-4 w-4" />,
         stats.mostUsedModel,
       )}
     </div>

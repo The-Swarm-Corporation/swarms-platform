@@ -39,6 +39,9 @@ const explorerRouter = router({
       const prompts: any[] = [];
       const agents: any[] = [];
       const tools: any[] = [];
+      let totalPrompts = 0;
+      let totalAgents = 0;
+      let totalTools = 0;
 
       const buildQuery = (table: any, fields = '*') => {
         let query = ctx.supabase
@@ -62,18 +65,46 @@ const explorerRouter = router({
         return query;
       };
 
-      if (includePrompts) {
-        const { data, error } = await buildQuery('swarms_cloud_prompts').range(
-          offset,
-          offset + limit - 1,
-        );
-        if (error) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+      const buildCountQuery = (table: any) => {
+        let query = ctx.supabase
+          .from(table)
+          .select('id', { count: 'exact' });
+
+        if (category && category.toLowerCase() !== 'all') {
+          query = query.contains(
+            'category',
+            JSON.stringify([category.toLowerCase()]),
+          );
         }
-        prompts.push(...(data ?? []));
+
+        if (search) {
+          query = query.or(
+            `name.ilike.%${search}%,description.ilike.%${search}%`,
+          );
+        }
+
+        return query;
+      };
+
+      if (includePrompts) {
+        const [dataResult, countResult] = await Promise.all([
+          buildQuery('swarms_cloud_prompts').range(offset, offset + limit - 1),
+          buildCountQuery('swarms_cloud_prompts')
+        ]);
+
+        if (dataResult.error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: dataResult.error.message });
+        }
+        if (countResult.error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: countResult.error.message });
+        }
+
+        prompts.push(...(dataResult.data ?? []));
+        totalPrompts = countResult.count || 0;
       }
 
       if (includeAgents) {
+        // Get agents data
         const { data: agentData, error: agentError } = await buildQuery(
           'swarms_cloud_agents',
         ).order('created_at', { ascending: false });
@@ -93,6 +124,7 @@ const explorerRouter = router({
           created_at: agent.created_at ?? new Date().toISOString(),
         }));
 
+        // Get public chats
         let chatQuery = ctx.supabase
           .from('swarms_cloud_chat')
           .select('id, name, user_id, share_id, description, updated_at')
@@ -161,21 +193,51 @@ const explorerRouter = router({
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         );
 
+        // Get total count for agents (including public chats)
+        const [agentsCountResult, chatsCountResult] = await Promise.all([
+          buildCountQuery('swarms_cloud_agents'),
+          search || category ? 
+            ctx.supabase
+              .from('swarms_cloud_chat')
+              .select('id', { count: 'exact' })
+              .eq('is_public', true)
+              .then(result => ({ count: result.count || 0, error: result.error }))
+            : Promise.resolve({ count: 0, error: null })
+        ]);
+
+        if (agentsCountResult.error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: agentsCountResult.error.message });
+        }
+
+        totalAgents = (agentsCountResult.count || 0) + (chatsCountResult.count || 0);
         agents.push(...combinedAgents.slice(offset, offset + limit));
       }
 
       if (includeTools) {
-        const { data, error } = await buildQuery('swarms_cloud_tools').range(
-          offset,
-          offset + limit - 1,
-        );
-        if (error) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+        const [dataResult, countResult] = await Promise.all([
+          buildQuery('swarms_cloud_tools').range(offset, offset + limit - 1),
+          buildCountQuery('swarms_cloud_tools')
+        ]);
+
+        if (dataResult.error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: dataResult.error.message });
         }
-        tools.push(...(data ?? []));
+        if (countResult.error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: countResult.error.message });
+        }
+
+        tools.push(...(dataResult.data ?? []));
+        totalTools = countResult.count || 0;
       }
 
-      return { prompts, agents, tools };
+      return { 
+        prompts, 
+        agents, 
+        tools,
+        totalPrompts,
+        totalAgents,
+        totalTools
+      };
     }),
 
   getAgentTags: publicProcedure.query(async ({ ctx }) => {

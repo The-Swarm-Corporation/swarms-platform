@@ -140,15 +140,15 @@ export function SwarmComparison({
 
   if (isLoadingLogs) {
     return (
-      <Card className={className}>
+      <Card className={`${className} border border-white/20 bg-card`}>
         <CardHeader>
           <CardTitle>Swarm Comparison</CardTitle>
           <CardDescription>Loading swarm performance data...</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[400px]">
           <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-8 w-8 animate-spin text-red-500" />
-            <p className="text-sm text-zinc-500">Loading swarm data...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Loading swarm data...</p>
           </div>
         </CardContent>
       </Card>
@@ -157,20 +157,20 @@ export function SwarmComparison({
 
   if (errorLogs) {
     return (
-      <Card className={className}>
+      <Card className={`${className} border border-white/20 bg-card`}>
         <CardHeader>
           <CardTitle>Swarm Comparison</CardTitle>
           <CardDescription>Error loading swarm data</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[400px]">
           <div className="flex flex-col items-center gap-2 text-center">
-            <AlertOctagon className="h-8 w-8 text-red-500" />
-            <p className="text-sm text-zinc-500">{errorLogs}</p>
+            <AlertOctagon className="h-8 w-8 text-destructive" />
+            <p className="text-sm text-muted-foreground">{errorLogs}</p>
             <Button
               variant="outline"
               size="sm"
               onClick={fetchData}
-              className="mt-2"
+              className="mt-2 border border-white/20"
             >
               <RefreshCcw className="mr-2 h-4 w-4" />
               Retry
@@ -183,14 +183,14 @@ export function SwarmComparison({
 
   if (!processedData || processedData.length === 0) {
     return (
-      <Card className={className}>
+      <Card className={`${className} border border-white/20 bg-card`}>
         <CardHeader>
           <CardTitle>Swarm Comparison</CardTitle>
           <CardDescription>No swarm data available</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[400px]">
           <div className="flex flex-col items-center gap-2 text-center">
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-muted-foreground">
               No swarm execution data found. Run some swarms to see comparison
               data.
             </p>
@@ -201,7 +201,7 @@ export function SwarmComparison({
   }
 
   return (
-    <Card className={className}>
+    <Card className={`${className} border border-white/20 bg-card`}>
       <CardHeader>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -219,7 +219,7 @@ export function SwarmComparison({
                   setProcessedData(processData);
                 }}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] border border-white/20">
                   <SelectValue placeholder="Select metric" />
                 </SelectTrigger>
                 <SelectContent>
@@ -238,6 +238,7 @@ export function SwarmComparison({
                   setProcessedData(processData);
                 }}
                 title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+                className="border border-white/20"
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </Button>
@@ -248,7 +249,7 @@ export function SwarmComparison({
                 setChartType(value as 'bar' | 'comparison')
               }
             >
-              <TabsList className="h-9">
+              <TabsList className="h-9 border border-white/20">
                 <TabsTrigger value="bar">Bar Chart</TabsTrigger>
                 <TabsTrigger value="comparison">Comparison</TabsTrigger>
               </TabsList>
@@ -258,6 +259,7 @@ export function SwarmComparison({
               size="icon"
               onClick={fetchData}
               title="Refresh Data"
+              className="border border-white/20"
             >
               <RefreshCcw className="h-4 w-4" />
             </Button>
@@ -282,6 +284,7 @@ export function SwarmComparison({
                   textAnchor="end"
                   height={70}
                   tick={{ fontSize: 12 }}
+                  stroke="hsl(var(--muted-foreground))"
                 />
                 <YAxis
                   label={{
@@ -290,13 +293,15 @@ export function SwarmComparison({
                     position: 'insideLeft',
                     style: { textAnchor: 'middle' },
                   }}
+                  stroke="hsl(var(--muted-foreground))"
                 />
                 <Tooltip
                   formatter={getTooltipFormatter}
                   contentStyle={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    border: '1px solid #333',
-                    borderRadius: '4px',
+                    backgroundColor: 'hsl(var(--background))',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    color: 'hsl(var(--foreground))',
                   }}
                 />
                 <Legend />
@@ -304,6 +309,7 @@ export function SwarmComparison({
                   dataKey={metric}
                   name={getMetricLabel(metric)}
                   radius={[4, 4, 0, 0]}
+                  fill="hsl(var(--foreground))"
                 >
                   {processedData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -312,7 +318,7 @@ export function SwarmComparison({
                     dataKey={metric}
                     position="top"
                     formatter={(value: number) => formatValue(value, metric)}
-                    style={{ fontSize: '10px' }}
+                    style={{ fontSize: '10px', fill: 'hsl(var(--muted-foreground))' }}
                   />
                 </Bar>
               </BarChart>
@@ -322,21 +328,21 @@ export function SwarmComparison({
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left p-2">Swarm Name</th>
-                  <th className="text-left p-2">Type</th>
-                  <th className="text-right p-2">Execution Time</th>
-                  <th className="text-right p-2">Token Usage</th>
-                  <th className="text-right p-2">Cost</th>
-                  <th className="text-right p-2">Success Rate</th>
-                  <th className="text-right p-2">Agents</th>
+                <tr className="border-b border-white/20">
+                  <th className="text-left p-2 text-sm font-medium">Swarm Name</th>
+                  <th className="text-left p-2 text-sm font-medium">Type</th>
+                  <th className="text-right p-2 text-sm font-medium">Execution Time</th>
+                  <th className="text-right p-2 text-sm font-medium">Token Usage</th>
+                  <th className="text-right p-2 text-sm font-medium">Cost</th>
+                  <th className="text-right p-2 text-sm font-medium">Success Rate</th>
+                  <th className="text-right p-2 text-sm font-medium">Agents</th>
                 </tr>
               </thead>
               <tbody>
                 {processedData.map((swarm, index) => (
                   <tr
                     key={swarm.id}
-                    className="border-b border-zinc-800 hover:bg-zinc-900/50"
+                    className="border-b border-white/20 hover:bg-white/5"
                   >
                     <td className="p-2">
                       <div className="flex items-center gap-2">
@@ -344,21 +350,21 @@ export function SwarmComparison({
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: swarm.color }}
                         ></div>
-                        {swarm.name}
+                        <span className="text-sm">{swarm.name}</span>
                       </div>
                     </td>
                     <td className="p-2">
-                      <Badge variant="outline" className="border-zinc-700">
+                      <Badge variant="outline" className="border border-white/20">
                         {swarm.swarmType}
                       </Badge>
                     </td>
-                    <td className="text-right p-2">
+                    <td className="text-right p-2 text-sm">
                       {formatValue(swarm.executionTime, 'executionTime')}
                     </td>
-                    <td className="text-right p-2">
+                    <td className="text-right p-2 text-sm">
                       {formatValue(swarm.tokenCount, 'tokenCount')}
                     </td>
-                    <td className="text-right p-2">
+                    <td className="text-right p-2 text-sm">
                       {formatValue(swarm.cost, 'cost')}
                     </td>
                     <td className="text-right p-2">
@@ -369,13 +375,13 @@ export function SwarmComparison({
                             ? 'border-green-500 text-green-500'
                             : swarm.successRate > 70
                               ? 'border-yellow-500 text-yellow-500'
-                              : 'border-red-500 text-red-500'
+                              : 'border-destructive text-destructive'
                         }
                       >
                         {formatValue(swarm.successRate, 'successRate')}
                       </Badge>
                     </td>
-                    <td className="text-right p-2">
+                    <td className="text-right p-2 text-sm">
                       {formatValue(swarm.agentCount, 'agentCount')}
                     </td>
                   </tr>

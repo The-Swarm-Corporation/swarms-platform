@@ -25,34 +25,34 @@ interface ChartData {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded border border-red-500/20 bg-black/90 p-3 shadow-lg shadow-red-500/10 backdrop-blur-sm">
-        <div className="mb-2 border-b border-red-500/20 pb-1">
-          <span className="font-mono text-xs text-red-500">
+      <div className="rounded-lg border border-white/20 bg-background/95 p-4 shadow-lg backdrop-blur-sm">
+        <div className="mb-3 border-b border-white/20 pb-2">
+          <span className="text-sm font-medium">
             {new Date(label).toLocaleDateString()}
           </span>
         </div>
         <div className="grid gap-2">
           <div className="flex items-center justify-between gap-8">
-            <span className="font-mono text-[0.70rem] uppercase text-zinc-500">
+            <span className="text-xs uppercase text-muted-foreground">
               Tokens
             </span>
-            <span className="font-mono text-sm text-red-500">
+            <span className="text-sm font-medium">
               {payload[0].value?.toLocaleString()}
             </span>
           </div>
           <div className="flex items-center justify-between gap-8">
-            <span className="font-mono text-[0.70rem] uppercase text-zinc-500">
+            <span className="text-xs uppercase text-muted-foreground">
               Credits
             </span>
-            <span className="font-mono text-sm text-yellow-500">
+            <span className="text-sm font-medium">
               ${payload[1].value?.toFixed(4)}
             </span>
           </div>
           <div className="flex items-center justify-between gap-8">
-            <span className="font-mono text-[0.70rem] uppercase text-zinc-500">
+            <span className="text-xs uppercase text-muted-foreground">
               Swarms
             </span>
-            <span className="font-mono text-sm text-blue-500">
+            <span className="text-sm font-medium">
               {payload[2].value}
             </span>
           </div>
@@ -70,10 +70,10 @@ const CustomLegend = ({ payload }: any) => {
       {payload.map((entry: any, index: number) => (
         <div key={`item-${index}`} className="flex items-center gap-2">
           <div
-            className="h-3 w-3 rounded-sm border border-red-500/20 shadow-sm shadow-red-500/10"
+            className="h-3 w-3 rounded-sm border border-white/20"
             style={{ backgroundColor: entry.color }}
           />
-          <span className="font-mono text-xs text-zinc-400">{entry.value}</span>
+          <span className="text-xs text-muted-foreground">{entry.value}</span>
         </div>
       ))}
     </div>
@@ -128,10 +128,10 @@ export function UsageOverview({ logs, isLoading, error }: ITelemetry) {
 
   if (isLoading) {
     return (
-      <div className="flex h-[300px] w-full items-center justify-center rounded-lg border border-red-500/20 bg-black/50">
-        <div className="flex items-center gap-2 text-red-500">
+      <div className="flex h-[300px] w-full items-center justify-center rounded-lg border border-white/20 bg-card">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="font-mono text-xs">Loading data...</span>
+          <span className="text-sm">Loading data...</span>
         </div>
       </div>
     );
@@ -139,10 +139,10 @@ export function UsageOverview({ logs, isLoading, error }: ITelemetry) {
 
   if (error) {
     return (
-      <div className="flex h-[300px] w-full items-center justify-center rounded-lg border border-red-500/20 bg-black/50">
-        <div className="flex items-center gap-2 text-red-500">
+      <div className="flex h-[300px] w-full items-center justify-center rounded-lg border border-white/20 bg-card">
+        <div className="flex items-center gap-2 text-destructive">
           <AlertOctagon className="h-4 w-4" />
-          <span className="font-mono text-xs">{error}</span>
+          <span className="text-sm">{error}</span>
         </div>
       </div>
     );
@@ -150,8 +150,8 @@ export function UsageOverview({ logs, isLoading, error }: ITelemetry) {
 
   if (data.length === 0) {
     return (
-      <div className="flex h-[300px] w-full items-center justify-center rounded-lg border border-dashed border-red-500/20 bg-black/50">
-        <span className="font-mono text-xs text-zinc-500 dark:text-white">
+      <div className="flex h-[300px] w-full items-center justify-center rounded-lg border border-dashed border-white/20 bg-card">
+        <span className="text-sm text-muted-foreground">
           No usage data available
         </span>
       </div>
@@ -159,7 +159,7 @@ export function UsageOverview({ logs, isLoading, error }: ITelemetry) {
   }
 
   return (
-    <div className="h-[300px] w-full rounded-lg border border-red-500/20 bg-black/50 p-4">
+    <div className="h-[300px] w-full rounded-lg border border-white/20 bg-card p-4">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
@@ -167,35 +167,32 @@ export function UsageOverview({ logs, isLoading, error }: ITelemetry) {
         >
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="rgba(239, 68, 68, 0.1)"
+            stroke="rgba(255, 255, 255, 0.1)"
           />
           <XAxis
             dataKey="date"
-            stroke="#525252"
+            stroke="hsl(var(--muted-foreground))"
             fontSize={12}
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => new Date(value).toLocaleDateString()}
-            tick={{ fontFamily: 'monospace' }}
           />
           <YAxis
             yAxisId="left"
-            stroke="#525252"
+            stroke="hsl(var(--muted-foreground))"
             fontSize={12}
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => `${value.toLocaleString()}`}
-            tick={{ fontFamily: 'monospace' }}
           />
           <YAxis
             yAxisId="right"
             orientation="right"
-            stroke="#525252"
+            stroke="hsl(var(--muted-foreground))"
             fontSize={12}
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => `$${value.toFixed(2)}`}
-            tick={{ fontFamily: 'monospace' }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend content={<CustomLegend />} />
@@ -204,14 +201,14 @@ export function UsageOverview({ logs, isLoading, error }: ITelemetry) {
             type="monotone"
             dataKey="tokens"
             name="Tokens"
-            stroke="#ef4444"
+            stroke="hsl(var(--foreground))"
             strokeWidth={2}
             dot={false}
             activeDot={{
               r: 4,
               strokeWidth: 2,
-              fill: '#ef4444',
-              stroke: '#ef4444',
+              fill: "hsl(var(--foreground))",
+              stroke: "hsl(var(--foreground))",
             }}
           />
           <Line
@@ -219,14 +216,14 @@ export function UsageOverview({ logs, isLoading, error }: ITelemetry) {
             type="monotone"
             dataKey="credits"
             name="Credits"
-            stroke="#eab308"
+            stroke="hsl(var(--muted-foreground))"
             strokeWidth={2}
             dot={false}
             activeDot={{
               r: 4,
               strokeWidth: 2,
-              fill: '#eab308',
-              stroke: '#eab308',
+              fill: "hsl(var(--muted-foreground))",
+              stroke: "hsl(var(--muted-foreground))",
             }}
           />
           <Line
@@ -234,14 +231,14 @@ export function UsageOverview({ logs, isLoading, error }: ITelemetry) {
             type="monotone"
             dataKey="swarms"
             name="Swarms"
-            stroke="#3b82f6"
+            stroke="hsl(var(--foreground)/0.6)"
             strokeWidth={2}
             dot={false}
             activeDot={{
               r: 4,
               strokeWidth: 2,
-              fill: '#3b82f6',
-              stroke: '#3b82f6',
+              fill: "hsl(var(--foreground)/0.6)",
+              stroke: "hsl(var(--foreground)/0.6)",
             }}
           />
         </LineChart>

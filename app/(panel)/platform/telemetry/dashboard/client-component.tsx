@@ -41,7 +41,7 @@ export default function DashboardMetrics() {
   }, [fetchLogs]);
 
   return (
-    <>
+    <div className="space-y-8">
       <ApiKeyForm />
 
       <MonitoringStats logs={logs} isLoading={isLoading} error={error} />
@@ -53,8 +53,8 @@ export default function DashboardMetrics() {
         logs={logs}
         isLoading={isLoading}
         error={error}
-        className="border-red-500/50 hover:border-red-600 hover:shadow-lg transition-all duration-200"
+        className="border border-border bg-card"
       />
-    </>
+    </div>
   );
 }
