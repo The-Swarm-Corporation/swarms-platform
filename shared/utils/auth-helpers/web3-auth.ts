@@ -1,4 +1,3 @@
-import { createClient } from '@/shared/utils/supabase/client';
 import { supabaseAdmin } from '@/shared/utils/supabase/admin';
 import { PublicKey } from '@solana/web3.js';
 import { createHash, randomBytes } from 'crypto';
