@@ -31,6 +31,8 @@ interface WalletContextType {
   disconnect: () => Promise<void>;
   solBalance: number;
   refreshBalance: () => Promise<void>;
+  connectAndAuth?: () => Promise<void>;
+  isAuthenticating?: boolean;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
@@ -51,6 +53,7 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [solBalance, setSolBalance] = useState(0);
 
   const { rpcUrl, isLoading: configLoading } = useConfig();
@@ -212,12 +215,28 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
     }
   }, []);
 
+  const connectAndAuth = async () => {
+    setIsAuthenticating(true);
+    try {
+      await connect();
+
+      console.log('Wallet connected, ready for authentication');
+    } catch (error) {
+      console.error('Connect and auth error:', error);
+      throw error;
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
   const value: WalletContextType = {
     publicKey,
     isConnected,
     isConnecting,
+    isAuthenticating,
     connect,
     disconnect,
+    connectAndAuth,
     solBalance,
     refreshBalance: () => refreshBalance(),
   };

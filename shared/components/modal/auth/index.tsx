@@ -12,6 +12,7 @@ import { Button } from '@/shared/components/ui/button';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
+import Web3SignIn from '@/shared/components/ui/AuthForms/Web3SignIn';
 
 const pathnames = ['/signin', '/signup', '/pricing', '/tool/', '/prompt', '/agent', '/tool'];
 
@@ -53,7 +54,23 @@ function AuthModal() {
               Sign in or Sign Up to enter The Agent Marketplace.
             </p>
 
-            <div className="flex flex-col w-full mt-8">
+            <div className="flex flex-col w-full mt-8 space-y-4">
+              {process.env.NEXT_PUBLIC_WEB3_AUTH_ENABLED === 'true' && (
+                <div className="space-y-2">
+                  <Web3SignIn redirectMethod="client" />
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Or continue with
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <Button onClick={handleLogin}>Log in</Button>
 
               <Button variant="outline" onClick={handleSignup} className="mt-2">

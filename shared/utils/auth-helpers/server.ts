@@ -21,6 +21,14 @@ import {
   updateReferralStatus,
 } from '../api/user';
 import { isDisposableEmail } from './fingerprinting';
+import {
+  generateWeb3Nonce,
+  createAuthMessage,
+  isValidSolanaAddress,
+  storeWeb3Nonce,
+  verifyAndConsumeNonce,
+  verifySignature
+} from './web3-auth';
 
 function isValidEmail(email: string) {
   var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -28,7 +36,7 @@ function isValidEmail(email: string) {
 }
 
 export async function afterSignin(user: User) {
-  const stripeCustomerId = await createOrRetrieveStripeCustomer({
+  await createOrRetrieveStripeCustomer({
     email: user?.email || '',
     uuid: user.id,
   });
@@ -73,6 +81,155 @@ export async function SignOut(formData: FormData) {
   return '/';
 }
 
+/**
+ * Generate nonce for Web3 authentication
+ */
+export async function generateWeb3AuthNonce(formData: FormData) {
+  const walletAddress = String(formData.get('walletAddress')).trim();
+
+  if (!walletAddress) {
+    return {
+      error: 'Wallet address is required',
+      nonce: null
+    };
+  }
+
+  if (!isValidSolanaAddress(walletAddress)) {
+    return {
+      error: 'Invalid Solana wallet address',
+      nonce: null
+    };
+  }
+
+  try {
+    const nonce = generateWeb3Nonce();
+    const message = createAuthMessage(nonce, walletAddress);
+
+    const stored = await storeWeb3Nonce(walletAddress, nonce);
+    if (!stored) {
+      return {
+        error: 'Failed to generate authentication challenge',
+        nonce: null
+      };
+    }
+
+    return {
+      error: null,
+      nonce,
+      message
+    };
+  } catch (error) {
+    console.error('Web3 nonce generation error:', error);
+    return {
+      error: 'Failed to generate authentication challenge',
+      nonce: null
+    };
+  }
+}
+
+/**
+ * Sign in with Web3 wallet signature
+ */
+export async function signInWithWeb3(formData: FormData) {
+  const walletAddress = String(formData.get('walletAddress')).trim();
+  const signature = String(formData.get('signature')).trim();
+  const nonce = String(formData.get('nonce')).trim();
+
+  if (!walletAddress || !signature || !nonce) {
+    return getErrorRedirect(
+      '/signin',
+      'Missing required fields',
+      'Wallet address, signature, and nonce are required.'
+    );
+  }
+
+  if (!isValidSolanaAddress(walletAddress)) {
+    return getErrorRedirect(
+      '/signin',
+      'Invalid wallet address',
+      'Please provide a valid Solana wallet address.'
+    );
+  }
+
+  try {
+    const isValidNonce = await verifyAndConsumeNonce(walletAddress, nonce);
+    if (!isValidNonce) {
+      return getErrorRedirect(
+        '/signin',
+        'Authentication failed',
+        'Invalid or expired authentication challenge.'
+      );
+    }
+
+    const originalMessage = createAuthMessage(nonce, walletAddress);
+    const isValidSignature = await verifySignature(originalMessage, signature, walletAddress);
+    if (!isValidSignature) {
+      return getErrorRedirect(
+        '/signin',
+        'Authentication failed',
+        'Invalid signature.'
+      );
+    }
+
+    const supabase = await createClient();
+
+    const { data: existingUser } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('wallet_address', walletAddress)
+      .single();
+
+    if (existingUser) {
+      const { data, error } = await supabase.auth.signInAnonymously();
+
+      if (error || !data.user) {
+        return getErrorRedirect(
+          '/signin',
+          'Authentication failed',
+          'Could not authenticate with wallet.'
+        );
+      }
+
+      await supabaseAdmin
+        .from('users')
+        .update({
+          wallet_address: walletAddress,
+          auth_method: 'web3'
+        } as any) // Type assertion for new fields
+        .eq('id', data.user.id);
+
+      return await afterSignin(data.user);
+    } else {
+      const { data, error } = await supabase.auth.signInAnonymously();
+
+      if (error || !data.user) {
+        return getErrorRedirect(
+          '/signin',
+          'Account creation failed',
+          'Could not create account with wallet.'
+        );
+      }
+
+      await supabaseAdmin
+        .from('users')
+        .update({
+          wallet_address: walletAddress,
+          auth_method: 'web3'
+        } as any) // Type assertion for new fields
+        .eq('id', data.user.id);
+
+      return await afterSignin(data.user);
+    }
+  } catch (error) {
+    console.error('Web3 sign-in error:', error);
+    return getErrorRedirect(
+      '/signin',
+      'Authentication failed',
+      'An error occurred during wallet authentication.'
+    );
+  }
+}
+
 export async function signInWithEmail(formData: FormData) {
   const cookieStore = await cookies();
   const callbackURL = getURL('/auth/callback');
@@ -96,7 +253,7 @@ export async function signInWithEmail(formData: FormData) {
   };
 
   // Always allow new user creation via email (fixed the inverted logic)
-  const { allowPassword } = getAuthTypes();
+  getAuthTypes(); // Get auth types for validation
   
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
@@ -207,7 +364,7 @@ export async function signInWithPassword(formData: FormData) {
   return redirectPath;
 }
 
-export async function signUp(formData: FormData, req?: Request) {
+export async function signUp(formData: FormData, _req?: Request) {
   const callbackURL = getURL('/auth/callback');
 
   const email = String(formData.get('email')).trim();
@@ -475,7 +632,7 @@ export async function trackSignupFingerprint(
   userId: string,
   fingerprint: string,
 ) {
-  const { data, error } = await supabaseAdmin.from('user_fingerprints').insert({
+  const { error } = await supabaseAdmin.from('user_fingerprints').insert({
     user_id: userId,
     fingerprint,
     created_at: new Date().toISOString(),
