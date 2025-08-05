@@ -13,6 +13,8 @@ type OAuthProviders = {
   name: Provider;
   displayName: string;
   icon: JSX.Element;
+  brandColor: string;
+  hoverColor: string;
 };
 
 export default function OauthSignIn() {
@@ -24,16 +26,22 @@ export default function OauthSignIn() {
       name: 'google',
       displayName: 'Google',
       icon: <Google />,
+      brandColor: 'border-zinc-700',
+      hoverColor: 'hover:border-zinc-600 hover:bg-zinc-700',
     },
     {
       name: 'github',
       displayName: 'GitHub',
       icon: <Github className="h-5 w-5" />,
+      brandColor: 'border-zinc-700',
+      hoverColor: 'hover:border-zinc-600 hover:bg-zinc-700',
     },
     {
       name: 'twitter',
       displayName: 'X (Twitter)',
-      icon: <TwitterX />, // or use a placeholder
+      icon: <TwitterX />,
+      brandColor: 'border-zinc-700',
+      hoverColor: 'hover:border-zinc-600 hover:bg-zinc-700',
     },
     /* Add desired OAuth providers here */
   ];
@@ -95,13 +103,14 @@ export default function OauthSignIn() {
             <input type="hidden" name="referralCode" value={referralCode} />
           )}
           <Button
-            variant="outline"
             type="submit"
-            className="w-full p-4"
+            className={`w-full p-4 border ${provider.brandColor} ${provider.hoverColor} transition-all duration-200 ease-in-out bg-zinc-800 text-white font-medium hover:text-white`}
             loading={isSubmitting[provider.name] || false}
           >
-            <span className="mr-2">{provider.icon}</span>
-            <span>{provider.displayName}</span>
+            <span className="mr-3 flex items-center justify-center w-5 h-5">
+              {provider.icon}
+            </span>
+            <span className="text-base">Continue with {provider.displayName}</span>
           </Button>
         </form>
       ))}
