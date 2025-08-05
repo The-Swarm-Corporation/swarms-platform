@@ -70,6 +70,10 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(
-    `${requestUrl.origin}${getStatusRedirect('/', 'You have been signed in.')}`,
+    getErrorRedirect(
+      `${requestUrl.origin}/signin`,
+      'Authentication Error',
+      'No authentication code provided. Please try signing in again.',
+    ),
   );
 }
