@@ -70,6 +70,6 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(
-    getStatusRedirect('/', 'You have been signed in.'),
+    `${requestUrl.origin}${getStatusRedirect('/', 'You have been signed in.')}`,
   );
 }
