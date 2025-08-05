@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Grid3X3, List, Filter, ChevronDown, Star, Users, Calendar, Tag, Database, DollarSign, Plus, GitBranch } from 'lucide-react';
+import Image from 'next/image';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
@@ -188,10 +189,11 @@ const RegistryPage = () => {
       {/* Agent Image - Only render if image exists */}
       {agent.image_url && (
         <div className="relative h-24 sm:h-28 overflow-hidden rounded-t-lg flex-shrink-0">
-          <img
+          <Image
             src={agent.image_url}
             alt={agent.name || 'Agent'}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}

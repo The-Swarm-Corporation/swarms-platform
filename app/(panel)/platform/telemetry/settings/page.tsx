@@ -519,7 +519,7 @@ export default function SettingsPage() {
             </p>
             <div className="bg-background p-3 rounded border border-white/20">
               <code className="text-xs text-muted-foreground">
-                curl -H "x-api-key: your-api-key" https://api.swarms.world/v1/rate/limits
+                curl -H &quot;x-api-key: your-api-key&quot; https://api.swarms.world/v1/rate/limits
               </code>
             </div>
           </div>
