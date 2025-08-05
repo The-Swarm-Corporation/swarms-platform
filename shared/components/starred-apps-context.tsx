@@ -3,8 +3,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 // Default to only marketplace apps
-const defaultStarred = ['dashboard', 'marketplace', 'registry', 'appstore', 'leaderboard', 'bookmarks'];
-const STARRED_APPS_VERSION = '2.0'; // Version to track marketplace-only defaults
+const defaultStarred = ['dashboard', 'marketplace', 'registry', 'appstore', 'leaderboard', 'bookmarks', 'settings'];
+const STARRED_APPS_VERSION = '2.1'; // Version to track marketplace-only defaults
 
 const StarredAppsContext = createContext({
   starred: defaultStarred,
