@@ -156,3 +156,30 @@ create policy "Can only view own subs data." on subscriptions for select using (
  */
 drop publication if exists supabase_realtime;
 create publication supabase_realtime for table products, prices;
+
+/**
+ * SWARMS CLOUD REVIEWS
+ * Table for storing user reviews and ratings for models (agents, prompts, tools)
+ */
+create table if not exists swarms_cloud_reviews (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamp with time zone default now() not null,
+  user_id uuid references auth.users not null,
+  model_id text not null,
+  model_type text not null,
+  rating integer check (rating >= 1 and rating <= 5),
+  comment text
+);
+
+-- Enable RLS
+alter table swarms_cloud_reviews enable row level security;
+
+-- Policies
+create policy "Users can view all reviews" on swarms_cloud_reviews for select using (true);
+create policy "Users can insert their own reviews" on swarms_cloud_reviews for insert with check (auth.uid() = user_id);
+create policy "Users can update their own reviews" on swarms_cloud_reviews for update using (auth.uid() = user_id);
+create policy "Users can delete their own reviews" on swarms_cloud_reviews for delete using (auth.uid() = user_id);
+
+-- Index for performance
+create index if not exists idx_swarms_cloud_reviews_model on swarms_cloud_reviews(model_id, model_type);
+create index if not exists idx_swarms_cloud_reviews_user on swarms_cloud_reviews(user_id);
