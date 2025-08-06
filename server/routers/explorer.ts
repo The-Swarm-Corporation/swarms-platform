@@ -230,6 +230,8 @@ const explorerRouter = router({
       let totalPrompts = 0;
       let totalAgents = 0;
       let totalTools = 0;
+      let totalMarketValue = 0;
+      let uniqueVendors = 0;
 
       if (includePrompts) {
         const { count } = await buildQuery('swarms_cloud_prompts', '*', true);
@@ -271,6 +273,48 @@ const explorerRouter = router({
 
         const { count: regularAgentCount } = await agentCountQuery;
         
+        // Get total market value and unique vendors for all agents (without pagination)
+        let marketValueQuery = ctx.supabase
+          .from('swarms_cloud_agents')
+          .select('price_usd, user_id, is_free');
+
+        // Apply the same filters as the count query
+        if (priceFilter === 'free') {
+          marketValueQuery = marketValueQuery.eq('is_free', true);
+        } else if (priceFilter === 'paid') {
+          marketValueQuery = marketValueQuery.eq('is_free', false);
+        }
+
+        if (userFilter) {
+          marketValueQuery = marketValueQuery.eq('user_id', userFilter);
+        }
+
+        if (category && category.toLowerCase() !== 'all') {
+          marketValueQuery = marketValueQuery.contains(
+            'category',
+            JSON.stringify([category.toLowerCase()]),
+          );
+        }
+
+        if (search) {
+          marketValueQuery = marketValueQuery.or(
+            `name.ilike.%${search}%,description.ilike.%${search}%`,
+          );
+        }
+
+        const { data: marketValueData } = await marketValueQuery;
+        
+        if (marketValueData) {
+          // Calculate total market value
+          totalMarketValue = marketValueData
+            .filter((agent: any) => !agent.is_free && agent.price_usd)
+            .reduce((sum: number, agent: any) => sum + (parseFloat(agent.price_usd) || 0), 0);
+          
+          // Calculate unique vendors
+          const uniqueUserIds = new Set(marketValueData.map((agent: any) => agent.user_id).filter(Boolean));
+          uniqueVendors = uniqueUserIds.size;
+        }
+        
         // Count public chat agents (simplified for now)
         let chatQuery = ctx.supabase
           .from('swarms_cloud_chat')
@@ -299,7 +343,9 @@ const explorerRouter = router({
         tools,
         totalPrompts,
         totalAgents,
-        totalTools
+        totalTools,
+        totalMarketValue,
+        uniqueVendors
       };
     }),
 

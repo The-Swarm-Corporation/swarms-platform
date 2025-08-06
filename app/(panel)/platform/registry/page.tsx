@@ -513,7 +513,7 @@ const RegistryPage = () => {
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Active Vendors</p>
                   <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
-                    {new Set(agents.filter((a: any) => a?.user?.id).map((a: any) => a.user.id)).size}
+                    {agentsData?.uniqueVendors || 0}
                   </p>
                 </div>
               </div>
@@ -529,10 +529,7 @@ const RegistryPage = () => {
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Market Value</p>
                   <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
-                    ${agents
-                      .filter((a: any) => !a?.is_free && a?.price_usd)
-                      .reduce((sum: number, a: any) => sum + (a.price_usd || 0), 0)
-                      .toLocaleString()}
+                    ${(agentsData?.totalMarketValue || 0).toLocaleString()}
                   </p>
                 </div>
               </div>
