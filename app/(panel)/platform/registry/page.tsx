@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Grid3X3, List, Filter, ChevronDown, Star, Users, Calendar, Tag, Database, DollarSign, Plus, GitBranch } from 'lucide-react';
-import Image from 'next/image';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
@@ -94,14 +93,17 @@ const RegistryPage = () => {
     setIsClient(true);
   }, []);
 
-  // Fetch agents data
+  // Fetch agents data with proper pagination
   const { data: agentsData, isLoading, refetch } = trpc.explorer.getExplorerData.useQuery({
     includePrompts: false,
     includeTools: false,
-    limit: 1000, // Fetch a large number to get all agents for proper filtering
-    offset: 0,
+    limit: agentsPerPage,
+    offset: (currentPage - 1) * agentsPerPage,
     search: searchQuery,
     category: selectedIndustry === 'all' ? undefined : selectedIndustry,
+    priceFilter: priceFilter as 'all' | 'free' | 'paid',
+    userFilter: userFilter === 'all' ? undefined : userFilter,
+    sortBy: sortBy as 'newest' | 'oldest' | 'popular' | 'rating',
   });
 
   // Fetch user data for agents
@@ -122,62 +124,18 @@ const RegistryPage = () => {
 
   const agents = agentsWithUsers;
 
-  // Get unique users for filtering
-  const uniqueUsers = getUniqueUsers(agents || []);
+  // Get unique users for filtering (simplified for now)
+  const uniqueUsers: any[] = [];
 
-  // Filter and sort agents
-  const filteredAndSortedAgents = (agents || [])
-    .filter((agent: any) => {
-      if (!agent) return false;
-      
-      // Search filter
-      if (searchQuery) {
-        const name = agent.name?.toLowerCase() || '';
-        const description = agent.description?.toLowerCase() || '';
-        const username = (agent.user?.username || agent.user?.full_name || '').toLowerCase();
-        const searchLower = searchQuery.toLowerCase();
-        if (!name.includes(searchLower) && !description.includes(searchLower) && !username.includes(searchLower)) {
-          return false;
-        }
-      }
-      
-      // Price filter
-      if (priceFilter === 'free' && agent.is_free !== true) {
-        return false;
-      }
-      if (priceFilter === 'paid' && agent.is_free !== false) {
-        return false;
-      }
-      
-      // User filter
-      if (userFilter !== 'all' && agent.user?.id !== userFilter) {
-        return false;
-      }
-      
-      return true;
-    })
-    .sort((a: any, b: any) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-        case 'oldest':
-          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-        case 'rating':
-          return (b.rating || 0) - (a.rating || 0);
-        case 'popular':
-          return (b.rating || 0) - (a.rating || 0); // Use rating as popularity metric
-        default:
-          return 0;
-      }
-    });
+  // Use agents directly from API (server-side filtering and sorting)
+  const displayAgents = agents || [];
 
-  // Pagination
-  const totalAgentsInDB = agentsData?.totalAgents || 0;
-  const filteredAgentsCount = filteredAndSortedAgents.length;
-  const totalPages = Math.ceil(filteredAgentsCount / agentsPerPage);
+  // Pagination - use total count from API
+  const totalAgents = agentsData?.totalAgents || 0;
+  const totalPages = Math.ceil(totalAgents / agentsPerPage);
   const startIndex = (currentPage - 1) * agentsPerPage;
-  const endIndex = startIndex + agentsPerPage;
-  const paginatedAgents = filteredAndSortedAgents.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + agentsPerPage, totalAgents);
+  const paginatedAgents = agents || [];
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -189,11 +147,10 @@ const RegistryPage = () => {
       {/* Agent Image - Only render if image exists */}
       {agent.image_url && (
         <div className="relative h-24 sm:h-28 overflow-hidden rounded-t-lg flex-shrink-0">
-          <Image
+          <img
             src={agent.image_url}
             alt={agent.name || 'Agent'}
-            fill
-            className="object-cover"
+            className="w-full h-full object-cover"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
@@ -531,7 +488,7 @@ const RegistryPage = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Agents</p>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{totalAgentsInDB}</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{totalAgents}</p>
                 </div>
               </div>
             </CardContent>
@@ -596,10 +553,10 @@ const RegistryPage = () => {
             </Button>
           </div>
           
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
-                {filteredAndSortedAgents.length} agents found
-              </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
+              {totalAgents} agents found
+            </p>
             <div className="flex gap-1 sm:gap-2 w-full sm:w-auto order-1 sm:order-2">
               <Button
                 variant="default"
@@ -631,7 +588,7 @@ const RegistryPage = () => {
           <div className="flex items-center justify-center py-8 sm:py-12">
             <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-gray-900 dark:border-white"></div>
           </div>
-        ) : filteredAgentsCount === 0 ? (
+        ) : displayAgents.length === 0 ? (
           <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-black shadow-sm">
             <CardContent className="p-6 sm:p-8 lg:p-12 text-center">
               <Database className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
@@ -645,7 +602,7 @@ const RegistryPage = () => {
           </Card>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-            {paginatedAgents.map((agent: any, index: number) => (
+            {displayAgents.map((agent: any, index: number) => (
               <AgentCard key={agent.id || index} agent={agent} />
             ))}
           </div>
@@ -665,7 +622,7 @@ const RegistryPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedAgents.map((agent: any, index: number) => (
+                  {displayAgents.map((agent: any, index: number) => (
                     <AgentTableRow key={agent.id || index} agent={agent} />
                   ))}
                 </TableBody>
@@ -675,7 +632,7 @@ const RegistryPage = () => {
         )}
 
         {/* Pagination Controls */}
-        {filteredAgentsCount > 0 && (
+        {totalAgents > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mt-4 sm:mt-6 lg:mt-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <div className="flex items-center space-x-2">
@@ -694,7 +651,7 @@ const RegistryPage = () => {
                 </Select>
               </div>
               <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredAgentsCount)} of {filteredAgentsCount} agents
+                Showing {startIndex + 1} to {Math.min(endIndex, totalAgents)} of {totalAgents} agents
               </span>
             </div>
             

@@ -23,6 +23,9 @@ const explorerRouter = router({
         offset: z.number().default(0),
         search: z.string().optional(),
         category: z.string().optional(),
+        priceFilter: z.enum(['all', 'free', 'paid']).optional(),
+        userFilter: z.string().optional(),
+        sortBy: z.enum(['newest', 'oldest', 'popular', 'rating']).optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -34,19 +37,19 @@ const explorerRouter = router({
         offset,
         search,
         category,
+        priceFilter,
+        userFilter,
+        sortBy,
       } = input;
 
       const prompts: any[] = [];
       const agents: any[] = [];
       const tools: any[] = [];
-      let totalPrompts = 0;
-      let totalAgents = 0;
-      let totalTools = 0;
 
-      const buildQuery = (table: any, fields = '*') => {
+      const buildQuery = (table: any, fields = '*', forCount = false) => {
         let query = ctx.supabase
           .from(table)
-          .select(fields)
+          .select(fields, forCount ? { count: 'exact', head: true } : undefined)
           .order('created_at', { ascending: false });
 
         if (category && category.toLowerCase() !== 'all') {
@@ -65,49 +68,66 @@ const explorerRouter = router({
         return query;
       };
 
-      const buildCountQuery = (table: any) => {
-        let query = ctx.supabase
-          .from(table)
-          .select('id', { count: 'exact' });
+      if (includePrompts) {
+        const { data, error } = await buildQuery('swarms_cloud_prompts').range(
+          offset,
+          offset + limit - 1,
+        );
+        if (error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+        }
+        prompts.push(...(data ?? []));
+      }
 
+      if (includeAgents) {
+        // Build agent query with additional filters
+        let agentQuery = ctx.supabase
+          .from('swarms_cloud_agents')
+          .select('*');
+
+        // Apply price filter
+        if (priceFilter === 'free') {
+          agentQuery = agentQuery.eq('is_free', true);
+        } else if (priceFilter === 'paid') {
+          agentQuery = agentQuery.eq('is_free', false);
+        }
+
+        // Apply user filter
+        if (userFilter) {
+          agentQuery = agentQuery.eq('user_id', userFilter);
+        }
+
+        // Apply category filter
         if (category && category.toLowerCase() !== 'all') {
-          query = query.contains(
+          agentQuery = agentQuery.contains(
             'category',
             JSON.stringify([category.toLowerCase()]),
           );
         }
 
+        // Apply search filter
         if (search) {
-          query = query.or(
+          agentQuery = agentQuery.or(
             `name.ilike.%${search}%,description.ilike.%${search}%`,
           );
         }
 
-        return query;
-      };
-
-      if (includePrompts) {
-        const [dataResult, countResult] = await Promise.all([
-          buildQuery('swarms_cloud_prompts').range(offset, offset + limit - 1),
-          buildCountQuery('swarms_cloud_prompts')
-        ]);
-
-        if (dataResult.error) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: dataResult.error.message });
-        }
-        if (countResult.error) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: countResult.error.message });
+        // Apply sorting
+        if (sortBy === 'oldest') {
+          agentQuery = agentQuery.order('created_at', { ascending: true });
+        } else if (sortBy === 'rating') {
+          agentQuery = agentQuery.order('rating', { ascending: false });
+        } else if (sortBy === 'popular') {
+          agentQuery = agentQuery.order('rating', { ascending: false });
+        } else {
+          // Default: newest
+          agentQuery = agentQuery.order('created_at', { ascending: false });
         }
 
-        prompts.push(...(dataResult.data ?? []));
-        totalPrompts = countResult.count || 0;
-      }
+        // Apply pagination
+        agentQuery = agentQuery.range(offset, offset + limit - 1);
 
-      if (includeAgents) {
-        // Get agents data
-        const { data: agentData, error: agentError } = await buildQuery(
-          'swarms_cloud_agents',
-        ).order('created_at', { ascending: false });
+        const { data: agentData, error: agentError } = await agentQuery;
 
         if (agentError) {
           throw new TRPCError({
@@ -124,7 +144,6 @@ const explorerRouter = router({
           created_at: agent.created_at ?? new Date().toISOString(),
         }));
 
-        // Get public chats
         let chatQuery = ctx.supabase
           .from('swarms_cloud_chat')
           .select('id, name, user_id, share_id, description, updated_at')
@@ -193,41 +212,85 @@ const explorerRouter = router({
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         );
 
-        // Get total count for agents (including public chats)
-        const [agentsCountResult, chatsCountResult] = await Promise.all([
-          buildCountQuery('swarms_cloud_agents'),
-          search || category ? 
-            ctx.supabase
-              .from('swarms_cloud_chat')
-              .select('id', { count: 'exact' })
-              .eq('is_public', true)
-              .then(result => ({ count: result.count || 0, error: result.error }))
-            : Promise.resolve({ count: 0, error: null })
-        ]);
-
-        if (agentsCountResult.error) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: agentsCountResult.error.message });
-        }
-
-        totalAgents = (agentsCountResult.count || 0) + (chatsCountResult.count || 0);
         agents.push(...combinedAgents.slice(offset, offset + limit));
       }
 
       if (includeTools) {
-        const [dataResult, countResult] = await Promise.all([
-          buildQuery('swarms_cloud_tools').range(offset, offset + limit - 1),
-          buildCountQuery('swarms_cloud_tools')
-        ]);
-
-        if (dataResult.error) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: dataResult.error.message });
+        const { data, error } = await buildQuery('swarms_cloud_tools').range(
+          offset,
+          offset + limit - 1,
+        );
+        if (error) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
         }
-        if (countResult.error) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: countResult.error.message });
+        tools.push(...(data ?? []));
+      }
+
+      // Get total counts for each type
+      let totalPrompts = 0;
+      let totalAgents = 0;
+      let totalTools = 0;
+
+      if (includePrompts) {
+        const { count } = await buildQuery('swarms_cloud_prompts', '*', true);
+        totalPrompts = count || 0;
+      }
+
+      if (includeAgents) {
+        // Count regular agents with filters
+        let agentCountQuery = ctx.supabase
+          .from('swarms_cloud_agents')
+          .select('*', { count: 'exact', head: true });
+
+        // Apply price filter
+        if (priceFilter === 'free') {
+          agentCountQuery = agentCountQuery.eq('is_free', true);
+        } else if (priceFilter === 'paid') {
+          agentCountQuery = agentCountQuery.eq('is_free', false);
         }
 
-        tools.push(...(dataResult.data ?? []));
-        totalTools = countResult.count || 0;
+        // Apply user filter
+        if (userFilter) {
+          agentCountQuery = agentCountQuery.eq('user_id', userFilter);
+        }
+
+        // Apply category filter
+        if (category && category.toLowerCase() !== 'all') {
+          agentCountQuery = agentCountQuery.contains(
+            'category',
+            JSON.stringify([category.toLowerCase()]),
+          );
+        }
+
+        // Apply search filter
+        if (search) {
+          agentCountQuery = agentCountQuery.or(
+            `name.ilike.%${search}%,description.ilike.%${search}%`,
+          );
+        }
+
+        const { count: regularAgentCount } = await agentCountQuery;
+        
+        // Count public chat agents (simplified for now)
+        let chatQuery = ctx.supabase
+          .from('swarms_cloud_chat')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_public', true);
+
+        if (search) {
+          chatQuery = chatQuery.or(
+            `name.ilike.%${search}%,description.ilike.%${search}%`,
+          );
+        }
+
+        const { count: chatCount } = await chatQuery;
+        
+        totalAgents = (regularAgentCount || 0) + (chatCount || 0);
+      }
+
+      if (includeTools) {
+        const { count } = await buildQuery('swarms_cloud_tools', '*', true);
+        totalTools = count || 0;
       }
 
       return { 
