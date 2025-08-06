@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Search, Grid3X3, List, Filter, ChevronDown, Star, Users, Calendar, Tag, Database, DollarSign, Plus, GitBranch } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
@@ -143,17 +144,26 @@ const RegistryPage = () => {
   }, [searchQuery, selectedIndustry, priceFilter, userFilter, sortBy]);
 
     const AgentCard = ({ agent }: { agent: any }) => (
-    <Card className="group hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-800 bg-white dark:bg-black shadow-sm flex flex-col h-full">
+    <Card 
+      className="group hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-800 bg-white dark:bg-black shadow-sm flex flex-col h-full"
+      data-agent-id={agent.id}
+    >
       {/* Agent Image - Only render if image exists */}
       {agent.image_url && (
-        <div className="relative h-24 sm:h-28 overflow-hidden rounded-t-lg flex-shrink-0">
-          <img
+        <div className="relative h-24 sm:h-28 overflow-hidden rounded-t-lg flex-shrink-0 image-container">
+          <Image
             src={agent.image_url}
             alt={agent.name || 'Agent'}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
             onError={(e) => {
-              e.currentTarget.style.display = 'none';
+              // Hide the image container on error
+              const target = e.target as HTMLElement;
+              if (target.parentElement) {
+                target.parentElement.style.display = 'none';
+              }
             }}
+            unoptimized
           />
         </div>
       )}

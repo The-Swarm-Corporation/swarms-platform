@@ -163,7 +163,7 @@ export default function PricingPage() {
             <Sparkles className="h-5 w-5 text-foreground/60" />
             Additional Features
           </CardTitle>
-          <CardDescription>What's included with your Swarms API usage</CardDescription>
+          <CardDescription>What&apos;s included with your Swarms API usage</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
