@@ -16,6 +16,7 @@ import OauthSignIn from '@/shared/components/ui/AuthForms/OauthSignIn';
 import ForgotPassword from '@/shared/components/ui/AuthForms/ForgotPassword';
 import UpdatePassword from '@/shared/components/ui/AuthForms/UpdatePassword';
 import SignUp from '@/shared/components/ui/AuthForms/Signup';
+import Web3SignIn from '@/shared/components/ui/AuthForms/Web3SignIn';
 
 export default async function SignIn({
   params,
@@ -98,6 +99,15 @@ export default async function SignIn({
           {viewProp === 'signup' && (
             <SignUp allowEmail={allowEmail} redirectMethod={redirectMethod} />
           )}
+
+          {viewProp !== 'update_password' &&
+            process.env.NEXT_PUBLIC_WEB3_AUTH_ENABLED === 'true' && (
+              <>
+                <Separator text="Web3 Authentication" />
+                <Web3SignIn redirectMethod={redirectMethod} />
+              </>
+            )}
+
           {viewProp !== 'update_password' &&
             viewProp !== 'signup' &&
             allowOauth && (
