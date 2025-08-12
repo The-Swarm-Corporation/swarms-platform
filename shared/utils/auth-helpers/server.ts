@@ -86,7 +86,6 @@ export async function signInWithEmail(formData: FormData) {
       'Invalid email address.',
       'Please try again.',
     );
-    return redirectPath;
   }
 
   const supabase = await createClient();
@@ -95,9 +94,9 @@ export async function signInWithEmail(formData: FormData) {
     shouldCreateUser: true,
   };
 
-  // Always allow new user creation via email (fixed the inverted logic)
+  // If allowPassword is false, do not create a new user
   const { allowPassword } = getAuthTypes();
-  
+  if (allowPassword) options.shouldCreateUser = false;
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
     options: options,

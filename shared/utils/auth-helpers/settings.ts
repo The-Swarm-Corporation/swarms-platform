@@ -3,9 +3,6 @@ const allowOauth = true;
 const allowEmail = true;
 const allowPassword = true;
 
-// Boolean toggle to determine whether email signups should create new users
-const allowEmailSignup = true;
-
 // Boolean toggle to determine whether auth interface should route through server or client
 // (Currently set to false because screen sometimes flickers with server redirects)
 const allowServerRedirect = false;
@@ -15,7 +12,7 @@ if (!allowPassword && !allowEmail)
   throw new Error('At least one of allowPassword and allowEmail must be true');
 
 export const getAuthTypes = () => {
-  return { allowOauth, allowEmail, allowPassword, allowEmailSignup };
+  return { allowOauth, allowEmail, allowPassword };
 };
 
 export const getViewTypes = () => {
