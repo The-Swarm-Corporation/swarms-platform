@@ -10,6 +10,9 @@ import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 
 // TODO: Add types
+
+// this is my first commit
+
 export default function Tools({
   isLoading,
   filteredTools,
@@ -26,9 +29,9 @@ export default function Tools({
     return setAddToolModalOpen(true);
   }
   return (
-    <div className="flex flex-col min-h-1/2 gap-2 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+    <div className="flex flex-col gap-2 py-8 min-h-1/2">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="flex items-center gap-3 text-xl font-bold md:text-3xl text-foreground">
           <Hammer className="text-[#FFD93D]" />
           Tools
         </h2>
@@ -37,7 +40,7 @@ export default function Tools({
           disabled={isLoading}
           className="bg-[#FFD93D]/20 border border-[#FFD93D]/60 hover:bg-[#FFD93D]/30 text-[#FFD93D] hover:text-black transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FFD93D]/25 group"
         >
-          <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+          <Plus className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
           Add Tool
         </Button>
       </div>
@@ -76,7 +79,7 @@ export default function Tools({
                 ))}
               </div>
             ) : (
-              <div className="border p-4 rounded-md text-center">
+              <div className="p-4 text-center border rounded-md">
                 No tools found
               </div>
             )}
@@ -90,7 +93,7 @@ export default function Tools({
             {(hasMoreTools || isFetchingTools) &&
               !isLoading &&
               filteredTools?.length > 0 && (
-                <div className="flex justify-center mt-8 w-full">
+                <div className="flex justify-center w-full mt-8">
                   <Button
                     onClick={loadMoreTools}
                     disabled={isFetchingTools || isToolLoading}
@@ -98,7 +101,7 @@ export default function Tools({
                   >
                     {isFetchingTools ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                        <div className="w-4 h-4 mr-2 border-2 border-current rounded-full animate-spin border-t-transparent" />
                         Loading...
                       </>
                     ) : (
