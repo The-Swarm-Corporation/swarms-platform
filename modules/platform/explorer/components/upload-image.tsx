@@ -68,13 +68,23 @@ export default function ModelFileUpload({
         )}
 
         {imageUrl || image ? (
-          <div className="relative mx-auto h-[150px] w-[150px] overflow-hidden rounded-xl">
-            <Image
-              src={imageUrl || image || ''}
-              alt={'Uploaded image'}
-              fill
-              className="object-cover"
-            />
+          <div className="relative mx-auto h-[220px] w-full overflow-hidden rounded-xl">
+            {(imageUrl || image)?.startsWith('blob:') || (imageUrl || image)?.startsWith('data:') ? (
+              <img
+                src={imageUrl || image || ''}
+                alt={'Uploaded image'}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <Image
+                src={imageUrl || image || ''}
+                alt={'Uploaded image'}
+                fill
+                sizes="150px"
+                className="object-cover"
+                unoptimized
+              />
+            )}
             <div className="absolute top-2 right-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-black/80 text-white">
               {imageUrl &&
                 (isDeleteFile ? (

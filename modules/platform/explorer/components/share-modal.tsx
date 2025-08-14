@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Modal from '@/shared/components/modal';
 import { ShareDetails, openShareWindow } from '@/shared/utils/helpers';
@@ -13,127 +13,177 @@ interface ShareModalProps {
 
 export default function ShareModal({ isOpen, onClose, link }: ShareModalProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [resolvedShareUrl, setResolvedShareUrl] = useState<string>(
+    `https://swarms.world${link ?? ''}`
+  );
   const toast = useToast();
-  
+
   useEffect(() => {
     if (isOpen) {
-      // Add a small delay for the animation
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-      }, 100);
+      const timer = setTimeout(() => setIsVisible(true), 60);
       return () => clearTimeout(timer);
-    } else {
-      setIsVisible(false);
     }
+    setIsVisible(false);
   }, [isOpen]);
 
-  const shareDetails: ShareDetails = {
-    message: 'Check out this cool model/prompt/swarm on the swarms platform!',
-    link: `https://swarms.world${link}`,
-    subject: 'Check this out!',
-  };
+  useEffect(() => {
+    const fallbackUrl = `https://swarms.world${link ?? ''}`;
+    if (!link && typeof window !== 'undefined') {
+      setResolvedShareUrl(window.location.href);
+    } else {
+      setResolvedShareUrl(fallbackUrl);
+    }
+  }, [link]);
 
-  const handleCopy = () => {
-    navigator.clipboard
-      .writeText(`https://swarms.world${link}`)
-      .then(() => {
-        toast.toast({ title: 'Copied to clipboard' });
-      })
-      .catch((e) => console.error(e));
-  };
+  const shareDetails: ShareDetails = useMemo(
+    () => ({
+      message: 'Check out this on the swarms platform!',
+      link: resolvedShareUrl,
+      subject: 'Check this out!',
+    }),
+    [resolvedShareUrl]
+  );
 
-  const data = [
-    {
-      icon: '/twitter.svg',
-      text: 'Tweet',
-      func: () => openShareWindow('twitter', shareDetails),
-      bgColor: 'aliceblue',
-    },
-    {
-      icon: '/linkedin.svg',
-      text: 'Post',
-      func: () => openShareWindow('linkedin', shareDetails),
-      bgColor: '#d8d8d8',
-    },
-    {
-      icon: '/facebook.svg',
-      text: 'Share',
-      func: () => openShareWindow('facebook', shareDetails),
-      bgColor: '#eceff5',
-    },
-    {
-      icon: '/reddit.svg',
-      text: 'Submit',
-      func: () => openShareWindow('reddit', shareDetails),
-      bgColor: '#fdd9ce',
-    },
-    {
-      icon: '/hackernews.svg',
-      text: 'Post',
-      func: () => openShareWindow('hackernews', shareDetails),
-      bgColor: '#f5f5f5',
-    },
-    {
-      icon: '/email.svg',
-      text: 'Email',
-      func: () => openShareWindow('email', shareDetails),
-      bgColor: '#fdd9ce',
-    },
-  ];
+  const handleCopy = useCallback(() => {
+    const write = async () => {
+      try {
+        await navigator.clipboard.writeText(resolvedShareUrl);
+        setCopied(true);
+        toast.toast({ title: 'Link copied to clipboard' });
+        setTimeout(() => setCopied(false), 1600);
+      } catch (e) {
+        // Fallback if clipboard API not available
+        try {
+          const textArea = document.createElement('textarea');
+          textArea.value = resolvedShareUrl;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-9999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          setCopied(true);
+          toast.toast({ title: 'Link copied to clipboard' });
+          setTimeout(() => setCopied(false), 1600);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    };
+    void write();
+  }, [resolvedShareUrl, toast]);
+
+  const handleNativeShare = useCallback(async () => {
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      try {
+        await (navigator as any).share({
+          title: 'Swarms',
+          text: 'Check this out on Swarms',
+          url: resolvedShareUrl,
+        });
+      } catch (e) {
+        // Ignore if user cancels
+      }
+    } else {
+      handleCopy();
+    }
+  }, [resolvedShareUrl, handleCopy]);
+
+  const platforms = [
+    { id: 'twitter', icon: '/twitter.svg', label: 'Tweet', bg: 'bg-[aliceblue]' },
+    { id: 'linkedin', icon: '/linkedin.svg', label: 'Post', bg: 'bg-[#d8d8d8]' },
+    { id: 'facebook', icon: '/facebook.svg', label: 'Share', bg: 'bg-[#eceff5]' },
+    { id: 'reddit', icon: '/reddit.svg', label: 'Submit', bg: 'bg-[#fdd9ce]' },
+    { id: 'hackernews', icon: '/hackernews.svg', label: 'Post', bg: 'bg-[#f5f5f5]' },
+    { id: 'email', icon: '/email.svg', label: 'Email', bg: 'bg-[#fdd9ce]' },
+  ] as const;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title="Share"
-      className={`flex flex-col items-start justify-center max-sm:max-w-[320px] transition-all duration-300 ease-in-out ${
+      className={`w-full max-w-lg sm:max-w-xl md:max-w-2xl transition-all duration-300 ease-out ${
         isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-      } border-2 border-gray-800 rounded-lg`}
+      } border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md`}
     >
-      <div onClick={(e) => e.stopPropagation()}>
-      <div className="relative flex items-center pt-0.5 w-full">
-        <div className="grow border-t border-gray-300 dark:border-zinc-800" />
-      </div>
-      <div className="w-full px-4">
-        <span className="mb-2 text-sm text-gray-400">Share the link via</span>
-        <ul className="flex flex-wrap gap-4 md:gap-6 lg:gap-10 justify-start w-full my-4 p-0">
-          {data.map((item, index) => (
-            <li
-              key={index}
-              className="flex flex-col items-center justify-center cursor-pointer transform transition-transform hover:scale-110"
-              onClick={item.func}
-            >
-              <div
-                style={{ backgroundColor: item.bgColor }}
-                className="rounded-full p-1.5 h-[41px] md:h-[51px] lg:h-[61px] w-[41px] md:w-[51px] lg:w-[61px] flex items-center justify-center transition-all duration-200 hover:shadow-lg"
-              >
-                <Image src={item.icon} alt={item.text} width={25} height={25} />
-              </div>
-              <span className="text-sm mt-1">{item.text}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="relative flex items-center pt-0.5 w-full">
-        <div className="grow border-t border-gray-300 dark:border-zinc-800" />
-      </div>
-      <div className="flex items-start justify-start w-full flex-col px-4 pb-4">
-        <span className="text-sm text-gray-400">Or copy link</span>
-        <div className="flex items-center w-full border-[1px] rounded-lg p-2 mt-2">
-          <input
-            type="text"
-            readOnly
-            className="bg-transparent w-full px-2 text-sm md:text-base"
-            value={`https://swarms.world${link}`}
-          />
-          <Button 
-            onClick={handleCopy}
-            className="ml-2 transition-all duration-200 bg-blue-600 hover:bg-blue-900"
-          >
-            Copy
-          </Button>
+      <div onClick={(e) => e.stopPropagation()} className="w-full">
+        <div className="px-5 pt-4">
+          <h3 className="text-base md:text-lg font-semibold tracking-tight">Share this</h3>
+          <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Spread the word using your favorite platform, or copy the link.
+          </p>
         </div>
-      </div>
+
+        <div className="px-4 md:px-5 mt-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+            {platforms.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                aria-label={`Share via ${p.label}`}
+                onClick={() => openShareWindow(p.id as any, shareDetails)}
+                className="group flex flex-col items-center gap-2 focus:outline-none"
+              >
+                <span
+                  className={`inline-flex items-center justify-center ${p.bg} rounded-full h-12 w-12 sm:h-14 sm:w-14 ring-1 ring-black/5 dark:ring-white/10 shadow-sm transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5`}
+                >
+                  <Image src={p.icon} alt={p.label} width={24} height={24} />
+                </span>
+                <span className="text-[11px] sm:text-xs text-gray-700 dark:text-gray-300">
+                  {p.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="px-4 md:px-5 mt-5">
+          <div className="flex items-center justify-between gap-2 py-3 px-3 sm:px-4 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60">
+            <div className="min-w-0 flex-1">
+              <label htmlFor="share-url" className="sr-only">
+                Share URL
+              </label>
+              <input
+                id="share-url"
+                type="text"
+                readOnly
+                value={resolvedShareUrl}
+                className="bg-transparent w-full text-xs sm:text-sm md:text-base px-1 outline-none text-gray-800 dark:text-gray-100 truncate"
+              />
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                onClick={handleCopy}
+                className={`h-8 sm:h-9 px-3 text-xs sm:text-sm transition-colors ${
+                  copied ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+              <Button
+                onClick={handleNativeShare}
+                className="h-8 sm:h-9 px-3 text-xs sm:text-sm bg-gray-900 hover:bg-black dark:bg-zinc-800 dark:hover:bg-zinc-700"
+              >
+                Share
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-4 md:px-5 pb-4 mt-4">
+          <div className="w-full h-px bg-gray-200 dark:bg-zinc-800" />
+          <div className="flex items-center justify-end mt-3">
+            <Button
+              onClick={onClose}
+              className="h-8 sm:h-9 px-3 text-xs sm:text-sm bg-transparent hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-zinc-800"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
       </div>
     </Modal>
   );

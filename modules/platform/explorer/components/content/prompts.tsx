@@ -71,7 +71,7 @@ export default function Prompts({
                     requirements={prompt?.requirements}
                     tags={prompt?.tags?.split(',') || []}
                     itemType="prompt"
-                  />
+                />
                 </div>
               ))
             ) : (
@@ -95,7 +95,7 @@ export default function Prompts({
               <Button
                 onClick={loadMorePrompts}
                 disabled={isFetchingPrompts || isPromptLoading}
-                className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/60 hover:bg-[#FF6B6B]/30 text-[#FF6B6B] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FF6B6B]/25 group"
+                className="bg-green-500/20 border border-green-500/60 hover:bg-green-500/30 text-green-500 hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-green-500/25 group"
               >
                 {isFetchingPrompts ? (
                   <>

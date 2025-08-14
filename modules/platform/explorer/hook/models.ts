@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 
 const promptLimit = 6;
 const trendingLimit = 6;
-const agentLimit = 6;
+const agentLimit = 24;
 const toolLimit = 6;
 
 const updateList = (offset: number, setter: any, newData: any[]) => {
@@ -34,6 +34,7 @@ export default function useModels() {
   const [hasMorePrompts, setHasMorePrompts] = useState(true);
   const [hasMoreAgents, setHasMoreAgents] = useState(true);
   const [hasMoreTools, setHasMoreTools] = useState(true);
+  const [totalAgents, setTotalAgents] = useState<number>(0);
 
   const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
   const [isFetchingTrending, setIsFetchingTrending] = useState(false);
@@ -119,13 +120,18 @@ export default function useModels() {
     }
     if (data?.agents) {
       setAgents(data.agents);
-      setHasMoreAgents(data.agents.length === agentLimit);
+      // Store the total number of agents from the API response
+      if (data.totalAgents !== undefined) {
+        setTotalAgents(data.totalAgents);
+      }
+      // Check if there are more agents based on total count and current loaded amount
+      setHasMoreAgents(data.agents.length < data.totalAgents);
     }
     if (data?.tools) {
       setTools(data.tools);
       setHasMoreTools(data.tools.length === toolLimit);
     }
-  }, [data?.prompts, data?.agents, data?.tools]);
+  }, [data?.prompts, data?.agents, data?.tools, data?.totalAgents]);
 
   useEffect(() => {
     if (promptsQuery.data?.prompts) {
@@ -136,7 +142,13 @@ export default function useModels() {
     if (agentsQuery.data?.agents) {
       updateList(agentOffset, setAgents, agentsQuery.data.agents);
       setIsFetchingAgents(false);
-      setHasMoreAgents(agentsQuery.data.agents.length === agentLimit);
+      // Update total agents if provided in subsequent queries
+      if (agentsQuery.data.totalAgents !== undefined) {
+        setTotalAgents(agentsQuery.data.totalAgents);
+      }
+      // Check if there are more agents: current loaded count < total available
+      const currentLoadedCount = agentOffset + agentsQuery.data.agents.length;
+      setHasMoreAgents(currentLoadedCount < (agentsQuery.data.totalAgents || totalAgents));
     }
     if (toolsQuery.data?.tools) {
       updateList(toolOffset, setTools, toolsQuery.data.tools);
@@ -190,6 +202,7 @@ export default function useModels() {
     setHasMorePrompts(true);
     setHasMoreAgents(true);
     setHasMoreTools(true);
+    setTotalAgents(0);
   };
 
   const searchClickHandler = () => {

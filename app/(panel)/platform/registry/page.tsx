@@ -14,6 +14,7 @@ import { trpc } from '@/shared/utils/trpc/trpc';
 import BookmarkButton from '@/shared/components/bookmark-button';
 import AddAgentModal from '@/modules/platform/explorer/components/add-agent-modal';
 import BulkAddAgentsModal from '@/modules/platform/explorer/components/bulk-add-agents-modal';
+import InfoCard from '@/modules/platform/explorer/components/info-card';
 
 // Industry categories for filtering
 const industryCategories = [
@@ -125,6 +126,17 @@ const RegistryPage = () => {
 
   const agents = agentsWithUsers;
 
+  // Maps for InfoCard component
+  const usersMap = (usersData || []).reduce((acc: Record<string, any>, user: any) => {
+    acc[user.id] = user;
+    return acc;
+  }, {} as Record<string, any>);
+
+  const reviewsMap = (agents || []).reduce((acc: Record<string, any>, a: any) => {
+    acc[a.id] = { rating: a?.rating || 0 };
+    return acc;
+  }, {} as Record<string, any>);
+
   // Get unique users for filtering (simplified for now)
   const uniqueUsers: any[] = [];
 
@@ -143,135 +155,7 @@ const RegistryPage = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedIndustry, priceFilter, userFilter, sortBy]);
 
-    const AgentCard = ({ agent }: { agent: any }) => (
-    <Card 
-      className="group hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-800 bg-white dark:bg-black shadow-sm flex flex-col h-full"
-      data-agent-id={agent.id}
-    >
-      {/* Agent Image - Only render if image exists */}
-      {agent.image_url && (
-        <div className="relative h-24 sm:h-28 overflow-hidden rounded-t-lg flex-shrink-0 image-container">
-          <Image
-            src={agent.image_url}
-            alt={agent.name || 'Agent'}
-            fill
-            className="object-cover"
-            onError={(e) => {
-              // Hide the image container on error
-              const target = e.target as HTMLElement;
-              if (target.parentElement) {
-                target.parentElement.style.display = 'none';
-              }
-            }}
-            unoptimized
-          />
-        </div>
-      )}
-      
-      <CardHeader className={`pb-2 p-3 sm:p-4 ${!agent.image_url ? 'pt-4' : ''} flex-shrink-0`}>
-        <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-2 min-w-0 flex-1">
-              <Avatar className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
-                <AvatarImage src={agent.user?.avatar_url || agent.user?.avatar} />
-                <AvatarFallback className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs">
-                  {(agent.user?.username || agent.user?.full_name || 'A')?.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-                          <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1 mb-1">
-                  <CardTitle className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate">
-                    {agent.name || 'Unnamed Agent'}
-                  </CardTitle>
-                  {agent.is_free !== undefined && (
-                    <Badge 
-                      variant={agent.is_free ? "secondary" : "default"}
-                      className={`text-xs px-1.5 py-0.5 ${
-                        agent.is_free 
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800' 
-                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800'
-                      }`}
-                    >
-                      <DollarSign className="h-2.5 w-2.5 mr-0.5" />
-                      {agent.is_free ? 'Free' : 'Paid'}
-                    </Badge>
-                  )}
-                </div>
-                <CardDescription className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  by {agent.user?.full_name || agent.user?.username || 'Anonymous'}
-                </CardDescription>
-              </div>
-          </div>
-
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0 p-3 sm:p-4 flex-1 flex flex-col">
-        <div className="flex-1">
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
-            {agent.description || 'No description available'}
-          </p>
-          
-          <div className="flex flex-wrap gap-1 mb-3">
-            {Array.isArray(agent.tags) && agent.tags.slice(0, 2).map((tag: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-                {tag}
-              </Badge>
-            ))}
-            {Array.isArray(agent.tags) && agent.tags.length > 2 && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0.5 border-gray-200 dark:border-gray-700">
-                +{agent.tags.length - 2} more
-              </Badge>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1">
-                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                <span>{agent.rating?.toFixed(1) || 'N/A'}</span>
-              </div>
-              {!agent.is_free && agent.price_usd && (
-                <div className="flex items-center space-x-1">
-                  <DollarSign className="h-3 w-3" />
-                  <span>${agent.price_usd}</span>
-                </div>
-              )}
-            </div>
-            <div className="flex items-center space-x-1">
-              <Calendar className="h-3 w-3" />
-              <span>{agent.created_at ? new Date(agent.created_at).toLocaleDateString() : 'N/A'}</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* View Details Button and Bookmark - Always at bottom */}
-        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex-1 h-8 text-xs border-gray-200 dark:border-gray-700 bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-gray-900"
-              onClick={() => {
-                const agentUrl = getAgentUrl(agent);
-                window.open(agentUrl, '_blank');
-              }}
-            >
-              Get Started
-            </Button>
-            <BookmarkButton
-              id={agent.id}
-              type="agent"
-              name={agent.name || 'Unnamed Agent'}
-              description={agent.description}
-              username={agent.user?.username || agent.user?.full_name}
-              created_at={agent.created_at}
-              tags={Array.isArray(agent.tags) ? agent.tags : []}
-              className="h-8 px-2 text-xs border-gray-200 dark:border-gray-700 bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-gray-900"
-            />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+    // Deprecated: replaced by InfoCard
 
     const AgentTableRow = ({ agent }: { agent: any }) => (
     <TableRow className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors border-gray-200 dark:border-gray-800">
@@ -610,7 +494,27 @@ const RegistryPage = () => {
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {displayAgents.map((agent: any, index: number) => (
-              <AgentCard key={agent.id || index} agent={agent} />
+              <div key={agent.id || index} className="flex flex-col w-full">
+                <InfoCard
+                  id={agent.id || ''}
+                  title={agent.name || ''}
+                  description={agent.description || ''}
+                  icon={<Database />}
+                  className="w-full h-full"
+                  imageUrl={agent.image_url || ''}
+                  link={getAgentUrl(agent)}
+                  userId={agent.user_id}
+                  usersMap={usersMap}
+                  reviewsMap={reviewsMap}
+                  is_free={agent.is_free}
+                  price_usd={agent.price_usd}
+                  seller_wallet_address={agent.seller_wallet_address}
+                  usecases={agent?.usecases}
+                  requirements={agent?.requirements}
+                  tags={Array.isArray(agent?.tags) ? agent?.tags : (agent?.tags ? agent?.tags?.split(',') : [])}
+                  itemType="agent"
+                />
+              </div>
             ))}
           </div>
         ) : (

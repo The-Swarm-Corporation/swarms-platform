@@ -94,7 +94,7 @@ export default function Tools({
                   <Button
                     onClick={loadMoreTools}
                     disabled={isFetchingTools || isToolLoading}
-                    className="bg-[#FFD93D]/20 border border-[#FFD93D]/60 hover:bg-[#FFD93D]/30 text-[#FFD93D] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#FFD93D]/25 group"
+                    className="bg-green-500/20 border border-green-500/60 hover:bg-green-500/30 text-green-500 hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-green-500/25 group"
                   >
                     {isFetchingTools ? (
                       <>

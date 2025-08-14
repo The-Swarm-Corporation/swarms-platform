@@ -19,7 +19,6 @@ import dynamic from 'next/dynamic';
 import Sticky from 'react-stickynode';
 import AddToolModal from './components/add-tool-modal';
 import ModelCategories from './components/content/categories';
-import MarketplaceStats from './components/content/marketplace-stats';
 import Footer from '@/shared/components/ui/Footer';
 import { MarketplaceTicker } from '@/shared/components/marketplace/ticker';
 import MarketplaceOnboardingModal from '@/shared/components/marketplace/marketplace-onboarding-modal';

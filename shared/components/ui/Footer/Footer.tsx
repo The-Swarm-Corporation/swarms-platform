@@ -57,7 +57,7 @@ export default function Footer() {
 
   const socialLinks = [
     { name: 'GitHub', href: SWARMS_GITHUB, icon: <Github className="h-4 w-4" /> },
-    { name: 'Discord', href: 'https://discord.gg/jM3Z6M9uMq', icon: <Discord /> },
+    { name: 'Discord', href: 'https://discord.gg/EamjgSaEQf', icon: <Discord /> },
     { name: 'Twitter', href: 'https://twitter.com/kyegomez', icon: <Twitter className="h-4 w-4" /> },
     { name: 'LinkedIn', href: 'https://linkedin.com/company/The-Swarm-Corporation', icon: <Linkedin className="h-4 w-4" /> },
     { name: 'YouTube', href: 'https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ', icon: <Youtube className="h-4 w-4" /> },
@@ -101,7 +101,7 @@ export default function Footer() {
   ];
 
   const communityLinks = [
-    { name: 'Discord', href: 'https://discord.gg/jM3Z6M9uMq', icon: <Discord />, description: 'Join our community chat' },
+    { name: 'Discord', href: 'https://discord.gg/EamjgSaEQf', icon: <Discord />, description: 'Join our community chat' },
     { name: 'X Community', href: 'https://x.com/i/communities/1875452887414804745', icon: <Twitter className="h-4 w-4" />, description: 'Join the X community' },
     { name: 'Telegram', href: 'https://t.co/dSRy143zQv', icon: <Send className="h-4 w-4" />, description: 'Join our Telegram group' },
     { name: 'YouTube', href: 'https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ', icon: <Youtube className="h-4 w-4" />, description: 'Watch tutorials and demos' },

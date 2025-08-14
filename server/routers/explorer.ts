@@ -124,8 +124,7 @@ const explorerRouter = router({
           agentQuery = agentQuery.order('created_at', { ascending: false });
         }
 
-        // Apply pagination
-        agentQuery = agentQuery.range(offset, offset + limit - 1);
+        // Don't apply pagination here since we need to combine with public chat agents first
 
         const { data: agentData, error: agentError } = await agentQuery;
 
@@ -212,6 +211,8 @@ const explorerRouter = router({
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         );
 
+        // Since agentsList is already paginated but publicChatAgents is not,
+        // we need to apply pagination to the combined result
         agents.push(...combinedAgents.slice(offset, offset + limit));
       }
 

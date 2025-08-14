@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Search } from 'lucide-react';
 import Link from 'next/link';
-import { Code, MessageSquare, Wrench, User } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import InfoCard from '@/modules/platform/explorer/components/info-card';
+import { Code, Hammer, MessageSquare, User as UserIcon } from 'lucide-react';
 
 interface Bookmark {
   id: string;
@@ -17,10 +17,28 @@ interface Bookmark {
   tags?: string[];
 }
 
+type ItemType = 'prompt' | 'agent' | 'tool';
+
+type EnrichedItem = {
+  id: string;
+  name: string;
+  description: string;
+  image_url?: string;
+  user_id?: string;
+  is_free?: boolean;
+  price_usd?: number | null;
+  tags?: string[];
+  usecases?: { title: string; description: string }[];
+  requirements?: Array<{ package: string; installation: string }> | string | undefined;
+  itemType: ItemType;
+};
+
 export default function BookmarksPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<'all' | 'prompt' | 'agent' | 'tool' | 'user'>('all');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [enrichedMap, setEnrichedMap] = useState<Record<string, EnrichedItem>>({});
 
   useEffect(() => {
     // Load bookmarks from localStorage
@@ -30,60 +48,90 @@ export default function BookmarksPage() {
     }
   }, []);
 
-  const filteredBookmarks = bookmarks.filter(bookmark => {
-    const matchesSearch = bookmark.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      bookmark.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      bookmark.username?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesType = selectedType === 'all' || bookmark.type === selectedType;
-    
-    return matchesSearch && matchesType;
-  });
+  useEffect(() => {
+    const loadDetails = async () => {
+      setLoading(true);
+      try {
+        const fetchFor = async (b: Bookmark) => {
+          if (b.type === 'user') return null;
+          const base = b.type === 'prompt' ? '/api/get-prompts/' : b.type === 'agent' ? '/api/get-agents/' : '/api/get-tools/';
+          const res = await fetch(`${base}${b.id}`);
+          if (!res.ok) return null;
+          const data = await res.json();
+          const enriched: EnrichedItem = {
+            id: data.id,
+            name: data.name || b.name,
+            description: data.description || b.description || '',
+            image_url: data.image_url,
+            user_id: data.user_id,
+            is_free: data.is_free,
+            price_usd: typeof data.price_usd === 'number' ? data.price_usd : null,
+            tags: (data.tags && typeof data.tags === 'string') ? data.tags.split(',') : b.tags,
+            usecases: data.use_cases || data.usecases,
+            requirements: data.requirements,
+            itemType: b.type as ItemType,
+          };
+          return enriched;
+        };
+
+        const results = await Promise.all(bookmarks.map(fetchFor));
+        const map: Record<string, EnrichedItem> = {};
+        results.forEach((item) => {
+          if (item) map[item.id] = item;
+        });
+        setEnrichedMap(map);
+      } catch (e) {
+        // Ignore errors; fallback UI still works
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (bookmarks.length > 0) {
+      loadDetails();
+    } else {
+      setEnrichedMap({});
+      setLoading(false);
+    }
+  }, [bookmarks]);
+
+  const filteredBookmarks = useMemo(() => {
+    return bookmarks.filter((bookmark) => {
+      const matchesSearch =
+        bookmark.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        bookmark.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        bookmark.username?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = selectedType === 'all' || bookmark.type === selectedType;
+      return matchesSearch && matchesType;
+    });
+  }, [bookmarks, searchQuery, selectedType]);
 
   const removeBookmark = (id: string) => {
     const updatedBookmarks = bookmarks.filter(b => b.id !== id);
     setBookmarks(updatedBookmarks);
     localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
+    setEnrichedMap((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
-  const getItemColors = (type: string) => {
+  const iconForType = (type: ItemType) => {
     switch (type) {
-      case 'prompt':
-        return {
-          icon: 'text-[#FF6B6B]',
-          bg: 'bg-[#FF6B6B]/5',
-          border: 'border-[#FF6B6B]/20',
-          hover: 'hover:bg-[#FF6B6B]/10'
-        };
       case 'agent':
-        return {
-          icon: 'text-[#4ECDC4]',
-          bg: 'bg-[#4ECDC4]/5',
-          border: 'border-[#4ECDC4]/20',
-          hover: 'hover:bg-[#4ECDC4]/10'
-        };
+        return <Code />;
       case 'tool':
-        return {
-          icon: 'text-[#FFD93D]',
-          bg: 'bg-[#FFD93D]/5',
-          border: 'border-[#FFD93D]/20',
-          hover: 'hover:bg-[#FFD93D]/10'
-        };
-      case 'user':
-        return {
-          icon: 'text-[#9B59B6]',
-          bg: 'bg-[#9B59B6]/5',
-          border: 'border-[#9B59B6]/20',
-          hover: 'hover:bg-[#9B59B6]/10'
-        };
+        return <Hammer />;
       default:
-        return {
-          icon: 'text-white',
-          bg: 'bg-white/5',
-          border: 'border-white/20',
-          hover: 'hover:bg-white/10'
-        };
+        return <MessageSquare />;
     }
+  };
+
+  const linkFor = (type: ItemType, id: string) => {
+    if (type === 'agent') return `/agent/${id}`;
+    if (type === 'tool') return `/tool/${id}`;
+    return `/prompt/${id}`;
   };
 
   return (
@@ -142,66 +190,72 @@ export default function BookmarksPage() {
           transition={{ duration: 0.2 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {filteredBookmarks.map((bookmark, index) => {
-            const colors = getItemColors(bookmark.type);
-            let href = '#';
-            if (bookmark.type === 'user') {
-              href = `/users/${bookmark.id}`;
-            } else if (bookmark.type === 'prompt') {
-              href = `/prompt/${bookmark.id}`;
-            } else if (bookmark.type === 'agent') {
-              href = `/agent/${bookmark.id}`;
-            } else if (bookmark.type === 'tool') {
-              href = `/tool/${bookmark.id}`;
-            }
-            return (
-              <motion.article
-                key={bookmark.id}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.2, delay: index * 0.05 }}
-                whileHover={{ scale: 1.02, y: -5 }}
-                className={`group relative rounded-md overflow-hidden shadow-lg border border-gray-800 ${colors.bg} backdrop-blur-lg p-6 ${colors.hover} transition-all duration-200`}
-              >
-                <Link
-                  href={href}
-                  className="block"
+          {filteredBookmarks.map((b, index) => {
+            const enriched = enrichedMap[b.id];
+            if (b.type === 'user') {
+              return (
+                <motion.article
+                  key={b.id}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.2, delay: index * 0.05 }}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  className="group relative rounded-md overflow-hidden shadow-lg border border-gray-800 bg-white/5 backdrop-blur-lg p-6 hover:bg-white/10 transition-all duration-200"
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    {bookmark.type === 'prompt' ? (
-                      <MessageSquare className={`h-5 w-5 ${colors.icon}`} />
-                    ) : bookmark.type === 'agent' ? (
-                      <Code className={`h-5 w-5 ${colors.icon}`} />
-                    ) : bookmark.type === 'tool' ? (
-                      <Wrench className={`h-5 w-5 ${colors.icon}`} />
-                    ) : (
-                      <User className={`h-5 w-5 ${colors.icon}`} />
-                    )}
-                    <span className={`text-xs uppercase tracking-wider font-medium ${colors.icon}`}>
-                      {bookmark.type}
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-2 line-clamp-1">{bookmark.name}</h3>
-                  <p className="text-white/70 mb-3 line-clamp-2 text-sm">
-                    {bookmark.description || 'No description provided'}
-                  </p>
-                  {bookmark.username && (
-                    <p className="text-white/60 text-sm mb-3">by {bookmark.username}</p>
-                  )}
-                  <div className="flex items-center justify-between mt-3">
-                    <time className="text-xs text-white/60" dateTime={bookmark.created_at}>
-                      {formatDistanceToNow(new Date(bookmark.created_at), { addSuffix: true })}
-                    </time>
-                  </div>
-                </Link>
+                  <Link href={`/users/${b.id}`} className="block">
+                    <div className="flex items-center gap-3 mb-3">
+                      <UserIcon className="h-5 w-5 text-[#9B59B6]" />
+                      <span className="text-xs uppercase tracking-wider font-medium text-[#9B59B6]">user</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-1">{b.name}</h3>
+                    <p className="text-white/70 mb-3 line-clamp-2 text-sm">{b.description || 'No description provided'}</p>
+                  </Link>
+                  <button
+                    onClick={() => removeBookmark(b.id)}
+                    className="absolute top-2 right-2 p-2 text-white/60 hover:text-white/90 transition-colors"
+                    aria-label="Remove bookmark"
+                  >
+                    ×
+                  </button>
+                </motion.article>
+              );
+            }
+
+            if (loading || !enriched) {
+              return (
+                <div key={`${b.id}-${index}`} className="h-[340px] rounded-xl border border-zinc-700/50 bg-zinc-800/20 animate-pulse" />
+              );
+            }
+
+            const itemType = enriched.itemType;
+            return (
+              <div key={`${b.id}-${index}`} className="flex flex-col w-full">
+                <InfoCard
+                  id={enriched.id}
+                  title={enriched.name}
+                  description={enriched.description}
+                  imageUrl={enriched.image_url}
+                  icon={iconForType(itemType)}
+                  className="w-full h-full"
+                  link={linkFor(itemType, enriched.id)}
+                  userId={enriched.user_id}
+                  is_free={enriched.is_free}
+                  price_usd={enriched.price_usd ?? undefined}
+                  tags={enriched.tags}
+                  usecases={enriched.usecases}
+                  requirements={enriched.requirements as any}
+                  itemType={itemType}
+                  usersMap={{}}
+                  reviewsMap={{}}
+                />
                 <button
-                  onClick={() => removeBookmark(bookmark.id)}
-                  className="absolute top-2 right-2 p-2 text-white/60 hover:text-white/90 transition-colors"
+                  onClick={() => removeBookmark(b.id)}
+                  className="mt-2 self-end text-white/60 hover:text-white/90 text-sm"
                   aria-label="Remove bookmark"
                 >
-                  ×
+                  Remove
                 </button>
-              </motion.article>
+              </div>
             );
           })}
         </motion.div>

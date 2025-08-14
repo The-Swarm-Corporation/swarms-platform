@@ -132,7 +132,7 @@ export default function Agents({
               <Button
                 onClick={loadMoreAgents}
                 disabled={isFetchingAgents || isAgentLoading}
-                className="bg-[#4ECDC4]/20 border border-[#4ECDC4]/60 hover:bg-[#4ECDC4]/30 text-[#4ECDC4] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#4ECDC4]/25 group"
+                className="bg-green-500/20 border border-green-500/60 hover:bg-green-500/30 text-green-500 hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-green-500/25 group"
               >
                 {isFetchingAgents ? (
                   <>
