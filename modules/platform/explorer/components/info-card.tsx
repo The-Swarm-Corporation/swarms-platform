@@ -316,7 +316,7 @@ const InfoCard = ({
               <span>Share</span>
             </button>
             <button
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg font-medium text-sm transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 bg-green-500/15 border border-green-500/40 hover:bg-green-500/25 text-green-400 hover:text-green-300"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg font-medium text-sm transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-700/50 text-zinc-300 hover:text-white"
               title={
                 showPremiumBadge && price_usd && price_usd > 0
                   ? `Buy this ${itemType} for $${price_usd?.toFixed(2) || '0.00'}`
@@ -340,7 +340,7 @@ const InfoCard = ({
                 )}
               </span>
               {showPremiumBadge && price_usd && price_usd > 0 ? (
-                <span className="text-green-400 text-sm font-medium">
+                <span className="text-white-400 text-sm font-medium">
                   [${price_usd?.toFixed(2) || '0.00'}]
                 </span>
               ) : (
