@@ -10,9 +10,6 @@ import { checkUserSession } from '@/shared/utils/auth-helpers/server';
 import { ExplorerSkeletonLoaders } from '@/shared/components/loaders/model-skeletion';
 
 // TODO: Add types
-
-// this is my first commit
-
 export default function Tools({
   isLoading,
   filteredTools,
