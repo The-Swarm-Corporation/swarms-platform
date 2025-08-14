@@ -218,25 +218,14 @@ const InfoCard = ({
             </div>
           </div>
         ) : (
-          // Fallback when no image - show icon and type
+          // Fallback when no image - show only type badge
           <div className="relative h-32 w-full flex flex-col items-center justify-center bg-zinc-900/50 border-b border-zinc-700/50">
-            {/* Only show icon for non-prompt items */}
-            {itemType !== 'prompt' && (
-              <div className="flex items-center justify-center h-16 w-16 rounded-xl border-2 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 shadow-lg bg-zinc-800/50 border-zinc-600/50">
-                <div className="text-zinc-300 transition-colors text-2xl">
-                  {icon}
-                </div>
-              </div>
-            )}
-            
-            {/* Only show item type label for non-tool items */}
-            {itemType !== 'tool' && (
-              <span
-                className="text-sm uppercase tracking-widest font-semibold px-3 py-1.5 rounded-full border text-zinc-300 bg-zinc-800/30 border-zinc-600/50 mt-2"
-              >
-                {itemType}
-              </span>
-            )}
+            {/* Item type badge */}
+            <span
+              className="text-sm uppercase tracking-widest font-semibold px-3 py-1.5 rounded-full border text-zinc-300 bg-zinc-800/30 border-zinc-600/50"
+            >
+              {itemType}
+            </span>
 
             {/* Rating for no-image cards */}
             {id && !imageUrl && (
