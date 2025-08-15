@@ -93,7 +93,7 @@ export default function PlatformNavBar() {
         isChatInterface ? 'z-50' : 'z-[9999]',
       )}
     >
-      <nav className="flex items-center justify-between w-full relative">
+      <nav className="relative flex items-center justify-between w-full">
         <div className="flex items-center max-md:flex-1 max-md:min-w-0 md:w-1/2 xl:w-1/3">
           <div className="flex items-center w-[32px] h-[32px] sm:w-[36px] sm:h-[36px] md:w-[40px] max-lg:hidden md:h-[40px] min-w-[32px] sm:min-w-[36px] md:min-w-[40px] mr-2 sm:mr-3 md:mr-4 flex-shrink-0">
             <Logo />
@@ -101,8 +101,8 @@ export default function PlatformNavBar() {
 
           <NavbarSearch />
         </div>
-        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-shrink-0">
-          <ul className="p-0 hidden items-center sm:flex gap-1 md:gap-2">
+        <div className="flex items-center flex-shrink-0 space-x-2 sm:space-x-3 md:space-x-4">
+          <ul className="items-center hidden gap-1 p-0 sm:flex md:gap-2">
             <li>
               <a
                 href={DISCORD}
@@ -129,6 +129,20 @@ export default function PlatformNavBar() {
                 )}
               >
                 <Twitter className="w-4 h-4 sm:w-5 sm:h-5" />
+              </a>
+            </li>
+            <li>
+              <a
+                href={SWARMS_GITHUB}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 text-white',
+                  'rounded-md border border-white/15 backdrop-blur-sm bg-black/40 hover:bg-white/10 hover:border-primary/50 hover:text-primary',
+                  'transition-all duration-300'
+                )}
+              >
+                <Github className="w-4 h-4 sm:w-5 sm:h-5" />  
               </a>
             </li>
             {FILTERED_NAV_LINKS?.map((item) => (
@@ -161,7 +175,7 @@ export default function PlatformNavBar() {
                       'bg-primary/20 text-primary border-primary/50 shadow-[0_0_10px_rgba(var(--primary-rgb,255,0,0),0.4)]',
                   )}
                 >
-                  <LogIn className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                  <LogIn className="w-4 h-4 mr-1 sm:w-5 sm:h-5 sm:mr-2" />
                   Sign In
                 </a>
               </li>
@@ -170,9 +184,9 @@ export default function PlatformNavBar() {
           {/* Credits Display */}
           {user && (
             <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-black/40 border border-white/15 rounded-md backdrop-blur-sm">
-              <Coins className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
-              <span className="text-xs sm:text-sm text-white/80 hidden sm:inline">Credits:</span>
-              <span className="text-xs sm:text-sm font-semibold text-primary">
+              <Coins className="flex-shrink-0 w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+              <span className="hidden text-xs sm:text-sm text-white/80 sm:inline">Credits:</span>
+              <span className="text-xs font-semibold sm:text-sm text-primary">
                 {subscription.creditLoading
                   ? '...'
                   : `$${(subscription.credit ?? 0).toFixed(2)}`}
@@ -196,7 +210,7 @@ export default function PlatformNavBar() {
             </a>
           )}
           <div
-            className="relative ml-2 sm:ml-3 md:ml-5 cursor-pointer"
+            className="relative ml-2 cursor-pointer sm:ml-3 md:ml-5"
             onClick={setOn}
           >
             <Avatar user={user as User} profileName={profileName} />
