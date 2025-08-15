@@ -57,7 +57,7 @@ export default function Agents({
           <Button
             onClick={handleAgentModal}
             disabled={isLoading}
-            className="bg-[#4ECDC4]/20 border border-[#4ECDC4]/60 hover:bg-[#4ECDC4]/30 text-[#4ECDC4] hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-[#4ECDC4]/25 group"
+            className="bg-zinc-900/50 border border-zinc-700/50 hover:bg-zinc-700/30 text-zinc-300 hover:text-white transition-all duration-300 font-medium px-6 py-2.5 rounded-md shadow-lg hover:shadow-zinc-700/25 group"
           >
             <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
             Add Agent

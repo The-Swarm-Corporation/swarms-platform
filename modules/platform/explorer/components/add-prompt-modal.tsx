@@ -14,9 +14,10 @@ import ModelFileUpload from './upload-image';
 import { SmartWalletInput } from '@/shared/components/marketplace/smart-wallet-input';
 import { WalletProvider } from '@/shared/components/marketplace/wallet-provider';
 import { getSolPrice } from '@/shared/services/sol-price';
-import { Plus } from 'lucide-react';
+import { Plus, Sparkles, Code, Terminal, Book, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { validateLinksArray, getSuggestedUrlPattern, type LinkItem } from '@/shared/utils/link-validation';
+import { motion } from 'framer-motion';
 
 interface Props {
   isOpen: boolean;
@@ -413,435 +414,529 @@ const AddPromptModal = ({
   return (
     <WalletProvider>
       <Modal
-        className="max-w-2xl"
+        className="max-w-4xl"
         isOpen={isOpen}
         onClose={handleClose}
         title="Add Prompt"
       >
-      <div className="flex flex-col gap-2 overflow-y-auto h-[75vh] relative px-4">
-        <div className="mb-4 p-3 bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-lg font-mono">
-          <div className="flex items-start gap-2">
-            <span className="text-[#FF6B6B] text-lg">ℹ️</span>
-            <div className="text-sm">
-              <p className="text-[#FF6B6B] font-medium mb-1">
-                Quality Validation Notice
-              </p>
-              <p className="text-[#FF6B6B] text-xs leading-relaxed">
-                All prompt submissions undergo automated quality validation to
-                maintain marketplace standards.
-                {!isFree && (
-                  <span className="text-yellow-300">
-                    {' '}
-                    Paid submissions require higher quality scores and
-                    contributor eligibility checks.
-                  </span>
-                )}
-              </p>
+        <div className="flex flex-col gap-6 overflow-y-auto h-[70vh] relative px-6 py-4">
+          {/* Hero Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-4"
+          >
+            <h2 className="text-2xl font-bold tracking-tight mb-2">Post Your Prompt</h2>
+            <p className="text-zinc-400 text-sm">Post your prompt to the marketplace</p>
+          </motion.div>
+
+          {/* Quality Validation Notice */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-xl p-3 font-mono"
+          >
+            <div className="flex items-start gap-2">
+              <span className="text-[#FF6B6B] text-base">ℹ️</span>
+              <div className="text-xs">
+                <p className="text-[#FF6B6B] font-medium mb-1">
+                  Quality Validation Notice
+                </p>
+                <p className="text-[#FF6B6B]/80 text-xs leading-relaxed">
+                  All prompt submissions undergo automated quality validation to maintain marketplace standards.
+                  {!isFree && (
+                    <span className="text-yellow-300">
+                      {' '}Paid submissions require higher quality scores and contributor eligibility checks.
+                    </span>
+                  )}
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span>Name</span>
-          <div className="relative">
-            <Input
-              value={promptName}
-              onChange={setPromptName}
-              onBlur={() => validation.validateOnBlur('name')}
-              placeholder="Enter name"
-              className={`border ${validation.fields.name?.error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-400'}`}
-            />
-            {validation.fields.name?.error && (
-              <span className="text-red-500 text-sm mt-1">
-                {validation.fields.name.error}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span>Description</span>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onBlur={() => validation.validateOnBlur('description')}
-            placeholder="Enter description"
-            className={`w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none ${
-              validation.fields.description?.error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-400'
-            }`}
-          />
-          {validation.fields.description?.error && (
-            <span className="text-red-500 text-sm mt-1">
-              {validation.fields.description.error}
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col gap-1">
-          <span>Prompt</span>
-          <div className="relative">
-            <textarea
-              value={prompt}
-              onChange={(v) => {
-                setPrompt(v.target.value);
-                if (validatePrompt.data) {
-                  validatePrompt.reset();
-                }
-              }}
-              onBlur={async () => {
-                validation.validateOnBlur('content');
-                if (prompt.trim().length >= 5) {
-                  setIsValidating(true);
-                  try {
-                    await validatePrompt.mutateAsync({ prompt });
-                  } catch (error) {
-                    validatePrompt.reset();
-                  } finally {
-                    setIsValidating(false);
-                  }
-                }
-              }}
-              required
-              placeholder="Enter prompt here..."
-              className={`w-full h-20 p-2 border rounded-md bg-transparent outline-0 resize-none ${
-                validation.fields.content?.error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-400'
-              }`}
-            />
-            {validatePrompt.isPending ? (
-              <div className="absolute right-2 top-2">
-                <LoadingSpinner />
-              </div>
-            ) : (
-              <div className="absolute right-2.5 top-2.5">
-                {prompt.length > 0 && validatePrompt.data && (
-                  <span
-                    className={
-                      validatePrompt.data.valid
-                        ? 'text-green-500'
-                        : 'text-red-500'
-                    }
-                  >
-                    {validatePrompt.data.valid ? '✅' : ''}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          {validation.fields.content?.error && (
-            <span className="text-red-500 text-sm">
-              {validation.fields.content.error}
-            </span>
-          )}
-          {prompt.length > 0 &&
-            !validatePrompt.isPending &&
-            validatePrompt.data &&
-            !validatePrompt.data.valid && (
-              <span className="text-red-500 text-sm">
-                {validatePrompt.data.error}
-              </span>
-            )}
-        </div>
+          </motion.div>
 
-        <ModelFileUpload
-          image={image}
-          imageUrl={imageUrl || ''}
-          filePath={filePath || ''}
-          isDeleteFile={isDeleteFile}
-          deleteImage={deleteImage}
-          modelType={modelType}
-          handleImageUpload={handleFileSelect}
-          handleDrop={handleDrop}
-          handleImageEditClick={handleImageUploadClick}
-          uploadRef={imageUploadRef}
-          uploadStatus={uploadStatus}
-          uploadProgress={uploadProgress}
-        />
-        <div className="flex flex-col gap-1">
-          <span>Categories</span>
-          <MultiSelect
-            options={explorerCategories.map((category) => ({
-              id: category.value,
-              label: category.label,
-            }))}
-            selectedValues={categories}
-            onChange={handleCategoriesChange}
-            placeholder="Select categories"
-          />
-        </div>
+          {/* Image Upload - Moved to top */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="bg-zinc-800/30 backdrop-blur-xl rounded-xl p-4 border border-zinc-700/50"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <Book className="w-4 h-4 text-green-400" />
+              <h3 className="text-base font-semibold">Prompt Image</h3>
+            </div>
+            <ModelFileUpload
+              image={image}
+              imageUrl={imageUrl || ''}
+              filePath={filePath || ''}
+              isDeleteFile={isDeleteFile}
+              deleteImage={deleteImage}
+              modelType={modelType}
+              handleImageUpload={handleFileSelect}
+              handleDrop={handleDrop}
+              handleImageEditClick={handleImageUploadClick}
+              uploadRef={imageUploadRef}
+              uploadStatus={uploadStatus}
+              uploadProgress={uploadProgress}
+            />
+          </motion.div>
 
-        <div className="flex flex-col gap-1 mt-2">
-          <div className="flex items-center justify-between">
-            <span>Add Links</span>
-            <button
-              type="button"
-              onClick={addLink}
-              className="flex items-center gap-1 text-red-500 hover:text-red-400 text-sm"
+          {/* Form Grid */}
+          <div className="space-y-4">
+            {/* Basic Information - Full Width */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="bg-zinc-800/30 backdrop-blur-xl rounded-xl p-4 border border-zinc-700/50"
             >
-              <Plus className="w-4 h-4" />
-              Add Link
-            </button>
-          </div>
-          {linkErrors && (
-            <div className="text-red-500 text-sm mb-2">
-              {linkErrors}
-            </div>
-          )}
-          <div className="flex flex-col gap-2">
-            {links.map((link, index) => (
-              <div key={index} className="flex gap-4 items-center">
-                <span className="w-10">🔗 {index + 1}</span>
-                <div className="w-full flex flex-col md:flex-row gap-1 py-2">
+              <div className="flex items-center gap-3 mb-3">
+                <Terminal className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-base font-semibold">Basic Information</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-zinc-300 mb-1">Name</label>
                   <Input
-                    value={link.name}
-                    onChange={(value) => updateLink(index, 'name', value)}
-                    placeholder="Link name (e.g., GitHub, Twitter)"
-                    className="border border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-400"
+                    value={promptName}
+                    onChange={setPromptName}
+                    onBlur={() => validation.validateOnBlur('name')}
+                    placeholder="Enter prompt name"
+                    className={`bg-zinc-900/50 border transition-colors duration-300 ${
+                      validation.fields.name?.error
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-zinc-700/50 focus:border-emerald-400'
+                    }`}
                   />
-                  <Input
-                    value={link.url}
-                    onChange={(value) => updateLink(index, 'url', value)}
-                    placeholder={link.name ? getSuggestedUrlPattern(link.name) : "https://example.com"}
-                    className="border border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-400"
+                  {validation.fields.name?.error && (
+                    <span className="text-red-400 text-xs mt-1 block">
+                      {validation.fields.name.error}
+                    </span>
+                  )}
+                </div>
+
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-zinc-300 mb-1">Description</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    onBlur={() => validation.validateOnBlur('description')}
+                    placeholder="Describe what your prompt does..."
+                    className={`w-full h-20 p-2 border rounded-lg bg-zinc-900/50 outline-0 resize-none transition-colors duration-300 ${
+                      validation.fields.description?.error
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-zinc-700/50 focus:border-emerald-400'
+                    }`}
+                  />
+                  {validation.fields.description?.error && (
+                    <span className="text-red-400 text-xs mt-1 block">
+                      {validation.fields.description.error}
+                    </span>
+                  )}
+                </div>
+
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-zinc-300 mb-1">Categories</label>
+                  <MultiSelect
+                    options={explorerCategories.map((category) => ({
+                      id: category.value,
+                      label: category.label,
+                    }))}
+                    selectedValues={categories}
+                    onChange={handleCategoriesChange}
+                    placeholder="Select categories"
                   />
                 </div>
-                <div className="w-4">
-                  {index > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => removeLink(index)}
-                      className="text-red-500 text-sm hover:text-red-400"
-                    >
-                      ❌
-                    </button>
+
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-zinc-300 mb-1">Tags</label>
+                  <Input
+                    value={tags}
+                    onChange={setTags}
+                    onBlur={() => validation.validateOnBlur('tags')}
+                    placeholder="Tools, Search, etc. (comma-separated)"
+                    className={`bg-zinc-900/50 border transition-colors duration-300 ${
+                      validation.fields.tags?.error
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-zinc-700/50 focus:border-yellow-400'
+                    }`}
+                  />
+                  {validation.fields.tags?.error && (
+                    <span className="text-red-400 text-xs mt-2 block">
+                      {validation.fields.tags.error}
+                    </span>
                   )}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+            </motion.div>
 
-        <div className="flex flex-col gap-1 mt-4">
-          <span>Tags</span>
-          <Input
-            value={tags}
-            onChange={setTags}
-            onBlur={() => validation.validateOnBlur('tags')}
-            placeholder="Tools, Search, etc."
-            className={`border ${validation.fields.tags?.error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-400'}`}
-          />
-          {validation.fields.tags?.error && (
-            <span className="text-red-500 text-sm mt-1">
-              {validation.fields.tags.error}
-            </span>
-          )}
-        </div>
-
-        <div className="group flex flex-col gap-2">
-          <span className="font-medium text-sm text-gray-200">Pricing</span>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => setIsFree(true)}
-                className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-sm ${
-                  isFree
-                    ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                    : 'border-gray-500/30 bg-background/60 text-muted-foreground hover:border-gray-500/50'
-                }`}
-              >
-                <div
-                  className={`w-2 h-2 rounded-full ${isFree ? 'bg-blue-500' : 'bg-gray-500/30'}`}
+            {/* Prompt Content */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="bg-zinc-800/30 backdrop-blur-xl rounded-xl p-4 border border-zinc-700/50"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <MessageSquare className="w-4 h-4 text-purple-400" />
+                <h3 className="text-base font-semibold">Prompt Content</h3>
+              </div>
+              
+              <div className="relative">
+                <textarea
+                  value={prompt}
+                  onChange={(v) => {
+                    setPrompt(v.target.value);
+                    if (validatePrompt.data) {
+                      validatePrompt.reset();
+                    }
+                  }}
+                  onBlur={async () => {
+                    validation.validateOnBlur('content');
+                    if (prompt.trim().length >= 5) {
+                      setIsValidating(true);
+                      try {
+                        await validatePrompt.mutateAsync({ prompt });
+                      } catch (error) {
+                        validatePrompt.reset();
+                      } finally {
+                        setIsValidating(false);
+                      }
+                    }
+                  }}
+                  required
+                  placeholder="Enter your prompt here... (Add clear instructions and examples)"
+                  className={`w-full h-32 p-3 border rounded-lg bg-zinc-900/50 outline-0 resize-none transition-colors duration-300 ${
+                    validation.fields.content?.error
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-zinc-700/50 focus:border-purple-400'
+                  }`}
                 />
-                Free
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsFree(false)}
-                className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-sm ${
-                  !isFree
-                    ? 'border-green-500 bg-green-500/10 text-green-400'
-                    : 'border-gray-500/30 bg-background/60 text-muted-foreground hover:border-gray-500/50'
-                }`}
-              >
-                <div
-                  className={`w-2 h-2 rounded-full ${!isFree ? 'bg-green-500' : 'bg-gray-500/30'}`}
-                />
-                Paid
-              </button>
-            </div>
-
-            {!isFree && (
-              <div className="space-y-4 p-4 border border-green-500/30 bg-green-500/5">
-                {checkTrustworthiness.isLoading && (
-                  <div className="flex items-center gap-2 p-3 bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-lg">
+                {validatePrompt.isPending ? (
+                  <div className="absolute right-2 top-2 bg-zinc-800/80 px-2 py-1 rounded text-xs">
                     <LoadingSpinner />
-                    <span className="text-[#FF6B6B] text-sm">
-                      Checking marketplace eligibility...
-                    </span>
+                  </div>
+                ) : (
+                  <div className="absolute right-2 top-2">
+                    {prompt.length > 0 && validatePrompt.data && (
+                      <span
+                        className={
+                          validatePrompt.data.valid
+                            ? 'text-green-400 text-base'
+                            : 'text-red-400 text-base'
+                        }
+                      >
+                        {validatePrompt.data.valid ? '✅' : '❌'}
+                      </span>
+                    )}
                   </div>
                 )}
+              </div>
+              
+              {validation.fields.content?.error && (
+                <span className="text-red-400 text-xs mt-2 block">
+                  {validation.fields.content.error}
+                </span>
+              )}
+              
+              {prompt.length > 0 &&
+                !validatePrompt.isPending &&
+                validatePrompt.data &&
+                !validatePrompt.data.valid && (
+                  <div className="mt-2 p-2 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-lg">
+                    <strong>Validation Error:</strong> {validatePrompt.data.error}
+                  </div>
+                )}
+            </motion.div>
 
-                {checkTrustworthiness.data &&
-                  !checkTrustworthiness.data.isEligible && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-red-400 font-medium">
-                          ❌ Not Eligible for Marketplace
-                        </span>
+            {/* Links */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="bg-zinc-800/30 backdrop-blur-xl rounded-xl p-4 border border-zinc-700/50"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <Book className="w-4 h-4 text-indigo-400" />
+                  <h3 className="text-base font-semibold">Links</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={addLink}
+                  className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-xs transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  Add Link
+                </button>
+              </div>
+              
+              {linkErrors && (
+                <div className="text-red-400 text-xs mb-2 p-2 bg-red-500/10 border border-red-500/30 rounded-lg">
+                  {linkErrors}
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                {links.map((link, index) => (
+                  <div key={index} className="flex gap-2 items-center p-2 bg-zinc-900/50 rounded-lg border border-zinc-700/30">
+                    <span className="text-indigo-400 text-xs font-mono">🔗 {index + 1}</span>
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <Input
+                        value={link.name}
+                        onChange={(value) => updateLink(index, 'name', value)}
+                        placeholder="Link name (e.g., GitHub, Twitter)"
+                        className="bg-zinc-800/50 border-zinc-600/50 focus:border-indigo-400 text-xs"
+                      />
+                      <Input
+                        value={link.url}
+                        onChange={(value) => updateLink(index, 'url', value)}
+                        placeholder={link.name ? getSuggestedUrlPattern(link.name) : "https://example.com"}
+                        className="bg-zinc-800/50 border-zinc-600/50 focus:border-indigo-400 text-xs"
+                      />
+                    </div>
+                    {index > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => removeLink(index)}
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        ❌
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Pricing Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="bg-zinc-800/30 backdrop-blur-xl rounded-xl p-4 border border-zinc-700/50"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <Sparkles className="w-4 h-4 text-green-400" />
+              <h3 className="text-base font-semibold">Pricing</h3>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsFree(true)}
+                  className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-xs rounded-lg ${
+                    isFree
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                      : 'border-zinc-700/50 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600/50'
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${isFree ? 'bg-blue-500' : 'bg-zinc-600'}`}
+                  />
+                  Free
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsFree(false)}
+                  className={`flex items-center gap-2 px-4 py-2 border-2 transition-all duration-300 font-mono text-xs rounded-lg ${
+                    !isFree
+                      ? 'border-green-500 bg-green-500/10 text-green-400'
+                      : 'border-zinc-700/50 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600/50'
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${!isFree ? 'bg-green-500' : 'bg-zinc-600'}`}
+                  />
+                  Paid
+                </button>
+              </div>
+
+              {!isFree && (
+                <div className="space-y-3 p-3 border border-green-500/30 bg-green-500/5 rounded-lg">
+                  {checkTrustworthiness.isLoading && (
+                    <div className="flex items-center gap-2 p-2 bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-lg">
+                      <LoadingSpinner />
+                      <span className="text-[#FF6B6B] text-xs">
+                        Checking marketplace eligibility...
+                      </span>
+                    </div>
+                  )}
+
+                  {checkTrustworthiness.data &&
+                    !checkTrustworthiness.data.isEligible && (
+                      <div className="p-2 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-red-400 font-medium text-xs">
+                            ❌ Not Eligible for Marketplace
+                          </span>
+                        </div>
+                        <p className="text-red-300 text-xs">
+                          {checkTrustworthiness.data.reason}
+                        </p>
+                        {!checkTrustworthiness.data.isBypassUser && (
+                          <div className="mt-1 text-xs text-red-200">
+                            <p>
+                              Requirements: 2+ published items with 3.5+ average
+                              rating
+                            </p>
+                            <p>
+                              Your stats:{' '}
+                              {checkTrustworthiness.data.publishedCount}{' '}
+                              published,{' '}
+                              {checkTrustworthiness.data.averageRating.toFixed(1)}{' '}
+                              avg rating
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-red-300 text-sm">
-                        {checkTrustworthiness.data.reason}
-                      </p>
-                      {!checkTrustworthiness.data.isBypassUser && (
-                        <div className="mt-2 text-xs text-red-200">
-                          <p>
-                            Requirements: 2+ published items with 3.5+ average
-                            rating
-                          </p>
-                          <p>
-                            Your stats:{' '}
-                            {checkTrustworthiness.data.publishedCount}{' '}
-                            published,{' '}
+                    )}
+
+                  {checkTrustworthiness.data &&
+                    checkTrustworthiness.data.isEligible && (
+                      <div className="p-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-400 font-medium text-xs">
+                            ✅ Eligible for Marketplace
+                          </span>
+                        </div>
+                        {!checkTrustworthiness.data.isBypassUser && (
+                          <p className="text-green-300 text-xs mt-1">
+                            {checkTrustworthiness.data.publishedCount} published
+                            items,{' '}
                             {checkTrustworthiness.data.averageRating.toFixed(1)}{' '}
                             avg rating
                           </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                {checkTrustworthiness.data &&
-                  checkTrustworthiness.data.isEligible && (
-                    <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <span className="text-green-400 font-medium">
-                          ✅ Eligible for Marketplace
-                        </span>
+                        )}
                       </div>
-                      {!checkTrustworthiness.data.isBypassUser && (
-                        <p className="text-green-300 text-sm mt-1">
-                          {checkTrustworthiness.data.publishedCount} published
-                          items,{' '}
-                          {checkTrustworthiness.data.averageRating.toFixed(1)}{' '}
-                          avg rating
+                    )}
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-300 mb-1">
+                      Price (USD) <span className="text-yellow-500">*</span>
+                    </label>
+                    <Input
+                      type="number"
+                      value={priceUsd}
+                      onChange={setPriceUsd}
+                      onBlur={() => {
+                        validation.validateOnBlur('price');
+                        convertUsdToSol(priceUsd);
+                      }}
+                      placeholder="10.00"
+                      min="0.01"
+                      max="999999"
+                      step="0.01"
+                      className={`bg-zinc-900/50 border transition-colors duration-300 hover:bg-zinc-800/50 ${
+                        validation.fields.price?.error
+                          ? 'border-red-500 focus:border-red-500'
+                          : 'border-green-500/30 focus:border-green-500'
+                      }`}
+                    />
+                    {validation.fields.price?.error && (
+                      <span className="text-red-400 text-xs mt-1 block">
+                        {validation.fields.price.error}
+                      </span>
+                    )}
+                    {priceUsd && !validation.fields.price?.error && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs text-zinc-400 font-mono">
+                          Range: $0.01 - $999,999 USD
                         </p>
-                      )}
-                    </div>
-                  )}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Price (USD) <span className="text-yellow-500">*</span>
-                  </label>
-                  <Input
-                    type="number"
-                    value={priceUsd}
-                    onChange={setPriceUsd}
-                    onBlur={() => {
-                      validation.validateOnBlur('price');
-                      convertUsdToSol(priceUsd);
-                    }}
-                    placeholder="10.00"
-                    min="0.01"
-                    max="999999"
-                    step="0.01"
-                    className={`bg-background/40 border transition-colors duration-300 hover:bg-background/60 ${
-                      validation.fields.price?.error
-                        ? 'border-red-500 focus:border-red-500'
-                        : 'border-green-500/30 focus:border-green-500'
-                    } text-foreground placeholder-muted-foreground`}
-                  />
-                  {validation.fields.price?.error && (
-                    <span className="text-red-500 text-sm mt-1">
-                      {validation.fields.price.error}
-                    </span>
-                  )}
-                  {priceUsd && !validation.fields.price?.error && (
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-xs text-muted-foreground font-mono">
+                        {isConvertingPrice ? (
+                          <div className="flex items-center gap-1">
+                            <LoadingSpinner />
+                            <span className="text-xs text-zinc-400">Converting...</span>
+                          </div>
+                        ) : solPrice !== null ? (
+                          <span className="text-xs text-green-400 font-mono">
+                            ≈ {solPrice.toFixed(6)} SOL (at current rate)
+                          </span>
+                        ) : null}
+                      </div>
+                    )}
+                    {!priceUsd && (
+                      <p className="text-xs text-zinc-400 mt-1 font-mono">
                         Range: $0.01 - $999,999 USD
                       </p>
-                      {isConvertingPrice ? (
-                        <div className="flex items-center gap-1">
-                          <LoadingSpinner />
-                          <span className="text-xs text-muted-foreground">Converting...</span>
-                        </div>
-                      ) : solPrice !== null ? (
-                        <span className="text-xs text-green-400 font-mono">
-                          ≈ {solPrice.toFixed(6)} SOL (at current rate)
-                        </span>
-                      ) : null}
-                    </div>
-                  )}
-                  {!priceUsd && (
-                    <p className="text-xs text-muted-foreground mt-1 font-mono">
-                      Range: $0.01 - $999,999 USD
-                    </p>
-                  )}
+                    )}
+                  </div>
+
+                  <SmartWalletInput
+                    value={walletAddress}
+                    onChange={setWalletAddress}
+                    onBlur={() => validation.validateOnBlur('walletAddress')}
+                    error={validation.fields.walletAddress?.error}
+                    disabled={addPrompt.isPending || isLoading}
+                  />
                 </div>
+              )}
+            </div>
+          </motion.div>
 
-                <SmartWalletInput
-                  value={walletAddress}
-                  onChange={setWalletAddress}
-                  onBlur={() => validation.validateOnBlur('walletAddress')}
-                  error={validation.fields.walletAddress?.error}
-                  disabled={addPrompt.isPending || isLoading}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex justify-between mt-4">
-          {isRedirecting ? (
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsRedirecting(false);
-                resetForm();
-                onClose();
-              }}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Close Modal
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              onClick={resetForm}
-              disabled={addPrompt.isPending || isLoading}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Clear Form
-            </Button>
-          )}
-
-          <Button
-            disabled={
-              addPrompt.isPending ||
-              isLoading ||
-              isRedirecting ||
-              isValidating ||
-              validatePrompt.isPending ||
-              (!isFree && checkTrustworthiness.isLoading) ||
-              (!isFree &&
-                checkTrustworthiness.data &&
-                !checkTrustworthiness.data.isEligible)
-            }
-            onClick={submit}
-            className="w-40"
+          {/* Action Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="flex justify-between pt-3 border-t border-zinc-700/50"
           >
-            {isRedirecting
-              ? 'Redirecting...'
-              : addPrompt.isPending || isLoading
-                ? 'Submitting...'
-                : isValidating || validatePrompt.isPending
-                  ? 'Validating...'
-                  : !isFree && checkTrustworthiness.isLoading
-                    ? 'Checking...'
-                    : 'Submit Prompt'}
-          </Button>
+            {isRedirecting ? (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsRedirecting(false);
+                  resetForm();
+                  onClose();
+                }}
+                className="text-zinc-400 hover:text-zinc-300 border-zinc-700/50 hover:border-zinc-600/50"
+              >
+                Close Modal
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={resetForm}
+                disabled={addPrompt.isPending || isLoading}
+                className="text-zinc-400 hover:text-zinc-300 border-zinc-700/50 hover:border-zinc-600/50"
+              >
+                Clear Form
+              </Button>
+            )}
+
+            <Button
+              disabled={
+                addPrompt.isPending ||
+                isLoading ||
+                isRedirecting ||
+                isValidating ||
+                validatePrompt.isPending ||
+                (!isFree && checkTrustworthiness.isLoading) ||
+                (!isFree &&
+                  checkTrustworthiness.data &&
+                  !checkTrustworthiness.data.isEligible)
+              }
+              onClick={submit}
+              className="w-32 bg-zinc-900/50 hover:bg-zinc-700/30 border border-zinc-700/50 text-zinc-300 hover:text-white transition-all duration-300"
+            >
+              {isRedirecting
+                ? 'Redirecting...'
+                : addPrompt.isPending || isLoading
+                  ? 'Submitting...'
+                  : isValidating || validatePrompt.isPending
+                    ? 'Validating...'
+                    : !isFree && checkTrustworthiness.isLoading
+                      ? 'Checking...'
+                      : 'Submit Prompt'}
+            </Button>
+          </motion.div>
         </div>
-      </div>
-    </Modal>
+      </Modal>
     </WalletProvider>
   );
 };
