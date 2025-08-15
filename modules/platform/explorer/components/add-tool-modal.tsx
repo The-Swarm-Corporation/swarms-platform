@@ -4,6 +4,8 @@ import { Button } from '@/shared/components/ui/button';
 import Input from '@/shared/components/ui/Input/Input';
 import { useToast } from '@/shared/components/ui/Toasts/use-toast';
 import { debounce } from '@/shared/utils/helpers';
+import { fetchRepositoryInfo } from '@/shared/utils/github-integration';
+import { GitBranch, Plus } from 'lucide-react';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import {
   Select,
@@ -15,7 +17,6 @@ import {
 import { explorerCategories, languageOptions } from '@/shared/utils/constants';
 import MultiSelect from '@/shared/components/ui/multi-select';
 import { useMemo, useRef, useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { useModelFileUpload } from '../hook/upload-file';
@@ -52,6 +53,8 @@ const AddToolModal = ({
     { name: '', url: '' },
   ]);
   const [linkErrors, setLinkErrors] = useState<string>('');
+  const [githubUrl, setGithubUrl] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
   const router = useRouter();
 
   const validation = useMarketplaceValidation();
@@ -68,6 +71,8 @@ const AddToolModal = ({
     setLanguage('python');
     setRequirements([{ package: '', installation: '' }]);
     setLinkErrors('');
+    setGithubUrl('');
+    setIsImporting(false);
     validation.reset();
   };
 
@@ -395,6 +400,53 @@ const AddToolModal = ({
       });
   };
 
+  const handleGitHubImport = async () => {
+    if (!githubUrl) {
+      toast.toast({
+        title: 'Please enter a GitHub repository URL',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const repoInfo = await fetchRepositoryInfo(githubUrl);
+      
+      if (!repoInfo) {
+        throw new Error('Failed to fetch repository information');
+      }
+
+      setToolName(repoInfo.name);
+      setDescription(`${repoInfo.description}\n\nSource: ${githubUrl}`);
+      setTool(repoInfo.mainCode);
+      setLanguage(repoInfo.language);
+      setCategories(repoInfo.categories);
+      setTags(repoInfo.tags.join(', '));
+
+      if (repoInfo.imageUrl) {
+        const response = await fetch(repoInfo.imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'repo-avatar.png', { type: 'image/png' });
+        await uploadImage(file, modelType);
+      }
+
+      toast.toast({
+        title: 'Repository imported successfully',
+        description: 'Please review and adjust the imported information.',
+      });
+    } catch (error) {
+      console.error('Error importing from GitHub:', error);
+      toast.toast({
+        title: 'Failed to import repository',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -405,6 +457,31 @@ const AddToolModal = ({
       title="Add Tool"
     >
       <div className="flex flex-col gap-2 overflow-y-auto h-[60vh] relative px-4">
+        <div className="flex flex-col gap-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <GitBranch className="w-5 h-5" />
+            <h3 className="font-medium">Import from GitHub</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-3">
+            Import a tool from a public GitHub repository. The repository should contain Python code (preferably main.py or example.py). 
+            Private repositories are not supported yet. The repository&apos;s name, description, and code will be used to populate the form.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={githubUrl}
+              onChange={setGithubUrl}
+              placeholder="Enter public GitHub repository URL"
+              className="flex-1"
+            />
+            <Button
+              onClick={handleGitHubImport}
+              disabled={isImporting || !githubUrl}
+              className="w-24"
+            >
+              {isImporting ? <LoadingSpinner /> : 'Import'}
+            </Button>
+          </div>
+        </div>
         <div className="flex flex-col gap-1">
           <span>Name</span>
           <div className="relative">
