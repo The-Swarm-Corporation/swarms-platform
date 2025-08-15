@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/shared/utils/trpc/trpc';
 import { Code, MessageSquare, Wrench, Share2, Twitter, Linkedin, Globe, Sparkles, Zap, Rocket, Trophy, Star, Crown, Target, Flame, Heart, Brain, Copy, Check, Grid, List, ChevronDown, ChevronRight, Award } from 'lucide-react';
+import InfoCard from '@/modules/platform/explorer/components/info-card';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import ErrorMessage from './ErrorMessage';
@@ -372,27 +373,7 @@ export default function UserProfile() {
     setHydrated(true);
   }, []);
 
-  // Memoize item colors
-  const itemColors = useMemo(() => ({
-    prompt: {
-      icon: 'text-[#FF6B6B]',
-      bg: 'bg-[#FF6B6B]/5',
-      border: 'border-[#FF6B6B]/20',
-      hover: 'hover:bg-[#FF6B6B]/10'
-    },
-    agent: {
-      icon: 'text-[#4ECDC4]',
-      bg: 'bg-[#4ECDC4]/5',
-      border: 'border-[#4ECDC4]/20',
-      hover: 'hover:bg-[#4ECDC4]/10'
-    },
-    tool: {
-      icon: 'text-[#FFD93D]',
-      bg: 'bg-[#FFD93D]/5',
-      border: 'border-[#FFD93D]/20',
-      hover: 'hover:bg-[#FFD93D]/10'
-    }
-  }), []);
+
 
   // Calculate user's tier
   const userTier = useMemo(() => {
@@ -875,43 +856,36 @@ export default function UserProfile() {
                 viewMode === 'gallery' ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {paginatedItems.map((item: any, index: number) => {
-                      const colors = itemColors[item.itemType as keyof typeof itemColors];
+                      const getIcon = () => {
+                        if (item.itemType === 'prompt') return <MessageSquare className="w-6 h-6" />;
+                        if (item.itemType === 'agent') return <Code className="w-6 h-6" />;
+                        return <Wrench className="w-6 h-6" />;
+                      };
+
                       return (
-                        <motion.article
+                        <motion.div
                           key={item.id}
                           initial={{ y: 20, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
                           transition={{ duration: 0.2, delay: index * 0.05 }}
-                          whileHover={{ scale: 1.02, y: -5 }}
                         >
-                          <Link
-                            href={`/${item.itemType}/${item.id}`}
-                            className={`group relative block rounded-md overflow-hidden shadow-lg border border-gray-800 ${colors.bg} backdrop-blur-lg p-6 ${colors.hover} transition-all duration-200`}
-                            aria-label={`View ${item.name || 'Untitled'} ${item.itemType}`}
-                          >
-                            <div className="flex items-center gap-3 mb-3">
-                              {item.itemType === 'prompt' ? (
-                                <MessageSquare className={`h-5 w-5 ${colors.icon} group-hover:scale-110 transition-transform`} aria-hidden="true" />
-                              ) : item.itemType === 'agent' ? (
-                                <Code className={`h-5 w-5 ${colors.icon} group-hover:scale-110 transition-transform`} aria-hidden="true" />
-                              ) : (
-                                <Wrench className={`h-5 w-5 ${colors.icon} group-hover:scale-110 transition-transform`} aria-hidden="true" />
-                              )}
-                              <span className={`text-xs uppercase tracking-wider font-medium ${colors.icon}`}>{item.itemType}</span>
-                            </div>
-                            <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 tracking-tight group-hover:text-white/90 transition-colors">{item.name || 'Untitled'}</h3>
-                            <p className="text-white/70 mb-3 line-clamp-2 text-sm group-hover:text-white/80 transition-colors">{item.description || 'No description provided'}</p>
-                            <div className="flex items-center justify-between mt-3">
-                              <time className="text-xs text-white/60 group-hover:text-white/70 transition-colors" dateTime={item.created_at}>
-                                {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
-                              </time>
-                              <span className={`text-xs font-medium ${colors.icon}`}>
-                                {Array.isArray(item.tags) ? item.tags[0] || 'No tags' : 'No tags'}
-                              </span>
-                            </div>
-                            <div className={`absolute inset-0 pointer-events-none opacity-5 ${colors.bg}`} />
-                          </Link>
-                        </motion.article>
+                          <InfoCard
+                            title={item.name || 'Untitled'}
+                            description={item.description || 'No description provided'}
+                            icon={getIcon()}
+                            link={`/${item.itemType}/${item.id}`}
+                            userId={userData?.id}
+                            id={item.id}
+                            usersMap={{ [userData?.id]: userData }}
+                            reviewsMap={{}}
+                            is_free={true}
+                            price_usd={null}
+                            seller_wallet_address={null}
+                            itemType={item.itemType}
+                            isPremium={false}
+                            tags={Array.isArray(item.tags) ? item.tags : []}
+                          />
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -930,7 +904,31 @@ export default function UserProfile() {
                       </thead>
                       <tbody>
                         {paginatedItems.map((item: any, index: number) => {
-                          const colors = itemColors[item.itemType as keyof typeof itemColors];
+                          const getItemColors = (itemType: string) => {
+                            switch (itemType) {
+                              case 'prompt':
+                                return {
+                                  icon: 'text-[#FF6B6B]',
+                                  bg: 'bg-[#FF6B6B]/5',
+                                  border: 'border-[#FF6B6B]/20'
+                                };
+                              case 'agent':
+                                return {
+                                  icon: 'text-[#4ECDC4]',
+                                  bg: 'bg-[#4ECDC4]/5',
+                                  border: 'border-[#4ECDC4]/20'
+                                };
+                              default:
+                                return {
+                                  icon: 'text-[#FFD93D]',
+                                  bg: 'bg-[#FFD93D]/5',
+                                  border: 'border-[#FFD93D]/20'
+                                };
+                            }
+                          };
+                          
+                          const colors = getItemColors(item.itemType);
+                          
                           return (
                             <motion.tr
                               key={item.id}
