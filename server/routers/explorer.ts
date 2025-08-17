@@ -112,13 +112,15 @@ const explorerRouter = router({
           );
         }
 
-        // Apply sorting
+        // Apply sorting - Note: rating sorting will be handled after fetching reviews
         if (sortBy === 'oldest') {
           agentQuery = agentQuery.order('created_at', { ascending: true });
         } else if (sortBy === 'rating') {
-          agentQuery = agentQuery.order('rating', { ascending: false });
+          // For rating sorting, we'll sort by created_at first, then apply rating sort after fetching reviews
+          agentQuery = agentQuery.order('created_at', { ascending: false });
         } else if (sortBy === 'popular') {
-          agentQuery = agentQuery.order('rating', { ascending: false });
+          // For popular sorting, we'll sort by created_at first, then apply rating sort after fetching reviews
+          agentQuery = agentQuery.order('created_at', { ascending: false });
         } else {
           // Default: newest
           agentQuery = agentQuery.order('created_at', { ascending: false });
@@ -135,13 +137,74 @@ const explorerRouter = router({
           });
         }
 
-        const agentsList = (
-          (agentData || []) as unknown as Record<string, any>[]
-        ).map((agent) => ({
+        // Fetch reviews for all agents to calculate average ratings
+        const agentIds = (agentData || []).map((agent: any) => agent.id);
+        let agentsWithRatings = (agentData || []).map((agent: any) => ({
           ...agent,
+          rating: 0,
+          reviewCount: 0,
           statusType: 'agent',
           created_at: agent.created_at ?? new Date().toISOString(),
         }));
+
+        if (agentIds.length > 0) {
+          console.log(`[Explorer] Fetching reviews for ${agentIds.length} agents`);
+          const { data: reviewsData, error: reviewsError } = await ctx.supabase
+            .from('swarms_cloud_reviews')
+            .select('model_id, model_type, rating')
+            .in('model_id', agentIds)
+            .eq('model_type', 'agent');
+
+          if (reviewsError) {
+            console.error('[Explorer] Error fetching reviews:', reviewsError);
+          } else if (reviewsData) {
+            console.log(`[Explorer] Found ${reviewsData.length} reviews for agents`);
+            // Calculate average ratings for each agent
+            const ratingMap = new Map<string, { totalRating: number; count: number }>();
+            
+            reviewsData.forEach((review) => {
+              const modelId = review.model_id;
+              if (modelId && review.rating !== null) {
+                const current = ratingMap.get(modelId) || { totalRating: 0, count: 0 };
+                ratingMap.set(modelId, {
+                  totalRating: current.totalRating + review.rating,
+                  count: current.count + 1
+                });
+              }
+            });
+
+            // Apply ratings to agents
+            agentsWithRatings = agentsWithRatings.map((agent) => {
+              const ratingData = ratingMap.get(agent.id);
+              if (ratingData && ratingData.count > 0) {
+                const averageRating = ratingData.totalRating / ratingData.count;
+                console.log(`[Explorer] Agent ${agent.id} has rating ${averageRating} from ${ratingData.count} reviews`);
+                return {
+                  ...agent,
+                  rating: averageRating,
+                  reviewCount: ratingData.count
+                };
+              }
+              return agent;
+            });
+          }
+        }
+
+        // Apply rating-based sorting if requested
+        if (sortBy === 'rating' || sortBy === 'popular') {
+          agentsWithRatings.sort((a, b) => {
+            // Sort by rating first (descending), then by review count, then by creation date
+            if (a.rating !== b.rating) {
+              return b.rating - a.rating;
+            }
+            if (a.reviewCount !== b.reviewCount) {
+              return b.reviewCount - a.reviewCount;
+            }
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          });
+        }
+
+        const agentsList = agentsWithRatings;
 
         let chatQuery = ctx.supabase
           .from('swarms_cloud_chat')
