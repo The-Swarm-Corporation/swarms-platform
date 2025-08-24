@@ -16,6 +16,7 @@ import OauthSignIn from '@/shared/components/ui/AuthForms/OauthSignIn';
 import ForgotPassword from '@/shared/components/ui/AuthForms/ForgotPassword';
 import UpdatePassword from '@/shared/components/ui/AuthForms/UpdatePassword';
 import SignUp from '@/shared/components/ui/AuthForms/Signup';
+import { Suspense } from 'react';
 
 export default async function SignIn({
   params,
@@ -72,40 +73,42 @@ export default async function SignIn({
           }
           className="p-4"
         >
-          {viewProp === 'password_signin' && (
-            <PasswordSignIn
-              allowEmail={allowEmail}
-              redirectMethod={redirectMethod}
-            />
-          )}
-          {viewProp === 'email_signin' && (
-            <EmailSignIn
-              allowPassword={allowPassword}
-              redirectMethod={redirectMethod}
-              disableButton={Boolean(resolvedSearchParams.disable_button)}
-            />
-          )}
-          {viewProp === 'forgot_password' && (
-            <ForgotPassword
-              allowEmail={allowEmail}
-              redirectMethod={redirectMethod}
-              disableButton={Boolean(resolvedSearchParams.disable_button)}
-            />
-          )}
-          {viewProp === 'update_password' && (
-            <UpdatePassword redirectMethod={redirectMethod} />
-          )}
-          {viewProp === 'signup' && (
-            <SignUp allowEmail={allowEmail} redirectMethod={redirectMethod} />
-          )}
-          {viewProp !== 'update_password' &&
-            viewProp !== 'signup' &&
-            allowOauth && (
-              <>
-                <Separator text="Third-party sign-in" />
-                <OauthSignIn />
-              </>
+          <Suspense fallback={<div>Loading...</div>}>
+            {viewProp === 'password_signin' && (
+              <PasswordSignIn
+                allowEmail={allowEmail}
+                redirectMethod={redirectMethod}
+              />
             )}
+            {viewProp === 'email_signin' && (
+              <EmailSignIn
+                allowPassword={allowPassword}
+                redirectMethod={redirectMethod}
+                disableButton={Boolean(resolvedSearchParams.disable_button)}
+              />
+            )}
+            {viewProp === 'forgot_password' && (
+              <ForgotPassword
+                allowEmail={allowEmail}
+                redirectMethod={redirectMethod}
+                disableButton={Boolean(resolvedSearchParams.disable_button)}
+              />
+            )}
+            {viewProp === 'update_password' && (
+              <UpdatePassword redirectMethod={redirectMethod} />
+            )}
+            {viewProp === 'signup' && (
+              <SignUp allowEmail={allowEmail} redirectMethod={redirectMethod} />
+            )}
+            {viewProp !== 'update_password' &&
+              viewProp !== 'signup' &&
+              allowOauth && (
+                <>
+                  <Separator text="Third-party sign-in" />
+                  <OauthSignIn />
+                </>
+              )}
+          </Suspense>
         </Card>
       </div>
     </div>

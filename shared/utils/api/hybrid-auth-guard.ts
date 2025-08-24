@@ -1,6 +1,6 @@
+import { supabaseAdmin } from '../supabase/admin';
+import { createClient } from '../supabase/server';
 import { NextApiRequest } from 'next';
-import { supabaseAdmin } from '@/shared/utils/supabase/admin';
-import { createClientFromRequest } from '../supabase/server';
 
 export interface AuthResult {
   isAuthenticated: boolean;
@@ -102,7 +102,7 @@ export class HybridAuthGuard {
 
   private async authenticateWithSupabase(): Promise<AuthResult> {
     try {
-      const supabase = createClientFromRequest(this.req);
+      const supabase = await createClient();
       const {
         data: { user },
         error,
