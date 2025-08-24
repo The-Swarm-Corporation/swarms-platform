@@ -188,6 +188,8 @@ export default function HistoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   
   // Filters and pagination state
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -200,48 +202,95 @@ export default function HistoryPage() {
 
   const { apiKey } = useAPIKeyContext();
 
-  useEffect(() => {
+  const loadLogs = async () => {
     if (!apiKey) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
 
-    const loadLogs = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+      console.log('Fetching swarm logs...', { apiKey: apiKey.slice(0, 8) + '...' });
+      const response = await fetchSwarmLogs(apiKey);
 
-        const response = await fetchSwarmLogs(apiKey);
+      console.log('Raw response:', response);
 
-        if (!response.logs || !Array.isArray(response.logs)) {
-          throw new Error('Invalid logs data received');
-        }
+      // Store debug info for troubleshooting
+      setDebugInfo({
+        timestamp: new Date().toISOString(),
+        apiKey: apiKey.slice(0, 8) + '...',
+        responseStatus: response.status,
+        responseCount: response.count,
+        rawLogsCount: response.logs?.length || 0,
+        responseKeys: Object.keys(response),
+        sampleLog: response.logs?.[0]
+      });
 
-        const validLogs = response.logs.filter((log) => {
-          return (
-            log.data?.status &&
-            typeof log.data?.execution_time === 'number' &&
-            typeof log.data?.usage?.total_tokens === 'number' &&
-            log.created_at
-          );
-        });
-
-        const sortedLogs = validLogs.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        );
-
-        setLogs(sortedLogs);
-      } catch (err) {
-        console.error('Error loading logs:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load logs');
-        setLogs([]);
-      } finally {
-        setIsLoading(false);
+      if (!response.logs || !Array.isArray(response.logs)) {
+        throw new Error('Invalid logs data received');
       }
-    };
 
+      const validLogs = response.logs.filter((log) => {
+        return (
+          log.data?.status &&
+          typeof log.data?.execution_time === 'number' &&
+          typeof log.data?.usage?.total_tokens === 'number' &&
+          log.created_at
+        );
+      });
+
+      console.log('Valid logs count:', validLogs.length);
+      console.log('Sample log:', validLogs[0]);
+      
+      // Log timestamp information for debugging
+      if (validLogs.length > 0) {
+        const timestamps = validLogs.slice(0, 5).map(log => ({
+          id: log.id,
+          created_at: log.created_at,
+          parsed: new Date(log.created_at),
+          timestamp: new Date(log.created_at).getTime()
+        }));
+        console.log('First 5 log timestamps:', timestamps);
+      }
+
+      const sortedLogs = validLogs.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+
+      console.log('Sorted logs - first log timestamp:', sortedLogs[0]?.created_at);
+      console.log('Sorted logs - last log timestamp:', sortedLogs[sortedLogs.length - 1]?.created_at);
+
+      setLogs(sortedLogs);
+      setLastRefreshTime(new Date());
+      console.log('Logs loaded successfully, count:', sortedLogs.length);
+    } catch (err) {
+      console.error('Error loading logs:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load logs');
+      setLogs([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadLogs();
   }, [apiKey, retryCount]);
 
-  const handleRetry = () => {
+  // Add keyboard shortcut for refresh
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
+        event.preventDefault();
+        handleRefresh();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleRefresh = () => {
+    console.log('Manual refresh triggered');
     setRetryCount((prev) => prev + 1);
   };
 
@@ -375,15 +424,37 @@ export default function HistoryPage() {
           <div className="text-destructive">
             <h3 className="font-semibold mb-2">Error Loading History</h3>
             <p className="mb-4 text-sm">{error}</p>
-            <Button
-              onClick={handleRetry}
-              variant="outline"
-              className="border border-white/20 text-destructive hover:bg-destructive/10"
-              size="sm"
-            >
-              <RefreshCcw className="mr-2 h-4 w-4" />
-              Retry
-            </Button>
+            {debugInfo && (
+              <div className="mb-4 p-3 bg-background/30 rounded border border-white/20">
+                <h4 className="text-sm font-medium mb-2">Debug Information:</h4>
+                <div className="text-xs space-y-1">
+                  <div>API Key: {debugInfo.apiKey}</div>
+                  <div>Response Status: {debugInfo.responseStatus}</div>
+                  <div>Raw Logs Count: {debugInfo.rawLogsCount}</div>
+                  <div>Last API Call: {debugInfo.timestamp}</div>
+                </div>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button
+                onClick={handleRefresh}
+                variant="outline"
+                className="border border-white/20 text-destructive hover:bg-destructive/10"
+                size="sm"
+              >
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Retry
+              </Button>
+              <Button
+                onClick={() => setDebugInfo(debugInfo ? null : {})}
+                variant="outline"
+                className="border border-white/20 text-destructive hover:bg-destructive/10"
+                size="sm"
+              >
+                <Code className="mr-2 h-4 w-4" />
+                {debugInfo ? 'Hide Debug' : 'Show Debug'}
+              </Button>
+            </div>
           </div>
         </Card>
       </div>
@@ -409,6 +480,25 @@ export default function HistoryPage() {
         <p className="text-sm text-muted-foreground mt-2">
           View and analyze past swarm executions with full JSON data access
         </p>
+        <div className="flex items-center gap-4 mt-4">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="border border-white/20 hover:bg-white/10"
+          >
+            <RefreshCcw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? 'Refreshing...' : 'Refresh Data'}
+          </Button>
+          {lastRefreshTime && (
+            <span className="text-xs text-muted-foreground">
+              Last updated: {lastRefreshTime.toLocaleString()}
+            </span>
+          )}
+          <span className="text-xs text-muted-foreground">
+            💡 Press Ctrl+R (or Cmd+R) to refresh
+          </span>
+        </div>
       </div>
 
       <Card className="border border-white/20 bg-card">
@@ -425,6 +515,15 @@ export default function HistoryPage() {
                   className="pl-10 bg-background border border-white/20"
                 />
               </div>
+              <Button
+                variant="outline"
+                className="border border-white/20 hover:bg-white/10"
+                onClick={handleRefresh}
+                disabled={isLoading}
+              >
+                <RefreshCcw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
               <Button
                 variant="outline"
                 className="border border-white/20 hover:bg-white/10"
@@ -486,13 +585,63 @@ export default function HistoryPage() {
                   </>
                 )}
               </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDebugInfo(debugInfo ? null : {})}
+                className="border border-white/20 hover:bg-white/10"
+              >
+                <Code className="mr-2 h-4 w-4" />
+                {debugInfo ? 'Hide Debug' : 'Show Debug'}
+              </Button>
             </div>
 
             {/* Results Summary */}
             <div className="text-sm text-muted-foreground">
               Showing {startIndex + 1}-{Math.min(endIndex, filteredLogs.length)} of {filteredLogs.length} results
               {selectedCategory !== 'all' && ` in category: ${CATEGORIES.find(c => c.value === selectedCategory)?.label}`}
+              {lastRefreshTime && (
+                <span className="ml-4">
+                  • Last refreshed: {lastRefreshTime.toLocaleTimeString()}
+                </span>
+              )}
             </div>
+
+            {/* Debug Panel */}
+            {debugInfo && (
+              <div className="mt-4 p-4 bg-background/30 border border-white/20 rounded-lg">
+                <h4 className="text-sm font-medium text-foreground mb-3">Debug Information</h4>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="font-medium">Last API Call:</span> {debugInfo.timestamp}
+                  </div>
+                  <div>
+                    <span className="font-medium">API Key:</span> {debugInfo.apiKey}
+                  </div>
+                  <div>
+                    <span className="font-medium">Response Status:</span> {debugInfo.responseStatus}
+                  </div>
+                  <div>
+                    <span className="font-medium">Response Count:</span> {debugInfo.responseCount}
+                  </div>
+                  <div>
+                    <span className="font-medium">Raw Logs Count:</span> {debugInfo.rawLogsCount}
+                  </div>
+                  <div>
+                    <span className="font-medium">Response Keys:</span> {debugInfo.responseKeys?.join(', ')}
+                  </div>
+                </div>
+                {debugInfo.sampleLog && (
+                  <div className="mt-3">
+                    <span className="font-medium text-xs">Sample Log:</span>
+                    <pre className="text-xs text-muted-foreground mt-1 bg-background/50 p-2 rounded border border-white/20 overflow-auto max-h-32">
+                      {JSON.stringify(debugInfo.sampleLog, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
