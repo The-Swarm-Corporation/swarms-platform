@@ -3,7 +3,7 @@
 import { Button } from '@/shared/components/ui/button';
 import { signInWithOAuth } from '@/shared/utils/auth-helpers/client';
 import { type Provider } from '@supabase/supabase-js';
-import { Github, X } from 'lucide-react';
+import { Github } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Google from '@/shared/components/icons/Google';
 import { useSearchParams } from 'next/navigation';

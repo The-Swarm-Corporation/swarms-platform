@@ -58,7 +58,7 @@ export default function Footer() {
   const socialLinks = [
     { name: 'GitHub', href: SWARMS_GITHUB, icon: <Github className="h-4 w-4" /> },
     { name: 'Discord', href: 'https://discord.gg/EamjgSaEQf', icon: <Discord /> },
-    { name: 'Twitter', href: 'https://twitter.com/kyegomez', icon: <Twitter className="h-4 w-4" /> },
+    { name: 'Twitter', href: 'https://twitter.com/swarms_corp', icon: <Twitter className="h-4 w-4" /> },
     { name: 'LinkedIn', href: 'https://linkedin.com/company/The-Swarm-Corporation', icon: <Linkedin className="h-4 w-4" /> },
     { name: 'YouTube', href: 'https://www.youtube.com/channel/UC9yXyitkbU_WSy7bd_41SqQ', icon: <Youtube className="h-4 w-4" /> },
     { name: 'Blog', href: 'https://medium.com/@kyeg', icon: <BookText className="h-4 w-4" /> },

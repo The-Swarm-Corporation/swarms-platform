@@ -3,6 +3,7 @@
 export interface SwarmLog {
   id: number;
   created_at: string;
+  api_key?: string;
   data: {
     task: string;
     output: string[];
@@ -70,6 +71,7 @@ export interface SwarmLog {
       };
     };
   };
+  category?: string;
 }
 
 const DEFAULT_MODELS = ['gpt-4o', 'gpt-4', 'gpt-3.5-turbo'];

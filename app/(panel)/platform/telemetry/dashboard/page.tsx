@@ -10,7 +10,7 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Telemetry Dashboard
+            Swarms API Telemetry Dashboard
           </h1>
           <p className="text-sm text-muted-foreground mt-2">
             Monitor your swarm executions, agent usage, and cost analytics

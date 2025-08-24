@@ -1061,38 +1061,7 @@ interface GroupData {
   description?: string;
 }
 
-/**
- * ExpandableMarkdownOutput component for displaying agent results with expand/collapse functionality
- */
-const ExpandableMarkdownOutput: React.FC<{
-  text: string;
-  className?: string;
-  isExpanded: boolean;
-  onToggleExpanded: () => void;
-}> = ({ text, className, isExpanded, onToggleExpanded }) => {
-  const maxLength = 200; // Maximum characters to show when collapsed
-  const shouldTruncate = text.length > maxLength;
-  const displayText = isExpanded || !shouldTruncate ? text : text.slice(0, maxLength) + '...';
 
-  return (
-    <div className={cn('space-y-2', className)}>
-      <MarkdownComponent
-        text={displayText}
-        className="space-y-1 *:text-xs"
-      />
-      {shouldTruncate && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggleExpanded}
-          className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-        >
-          {isExpanded ? 'Show Less' : 'Show More'}
-        </Button>
-      )}
-    </div>
-  );
-};
 
 // Create a wrapped component for the main content
 const FlowContent = () => {

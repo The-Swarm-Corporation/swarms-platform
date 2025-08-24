@@ -43,3 +43,5 @@ yarn.lock
 
 # certificates
 certificates
+
+schema.sql
