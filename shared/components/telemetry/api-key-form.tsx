@@ -1,46 +1,53 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
-import { Label } from '@/shared/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/shared/components/ui/card';
-import { KeyRound, Loader2 } from 'lucide-react';
 import { useAPIKeyContext } from '../ui/apikey.provider';
-import { trpc } from '@/shared/utils/trpc/trpc';
 import { useToast } from '../ui/Toasts/use-toast';
-import confetti from 'canvas-confetti';
-import { checkUserSession } from '@/shared/utils/auth-helpers/server';
-import GenerateKeyComponent from '@/modules/platform/api-keys/components/generate-key';
 
+/**
+ * ApiKeyForm - Simple API key usage that relies on the context system
+ * 
+ * This component now:
+ * 1. Waits for the API key context to finish loading
+ * 2. Uses whatever API key the context provides (existing or newly created)
+ * 3. Does not duplicate the key creation logic - lets the context handle it
+ * 4. Focuses on using the key for telemetry purposes
+ * 
+ * The APIkeyProvider is configured with isCreateAutoKey={true}, which means:
+ * - It will first search for existing API keys in the database
+ * - If no existing keys are found, it will automatically create a new one
+ * - This prevents the duplicate key creation issue that was happening before
+ */
 export function ApiKeyForm() {
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState<string | null>('');
   const [isLoading, setIsLoading] = useState(true);
   const [telemetryData, setTelemetryData] = useState<any>(null);
 
-  const { apiKey: existingApiKey, refetch } = useAPIKeyContext();
-  const addApiKey = trpc.apiKey.addApiKey.useMutation();
+  const { 
+    apiKey: existingApiKey, 
+    isApiKeyLoading, 
+    isInitializing,
+    isCreatingApiKey 
+  } = useAPIKeyContext();
 
   useEffect(() => {
     const initializeApiKey = async () => {
       try {
         setIsLoading(true);
         
-        // Check if user has an existing API key
+        // Wait for the API key context to finish loading and initializing
+        if (isApiKeyLoading || isInitializing || isCreatingApiKey.current) {
+          return;
+        }
+        
+        // Use whatever API key the context provides
         if (existingApiKey) {
           setApiKey(existingApiKey);
           await fetchTelemetryData(existingApiKey);
-        } else {
-          // Create a new API key if none exists
-          await createAndFetchApiKey();
         }
+        // If no API key, the context will handle creating one automatically
+        // We don't need to duplicate that logic here
       } catch (error) {
         console.error('Error initializing API key:', error);
         toast({
@@ -53,47 +60,7 @@ export function ApiKeyForm() {
     };
 
     initializeApiKey();
-  }, [existingApiKey]);
-
-  const createAndFetchApiKey = async () => {
-    try {
-      const user = await checkUserSession();
-
-      if (!user) {
-        toast({
-          description: 'You need to be logged in to generate an API key',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Create a new API key with a default name
-      const data = await addApiKey.mutateAsync({ name: 'Telemetry API Key' });
-      const newApiKey = data?.key;
-      
-      if (newApiKey) {
-        setApiKey(newApiKey);
-        await refetch();
-        await fetchTelemetryData(newApiKey);
-        
-        toast({
-          description: 'API key created successfully',
-          style: { backgroundColor: '#10B981', color: 'white' },
-        });
-
-        confetti({
-          particleCount: 150,
-          spread: 90,
-          origin: { y: 0.6 },
-        });
-      }
-    } catch (error: any) {
-      toast({
-        description: error.message || 'An error occurred while creating API key',
-        variant: 'destructive',
-      });
-    }
-  };
+  }, [existingApiKey, isApiKeyLoading, isInitializing, isCreatingApiKey.current]);
 
   const fetchTelemetryData = async (key: string) => {
     try {

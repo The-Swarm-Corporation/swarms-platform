@@ -599,7 +599,7 @@ export default function HistoryPage() {
                           className="h-7 px-2 text-xs border border-white/20 hover:bg-white/10"
                         >
                           <Code className="mr-1 h-3 w-3" />
-                          Modal
+                          Expand
                         </Button>
                       </div>
                     </TableCell>

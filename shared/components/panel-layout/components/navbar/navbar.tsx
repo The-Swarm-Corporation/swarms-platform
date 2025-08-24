@@ -170,9 +170,9 @@ export default function PlatformNavBar() {
           {/* Credits Display */}
           {user && (
             <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-black/40 border border-white/15 rounded-md backdrop-blur-sm">
-              <Coins className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+              <Coins className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0" />
               <span className="text-xs sm:text-sm text-white/80 hidden sm:inline">Credits:</span>
-              <span className="text-xs sm:text-sm font-semibold text-primary">
+              <span className="text-xs sm:text-sm font-semibold text-white">
                 {subscription.creditLoading
                   ? '...'
                   : `$${(subscription.credit ?? 0).toFixed(2)}`}
