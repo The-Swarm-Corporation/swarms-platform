@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import { RefreshCcw, Search, Download, ChevronLeft, ChevronRight, Filter, Eye, EyeOff } from 'lucide-react';
+import { RefreshCcw, Search, Download, ChevronLeft, ChevronRight, Filter, Eye, EyeOff, Code, Copy, Check, ChevronDown } from 'lucide-react';
 import {
   fetchSwarmLogs,
   type SwarmLog,
@@ -39,6 +39,149 @@ const CATEGORIES = [
 
 const PAGE_SIZES = [10, 25, 50, 100];
 
+// JSON Viewer Component
+const JSONViewer = ({ data, title }: { data: any; title: string }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const formattedJson = JSON.stringify(data, null, 2);
+
+  return (
+    <div className="border border-white/20 rounded-lg bg-background/50 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-sm font-medium text-foreground">{title}</h4>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyToClipboard}
+            className="h-6 px-2 text-xs hover:bg-white/10"
+          >
+            {copied ? (
+              <>
+                <Check className="mr-1 h-3 w-3 text-green-500" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="mr-1 h-3 w-3" />
+                Copy
+              </>
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="h-6 px-2 text-xs hover:bg-white/10"
+          >
+            {isExpanded ? 'Collapse' : 'Expand'}
+          </Button>
+        </div>
+      </div>
+      
+      <div className={`overflow-auto ${isExpanded ? 'max-h-96' : 'max-h-32'}`}>
+        <pre className="text-xs text-muted-foreground font-mono whitespace-pre-wrap break-words">
+          {formattedJson}
+        </pre>
+      </div>
+    </div>
+  );
+};
+
+// Log Detail Modal Component
+const LogDetailModal = ({ 
+  log, 
+  isOpen, 
+  onClose 
+}: { 
+  log: SwarmLog; 
+  isOpen: boolean; 
+  onClose: () => void; 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-background border border-white/20 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
+        <div className="p-6 border-b border-white/20">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Log Details</h2>
+            <Button variant="ghost" onClick={onClose} size="sm">
+              ✕
+            </Button>
+          </div>
+        </div>
+        
+        <div className="p-6 overflow-auto max-h-[calc(90vh-120px)]">
+          <div className="space-y-6">
+            {/* Basic Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Basic Information</h3>
+                <div className="space-y-2 text-sm">
+                  <div><span className="font-medium">ID:</span> {log.id}</div>
+                  <div><span className="font-medium">Created:</span> {new Date(log.created_at).toLocaleString()}</div>
+                  <div><span className="font-medium">Category:</span> {log.category || 'N/A'}</div>
+                  <div><span className="font-medium">API Key:</span> {log.api_key ? `${log.api_key.slice(0, 8)}...` : 'N/A'}</div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Swarm Info</h3>
+                <div className="space-y-2 text-sm">
+                  <div><span className="font-medium">Name:</span> {log.data?.swarm_name || 'N/A'}</div>
+                  <div><span className="font-medium">Type:</span> {log.data?.swarm_type || 'N/A'}</div>
+                  <div><span className="font-medium">Status:</span> {log.data?.status || 'N/A'}</div>
+                  <div><span className="font-medium">Description:</span> {log.data?.description || 'N/A'}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Full Data JSON */}
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Complete Log Data</h3>
+              <JSONViewer data={log} title="Full Log Entry" />
+            </div>
+
+            {/* Data Section */}
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Data Section</h3>
+              <JSONViewer data={log.data} title="Data Object" />
+            </div>
+
+            {/* Usage Section */}
+            {log.data?.usage && (
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Usage Information</h3>
+                <JSONViewer data={log.data.usage} title="Usage Data" />
+              </div>
+            )}
+
+            {/* Metadata Section */}
+            {log.data?.metadata && (
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Metadata</h3>
+                <JSONViewer data={log.data.metadata} title="Metadata" />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function HistoryPage() {
   const [search, setSearch] = useState('');
   const [logs, setLogs] = useState<SwarmLog[]>([]);
@@ -51,6 +194,9 @@ export default function HistoryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [showDetailedData, setShowDetailedData] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<SwarmLog | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   const { apiKey } = useAPIKeyContext();
 
@@ -97,6 +243,21 @@ export default function HistoryPage() {
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
+  };
+
+  const openLogDetail = (log: SwarmLog) => {
+    setSelectedLog(log);
+    setIsDetailModalOpen(true);
+  };
+
+  const toggleRowExpansion = (logId: number) => {
+    const newExpandedRows = new Set(expandedRows);
+    if (newExpandedRows.has(logId)) {
+      newExpandedRows.delete(logId);
+    } else {
+      newExpandedRows.add(logId);
+    }
+    setExpandedRows(newExpandedRows);
   };
 
   // Filter logs based on search and category
@@ -147,6 +308,7 @@ export default function HistoryPage() {
         'Task',
         'Number of Agents',
         'Swarm Type',
+        'Full JSON Data',
       ];
 
       const csvContent = [
@@ -170,6 +332,7 @@ export default function HistoryPage() {
             `"${(log.data.task || '').replace(/"/g, '""')}"`,
             log.data?.number_of_agents || 0,
             log.data?.swarm_type || 'N/A',
+            `"${JSON.stringify(log).replace(/"/g, '""')}"`,
           ];
           return row.join(',');
         }),
@@ -244,7 +407,7 @@ export default function HistoryPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Execution History</h1>
         <p className="text-sm text-muted-foreground mt-2">
-          View and analyze past swarm executions with advanced filtering and pagination
+          View and analyze past swarm executions with full JSON data access
         </p>
       </div>
 
@@ -336,6 +499,7 @@ export default function HistoryPage() {
         <Table>
           <TableHeader>
             <TableRow className="border-white/20 hover:bg-white/5">
+              <TableHead className="text-sm font-medium w-8"></TableHead>
               <TableHead className="text-sm font-medium">Swarm Name</TableHead>
               <TableHead className="text-sm font-medium">Category</TableHead>
               <TableHead className="text-sm font-medium">Status</TableHead>
@@ -350,6 +514,7 @@ export default function HistoryPage() {
                   <TableHead className="text-sm font-medium">Type</TableHead>
                 </>
               )}
+              <TableHead className="text-sm font-medium">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -362,53 +527,146 @@ export default function HistoryPage() {
                 log.data?.usage?.input_tokens,
                 log.data?.usage?.output_tokens,
               );
+              const isExpanded = expandedRows.has(log.id);
+              
               return (
-                <TableRow
-                  key={log.id}
-                  className="border-white/20 hover:bg-white/5"
-                >
-                  <TableCell className="font-medium">
-                    {swarmName}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="text-xs">
-                      {log.category || 'N/A'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        log.data.status === 'success'
-                          ? 'border-green-500 text-green-500'
-                          : 'border-destructive text-destructive'
-                      }
-                    >
-                      {log.data.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {new Date(log.created_at).toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-sm">{log.data?.execution_time.toFixed(2)}s</TableCell>
-                  <TableCell className="text-sm">
-                    {log.data?.usage?.total_tokens.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-sm">${totalCost.toFixed(4)}</TableCell>
-                  {showDetailedData && (
-                    <>
-                      <TableCell className="text-sm max-w-xs truncate" title={log.data?.task}>
-                        {log.data?.task || 'N/A'}
+                <>
+                  <TableRow
+                    key={log.id}
+                    className="border-white/20 hover:bg-white/5"
+                  >
+                    <TableCell className="w-8 p-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleRowExpansion(log.id)}
+                        className="h-6 w-6 p-0 hover:bg-white/10"
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {swarmName}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs">
+                        {log.category || 'N/A'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={
+                          log.data.status === 'success'
+                            ? 'border-green-500 text-green-500'
+                            : 'border-destructive text-destructive'
+                        }
+                      >
+                        {log.data.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {new Date(log.created_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-sm">{log.data?.execution_time.toFixed(2)}s</TableCell>
+                    <TableCell className="text-sm">
+                      {log.data?.usage?.total_tokens.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-sm">${totalCost.toFixed(4)}</TableCell>
+                    {showDetailedData && (
+                      <>
+                        <TableCell className="text-sm max-w-xs truncate" title={log.data?.task}>
+                          {log.data?.task || 'N/A'}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {log.data?.number_of_agents || 0}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {log.data?.swarm_type || 'N/A'}
+                        </TableCell>
+                      </>
+                    )}
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openLogDetail(log)}
+                          className="h-7 px-2 text-xs border border-white/20 hover:bg-white/10"
+                        >
+                          <Code className="mr-1 h-3 w-3" />
+                          Modal
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  
+                  {/* Expanded JSON Data Row */}
+                  {isExpanded && (
+                    <TableRow key={`${log.id}-expanded`} className="border-white/20">
+                      <TableCell colSpan={showDetailedData ? 12 : 9} className="p-0">
+                        <div className="bg-background/30 border-t border-white/20 p-4">
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-medium text-foreground">JSON Data Configuration</h4>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(JSON.stringify(log, null, 2));
+                                  }}
+                                  className="h-6 px-2 text-xs hover:bg-white/10"
+                                >
+                                  <Copy className="mr-1 h-3 w-3" />
+                                  Copy All
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {/* Main Data Section */}
+                            <div>
+                              <h5 className="text-xs font-medium text-muted-foreground mb-2">Data Object</h5>
+                              <div className="bg-background/50 border border-white/20 rounded p-3 max-h-64 overflow-auto">
+                                <pre className="text-xs text-muted-foreground font-mono whitespace-pre-wrap break-words">
+                                  {JSON.stringify(log.data, null, 2)}
+                                </pre>
+                              </div>
+                            </div>
+                            
+                            {/* Usage Section */}
+                            {log.data?.usage && (
+                              <div>
+                                <h5 className="text-xs font-medium text-muted-foreground mb-2">Usage Information</h5>
+                                <div className="bg-background/50 border border-white/20 rounded p-3 max-h-48 overflow-auto">
+                                  <pre className="text-xs text-muted-foreground font-mono whitespace-pre-wrap break-words">
+                                    {JSON.stringify(log.data.usage, null, 2)}
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Metadata Section */}
+                            {log.data?.metadata && (
+                              <div>
+                                <h5 className="text-xs font-medium text-muted-foreground mb-2">Metadata</h5>
+                                <div className="bg-background/50 border border-white/20 rounded p-3 max-h-48 overflow-auto">
+                                  <pre className="text-xs text-muted-foreground font-mono whitespace-pre-wrap break-words">
+                                    {JSON.stringify(log.data.metadata, null, 2)}
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </TableCell>
-                      <TableCell className="text-sm">
-                        {log.data?.number_of_agents || 0}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {log.data?.swarm_type || 'N/A'}
-                      </TableCell>
-                    </>
+                    </TableRow>
                   )}
-                </TableRow>
+                </>
               );
             })}
           </TableBody>
@@ -476,6 +734,18 @@ export default function HistoryPage() {
           </div>
         )}
       </Card>
+
+      {/* Log Detail Modal */}
+      {selectedLog && (
+        <LogDetailModal
+          log={selectedLog}
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedLog(null);
+          }}
+        />
+      )}
     </div>
   );
 }
