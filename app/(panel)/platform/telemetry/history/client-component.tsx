@@ -23,11 +23,9 @@ import {
 import { RefreshCcw, Search, Download, ChevronLeft, ChevronRight, Filter, Eye, EyeOff, Code, Copy, Check, ChevronDown } from 'lucide-react';
 import {
   fetchSwarmLogs,
-  fetchSwarmLogsByUserId,
   type SwarmLog,
 } from '@/shared/utils/api/telemetry/api';
 import { useAPIKeyContext } from '@/shared/components/ui/apikey.provider';
-import { useAuthContext } from '@/shared/components/ui/auth.provider';
 import { estimateTokenCost } from '@/shared/utils/helpers';
 import { getDisplaySwarmName } from '@/shared/components/telemetry/helper';
 
@@ -203,32 +201,23 @@ export default function HistoryPage() {
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   const { apiKey } = useAPIKeyContext();
-  const { user } = useAuthContext();
 
   const loadLogs = async () => {
-    // Try to use user ID first, fallback to API key if no user
-    if (!user?.id && !apiKey) return;
+    if (!apiKey) return;
     
     try {
       setIsLoading(true);
       setError(null);
 
-      let response;
-      if (user?.id) {
-        console.log('Fetching swarm logs by user ID...', { userId: user.id });
-        response = await fetchSwarmLogsByUserId(user.id);
-      } else {
-        console.log('Fetching swarm logs by API key...', { apiKey: apiKey ? apiKey.slice(0, 8) + '...' : 'N/A' });
-        response = await fetchSwarmLogs(apiKey);
-      }
+      console.log('Fetching swarm logs...', { apiKey: apiKey.slice(0, 8) + '...' });
+      const response = await fetchSwarmLogs(apiKey);
 
       console.log('Raw response:', response);
 
       // Store debug info for troubleshooting
       setDebugInfo({
         timestamp: new Date().toISOString(),
-        userId: user?.id || 'N/A',
-        apiKey: apiKey ? apiKey.slice(0, 8) + '...' : 'N/A',
+        apiKey: apiKey.slice(0, 8) + '...',
         responseStatus: response.status,
         responseCount: response.count,
         rawLogsCount: response.logs?.length || 0,
@@ -285,7 +274,7 @@ export default function HistoryPage() {
 
   useEffect(() => {
     loadLogs();
-  }, [user?.id, apiKey, retryCount]);
+  }, [apiKey, retryCount]);
 
   // Add keyboard shortcut for refresh
   useEffect(() => {
@@ -424,11 +413,6 @@ export default function HistoryPage() {
           <div className="h-8 bg-muted rounded w-1/4" />
           <div className="h-[400px] bg-muted rounded" />
         </div>
-        {!user?.id && (
-          <div className="text-center text-sm text-muted-foreground">
-            Loading... {apiKey ? 'Using API key authentication' : 'Please sign in to view logs'}
-          </div>
-        )}
       </div>
     );
   }
@@ -440,19 +424,10 @@ export default function HistoryPage() {
           <div className="text-destructive">
             <h3 className="font-semibold mb-2">Error Loading History</h3>
             <p className="mb-4 text-sm">{error}</p>
-            {!user?.id && (
-              <div className="mb-4 p-3 bg-yellow-500/10 rounded border border-yellow-500/20">
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                  💡 <strong>Tip:</strong> Sign in to view all your logs across all API keys. 
-                  Currently only showing logs for the current API key.
-                </p>
-              </div>
-            )}
             {debugInfo && (
               <div className="mb-4 p-3 bg-background/30 rounded border border-white/20">
                 <h4 className="text-sm font-medium mb-2">Debug Information:</h4>
                 <div className="text-xs space-y-1">
-                  <div>User ID: {debugInfo.userId}</div>
                   <div>API Key: {debugInfo.apiKey}</div>
                   <div>Response Status: {debugInfo.responseStatus}</div>
                   <div>Raw Logs Count: {debugInfo.rawLogsCount}</div>
@@ -490,15 +465,9 @@ export default function HistoryPage() {
     return (
       <div className="p-6">
         <Card className="p-6 bg-card border border-white/20">
-          <p className="text-muted-foreground text-center mb-4">
+          <p className="text-muted-foreground text-center">
             No execution history found
           </p>
-          {!user?.id && (
-            <div className="text-center text-sm text-muted-foreground">
-              💡 <strong>Tip:</strong> Sign in to view all your logs across all API keys. 
-              Currently only showing logs for the current API key.
-            </div>
-          )}
         </Card>
       </div>
     );
@@ -510,11 +479,6 @@ export default function HistoryPage() {
         <h1 className="text-3xl font-bold tracking-tight">Execution History</h1>
         <p className="text-sm text-muted-foreground mt-2">
           View and analyze past swarm executions with full JSON data access
-          {user?.id && (
-            <span className="ml-2 text-green-500">
-              • Using user-based logging (shows all logs across all API keys)
-            </span>
-          )}
         </p>
         <div className="flex items-center gap-4 mt-4">
           <Button
@@ -651,9 +615,6 @@ export default function HistoryPage() {
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <span className="font-medium">Last API Call:</span> {debugInfo.timestamp}
-                  </div>
-                  <div>
-                    <span className="font-medium">User ID:</span> {debugInfo.userId}
                   </div>
                   <div>
                     <span className="font-medium">API Key:</span> {debugInfo.apiKey}

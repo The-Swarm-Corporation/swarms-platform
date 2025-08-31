@@ -2,7 +2,7 @@ import { ProgressBar } from '@/shared/components/chat/components/progress';
 import LoadingSpinner from '@/shared/components/loading-spinner';
 import { ImagePlus, Pencil, X } from 'lucide-react';
 import Image from 'next/image';
-import { RefObject } from 'react';
+import { RefObject, useEffect, useMemo, useState } from 'react';
 
 type Props = {
   image: string | null;
@@ -43,6 +43,32 @@ export default function ModelFileUpload({
   preface,
   title = "Add Image"
 }: Props) {
+  const [remoteReady, setRemoteReady] = useState(false);
+
+  // Reset readiness when the remote URL changes
+  useEffect(() => {
+    setRemoteReady(false);
+  }, [imageUrl]);
+
+  // Preload the remote image; only switch once it's confirmed loaded
+  useEffect(() => {
+    if (!imageUrl) return;
+    try {
+      const img = new window.Image();
+      img.onload = () => setRemoteReady(true);
+      img.onerror = () => setRemoteReady(false);
+      img.src = imageUrl;
+    } catch (_) {
+      setRemoteReady(false);
+    }
+  }, [imageUrl]);
+
+  const displaySrc = useMemo(() => {
+    if (remoteReady && imageUrl) return imageUrl;
+    if (image) return image;
+    return '';
+  }, [remoteReady, imageUrl, image]);
+
   return (
     <div className="mt-7">
       <div className="flex items-center gap-3 mb-3">
@@ -69,22 +95,11 @@ export default function ModelFileUpload({
 
         {imageUrl || image ? (
           <div className="relative mx-auto h-[220px] w-full overflow-hidden rounded-xl">
-            {(imageUrl || image)?.startsWith('blob:') || (imageUrl || image)?.startsWith('data:') ? (
-              <img
-                src={imageUrl || image || ''}
-                alt={'Uploaded image'}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <Image
-                src={imageUrl || image || ''}
-                alt={'Uploaded image'}
-                fill
-                sizes="150px"
-                className="object-cover"
-                unoptimized
-              />
-            )}
+            <img
+              src={displaySrc}
+              alt={'Uploaded image'}
+              className="h-full w-full object-cover"
+            />
             <div className="absolute top-2 right-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-black/80 text-white">
               {imageUrl &&
                 (isDeleteFile ? (

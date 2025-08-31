@@ -170,8 +170,8 @@ function UseCases({ usecases }: { usecases: UseCasesProps[] }) {
 }
 
 // Add custom wrapper component
-const SyntaxHighlighter = dynamic(
-  () => import('react-syntax-highlighter').then(mod => mod.PrismAsyncLight),
+const SyntaxHighlighter = dynamic<any>(
+  () => import('react-syntax-highlighter').then((mod) => mod.PrismAsyncLight as any),
   { ssr: false }
 );
 
@@ -595,21 +595,25 @@ print(result)`;
             <div
               className={cn(
                 'relative w-full rounded-2xl overflow-hidden',
-                imageUrl ? 'bg-gradient-to-r from-black to-red-950' : ''
+                imageUrl ? '' : 'bg-gradient-to-r from-black to-red-950'
               )}
               style={{
-                backgroundImage: imageUrl ? `
-                  linear-gradient(180deg, rgba(9, 11, 10, 0) 38.11%, rgba(9, 11, 10, 0.8) 88.68%),
-                  linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
-                  url(${imageUrl})
-                ` : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
                 minHeight: imageUrl ? '500px' : 'auto',
                 height: imageUrl ? 'clamp(400px, 50vh, 600px)' : 'auto'
               }}
-            />
+            >
+              {imageUrl && (
+                <>
+                  <img
+                    src={imageUrl}
+                    alt={name || title || 'entity image'}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/20" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
+                </>
+              )}
+            </div>
           </div>
 
           {/* Title and Description Section */}

@@ -153,62 +153,6 @@ export async function fetchSwarmLogs(apiKey: string): Promise<{
   };
 }
 
-// Fetch logs by user ID - this will get ALL logs for a user regardless of API key
-export async function fetchSwarmLogsByUserId(userId: string): Promise<{
-  status: string;
-  count: number;
-  logs: SwarmLog[];
-}> {
-  if (typeof window === 'undefined') {
-    throw new Error('This function can only be called in the browser');
-  }
-
-  const url = `/api/swarm/logs/user/${userId}`;
-
-  try {
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-cache',
-      credentials: 'include', // Include cookies for authentication
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      const baseMessage = `API request failed: ${res.status} ${res.statusText}`;
-      const extraInfo = errorText ? ` - ${errorText}` : '';
-
-      switch (res.status) {
-        case 401:
-          throw new Error('Authentication required. Please sign in.');
-        case 403:
-          throw new Error('Unauthorized access to user logs.');
-        case 404:
-          throw new Error('User logs endpoint not found.');
-        default:
-          throw new Error(`${baseMessage}${extraInfo}`);
-      }
-    }
-
-    const data = await res.json();
-    
-    const validLogs = data.logs.filter(
-      (log: any) => log.id && log.created_at && log.data,
-    );
-
-    return {
-      status: data.status,
-      count: validLogs.length,
-      logs: validLogs,
-    };
-  } catch (err: any) {
-    console.error('User Logs API Fetch Error:', err);
-    throw new Error(`Failed to fetch user logs: ${err?.message || 'Unknown error'}`);
-  }
-}
-
 // --- MODELS
 export async function fetchAvailableModels(apiKey: string): Promise<string[]> {
   try {

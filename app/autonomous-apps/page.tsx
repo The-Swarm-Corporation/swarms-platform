@@ -46,19 +46,6 @@ const AUTONOMOUS_APPS = [
     tags: ['crypto', 'payments', 'solana', 'finance']
   },
   {
-    id: 'SSI',
-    title: 'SSI.fun',
-    description: 'Build, Deploy, and Tokenize your Applications on Solana',
-    longDescription: 'A comprehensive platform for building, deploying, and monetizing applications on the Solana blockchain. Includes tools for smart contract development, token creation, and application deployment.',
-    domain: 'ssi.fun',
-    url: 'https://ssi.fun',
-    icon: <Brain size={32} className="text-green-500" />,
-    color: 'green',
-    category: 'Development',
-    features: ['Smart Contracts', 'Token Creation', 'App Deployment', 'Blockchain Tools'],
-    tags: ['blockchain', 'development', 'solana', 'defi']
-  },
-  {
     id: 'WhiteRock',
     title: 'WhiteRock',
     description: 'Cursor for Equity Analysis',
