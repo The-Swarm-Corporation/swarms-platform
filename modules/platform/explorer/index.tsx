@@ -20,7 +20,6 @@ import Sticky from 'react-stickynode';
 import AddToolModal from './components/add-tool-modal';
 import ModelCategories from './components/content/categories';
 import Footer from '@/shared/components/ui/Footer';
-import { MarketplaceTicker } from '@/shared/components/marketplace/ticker';
 import MarketplaceOnboardingModal from '@/shared/components/marketplace/marketplace-onboarding-modal';
 
 const Trending = dynamic(() => import('./components/content/trending'), {
@@ -224,8 +223,6 @@ const Explorer = () => {
       />
       <div className="w-full flex flex-col min-h-screen relative">
         <div className="flex-grow relative">
-          <MarketplaceTicker />
-          
           <div className="w-full mb-4 md:mb-8 mt-4">
             <div className="relative group">
               {/* Animated border overlay */}
@@ -240,7 +237,7 @@ const Explorer = () => {
                         Swarms Marketplace
                       </h1>
                       <p className="text-base md:text-xl text-red-100/80">
-                        Create, discover, and monetize your tools, agents, and prompts.
+                        Trade and discover tools, agents, and prompts. 
                       </p>
                     </div>
                   </div>
