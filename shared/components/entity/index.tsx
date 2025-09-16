@@ -586,40 +586,32 @@ print(result)`;
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 mt-8">
-      {/* Header Section */}
-      <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 md:p-8 bg-white dark:bg-zinc-950/50 mb-8">
-        <div className="max-md:text-center">
-          <div className="relative group mb-6">
-            <div className="absolute -inset-0.5 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x" />
-            <div
-              className={cn(
-                'relative w-full rounded-2xl overflow-hidden',
-                imageUrl ? '' : 'bg-gradient-to-r from-black to-red-950'
-              )}
-              style={{
-                minHeight: imageUrl ? '500px' : 'auto',
-                height: imageUrl ? 'clamp(400px, 50vh, 600px)' : 'auto'
-              }}
-            >
-              {imageUrl && (
-                <>
-                  <img
-                    src={imageUrl}
-                    alt={name || title || 'entity image'}
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/20" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
-                </>
-              )}
+    <div className="w-full">
+      {/* Main Grid Layout - Hugging Face Style */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 px-2 md:px-4 lg:px-6 xl:px-8 mt-8">
+        
+        {/* Left Column - Main Content */}
+        <div className="xl:col-span-9 space-y-6">
+          {/* Hero Image Section */}
+          {imageUrl && (
+            <div className="relative group">
+              <div className="absolute -inset-0.5 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x" />
+              <div className="relative w-full rounded-2xl overflow-hidden h-80 md:h-96">
+                <img
+                  src={imageUrl}
+                  alt={name || title || 'entity image'}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/20" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Title and Description Section */}
-          <div className="space-y-8">
+          {/* Title Section */}
+          <div className="space-y-4">
             {title && (
-              <div className="flex items-center gap-3 justify-center md:justify-start">
+              <div className="flex items-center gap-3">
                 <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
                   <Code className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
                 </div>
@@ -629,650 +621,103 @@ print(result)`;
               </div>
             )}
 
-            <div className="space-y-6">
-              {name && (
-                <h1 className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {name}
-                </h1>
-              )}
-              {description && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-                    <Info className="h-4 w-4" />
-                    <h3 className="text-sm font-medium">About this {entityTitle}</h3>
-                  </div>
-                  <div className="bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                    <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                      <Markdown 
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          // Override default link to open in new tab
-                          a: ({ node, ...props }) => (
-                            <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline" />
-                          ),
-                          // Style tables
-                          table: ({ node, ...props }) => (
-                            <div className="my-6 w-full overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
-                              <table {...props} className="w-full border-collapse text-sm" />
-                            </div>
-                          ),
-                          thead: ({ node, ...props }) => (
-                            <thead {...props} className="bg-zinc-100 dark:bg-zinc-800/50" />
-                          ),
-                          tr: ({ node, ...props }) => (
-                            <tr {...props} className="border-b border-zinc-200 dark:border-zinc-800" />
-                          ),
-                          th: ({ node, ...props }) => (
-                            <th {...props} className="border-r border-zinc-200 dark:border-zinc-800 px-4 py-2 text-left font-medium" />
-                          ),
-                          td: ({ node, ...props }) => (
-                            <td {...props} className="border-r border-zinc-200 dark:border-zinc-800 px-4 py-2" />
-                          ),
-                          // Style code blocks
-                          code: ({ node, className, children, ...props }: any) => {
-                            const match = /language-(\w+)/.exec(className || '');
-                            const isInline = !match && !className?.includes('code-block');
-                            return isInline ? (
-                              <code 
-                                {...props} 
-                                className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-sm"
-                              >
-                                {children}
-                              </code>
-                            ) : (
-                              <div className="relative group">
-                                <button 
-                                  onClick={() => copyToClipboard(children as string)}
-                                  className="absolute right-2 top-2 p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50 opacity-0 group-hover:opacity-100"
-                                  title="Copy code"
-                                >
-                                  <Copy size={14} className="text-zinc-200" />
-                                </button>
-                                <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg overflow-hidden">
-                                  <div className="flex items-center justify-between px-4 py-2 bg-zinc-200 dark:bg-zinc-700/50 border-b border-zinc-300 dark:border-zinc-600">
-                                    <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                                      {match?.[1]?.toUpperCase() || 'CODE'}
-                                    </span>
-                                  </div>
-                                  <pre className="p-4 overflow-x-auto">
-                                    <code className={className} {...props}>
-                                      {children}
-                                    </code>
-                                  </pre>
-                                </div>
-                              </div>
-                            );
-                          },
-                          // Add spacing to paragraphs
-                          p: ({ node, ...props }) => (
-                            <p {...props} className="mb-4 last:mb-0 leading-relaxed" />
-                          ),
-                          // Style headings
-                          h1: ({ node, ...props }) => (
-                            <h1 {...props} className="text-2xl font-bold mt-8 mb-4" />
-                          ),
-                          h2: ({ node, ...props }) => (
-                            <h2 {...props} className="text-xl font-bold mt-8 mb-4" />
-                          ),
-                          h3: ({ node, ...props }) => (
-                            <h3 {...props} className="text-lg font-bold mt-6 mb-4" />
-                          ),
-                          h4: ({ node, ...props }) => (
-                            <h4 {...props} className="text-base font-bold mt-6 mb-4" />
-                          ),
-                          // Style lists
-                          ul: ({ node, ...props }) => (
-                            <ul {...props} className="list-disc pl-6 mb-4 last:mb-0 space-y-2" />
-                          ),
-                          ol: ({ node, ...props }) => (
-                            <ol {...props} className="list-decimal pl-6 mb-4 last:mb-0 space-y-2" />
-                          ),
-                          // Style blockquotes
-                          blockquote: ({ node, ...props }) => (
-                            <blockquote {...props} className="border-l-4 border-zinc-300 dark:border-zinc-700 pl-4 my-4 italic" />
-                          ),
-                          // Style horizontal rules
-                          hr: ({ node, ...props }) => (
-                            <hr {...props} className="my-8 border-zinc-200 dark:border-zinc-800" />
-                          ),
-                        }}
-                      >
-                        {description}
-                      </Markdown>
+            {/* Author Attribution */}
+            {authorUsername && (
+              <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
+                <span className="text-sm">by</span>
+                <a 
+                  href={`/users/${authorUsername}`}
+                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors"
+                >
+                  {authorUsername}
+                </a>
+              </div>
+            )}
+            
+            {name && (
+              <h1 className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-zinc-100">
+                {name}
+              </h1>
+            )}
+          </div>
+
+                    {/* Main Content Tabs - Different layout for different entity types */}
+          {entityTitle === 'prompt' && prompt && (
+            <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950/50">
+              <Tabs defaultValue="main-prompt" className="w-full">
+                <div className="border-b border-zinc-200 dark:border-zinc-800 px-6 pt-6">
+                  <TabsList className="h-12 bg-zinc-100 dark:bg-zinc-800">
+                    <TabsTrigger value="main-prompt" className="text-sm font-medium">
+                      Main Prompt
+                    </TabsTrigger>
+                    <TabsTrigger value="chat" className="text-sm font-medium">
+                      Prompt Agent Chat
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+                
+                <TabsContent value="main-prompt" className="p-6 mt-0">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleCopy}
+                            className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
+                            title="Copy to clipboard"
+                          >
+                            <Copy size={16} className="text-zinc-200" />
+                          </button>
+                          <div className="relative group">
+                            <button
+                              onClick={handleDownload}
+                              className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
+                              title="Download options"
+                            >
+                              <FileDown size={16} className="text-zinc-200" />
+                            </button>
+                          </div>
+                        </div>
                     </div>
-                  </div>
-                </div>
-              )}
-              <Avatar
-                userId={userId ?? ''}
-                showUsername
-                showBorder
-                className="mt-6"
-                title={`${title ?? ''} Author`}
-              />
-            </div>
-          </div>
-
-          {/* Tags Section */}
-          {tags && tags.length > 0 && (
-            <div className="mt-8">
-              <div className="flex gap-2 select-none flex-wrap justify-center md:justify-start">
-                {tags?.map(
-                  (tag) =>
-                    tag.trim() && (
-                      <div
-                        key={tag}
-                        className="text-sm px-3 py-1.5 rounded-full !text-red-500/70 border border-red-500/70 bg-red-50 dark:bg-red-950/20"
-                      >
-                        {tag}
-                      </div>
-                    ),
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Action Buttons Section */}
-          <div className="mt-8 flex flex-wrap justify-center md:justify-start gap-3">
-            {showEditButton && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleShowEditModal}
-                className="flex items-center gap-2 border-zinc-300 dark:border-zinc-700"
-              >
-                <Pencil className="h-4 w-4" />
-                Edit
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShowShareModal}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 border-green-600"
-            >
-              <Share className="h-4 w-4 text-white" />
-              Share
-            </Button>
-            {id && user.data?.id && !reviewQuery?.data?.hasReviewed && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleShowReviewModal}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 border-blue-600"
-              >
-                <Star className="h-4 w-4 text-white hover:text-white" />
-                Rate
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShowReviewListModal}
-              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 border-yellow-600"
-            >
-              <Stars className="h-4 w-4 text-white hover:text-white" />
-              Reviews{' '}
-              {reviewLength && reviewLength > 0 ? `(${reviewLength})` : ''}
-            </Button>
-            <BookmarkButton
-              id={id || ''}
-              type={entityTitle as 'prompt' | 'agent' | 'tool'}
-              name={name || title}
-              description={description}
-              created_at={new Date().toISOString()}
-              username={user?.data?.username || undefined}
-              tags={tags}
-            />
-            {prompt && (
-              <div className="relative group">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 border-indigo-600"
-                >
-                  <ExternalLink className="h-4 w-4 text-white" />
-                  Export to AI
-                </Button>
-                <div className="absolute right-0 top-full mt-2 w-48 rounded-lg bg-zinc-800/95 border border-zinc-700/50 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="py-1">
-                    <button
-                      onClick={() => handleExportToAI('chatgpt')}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      Export to ChatGPT
-                    </button>
-                    <button
-                      onClick={() => handleExportToAI('claude')}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
-                    >
-                      <Bot className="w-4 h-4" />
-                      Export to Claude
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Links Section */}
-          {links && links.length > 0 && (
-            <div className="mt-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Link className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  Related Links
-                </span>
-              </div>
-              <EntityLinks links={links} />
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Modals */}
-      <ListReview
-        reviews={reviews.data as ReviewProps[]}
-        isOpen={isReviewListModal}
-        onClose={handleCloseReviewListModal}
-      />
-
-      {!reviewQuery?.data?.hasReviewed && (
-        <AddRatingModal
-          id={id ?? ''}
-          handleRefetch={handleRefetch}
-          open={isReviewModal}
-          setOpen={setIsReviewModal}
-          modelType={entityTitle}
-        />
-      )}
-      <EditExplorerModal
-        entityId={id ?? ''}
-        entityType={entityTitle as EntityType}
-        isOpen={isEditModalOpen}
-        onClose={handleCloseEditModal}
-        onEditSuccessfully={onEditSuccessfully}
-        key={id}
-      />
-
-      {/* Use Cases Section */}
-      {usecases && usecases?.some((uc) => uc?.title?.trim() !== '') && (
-        <section className="mb-8">
-          <UseCases usecases={usecases} />
-        </section>
-      )}
-
-      {/* Requirements Section */}
-      {(title.toLowerCase() === 'agent' || title.toLowerCase() === 'tool') &&
-        requirements && (
-          <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                <Info className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                Requirements
-              </h2>
-            </div>
-            <AgentRequirements
-              requirements={requirements as RequirementProps[]}
-            />
-          </section>
-        )}
-
-      {/* Code Section */}
-      {children && (
-        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-              <Code className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                Agent Code
-              </h2>
-              <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
-                The main implementation code for this {entityTitle}. You can view, copy, and use this code directly in your projects.
-              </p>
-            </div>
-          </div>
-          {children}
-        </section>
-      )}
-
-      {/* Agent JSON Panel */}
-      {entityTitle === 'agent' && agentCode && (
-        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800/30 rounded-lg">
-              <FileText className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                Agent Metadata (JSON)
-              </h2>
-              <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
-                All metadata and code for this agent, as a JSON object. Useful for programmatic use, export, or debugging.
-              </p>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="absolute top-3 right-3 flex gap-2 z-10">
-              <button
-                onClick={() => {
-                  const jsonData = JSON.stringify({
-                    id,
-                    name,
-                    title,
-                    description,
-                    tags,
-                    requirements,
-                    usecases,
-                    language,
-                    userId,
-                    authorUsername: authorUsername || undefined,
-                    createdAt: createdAt || undefined,
-                    links,
-                    code: agentCode,
-                  }, null, 2);
-                  copyToClipboard(jsonData);
-                }}
-                className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
-                title="Copy JSON to clipboard"
-              >
-                <Copy size={16} className="text-zinc-200" />
-              </button>
-              <button
-                onClick={() => {
-                  const jsonData = JSON.stringify({
-                    id,
-                    name,
-                    title,
-                    description,
-                    tags,
-                    requirements,
-                    usecases,
-                    language,
-                    userId,
-                    authorUsername: authorUsername || undefined,
-                    createdAt: createdAt || undefined,
-                    links,
-                    code: agentCode,
-                  }, null, 2);
-                  downloadFile(jsonData, `${id}.json`, 'application/json');
-                  toast.toast({ description: 'Downloaded as JSON file' });
-                }}
-                className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
-                title="Download as JSON file"
-              >
-                <FileDown size={16} className="text-zinc-200" />
-              </button>
-            </div>
-            <pre className="bg-zinc-900 text-green-200 text-xs md:text-sm rounded-lg p-4 overflow-x-auto border border-zinc-800">
-              {JSON.stringify({
-                id,
-                name,
-                title,
-                description,
-                tags,
-                requirements,
-                usecases,
-                language,
-                userId,
-                authorUsername: authorUsername || undefined,
-                createdAt: createdAt || undefined,
-                links,
-                code: agentCode,
-              }, null, 2)}
-            </pre>
-          </div>
-        </section>
-      )}
-
-      {/* Prompt Section */}
-      {prompt && (
-        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <Download className="h-5 w-5 text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                Main Prompt
-              </h2>
-              <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
-                Copy this prompt, download it, or export it directly to ChatGPT
-                or Claude to use in your conversations.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-[#00000080] border border-[#f9f9f959] shadow-2xl pt-7 md:p-5 md:py-7 rounded-lg leading-normal overflow-hidden no-scrollbar relative">
-            <div className="absolute top-3 right-3 flex gap-2 z-10">
-              <button
-                onClick={handleCopy}
-                className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
-                title="Copy to clipboard"
-              >
-                <Copy size={20} className="text-zinc-200" />
-              </button>
-              <div className="relative group">
-                <button
-                  onClick={handleDownload}
-                  className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
-                  title="Download options"
-                >
-                  <FileDown size={20} className="text-zinc-200" />
-                </button>
-                <div className="absolute right-0 top-full mt-2 w-48 rounded-lg bg-zinc-800/95 border border-zinc-700/50 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="py-1">
-                    <button
-                      onClick={() => {
-                        downloadFile(
-                          prompt ?? '',
-                          `${name ?? 'prompt'}.txt`,
-                          'text/plain',
-                        );
-                        toast.toast({ description: 'Downloaded as text file' });
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
-                    >
-                      Download as Text (.txt)
-                    </button>
-                    <button
-                      onClick={() => {
-                        downloadFile(
-                          prompt ?? '',
-                          `${name ?? 'prompt'}.md`,
-                          'text/markdown',
-                        );
-                        toast.toast({
-                          description: 'Downloaded as markdown file',
-                        });
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
-                    >
-                      Download as Markdown (.md)
-                    </button>
-                    <button
-                      onClick={() => {
-                        const frameworkCode = `import time
-from swarms import Agent
-
-# Put your api key in the .env file like OPENAI_API_KEY=""
-
-
-# Initialize the agent
-agent = Agent(
-    agent_name="${name || 'Custom-Agent'}",
-    agent_description="${description?.replace(/"/g, '\\"') || 'Custom agent for specific tasks'}",
-    system_prompt="""${prompt?.replace(/"/g, '\\"') || ''}""",
-    max_loops=1,
-    model_name="gpt-4o-mini",
-    dynamic_temperature_enabled=True,
-    output_type="all",
-    max_tokens=16384,
-    # dashboard=True
-)
-
-# Run the agent with your task
-out = agent.run("Your task description here")
-
-time.sleep(10)
-print(out)`;
-                        downloadFile(
-                          frameworkCode,
-                          `${name ?? 'prompt'}_framework.py`,
-                          'text/python',
-                        );
-                        toast.toast({
-                          description: 'Downloaded as Framework Python file',
-                        });
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
-                    >
-                      Download as Framework (.py)
-                    </button>
-                    <button
-                      onClick={() => {
-                        const apiCode = `import os
-import requests
-from dotenv import load_dotenv
-
-# Load API key from environment
-load_dotenv()
-API_KEY = os.getenv("SWARMS_API_KEY")
-BASE_URL = "https://api.swarms.world"
-
-# Configure headers with your API key
-headers = {
-    "x-api-key": API_KEY,
-    "Content-Type": "application/json"
-}
-
-def run_single_agent(agent_config, task):
-    """
-    Run a single agent with the AgentCompletion format.
-    """
-    payload = {
-        "agent_config": agent_config,
-        "task": task
-    }
-
-    try:
-        response = requests.post(
-            f"{BASE_URL}/v1/agent/completions", 
-            headers=headers, 
-            json=payload
-        )
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error making request: {e}")
-        return None
-
-# Agent configuration using this prompt
-agent_config = {
-    "agent_name": "${name || 'Custom-Agent'}",
-    "description": "${description?.replace(/"/g, '\\"') || 'Custom agent for specific tasks'}",
-    "system_prompt": """${prompt?.replace(/"/g, '\\"') || ''}""",
-    "model_name": "gpt-4o",
-    "role": "worker",
-    "max_loops": 2,
-    "max_tokens": 8192,
-    "temperature": 0.5,
-    "auto_generate_prompt": False,
-}
-
-# Your task
-task = "Your task description here"
-
-# Run the agent
-result = run_single_agent(agent_config, task)
-print(result)`;
-                        downloadFile(
-                          apiCode,
-                          `${name ?? 'prompt'}_api.py`,
-                          'text/python',
-                        );
-                        toast.toast({
-                          description: 'Downloaded as API Python file',
-                        });
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200"
-                    >
-                      Download as API (.py)
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-7">
-              <Tabs
-                className="flex flex-col gap-4 w-auto"
-                defaultValue="preview"
-                onValueChange={(value) => setSelectedTab(value)}
-              >
-                <TabsList className="flex justify-start w-auto">
-                  <TabsTrigger
-                    value={'preview'}
-                    className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm"
-                  >
-                    Preview
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value={'md'}
-                    className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm"
-                  >
-                    Markdown
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value={'txt'}
-                    className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm"
-                  >
-                    Text
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value={'framework'}
-                    className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm"
-                  >
-                    Framework
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value={'api'}
-                    className="transition-colors duration-200 cursor-pointer hover:bg-zinc-800/80 hover:text-white focus:bg-zinc-900/90 focus:text-white active:bg-zinc-900/90 px-4 py-2 rounded-md text-base md:text-sm"
-                  >
-                    API
-                  </TabsTrigger>
-                </TabsList>
-                <div className="p-4 rounded-xl overflow-hidden !bg-gray-500/10">
-                  <TabsContent className="m-0" value={'preview'}>
-                    <SyntaxHighlighter
-                      PreTag={CustomPre}
-                      style={dracula}
-                      language={language || 'markdown'}
-                    >
-                      {prompt}
-                    </SyntaxHighlighter>
-                  </TabsContent>
-                  <TabsContent className="m-0" value={'md'}>
-                    <Markdown className="prose" remarkPlugins={[remarkGfm]}>
-                      {prompt}
-                    </Markdown>
-                  </TabsContent>
-                  <TabsContent className="m-0" value={'txt'}>
-                    <pre className="whitespace-pre-wrap">
-                      {stripMarkdown(prompt)}
-                    </pre>
-                  </TabsContent>
-                  <TabsContent className="m-0" value={'framework'}>
-                    <SyntaxHighlighter
-                      PreTag={CustomPre}
-                      style={dracula}
-                      language="python"
-                    >
-                      {`import time
+                    
+                    <div className="bg-zinc-900 rounded-lg overflow-hidden">
+                      <Tabs defaultValue="preview" onValueChange={(value) => setSelectedTab(value)}>
+                        <div className="border-b border-zinc-700 px-4">
+                          <TabsList className="h-10 bg-transparent">
+                            <TabsTrigger value="preview" className="text-xs">Preview</TabsTrigger>
+                            <TabsTrigger value="md" className="text-xs">Markdown</TabsTrigger>
+                            <TabsTrigger value="txt" className="text-xs">Text</TabsTrigger>
+                            <TabsTrigger value="framework" className="text-xs">Framework</TabsTrigger>
+                            <TabsTrigger value="api" className="text-xs">API</TabsTrigger>
+                          </TabsList>
+                        </div>
+                        
+                        <div className="p-4">
+                          <TabsContent value="preview" className="mt-0">
+                            <SyntaxHighlighter
+                              PreTag={CustomPre}
+                              style={dracula}
+                              language={language || 'markdown'}
+                            >
+                              {prompt}
+                            </SyntaxHighlighter>
+                          </TabsContent>
+                          <TabsContent value="md" className="mt-0">
+                            <Markdown className="prose prose-invert max-w-none" remarkPlugins={[remarkGfm]}>
+                              {prompt}
+                            </Markdown>
+                          </TabsContent>
+                          <TabsContent value="txt" className="mt-0">
+                            <pre className="whitespace-pre-wrap text-zinc-100 text-sm">
+                              {stripMarkdown(prompt)}
+                            </pre>
+                          </TabsContent>
+                          <TabsContent value="framework" className="mt-0">
+                            <SyntaxHighlighter
+                              PreTag={CustomPre}
+                              style={dracula}
+                              language="python"
+                            >
+                              {`import time
 from swarms import Agent
 
 # Put your api key in the .env file like OPENAI_API_KEY=""
@@ -1295,15 +740,15 @@ out = agent.run("Your task description here")
 
 time.sleep(10)
 print(out)`}
-                    </SyntaxHighlighter>
-                  </TabsContent>
-                  <TabsContent className="m-0" value={'api'}>
-                    <SyntaxHighlighter
-                      PreTag={CustomPre}
-                      style={dracula}
-                      language="python"
-                    >
-                      {`import os
+                            </SyntaxHighlighter>
+                          </TabsContent>
+                          <TabsContent value="api" className="mt-0">
+                            <SyntaxHighlighter
+                              PreTag={CustomPre}
+                              style={dracula}
+                              language="python"
+                            >
+                              {`import os
 import requests
 from dotenv import load_dotenv
 
@@ -1358,58 +803,554 @@ task = "Your task description here"
 # Run the agent
 result = run_single_agent(agent_config, task)
 print(result)`}
-                    </SyntaxHighlighter>
-                  </TabsContent>
-                </div>
+                            </SyntaxHighlighter>
+                          </TabsContent>
+                        </div>
+                      </Tabs>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="chat" className="p-6 mt-0">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                        Interactive Chat
+                      </h3>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                        Chat with this prompt in real-time. The AI will respond based on the system prompt.
+                      </p>
+                    </div>
+                    <ChatComponent promptId={id ?? ''} systemPrompt={prompt} />
+                  </div>
+                </TabsContent>
               </Tabs>
             </div>
-          </div>
-        </section>
-      )}
+          )}
 
-      {/* Chat Section for Prompts */}
-      {entityTitle === 'prompt' && prompt && (
-        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Bot className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          {/* Agent/Tool Main Content Tabs */}
+          {(entityTitle === 'agent' || entityTitle === 'tool') && (
+            <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950/50">
+              <Tabs defaultValue="overview" className="w-full">
+                <div className="border-b border-zinc-200 dark:border-zinc-800 px-6 pt-6">
+                  <TabsList className="h-12 bg-zinc-100 dark:bg-zinc-800">
+                    <TabsTrigger value="overview" className="text-sm font-medium">
+                      Overview
+                    </TabsTrigger>
+                    {children && (
+                      <TabsTrigger value="code" className="text-sm font-medium">
+                        {entityTitle === 'agent' ? 'Agent Code' : 'Tool Code'}
+                      </TabsTrigger>
+                    )}
+                    {entityTitle === 'agent' && agentCode && (
+                      <TabsTrigger value="metadata" className="text-sm font-medium">
+                        JSON Metadata
+                      </TabsTrigger>
+                    )}
+                  </TabsList>
+                </div>
+                
+                <TabsContent value="overview" className="p-6 mt-0">
+                  {description && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Info className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                          About this {entityTitle}
+                        </h3>
+                      </div>
+                      <div className="bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                        <div className="prose prose-base dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                          <Markdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              // Override default link to open in new tab
+                              a: ({ node, ...props }) => (
+                                <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline" />
+                              ),
+                              // Style tables
+                              table: ({ node, ...props }) => (
+                                <div className="my-6 w-full overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+                                  <table {...props} className="w-full border-collapse text-sm" />
+                                </div>
+                              ),
+                              thead: ({ node, ...props }) => (
+                                <thead {...props} className="bg-zinc-100 dark:bg-zinc-800/50" />
+                              ),
+                              tr: ({ node, ...props }) => (
+                                <tr {...props} className="border-b border-zinc-200 dark:border-zinc-800" />
+                              ),
+                              th: ({ node, ...props }) => (
+                                <th {...props} className="border-r border-zinc-200 dark:border-zinc-800 px-4 py-2 text-left font-medium" />
+                              ),
+                              td: ({ node, ...props }) => (
+                                <td {...props} className="border-r border-zinc-200 dark:border-zinc-800 px-4 py-2" />
+                              ),
+                              // Style code blocks
+                              code: ({ node, className, children, ...props }: any) => {
+                                const match = /language-(\w+)/.exec(className || '');
+                                const isInline = !match && !className?.includes('code-block');
+                                return isInline ? (
+                                  <code 
+                                    {...props} 
+                                    className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-sm"
+                                  >
+                                    {children}
+                                  </code>
+                                ) : (
+                                  <div className="relative group">
+                                    <button 
+                                      onClick={() => copyToClipboard(children as string)}
+                                      className="absolute right-2 top-2 p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50 opacity-0 group-hover:opacity-100"
+                                      title="Copy code"
+                                    >
+                                      <Copy size={14} className="text-zinc-200" />
+                                    </button>
+                                    <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg overflow-hidden">
+                                      <div className="flex items-center justify-between px-4 py-2 bg-zinc-200 dark:bg-zinc-700/50 border-b border-zinc-300 dark:border-zinc-600">
+                                        <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                                          {match?.[1]?.toUpperCase() || 'CODE'}
+                                        </span>
+                                      </div>
+                                      <pre className="p-4 overflow-x-auto">
+                                        <code className={className} {...props}>
+                                          {children}
+                                        </code>
+                                      </pre>
+                                    </div>
+                                  </div>
+                                );
+                              },
+                              // Add spacing to paragraphs
+                              p: ({ node, ...props }) => (
+                                <p {...props} className="mb-4 last:mb-0 leading-relaxed" />
+                              ),
+                              // Style headings
+                              h1: ({ node, ...props }) => (
+                                <h1 {...props} className="text-2xl font-bold mt-8 mb-4" />
+                              ),
+                              h2: ({ node, ...props }) => (
+                                <h2 {...props} className="text-xl font-bold mt-8 mb-4" />
+                              ),
+                              h3: ({ node, ...props }) => (
+                                <h3 {...props} className="text-lg font-bold mt-6 mb-4" />
+                              ),
+                              h4: ({ node, ...props }) => (
+                                <h4 {...props} className="text-base font-bold mt-6 mb-4" />
+                              ),
+                              // Style lists
+                              ul: ({ node, ...props }) => (
+                                <ul {...props} className="list-disc pl-6 mb-4 last:mb-0 space-y-2" />
+                              ),
+                              ol: ({ node, ...props }) => (
+                                <ol {...props} className="list-decimal pl-6 mb-4 last:mb-0 space-y-2" />
+                              ),
+                              // Style blockquotes
+                              blockquote: ({ node, ...props }) => (
+                                <blockquote {...props} className="border-l-4 border-zinc-300 dark:border-zinc-700 pl-4 my-4 italic" />
+                              ),
+                              // Style horizontal rules
+                              hr: ({ node, ...props }) => (
+                                <hr {...props} className="my-8 border-zinc-200 dark:border-zinc-800" />
+                              ),
+                            }}
+                          >
+                            {description}
+                          </Markdown>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                {children && (
+                  <TabsContent value="code" className="p-6 mt-0">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                          <Code className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                            {entityTitle === 'agent' ? 'Agent Code' : 'Tool Code'}
+                          </h3>
+                          <p className="text-zinc-600 dark:text-zinc-400 text-sm">
+                            The main implementation code for this {entityTitle}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                        {children}
+                      </div>
+                    </div>
+                  </TabsContent>
+                )}
+                
+                {entityTitle === 'agent' && agentCode && (
+                  <TabsContent value="metadata" className="p-6 mt-0">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-gray-100 dark:bg-gray-800/30 rounded-lg">
+                            <FileText className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                              Agent Metadata (JSON)
+                            </h3>
+                            <p className="text-zinc-600 dark:text-zinc-400 text-sm">
+                              All metadata and code for this agent, as a JSON object
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              const jsonData = JSON.stringify({
+                                id,
+                                name,
+                                title,
+                                description,
+                                tags,
+                                requirements,
+                                usecases,
+                                language,
+                                userId,
+                                authorUsername: authorUsername || undefined,
+                                createdAt: createdAt || undefined,
+                                links,
+                                code: agentCode,
+                              }, null, 2);
+                              copyToClipboard(jsonData);
+                            }}
+                            className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
+                            title="Copy JSON to clipboard"
+                          >
+                            <Copy size={16} className="text-zinc-200" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              const jsonData = JSON.stringify({
+                                id,
+                                name,
+                                title,
+                                description,
+                                tags,
+                                requirements,
+                                usecases,
+                                language,
+                                userId,
+                                authorUsername: authorUsername || undefined,
+                                createdAt: createdAt || undefined,
+                                links,
+                                code: agentCode,
+                              }, null, 2);
+                              downloadFile(jsonData, `${id}.json`, 'application/json');
+                              toast.toast({ description: 'Downloaded as JSON file' });
+                            }}
+                            className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-colors duration-200 border border-zinc-700/50"
+                            title="Download as JSON file"
+                          >
+                            <FileDown size={16} className="text-zinc-200" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="bg-zinc-900 rounded-lg border border-zinc-800">
+                        <pre className="text-green-200 text-xs md:text-sm p-4 overflow-x-auto">
+                          {JSON.stringify({
+                            id,
+                            name,
+                            title,
+                            description,
+                            tags,
+                            requirements,
+                            usecases,
+                            language,
+                            userId,
+                            authorUsername: authorUsername || undefined,
+                            createdAt: createdAt || undefined,
+                            links,
+                            code: agentCode,
+                          }, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  </TabsContent>
+                )}
+              </Tabs>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                Prompt Agent Chat
-              </h2>
-              <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
-                Interact with this prompt in real-time. The AI will respond
-                based on the system prompt.
-              </p>
-            </div>
-          </div>
-          <ChatComponent promptId={id ?? ''} systemPrompt={prompt} />
-        </section>
-      )}
+          )}
 
-      {/* Comments Section */}
-      {id && (
-        <section className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-              <MessageSquare className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+          {/* Comments Section */}
+          {id && (
+            <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                  <MessageSquare className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                  Comments & Discussion
+                </h2>
+              </div>
+              <CommentList modelId={id} title={title} />
             </div>
-            <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              Comments & Discussion
-            </h2>
+          )}
+        </div>
+
+        {/* Right Sidebar - Entity Info */}
+        <div className="xl:col-span-3 xl:mt-0">
+          {/* Entity Info Card */}
+          <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 bg-white dark:bg-zinc-950/50 sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto space-y-6">
+            {/* Author Info */}
+            <div className="mb-6">
+              <h4 className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-3">Created by</h4>
+              <Avatar
+                userId={userId ?? ''}
+                showUsername
+                showBorder
+                className=""
+                title={`${title ?? ''} Author`}
+              />
+            </div>
+
+            {/* Description - Only show for prompts */}
+            {entityTitle === 'prompt' && description && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Info className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                  <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                    About this {entityTitle}
+                  </h3>
+                </div>
+                <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                  <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                    <Markdown remarkPlugins={[remarkGfm]}>
+                      {description}
+                    </Markdown>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tags */}
+            {tags && tags.length > 0 && (
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-3">Tags</h4>
+                <div className="flex gap-2 flex-wrap">
+                  {tags?.map(
+                    (tag) =>
+                      tag.trim() && (
+                        <div
+                          key={tag}
+                          className="text-xs px-2 py-1 rounded-full text-red-500/70 border border-red-500/70 bg-red-50 dark:bg-red-950/20"
+                        >
+                          {tag}
+                        </div>
+                      ),
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              {showEditButton && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShowEditModal}
+                  className="w-full flex items-center gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShowShareModal}
+                className="w-full flex items-center gap-2 bg-green-600 hover:bg-green-700 border-green-600"
+              >
+                <Share className="h-4 w-4 text-white" />
+                Share
+              </Button>
+              {id && user.data?.id && !reviewQuery?.data?.hasReviewed && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShowReviewModal}
+                  className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 border-blue-600"
+                >
+                  <Star className="h-4 w-4 text-white" />
+                  Rate
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShowReviewListModal}
+                className="w-full flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 border-yellow-600"
+              >
+                <Stars className="h-4 w-4 text-white" />
+                Reviews {reviewLength && reviewLength > 0 ? `(${reviewLength})` : ''}
+              </Button>
+              <BookmarkButton
+                id={id || ''}
+                type={entityTitle as 'prompt' | 'agent' | 'tool'}
+                name={name || title}
+                description={description}
+                created_at={new Date().toISOString()}
+                username={user?.data?.username || undefined}
+                tags={tags}
+              />
+              {prompt && (
+                <div className="relative group">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 border-indigo-600"
+                  >
+                    <ExternalLink className="h-4 w-4 text-white" />
+                    Export to AI
+                  </Button>
+                  <div className="absolute right-0 top-full mt-2 w-48 rounded-lg bg-zinc-800/95 border border-zinc-700/50 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => handleExportToAI('chatgpt')}
+                        className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        Export to ChatGPT
+                      </button>
+                      <button
+                        onClick={() => handleExportToAI('claude')}
+                        className="w-full px-4 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/50 transition-colors duration-200 flex items-center gap-2"
+                      >
+                        <Bot className="w-4 h-4" />
+                        Export to Claude
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Links */}
+            {links && links.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center gap-2 mb-3">
+                  <Link className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                    Related Links
+                  </span>
+                </div>
+                <EntityLinks links={links} />
+              </div>
+            )}
+
+            {/* Rating */}
+            {modelRating && modelRating > 0 && (
+              <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Stars className="h-4 w-4 text-yellow-500" />
+                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Rating</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ReactStars
+                    value={modelRating}
+                    isEdit={false}
+                    activeColors={['red', 'orange', '#FFCE00', '#9177FF', '#8544FF']}
+                    size={16}
+                  />
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                    ({reviewLength} {reviewTextEnd})
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Use Cases */}
+            {usecases && usecases?.some((uc) => uc?.title?.trim() !== '') && (
+              <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                    Use Cases
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {usecases?.map((usecase, index) => (
+                    <div
+                      key={index}
+                      className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50"
+                    >
+                      <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 text-sm">
+                        {usecase?.title}
+                      </h4>
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                        {usecase?.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Requirements */}
+            {(title.toLowerCase() === 'agent' || title.toLowerCase() === 'tool') && requirements && (
+              <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <Info className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                    Requirements
+                  </h3>
+                </div>
+                <AgentRequirements requirements={requirements as RequirementProps[]} />
+              </div>
+            )}
           </div>
-          <CommentList modelId={id} title={title} />
-        </section>
-      )}
+        </div>
+      </div>
 
       {/* Recommendations Section */}
       {id && title && (
-        <RecommendedItems 
-          currentId={id} 
-          type={title.toLowerCase() as 'prompt' | 'agent' | 'tool'} 
+        <div className="px-2 md:px-4 lg:px-6 xl:px-8 mt-8">
+          <RecommendedItems 
+            currentId={id} 
+            type={title.toLowerCase() as 'prompt' | 'agent' | 'tool'} 
+          />
+        </div>
+      )}
+
+
+      {/* Modals */}
+      <ListReview
+        reviews={reviews.data as ReviewProps[]}
+        isOpen={isReviewListModal}
+        onClose={handleCloseReviewListModal}
+      />
+
+      {!reviewQuery?.data?.hasReviewed && (
+        <AddRatingModal
+          id={id ?? ''}
+          handleRefetch={handleRefetch}
+          open={isReviewModal}
+          setOpen={setIsReviewModal}
+          modelType={entityTitle}
         />
       )}
+      <EditExplorerModal
+        entityId={id ?? ''}
+        entityType={entityTitle as EntityType}
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        onEditSuccessfully={onEditSuccessfully}
+        key={id}
+      />
 
       {/* Share Modal */}
       <ShareModal

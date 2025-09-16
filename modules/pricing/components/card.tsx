@@ -133,7 +133,7 @@ export default function PricingCard({
     if (isEnterprise) {
       return (
         <Link
-          href="https://cal.com/swarms"
+          href="https://cal.com/swarms/swarms-onboarding-session?overlayCalendar=true"
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
