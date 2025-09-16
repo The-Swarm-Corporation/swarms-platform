@@ -2,6 +2,9 @@
   "name": "swarms-marketplace",
   "version": "0.0.0",
   "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "next dev --turbo",
     "build": "next build",

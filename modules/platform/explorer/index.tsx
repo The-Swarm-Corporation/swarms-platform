@@ -240,7 +240,7 @@ const Explorer = () => {
                         Swarms Marketplace
                       </h1>
                       <p className="text-base md:text-xl text-red-100/80">
-                        Search and discover tools, agents, and prompts.
+                        Create, discover, and monetize your tools, agents, and prompts.
                       </p>
                     </div>
                   </div>
