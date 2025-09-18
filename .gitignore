@@ -15,6 +15,7 @@
 # production
 /build
 
+mobile-app
 # misc
 swarms-marketplace@0.0.0
 .DS_Store

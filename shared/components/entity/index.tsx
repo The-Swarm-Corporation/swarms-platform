@@ -1123,7 +1123,7 @@ print(result)`}
                   </h3>
                 </div>
                 <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                  <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                  <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 break-words overflow-wrap-anywhere">
                     <Markdown remarkPlugins={[remarkGfm]}>
                       {description}
                     </Markdown>
